@@ -33,9 +33,9 @@ PW.config = {
   RUN_BASE_CHANCE   = 0.5,       -- cơ sở tỉ lệ chạy thoát (điều chỉnh theo speed)
   CRIT_CHANCE       = 1/24,
 
-  -- GM: điền uid thật của host/admin vào đây
+  -- GM: điền uid (mini number) của host/admin vào đây
   GM_LIST           = {
-    -- ["uid_cua_host"] = true,
+    ["321231574"] = true,   -- thanhtinz (host)
   },
 
   -- Debug
