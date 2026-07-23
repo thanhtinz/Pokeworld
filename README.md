@@ -24,6 +24,14 @@ Thiết kế chi tiết: xem [`docs/DESIGN.md`](docs/DESIGN.md).
 | `70_systems/` | Quest engine, daily, gym/badge, economy, event mùa, leaderboard |
 | `90_main/` | Router lệnh chat (`.help`, `.gm ...`), hooks event, bootstrap |
 
+## Build file release cho editor
+
+```bash
+./tools/build.sh   # tạo dist/PokeWorld_all_in_one.lua (paste 1 script) + dist/PokeWorld_scripts.zip
+```
+
+Mỗi lần push lên `main`, GitHub Actions tự test + build + đính 2 file trên vào Release `latest`. Đánh tag `v1.0.0` để ra release chính thức.
+
 ## Chạy thử offline (không cần CREATA)
 
 ```bash

@@ -1,0 +1,71 @@
+name: Build & Release PokeWorld
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # cần tag cho git describe
+
+      - name: Cài Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1 zip
+
+      - name: Chạy smoke test (harness)
+        run: lua5.1 tools/harness.lua
+
+      - name: Build bundle
+        run: |
+          # build.sh dùng lua/luac — trỏ về bản 5.1
+          sudo ln -sf "$(command -v lua5.1)" /usr/local/bin/lua
+          sudo ln -sf "$(command -v luac5.1)" /usr/local/bin/luac
+          ./tools/build.sh
+
+      - name: Lưu artifact (mọi lần chạy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: PokeWorld-build
+          path: dist/
+
+      # Push lên main -> cập nhật release "latest" (rolling)
+      - name: Release latest
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "PokeWorld — bản mới nhất"
+          body: |
+            Bản build tự động từ nhánh `main` (commit ${{ github.sha }}).
+
+            **Cách dùng:**
+            - `PokeWorld_all_in_one.lua` — paste toàn bộ vào **1 script Lua** trong Developer Editor của Mini World: CREATA.
+            - `PokeWorld_scripts.zip` — hoặc giải nén, tạo mỗi file 1 script trong editor **theo đúng thứ tự tên** (00_ → 99_).
+
+            Sau khi thêm script: điền `GM_LIST` trong phần config, gán `model_id` sinh vật, chỉnh tọa độ zone theo map. Chi tiết xem README.
+          prerelease: true
+          files: |
+            dist/PokeWorld_all_in_one.lua
+            dist/PokeWorld_scripts.zip
+
+      # Push tag v* -> release chính thức theo version
+      - name: Release theo tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "PokeWorld ${{ github.ref_name }}"
+          body: |
+            **Cách dùng:**
+            - `PokeWorld_all_in_one.lua` — paste toàn bộ vào **1 script Lua** trong Developer Editor của Mini World: CREATA.
+            - `PokeWorld_scripts.zip` — hoặc giải nén, tạo mỗi file 1 script theo đúng thứ tự tên (00_ → 99_).
+          files: |
+            dist/PokeWorld_all_in_one.lua
+            dist/PokeWorld_scripts.zip
