@@ -85,6 +85,55 @@ function C.cancel_menu(uid)
   C.pending_menu[uid] = nil
 end
 
+-- ============ Router click button UI thật ============
+-- Event CREATA "UI.Button.Click" (91_hooks đăng ký, emit "ui_click" nội bộ).
+-- Các màn UI gọi C.bind_button("<elementid>", fn(uid)) để nhận click từ
+-- button vẽ trong UI editor. elementid là id element cấu hình trong editor.
+
+local button_routes = {}
+
+function C.bind_button(element_id, fn)
+  button_routes[tostring(element_id)] = fn
+end
+
+PW.hooks.on("ui_click", function(uid, element_id)
+  local fn = button_routes[tostring(element_id)]
+  if not fn then return end
+  local ok, err = pcall(fn, uid)
+  if not ok and PW.log then PW.log.warn("ui_click %s loi: %s", tostring(element_id), tostring(err)) end
+end)
+
+-- Bind sẵn bộ button chuẩn: trong UI editor chỉ cần đặt id element trùng
+-- các tên dưới đây là hoạt động, không phải sửa script.
+local function open_screen(mod, fn_name)
+  return function(uid)
+    local m = PW.ui and PW.ui[mod]
+    if m and m[fn_name or "open"] then m[fn_name or "open"](uid) end
+  end
+end
+C.bind_button("btn_party", open_screen("party"))
+C.bind_button("btn_bag",   open_screen("bag"))
+C.bind_button("btn_dex",   open_screen("dex"))
+C.bind_button("btn_quest", open_screen("quest"))
+C.bind_button("btn_pc",    open_screen("pc"))
+C.bind_button("btn_shop",  open_screen("shop"))
+
+-- Button trong trận: btn_move_1..4, btn_switch, btn_bag_battle, btn_run
+for i = 1, 4 do
+  C.bind_button("btn_move_" .. i, function(uid)
+    if PW.battle_ctrl then PW.battle_ctrl.submit(uid, { t = "move", i = i }) end
+  end)
+end
+C.bind_button("btn_run", function(uid)
+  if PW.battle_ctrl then PW.battle_ctrl.submit(uid, { t = "run" }) end
+end)
+C.bind_button("btn_bag_battle", function(uid)
+  if PW.ui and PW.ui.bag and PW.ui.bag.open_in_battle then PW.ui.bag.open_in_battle(uid) end
+end)
+C.bind_button("btn_switch", function(uid)
+  if PW.ui and PW.ui.party then PW.ui.party.open(uid) end
+end)
+
 -- ============ Helper ============
 
 -- Cắt trang: trả về slice, total_pages

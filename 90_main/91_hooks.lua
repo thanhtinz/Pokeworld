@@ -119,6 +119,13 @@ function hooks.bind_engine()
   reg("Player.AreaIn",  function(e) hooks.emit("area_in", e.eventobjid, e.areaid) end)
   reg("Player.AreaOut", function(e) hooks.emit("area_out", e.eventobjid, e.areaid) end)
 
+  -- Click button trong Custom UI (UI editor). Tên field id element khác nhau
+  -- giữa các bản docs — thử lần lượt các biến thể đã thấy.
+  reg("UI.Button.Click", function(e)
+    local element_id = e.uielement or e.btnelement or e.elementid or e.uielementid
+    hooks.emit("ui_click", e.eventobjid, element_id)
+  end)
+
   -- Khởi động game
   reg("Game.Start", function() hooks.emit("game_start") end)
   return true
