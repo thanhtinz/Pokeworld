@@ -18,16 +18,14 @@ local W = PW.wild_battle
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: Chat.sendTo(uid, text)
+-- CREATA-API: PW.creata.send(uid, text)
 function api.send_message(uid, text)
-  if _G.Chat and Chat.sendTo then pcall(Chat.sendTo, uid, text) end
+  PW.creata.send(uid, text)
 end
 
--- CREATA-API: Player.teleport(uid, x, y, z)
+-- CREATA-API: PW.creata.teleport(uid, pos)
 function api.teleport(uid, pos)
-  if _G.Player and Player.teleport then
-    pcall(Player.teleport, uid, pos.x, pos.y, pos.z)
-  end
+  PW.creata.teleport(uid, pos)
 end
 
 local LOSE_MONEY = 100  -- tiền mất khi thua trận wild

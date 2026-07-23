@@ -8,27 +8,42 @@ local cache = {}       -- uid -> player data đang load trong RAM
 local dirty = {}       -- uid -> true (có thay đổi chưa lưu)
 local KEY_PREFIX = "pw_save_"
 
--- ==== Adapter Archive/Cloud của CREATA ====
--- CREATA-API: Archive:setValue(key, str) / Archive:getValue(key)
--- (tên thật cần đối chiếu docs CREATA — Cloud/Archive/DataStorage)
-local function raw_write(key, str)
-  if _G.Archive and Archive.setValue then
-    local ok, err = pcall(Archive.setValue, key, str)
-    if not ok then PW.log.warn("store: ghi Archive loi: %s", tostring(err)) end
-    return ok
+-- ==== Adapter lưu trữ K/V của CREATA ====
+-- CREATA-API: CloudSever — kho K/V + bảng xếp hạng, CHỈ bền vững khi map chạy
+-- trên phòng cloud server; phòng thường/solo thì data mất khi đóng room
+-- (theo docs "K/V存储和排行榜" của developers.mini1.cn).
+-- Tên method dạng set/get theo key — thử lần lượt vài biến thể tên đã thấy
+-- trong docs index; sai tên chỉ log warn rồi rơi về RAM (không crash).
+local WRITE_METHODS = { "setDataByKey", "setTableKV", "setGameData" }
+local READ_METHODS  = { "getDataByKey", "getTableKV", "getGameData" }
+
+local function cloud_call(methods, key, ...)
+  local cs = _G.CloudSever or _G.CloudServer
+  if not cs then return nil end
+  for _, m in ipairs(methods) do
+    if cs[m] then
+      local res = { pcall(cs[m], cs, key, ...) }
+      if res[1] then return true, unpack(res, 2) end
+      PW.log.warn("store: CloudSever:%s loi: %s", m, tostring(res[2]))
+    end
   end
-  -- Fallback dev (chưa map API): giữ trong bảng RAM để test offline
+  return nil
+end
+
+local function raw_write(key, str)
+  if cloud_call(WRITE_METHODS, key, str) then return true end
+  -- Fallback dev / phòng thường: giữ trong RAM để test
   store._dev_mem = store._dev_mem or {}
   store._dev_mem[key] = str
   return true
 end
 
 local function raw_read(key)
-  if _G.Archive and Archive.getValue then
-    local ok, res = pcall(Archive.getValue, key)
-    if ok then return res end
-    PW.log.warn("store: doc Archive loi: %s", tostring(res))
-    return nil
+  local ok, ret, val = cloud_call(READ_METHODS, key)
+  if ok then
+    -- Tùy API trả (ret, value) hay (value): ưu tiên chuỗi
+    if type(val) == "string" then return val end
+    if type(ret) == "string" then return ret end
   end
   store._dev_mem = store._dev_mem or {}
   return store._dev_mem[key]

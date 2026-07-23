@@ -19,9 +19,9 @@ local T = PW.trainer_battle
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: Chat.sendTo(uid, text)
+-- CREATA-API: PW.creata.send(uid, text)
 function api.send_message(uid, text)
-  if _G.Chat and Chat.sendTo then pcall(Chat.sendTo, uid, text) end
+  PW.creata.send(uid, text)
 end
 
 -- Dựng đội của trainer từ def (schema 18_trainers: party = { {sp=, lv=}, ... })

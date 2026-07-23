@@ -7,11 +7,9 @@ local A = PW.wild_ai
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: Actor:moveTo(x, y, z) / World.moveCreature(actor_id, x, y, z)
+-- CREATA-API: PW.creata.move_to(objid, pos, speed)
 function api.move_actor(actor_id, pos)
-  if _G.World and World.moveCreature then
-    pcall(World.moveCreature, actor_id, pos.x, pos.y, pos.z)
-  end
+  PW.creata.move_to(actor_id, pos)
 end
 
 A.WANDER_RADIUS = 5      -- bán kính lang thang quanh điểm spawn

@@ -4,23 +4,17 @@ local PW = _G.PW or {}; _G.PW = PW
 PW.spawner = PW.spawner or {}
 local S = PW.spawner
 
--- ============ Adapter CREATA (stub, chưa map API thật) ============
+-- ============ Adapter CREATA (ủy quyền PW.creata) ============
 local api = {}
 
--- CREATA-API: World.spawnCreature(model_id, x, y, z) -> actor_id
+-- CREATA-API: PW.creata.spawn_creature(actor_type_id, pos) -> objid|nil
 function api.spawn_actor(model_id, pos)
-  if _G.World and World.spawnCreature then
-    local ok, id = pcall(World.spawnCreature, model_id, pos.x, pos.y, pos.z)
-    if ok then return id end
-  end
-  return nil
+  return PW.creata.spawn_creature(model_id, pos)
 end
 
--- CREATA-API: World.despawnCreature(actor_id) / Actor:remove()
+-- CREATA-API: PW.creata.despawn(objid)
 function api.despawn_actor(actor_id)
-  if _G.World and World.despawnCreature then
-    pcall(World.despawnCreature, actor_id)
-  end
+  PW.creata.despawn(actor_id)
 end
 
 -- ============ Trạng thái nội bộ ============

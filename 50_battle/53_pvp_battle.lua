@@ -26,27 +26,23 @@ local P = PW.pvp
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: Chat.sendTo(uid, text)
+-- CREATA-API: PW.creata.send(uid, text)
 function api.send_message(uid, text)
-  if _G.Chat and Chat.sendTo then pcall(Chat.sendTo, uid, text) end
+  PW.creata.send(uid, text)
 end
 
--- CREATA-API: Player.getAll() -> mảng uid
+-- Danh sách người chơi online: duyệt PW.online (91_hooks cập nhật)
 function api.get_players()
-  if _G.Player and Player.getAll then
-    local ok, list = pcall(Player.getAll)
-    if ok and type(list) == "table" then return list end
+  local out = {}
+  for uid in pairs(PW.online or {}) do
+    out[#out + 1] = uid
   end
-  return {}
+  return out
 end
 
--- CREATA-API: Player.getName(uid) -> tên hiển thị
+-- CREATA-API: PW.creata.player_name(uid) -> tên hiển thị
 function api.get_player_name(uid)
-  if _G.Player and Player.getName then
-    local ok, n = pcall(Player.getName, uid)
-    if ok and n then return n end
-  end
-  return tostring(uid)
+  return PW.creata.player_name(uid)
 end
 
 local INVITE_TTL = 60  -- giây

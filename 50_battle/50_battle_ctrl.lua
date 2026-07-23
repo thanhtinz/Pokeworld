@@ -32,16 +32,14 @@ local C = PW.battle_ctrl
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: Player.setMovementLocked(uid, bool) / Player:freeze()
+-- CREATA-API: PW.creata.lock_move(uid, locked)
 function api.lock_movement(uid, locked)
-  if _G.Player and Player.setMovementLocked then
-    pcall(Player.setMovementLocked, uid, locked)
-  end
+  PW.creata.lock_move(uid, locked)
 end
 
--- CREATA-API: Chat.sendTo(uid, text)
+-- CREATA-API: PW.creata.send(uid, text)
 function api.send_message(uid, text)
-  if _G.Chat and Chat.sendTo then pcall(Chat.sendTo, uid, text) end
+  PW.creata.send(uid, text)
 end
 
 C.active = C.active or {}  -- uid -> {battle=, side_idx=, kind=, actor_id=, trainer_id=, meta=}

@@ -48,7 +48,7 @@ end)
 -- Các callback thật của CREATA gọi vào hooks.emit. Tên API cần đối chiếu docs.
 -- Gói trong hàm bind để 99_init gọi sau khi mọi module load xong.
 function hooks.bind_engine()
-  -- CREATA-API: ScriptSupportEvent:registerEvent("Player.Join", fn)
+  -- CREATA-API: ScriptSupportEvent:registerEvent(ten_event, fn) — đã xác minh từ docs/script mẫu
   local SSE = _G.ScriptSupportEvent
   if not (SSE and SSE.registerEvent) then
     PW.log.warn("hooks: chua map API event CREATA — chay che do offline/dev")
@@ -58,12 +58,38 @@ function hooks.bind_engine()
     local ok, err = pcall(SSE.registerEvent, SSE, ev_name, fn)
     if not ok then PW.log.warn("hooks: dang ky %s loi: %s", ev_name, tostring(err)) end
   end
-  -- CREATA-API: tên event dưới đây là dự kiến, chỉnh theo docs thật
-  reg("Player.Join",       function(e) hooks.emit("join", e.eventobjid, e.playername) end)
-  reg("Player.Leave",      function(e) hooks.emit("leave", e.eventobjid) end)
-  reg("Player.NewInputContent", function(e) hooks.emit("chat", e.eventobjid, e.playername, e.content) end)
-  reg("Actor.ClickActor",  function(e) hooks.emit("touch_actor", e.eventobjid, e.actorid) end)
-  reg("Game.RunTime",      function() hooks.emit("tick_second") end)
+
+  -- Người chơi vào/rời room
+  reg("Game.AnyPlayer.EnterGame", function(e)
+    hooks.emit("join", e.eventobjid, PW.creata.player_name(e.eventobjid))
+  end)
+  reg("Game.AnyPlayer.LeaveGame", function(e)
+    hooks.emit("leave", e.eventobjid)
+  end)
+
+  -- Chat: e.content là nội dung người chơi gõ
+  reg("Player.NewInputContent", function(e)
+    local name = (PW.online[tostring(e.eventobjid)] or {}).name or PW.creata.player_name(e.eventobjid)
+    hooks.emit("chat", e.eventobjid, name, e.content)
+  end)
+
+  -- Người chơi click vào sinh vật: e.targetactorid là objid sinh vật bị click
+  reg("Player.ClickActor", function(e)
+    hooks.emit("touch_actor", e.eventobjid, e.targetactorid)
+  end)
+
+  -- Tick định kỳ của game (Game.RunTime bắn theo giây chạy game)
+  local last_sec = -1
+  reg("Game.RunTime", function(e)
+    local sec = e and e.second
+    if sec == nil or sec ~= last_sec then
+      last_sec = sec or last_sec
+      hooks.emit("tick_second")
+    end
+  end)
+
+  -- Khởi động game
+  reg("Game.Start", function() hooks.emit("game_start") end)
   return true
 end
 

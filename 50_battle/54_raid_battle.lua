@@ -18,25 +18,19 @@ local R = PW.raid
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: World.spawnCreature(model_id, x, y, z) -> actor_id
+-- CREATA-API: PW.creata.spawn_creature(actor_type_id, pos) -> objid|nil
 function api.spawn_actor(model_id, pos)
-  if _G.World and World.spawnCreature then
-    local ok, id = pcall(World.spawnCreature, model_id, pos.x, pos.y, pos.z)
-    if ok then return id end
-  end
-  return nil
+  return PW.creata.spawn_creature(model_id, pos)
 end
 
--- CREATA-API: World.despawnCreature(actor_id)
+-- CREATA-API: PW.creata.despawn(objid)
 function api.despawn_actor(actor_id)
-  if _G.World and World.despawnCreature then
-    pcall(World.despawnCreature, actor_id)
-  end
+  PW.creata.despawn(actor_id)
 end
 
--- CREATA-API: Chat.broadcast(text)
+-- CREATA-API: PW.creata.broadcast(text)
 function api.broadcast(text)
-  if _G.Chat and Chat.broadcast then pcall(Chat.broadcast, text) end
+  PW.creata.broadcast(text)
 end
 
 R.current = nil  -- boss đang hoạt động (chỉ 1 boss/room)

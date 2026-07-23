@@ -14,12 +14,10 @@ local D = PW.daynight
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: World.getHours() -> giờ trong ngày game (0-23)
+-- CREATA-API: PW.creata.hours() -> number|nil (nil = engine chưa có, dùng fallback chu kỳ)
 function api.get_hours()
-  if _G.World and World.getHours then
-    local ok, h = pcall(World.getHours)
-    if ok and type(h) == "number" then return h end
-  end
+  local h = PW.creata.hours()
+  if type(h) == "number" then return h end
   return nil
 end
 
@@ -32,9 +30,9 @@ function api.get_weather()
   return nil
 end
 
--- CREATA-API: Chat.broadcast(text)
+-- CREATA-API: PW.creata.broadcast(text)
 function api.broadcast(text)
-  if _G.Chat and Chat.broadcast then pcall(Chat.broadcast, text) end
+  PW.creata.broadcast(text)
 end
 
 -- Fallback: 20 phút thực = 1 ngày game (1200 giây), nửa đầu là ngày

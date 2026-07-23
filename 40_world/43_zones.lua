@@ -19,27 +19,23 @@ local Z = PW.zones
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: Player.getAll() -> mảng uid / Room.getPlayers()
+-- Danh sách người chơi online: duyệt PW.online (91_hooks cập nhật)
 function api.get_players()
-  if _G.Player and Player.getAll then
-    local ok, list = pcall(Player.getAll)
-    if ok and type(list) == "table" then return list end
+  local out = {}
+  for uid in pairs(PW.online or {}) do
+    out[#out + 1] = uid
   end
-  return {}
+  return out
 end
 
--- CREATA-API: Player.getPosition(uid) -> x, y, z
+-- CREATA-API: PW.creata.player_pos(uid) -> {x,y,z}|nil
 function api.get_player_pos(uid)
-  if _G.Player and Player.getPosition then
-    local ok, x, y, z = pcall(Player.getPosition, uid)
-    if ok and x then return { x = x, y = y, z = z or 0 } end
-  end
-  return nil
+  return PW.creata.player_pos(uid)
 end
 
--- CREATA-API: Chat.sendTo(uid, text)
+-- CREATA-API: PW.creata.send(uid, text)
 function api.send_message(uid, text)
-  if _G.Chat and Chat.sendTo then pcall(Chat.sendTo, uid, text) end
+  PW.creata.send(uid, text)
 end
 
 -- Bounding box các zone — TỌA ĐỘ PLACEHOLDER, cần chỉnh lại theo map thật!

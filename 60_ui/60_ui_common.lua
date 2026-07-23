@@ -16,53 +16,27 @@ local C = PW.ui_common
 -- Hàng đợi menu đang chờ trả lời: uid -> {options=, cb=}
 C.pending_menu = C.pending_menu or {}
 
--- ============ Adapter CREATA (stub, chưa map API thật) ============
+-- ============ Adapter CREATA (ủy quyền PW.creata) ============
 
 -- Gửi text tới 1 người chơi
--- CREATA-API: Chat:sendSystemMsg(uid, text) / Player:notify(text)
+-- CREATA-API: PW.creata.send(uid, text)
 function C.msg(uid, text)
   if text == nil then return end
-  local sent = false
-  if _G.Chat and Chat.sendSystemMsg then
-    local ok = pcall(Chat.sendSystemMsg, Chat, uid, text)
-    sent = ok
-  end
-  if not sent and _G.Player and Player.notify then
-    local ok = pcall(Player.notify, Player, uid, text)
-    sent = ok
-  end
-  if not sent then
-    -- Fallback: in ra console host
-    pcall(print, "[PW->" .. tostring(uid) .. "] " .. tostring(text))
-  end
+  PW.creata.send(uid, text)
 end
 
--- Mở custom UI panel
--- CREATA-API: Customui:showUI(uid, panel_id) / UI:createPanel(uid, panel_id, data)
+-- Mở custom UI panel (panel_id chính là uiid trong editor)
+-- CREATA-API: PW.creata.open_ui(uid, uiid)
 function C.open_panel(uid, panel_id, data)
-  if _G.Customui and Customui.showUI then
-    local ok = pcall(Customui.showUI, Customui, uid, panel_id, data)
-    if ok then return true end
-  end
-  if _G.UI and UI.createPanel then
-    local ok = pcall(UI.createPanel, UI, uid, panel_id, data)
-    if ok then return true end
-  end
+  if PW.creata.open_ui(uid, panel_id) then return true end
   -- Fallback: không có UI engine, caller tự render qua chat
   return false
 end
 
 -- Đóng custom UI panel
--- CREATA-API: Customui:hideUI(uid, panel_id) / UI:closePanel(uid, panel_id)
+-- CREATA-API: PW.creata.hide_ui(uid, uiid)
 function C.close_panel(uid, panel_id)
-  if _G.Customui and Customui.hideUI then
-    local ok = pcall(Customui.hideUI, Customui, uid, panel_id)
-    if ok then return true end
-  end
-  if _G.UI and UI.closePanel then
-    local ok = pcall(UI.closePanel, UI, uid, panel_id)
-    if ok then return true end
-  end
+  if PW.creata.hide_ui(uid, panel_id) then return true end
   return false
 end
 

@@ -20,18 +20,14 @@ local N = PW.npc
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: World.spawnCreature(model_id, x, y, z) -> actor_id
+-- CREATA-API: PW.creata.spawn_creature(actor_type_id, pos) -> objid|nil
 function api.spawn_actor(model_id, pos)
-  if _G.World and World.spawnCreature then
-    local ok, id = pcall(World.spawnCreature, model_id, pos.x, pos.y, pos.z)
-    if ok then return id end
-  end
-  return nil
+  return PW.creata.spawn_creature(model_id, pos)
 end
 
--- CREATA-API: Chat.sendTo(uid, text)
+-- CREATA-API: PW.creata.send(uid, text)
 function api.send_message(uid, text)
-  if _G.Chat and Chat.sendTo then pcall(Chat.sendTo, uid, text) end
+  PW.creata.send(uid, text)
 end
 
 -- Định nghĩa NPC — model_id và pos là PLACEHOLDER, chỉnh theo map thật

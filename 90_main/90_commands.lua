@@ -38,8 +38,7 @@ local function msg(uid, text)
   else print("[PW->" .. tostring(uid) .. "] " .. text) end
 end
 
--- Tìm uid theo tên hiển thị (adapter danh sách người chơi)
--- CREATA-API: Player:getAllPlayers() / Player:getNickname(uid)
+-- Tìm uid theo tên hiển thị (duyệt PW.online do 91_hooks cập nhật)
 function commands.find_player(name)
   if PW.online then
     for uid, info in pairs(PW.online) do
@@ -48,6 +47,9 @@ function commands.find_player(name)
   end
   return nil
 end
+
+-- Vị trí người chơi. CREATA-API: PW.creata.player_pos(uid) -> {x,y,z}|nil
+commands.player_pos = PW.creata.player_pos
 
 -- Xử lý 1 dòng chat. Trả về true nếu là lệnh (đã xử lý, chặn hiển thị chat).
 function commands.handle_chat(uid, name, text)

@@ -16,41 +16,29 @@ local F = PW.follower
 -- ============ Adapter CREATA ============
 local api = {}
 
--- CREATA-API: Player.getPosition(uid) -> x, y, z
+-- CREATA-API: PW.creata.player_pos(uid) -> {x,y,z}|nil
 function api.get_player_pos(uid)
-  if _G.Player and Player.getPosition then
-    local ok, x, y, z = pcall(Player.getPosition, uid)
-    if ok and x then return { x = x, y = y, z = z or 0 } end
-  end
-  return nil
+  return PW.creata.player_pos(uid)
 end
 
--- CREATA-API: World.spawnCreature(model_id, x, y, z) -> actor_id
+-- CREATA-API: PW.creata.spawn_creature(actor_type_id, pos) -> objid|nil
 function api.spawn_actor(model_id, pos)
-  if _G.World and World.spawnCreature then
-    local ok, id = pcall(World.spawnCreature, model_id, pos.x, pos.y, pos.z)
-    if ok then return id end
-  end
-  return nil
+  return PW.creata.spawn_creature(model_id, pos)
 end
 
--- CREATA-API: World.despawnCreature(actor_id)
+-- CREATA-API: PW.creata.despawn(objid)
 function api.despawn_actor(actor_id)
-  if _G.World and World.despawnCreature then
-    pcall(World.despawnCreature, actor_id)
-  end
+  PW.creata.despawn(actor_id)
 end
 
--- CREATA-API: World.moveCreature(actor_id, x, y, z)
+-- CREATA-API: PW.creata.move_to(objid, pos, speed)
 function api.move_actor(actor_id, pos)
-  if _G.World and World.moveCreature then
-    pcall(World.moveCreature, actor_id, pos.x, pos.y, pos.z)
-  end
+  PW.creata.move_to(actor_id, pos)
 end
 
--- CREATA-API: Chat.sendTo(uid, text)
+-- CREATA-API: PW.creata.send(uid, text)
 function api.send_message(uid, text)
-  if _G.Chat and Chat.sendTo then pcall(Chat.sendTo, uid, text) end
+  PW.creata.send(uid, text)
 end
 
 F.actors = F.actors or {}  -- uid -> {actor_id=, slot=}
