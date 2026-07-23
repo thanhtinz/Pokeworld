@@ -66,15 +66,28 @@ function creata.player_name(uid)
   return info and info.name or tostring(uid)
 end
 
--- Dịch chuyển người chơi. CREATA-API: Actor:setPosition(objid, x, y, z)
+-- Dịch chuyển người chơi. CREATA-API: Player:setPosition(objid, x, y, z)
 function creata.teleport(uid, pos)
+  if try("Player", "setPosition", uid, pos.x, pos.y, pos.z) then return true end
   return (try("Actor", "setPosition", uid, pos.x, pos.y, pos.z))
 end
 
--- Khóa/mở di chuyển: CREATA chưa thấy API trực tiếp — dùng buff/thuộc tính tốc độ nếu có.
--- CREATA-API: Actor:setActionAttrState(objid, attr, bool) (cần xác nhận enum attr)
+-- Khóa/mở di chuyển (dùng khi vào trận đấu).
+-- CREATA-API: Player:setActionAttrState(objid, actionattr, switch)
+--   actionattr theo enum PLAYERATTR: ENABLE_MOVE=1, ENABLE_ATTACK=32
+local ATTR_ENABLE_MOVE   = (_G.PLAYERATTR and PLAYERATTR.ENABLE_MOVE) or 1
+local ATTR_ENABLE_ATTACK = (_G.PLAYERATTR and PLAYERATTR.ENABLE_ATTACK) or 32
 function creata.lock_move(uid, locked)
-  return (try("Actor", "setActionAttrState", uid, 1, not locked))
+  local ok = try("Player", "setActionAttrState", uid, ATTR_ENABLE_MOVE, not locked)
+  -- Khóa luôn tấn công tay trong trận cho khỏi phá sinh vật xung quanh
+  try("Player", "setActionAttrState", uid, ATTR_ENABLE_ATTACK, not locked)
+  return ok
+end
+
+-- Cộng item thật vào túi engine (nếu muốn thưởng vật phẩm CREATA thật thay vì bag ảo).
+-- CREATA-API: Player:gainItems(objid, itemid, num, prioritytype)
+function creata.gain_item(uid, engine_item_id, n)
+  return (try("Player", "gainItems", uid, engine_item_id, n or 1, 1))
 end
 
 -- Phát nhạc/âm thanh cho người chơi. CREATA-API: Player:playMusic(objid, id, vol, pitch, loop)

@@ -30,6 +30,27 @@ hooks.on("chat", function(uid, name, text)
   return PW.commands.handle_chat(uid, name, text)
 end)
 
+-- Ấp trứng theo bước chân (Player.MoveOneBlockSize)
+PW.loc = PW.loc or {}
+PW.loc["breed.hatched"] = PW.loc["breed.hatched"] or "Trứng nở rồi! %s chào đời!"
+hooks.on("player_step", function(uid)
+  local p = PW.store.get(uid)
+  if not p or not p.eggs or #p.eggs == 0 then return end
+  for i = #p.eggs, 1, -1 do
+    if PW.breeding.step(p.eggs[i], 1) then
+      local egg = table.remove(p.eggs, i)
+      local info = PW.online[tostring(uid)]
+      local mon = PW.breeding.hatch(egg, uid, info and info.name)
+      if mon then
+        PW.party.add(p, mon)
+        if PW.dex then PW.dex.mark_caught(p, mon.sp) end
+        PW.creata.send(uid, PW.T("breed.hatched", PW.pokemon.name(mon)))
+      end
+      PW.store.mark_dirty(uid)
+    end
+  end
+end)
+
 -- Autosave mỗi 60 giây + cộng playtime
 local autosave_counter = 0
 hooks.on("tick_second", function()
@@ -87,6 +108,16 @@ function hooks.bind_engine()
       hooks.emit("tick_second")
     end
   end)
+
+  -- Người chơi đi được 1 block: dùng đếm bước ấp trứng (27_breeding)
+  reg("Player.MoveOneBlockSize", function(e)
+    hooks.emit("player_step", e.eventobjid)
+  end)
+
+  -- Vào/ra vùng Area tạo trong editor (tùy chọn — nếu map dùng Area thay
+  -- bounding box của 43_zones thì map areaid -> zone id tại đây)
+  reg("Player.AreaIn",  function(e) hooks.emit("area_in", e.eventobjid, e.areaid) end)
+  reg("Player.AreaOut", function(e) hooks.emit("area_out", e.eventobjid, e.areaid) end)
 
   -- Khởi động game
   reg("Game.Start", function() hooks.emit("game_start") end)
