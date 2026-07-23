@@ -36,9 +36,9 @@ function creata.send(uid, text)
   return false
 end
 
--- Gửi tin cho cả room. CREATA-API: Chat:sendSystemMsg(text) (không kèm objid)
+-- Gửi tin cho cả room. CREATA-API: Chat:sendSystemMsg(text, 0) — uin 0 = tất cả
 function creata.broadcast(text)
-  if try("Chat", "sendSystemMsg", text) then return true end
+  if try("Chat", "sendSystemMsg", text, 0) then return true end
   print("[PW->ALL] " .. tostring(text))
   return false
 end
@@ -108,9 +108,10 @@ function creata.spawn_creature(actor_type_id, pos)
   return nil
 end
 
--- Xóa sinh vật. CREATA-API: World:despawnCreature(objid) (hoặc Actor:killSelf(objid))
+-- Xóa sinh vật. CREATA-API: World:despawnCreature(objid) / World:despawnActor(objid)
 function creata.despawn(objid)
   if try("World", "despawnCreature", objid) then return true end
+  if try("World", "despawnActor", objid) then return true end
   return (try("Actor", "killSelf", objid))
 end
 
@@ -142,11 +143,17 @@ end
 
 -- ==== Thế giới ====
 
--- Giờ trong game. CREATA-API: World:getHours() -> ret, hour (tên cần xác nhận)
+-- Giờ trong game (0-23). CREATA-API: World:getHours() — đã xác nhận trong docs World;
+-- kèm World:setHours(h) nếu cần chỉnh giờ.
 function creata.hours()
   local ok, ret, h = try("World", "getHours")
   if ok then return h or ret end
   return nil
+end
+
+-- Đặt giờ trong game. CREATA-API: World:setHours(hour)
+function creata.set_hours(h)
+  return (try("World", "setHours", h))
 end
 
 -- ==== Custom UI ====
