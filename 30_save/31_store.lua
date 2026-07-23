@@ -9,67 +9,87 @@ local dirty = {}       -- uid -> true (có thay đổi chưa lưu)
 local KEY_PREFIX = "pw_save_"
 
 -- ==== Adapter lưu trữ K/V của CREATA ====
--- CREATA-API: CloudSever — kho K/V + bảng xếp hạng, CHỈ bền vững khi map chạy
--- trên phòng cloud server; phòng thường/solo thì data mất khi đóng room
--- (theo docs "K/V存储和排行榜" của developers.mini1.cn).
--- Tên method dạng set/get theo key — thử lần lượt vài biến thể tên đã thấy
--- trong docs index; sai tên chỉ log warn rồi rơi về RAM (không crash).
-local WRITE_METHODS = { "setDataByKey", "setTableKV", "setGameData" }
-local READ_METHODS  = { "getDataByKey", "getTableKV", "getGameData" }
+-- CREATA-API: CloudSever (script 2.0) — kho K/V dạng bảng dữ liệu:
+--   CloudSever:SetDataListBykey(key, value)            — ghi theo key
+--   CloudSever:GetDataListByKey(key, callback)         — đọc ASYNC, callback(ret, k, v)
+--                                                        ret: 0 thành công, 2 chưa có data
+--   (bảng xếp hạng: setOrderDataBykey / getOrderDataByKeyEx / getOrderDataIndexArea)
+-- LƯU Ý QUAN TRỌNG:
+--   1. Data chỉ bền vững khi map chạy trên PHÒNG CLOUD SERVER; phòng thường/solo
+--      data mất khi đóng room (docs "K/V存储和排行榜").
+--   2. UGC 3.0 dùng interface Data.Map thay CloudSever — KHÔNG trộn 2 loại
+--      (docs cảnh báo mất data). Nếu map của bạn là UGC 3.0, sửa 2 hàm dưới.
+-- Tên method thử theo vài biến thể hoa/thường vì docs ghi không nhất quán.
+local WRITE_METHODS = { "SetDataListBykey", "setDataListBykey", "SetDataListByKey", "setDataListByKey" }
+local READ_METHODS  = { "GetDataListByKey", "getDataListByKey", "GetDataListBykey", "getDataListBykey" }
 
-local function cloud_call(methods, key, ...)
-  local cs = _G.CloudSever or _G.CloudServer
-  if not cs then return nil end
-  for _, m in ipairs(methods) do
-    if cs[m] then
-      local res = { pcall(cs[m], cs, key, ...) }
-      if res[1] then return true, unpack(res, 2) end
-      PW.log.warn("store: CloudSever:%s loi: %s", m, tostring(res[2]))
-    end
-  end
-  return nil
+local function cloud_obj()
+  return _G.CloudSever or _G.CloudServer
 end
 
 local function raw_write(key, str)
-  if cloud_call(WRITE_METHODS, key, str) then return true end
+  local cs = cloud_obj()
+  if cs then
+    for _, m in ipairs(WRITE_METHODS) do
+      if cs[m] then
+        local ok, err = pcall(cs[m], cs, key, str)
+        if ok then return true end
+        PW.log.warn("store: CloudSever:%s loi: %s", m, tostring(err))
+      end
+    end
+  end
   -- Fallback dev / phòng thường: giữ trong RAM để test
   store._dev_mem = store._dev_mem or {}
   store._dev_mem[key] = str
   return true
 end
 
-local function raw_read(key)
-  local ok, ret, val = cloud_call(READ_METHODS, key)
-  if ok then
-    -- Tùy API trả (ret, value) hay (value): ưu tiên chuỗi
-    if type(val) == "string" then return val end
-    if type(ret) == "string" then return ret end
+-- Đọc async: cb(str|nil) được gọi khi có kết quả (có thể gọi ngay ở chế độ dev).
+local function raw_read_async(key, cb)
+  local cs = cloud_obj()
+  if cs then
+    for _, m in ipairs(READ_METHODS) do
+      if cs[m] then
+        local ok, err = pcall(cs[m], cs, key, function(ret, k, v)
+          if ret == 0 and type(v) == "string" and v ~= "" then cb(v) else cb(nil) end
+        end)
+        if ok then return end
+        PW.log.warn("store: CloudSever:%s loi: %s", m, tostring(err))
+      end
+    end
   end
   store._dev_mem = store._dev_mem or {}
-  return store._dev_mem[key]
+  cb(store._dev_mem[key])
 end
 -- ==========================================
 
--- Lấy data người chơi (load từ Archive lần đầu, sau đó cache)
+-- Lấy data người chơi. Lần đầu trả về default ngay lập tức rồi đọc cloud ASYNC;
+-- khi cloud trả về, merge vào ĐÚNG bảng đang cache (giữ tham chiếu mà caller cầm).
 function store.get(uid)
   uid = tostring(uid)
   if cache[uid] then return cache[uid] end
-  local raw = raw_read(KEY_PREFIX .. uid)
-  local data
-  if raw and raw ~= "" then
-    local decoded, err = PW.ser.decode(raw)
-    if decoded then
-      data = PW.playerdata.migrate(decoded)
-      PW.log.info("store: load save cua %s (v%d)", uid, data.v)
-    else
-      PW.log.warn("store: save cua %s hong (%s) — tao moi", uid, tostring(err))
-      data = PW.playerdata.default()
-    end
-  else
-    data = PW.playerdata.default()
-    PW.log.info("store: nguoi choi moi %s", uid)
-  end
+  local data = PW.playerdata.default()
   cache[uid] = data
+  raw_read_async(KEY_PREFIX .. uid, function(raw)
+    if not raw or raw == "" then
+      PW.log.info("store: nguoi choi moi %s", uid)
+      return
+    end
+    local decoded, err = PW.ser.decode(raw)
+    if not decoded then
+      PW.log.warn("store: save cua %s hong (%s) — dung default", uid, tostring(err))
+      return
+    end
+    local migrated = PW.playerdata.migrate(decoded)
+    if dirty[uid] then
+      -- Người chơi đã kịp thay đổi data trước khi cloud trả về (hiếm):
+      -- vẫn ưu tiên save cloud (dữ liệu tích lũy từ các phiên trước)
+      PW.log.warn("store: cloud tra ve muon cho %s — ghi de thay doi tam", uid)
+    end
+    for k in pairs(data) do data[k] = nil end
+    for k, v in pairs(migrated) do data[k] = v end
+    PW.log.info("store: load save cua %s (v%d)", uid, data.v or 0)
+  end)
   return data
 end
 

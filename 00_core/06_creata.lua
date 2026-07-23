@@ -153,3 +153,28 @@ end
 function creata.ui_text(uid, uiid, elementid, text)
   return (try("Customui", "setText", uid, uiid, elementid, text))
 end
+
+-- ==== Bảng xếp hạng cloud (chỉ hoạt động trên phòng cloud server) ====
+
+local function cloud_try(methods, ...)
+  for _, obj_name in ipairs({ "CloudSever", "CloudServer" }) do
+    for _, m in ipairs(methods) do
+      local r = { try(obj_name, m, ...) }
+      if r[1] then return unpack(r) end
+    end
+  end
+  return false
+end
+
+-- Ghi điểm xếp hạng theo key (thường key = uid người chơi).
+-- CREATA-API: CloudSever:setOrderDataBykey(key, value)
+function creata.rank_set(key, value)
+  return (cloud_try({ "setOrderDataBykey", "SetOrderDataBykey", "setOrderDataByKey" }, tostring(key), value))
+end
+
+-- Lấy 1 dải hạng [start_ix, start_ix+count-1], cb nhận danh sách entry
+-- (mỗi entry có k = key, v = điểm kèm v.nick = tên, ix = hạng).
+-- CREATA-API: CloudSever:getOrderDataIndexArea(start, count, callback)
+function creata.rank_top(start_ix, count, cb)
+  return (cloud_try({ "getOrderDataIndexArea", "GetOrderDataIndexArea" }, start_ix, count, cb))
+end
