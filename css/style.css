@@ -553,3 +553,24 @@ img[src*='sprites'] { image-rendering: pixelated; }
     transition-duration: .01ms !important;
   }
 }
+
+/* ==== Asset PMD (nguoi dung cung cap) ==== */
+.title-art {
+  display: block;
+  margin: 0 auto 4px;
+  width: 200px;
+  max-width: 70%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .5));
+}
+.starter-card .portrait {
+  border-radius: 10px;
+  image-rendering: auto;
+}
+.home-head {
+  background-image:
+    linear-gradient(rgba(26, 27, 46, .82), rgba(26, 27, 46, .9)),
+    url('../assets/img/worldmap.jpg');
+  background-size: cover;
+  background-position: center 30%;
+}

@@ -16,6 +16,7 @@ export function render(el) {
 
   el.innerHTML = `
     <div class="starter-wrap">
+      <img class="title-art" src="assets/img/title.png" alt="" onerror="this.remove()">
       <div class="logo">Poke<span>World</span></div>
       <p class="tagline">Bắt · Huấn luyện · Chinh phục phòng Gym</p>
 
@@ -34,7 +35,8 @@ export function render(el) {
             if (!s) return '';
             return `
             <button class="starter-card" data-sp="${id}">
-              <img src="${spriteUrl(id)}" width="72" height="72" alt="${esc(s.name)}">
+              <img class="portrait" src="assets/portraits/${id}.png" width="72" alt="${esc(s.name)}"
+                   onerror="this.onerror=null;this.src='${spriteUrl(id)}'">
               <b>${esc(s.name)}</b>
               <span class="starter-types">${s.types.map(typeBadge).join(' ')}</span>
             </button>`;
