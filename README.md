@@ -1,52 +1,46 @@
-# PokeWorld — Mini World: CREATA
+# PokeWorld H5
 
-Game Pokémon data-driven chạy trên nền **Mini World: CREATA** (Lua script, phía host room).
-Thiết kế chi tiết: xem [`docs/DESIGN.md`](docs/DESIGN.md).
+Game Pokémon dạng **web H5** — chơi ngay trên trình duyệt, tối ưu **màn hình dọc** cho điện thoại, hoạt ảnh nhẹ nhàng. Cài được lên màn hình chính như app (PWA), chơi offline sau lần tải đầu.
 
-## Nguyên tắc
+**Chơi ngay:** https://thanhtinz.github.io/Pokeworld/
 
-- **Data-driven**: thêm Pokémon / chiêu / item / quest mới = thêm entry trong bảng Lua ở `10_data/`, không sửa engine.
-- **Model thuần**: toàn bộ `20_model/` không gọi API game → test được offline bằng `tools/harness.lua`.
-- **Load theo thứ tự tên file**: `00_` → `99_`, số nhỏ không được phụ thuộc số lớn. Trong CREATA editor, tạo script theo đúng thứ tự này.
-- **Adapter API**: mọi lời gọi engine CREATA (spawn actor, UI, Archive, chat...) đều gói trong các hàm adapter có comment `-- CREATA-API:`. Khi có docs API thật, chỉ cần map lại các hàm này (tập trung ở `31_store`, `60_ui_common`, `91_hooks` và bảng `api` đầu các file 40/50).
+## Tính năng
+
+- 🌱 Chọn starter (Bulbasaur / Charmander / Squirtle), 32 loài Gen 1
+- 🍃 Khám phá 6 khu vực (đồng cỏ, rừng, hang, hồ) — gặp Pokémon hoang ngẫu nhiên
+- ⚔️ Đấu theo lượt chuẩn công thức Gen: khắc hệ 18x18, STAB, crit, IV/EV, nature, trạng thái (bỏng/độc/ngủ/tê/băng)
+- ⚪ Bắt Pokémon (công thức catch rate + ball + trạng thái), shiny 1/1024
+- 📈 EXP 4 đường cong, học chiêu theo level, tiến hóa (level / đá)
+- 🏅 Trainer + Gym, huy hiệu
+- 📖 Pokédex seen/caught, 🎒 túi đồ, 🛒 cửa hàng, 📜 nhiệm vụ, 🎁 điểm danh chuỗi ngày
+- 💾 Save tự động vào máy (localStorage)
+
+## Công nghệ
+
+- Vanilla JS (ES modules) — **không framework, không build step**
+- Sprite từ [PokeAPI](https://github.com/PokeAPI/sprites) (CDN)
+- PWA: manifest + service worker (cache shell + sprite)
+- Deploy tự động lên GitHub Pages qua GitHub Actions mỗi lần push `main`
 
 ## Cấu trúc
 
-| Thư mục | Nội dung |
-|---|---|
-| `00_core/` | config, util, log, RNG (seed riêng chống soft-reset), serializer |
-| `10_data/` | PURE DATA: 18 hệ + bảng khắc hệ, 25 nature, 32 species Gen 1, 47 moves, learnsets, evolutions, items, spawns, trainers, quests, i18n tiếng Việt |
-| `20_model/` | Engine thuần: tạo Pokémon (IV/EV/nature/shiny), EXP, damage Gen-style, status, state machine battle, catch, evolution, breeding, party/box |
-| `30_save/` | Schema save + migration, wrapper Archive, Pokédex bitmap nén |
-| `40_world/` | Spawner theo zone/ngày-đêm, AI wild, follower, zones, day/night, NPC |
-| `50_battle/` | Điều phối trận: wild, trainer/gym, PvP cùng room, raid (khung) |
-| `60_ui/` | UI: battle, party, PC box, Pokédex, bag, shop, quest, trade, GM panel |
-| `70_systems/` | Quest engine, daily, gym/badge, economy, event mùa, leaderboard |
-| `90_main/` | Router lệnh chat (`.help`, `.gm ...`), hooks event, bootstrap |
-
-## Build file release cho editor
-
-```bash
-./tools/build.sh   # tạo dist/PokeWorld_all_in_one.lua (paste 1 script) + dist/PokeWorld_scripts.zip
+```
+index.html            # shell + bottom nav
+css/style.css         # toàn bộ style (dark, portrait, max 480px)
+js/main.js            # router màn hình
+js/state.js           # save/load, tiền, túi, quest engine, daily
+js/util.js            # rng, sprite url, esc
+js/data/              # PURE DATA: species, moves, types, zones, trainers, quests...
+js/engine/            # logic thuần: pokemon, exp, damage, status, battle, catch, evolution
+js/ui/                # các màn hình: home, battle, party, dex, bag, shop, quest, menu, starter
+tests/smoke.mjs       # smoke test chạy bằng node (CI chạy trước khi deploy)
 ```
 
-Mỗi lần push lên `main`, GitHub Actions tự test + build + đính 2 file trên vào Release `latest`. Đánh tag `v1.0.0` để ra release chính thức.
-
-## Chạy thử offline (không cần CREATA)
+## Dev
 
 ```bash
-lua tools/harness.lua        # load toàn bộ script đúng thứ tự + mô phỏng 1 trận
+python3 -m http.server 8000    # mở http://localhost:8000
+node tests/smoke.mjs           # test data + engine không cần trình duyệt
 ```
 
-## Lệnh trong game
-
-Người chơi: `.help` `.party` `.pc` `.dex` `.bag` `.quest` `.shop` `.heal` `.follow` `.summary` `.nick` `.daily` `.badge` `.money` `.trade` `.pvp` — trong trận: `.move` `.switch` `.ball` `.run`
-
-GM (uid trong `GM_LIST` của `00_config.lua`): `.gm panel` `give` `givepoke` `money` `setlevel` `heal` `spawn` `spawnrate` `spawnoff/on` `despawnall` `event` `boss` `save` `wipe CONFIRM` `inspect` `migrate` `log` `sim` `reloadspawns`
-
-## Việc cần làm khi đưa vào CREATA editor
-
-1. Paste docs API thật của CREATA và map các adapter (`91_hooks.bind_engine`, `31_store`, `60_ui_common`, bảng `api` các file world/battle).
-2. Điền `GM_LIST` trong `00_core/00_config.lua`.
-3. Chỉnh bounding box zone trong `40_world/43_zones.lua` theo map thật.
-4. Gán `model_id` / `cry_id` trong `12_species.lua` theo model có trong editor.
+> Fan game phi lợi nhuận. Pokémon © Nintendo/Game Freak — sprite dùng cho mục đích học tập.

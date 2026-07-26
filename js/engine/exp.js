@@ -1,0 +1,73 @@
+// PokeWorld H5 | engine/exp.js | Đường cong EXP, lên level, chia EXP
+import { CONFIG } from '../state.js';
+import { SPECIES } from '../data/species.js';
+import { LEARNSETS } from '../data/learnsets.js';
+import { maxHp, addFriendship } from './pokemon.js';
+
+// Tổng EXP cần để đạt level lv theo từng đường cong (chuẩn Gen)
+const CURVES = {
+  fast: (lv) => Math.floor(4 * lv ** 3 / 5),
+  medium_fast: (lv) => lv ** 3,
+  medium_slow: (lv) => Math.floor(6 * lv ** 3 / 5 - 15 * lv ** 2 + 100 * lv - 140),
+  slow: (lv) => Math.floor(5 * lv ** 3 / 4),
+};
+
+export function expForLevel(curve, lv) {
+  if (lv <= 1) return 0;
+  const fn = CURVES[curve] || CURVES.medium_fast;
+  return Math.max(0, fn(lv));
+}
+
+// EXP đối thủ cho khi bị hạ (công thức rút gọn Gen 1): baseExp * lv / 7 / số người tham chiến
+export function expYield(defeatedMon, n = 1) {
+  const spec = SPECIES[defeatedMon.sp];
+  const base = (spec && spec.baseExp) || 60;
+  const nn = Math.max(1, n);
+  const amount = Math.floor(base * defeatedMon.lv / 7 / nn);
+  return Math.max(1, amount);
+}
+
+// Cộng EXP, xử lý lên nhiều level. Trả về mảng các level mới đạt (rỗng nếu không lên).
+export function gainExp(mon, amount) {
+  const spec = SPECIES[mon.sp];
+  if (!spec) return [];
+  // Lucky Egg x1.5
+  if (mon.held === 'lucky_egg') amount = Math.floor(amount * 1.5);
+  const newLevels = [];
+  if (mon.lv >= CONFIG.MAX_LEVEL) return newLevels;
+  mon.exp = (mon.exp || 0) + amount;
+  while (mon.lv < CONFIG.MAX_LEVEL && mon.exp >= expForLevel(spec.expCurve, mon.lv + 1)) {
+    const oldMax = maxHp(mon);
+    mon.lv += 1;
+    // Lên level: HP hiện tại tăng theo phần chênh max HP
+    const newMax = maxHp(mon);
+    mon.hpCur = Math.min(newMax, (mon.hpCur || 0) + (newMax - oldMax));
+    newLevels.push(mon.lv);
+    addFriendship(mon, 2);
+  }
+  if (mon.lv >= CONFIG.MAX_LEVEL) {
+    mon.exp = expForLevel(spec.expCurve, CONFIG.MAX_LEVEL);
+  }
+  return newLevels;
+}
+
+// Chiêu mới có thể học tại level này
+export function movesAtLevel(spId, lv) {
+  const ls = LEARNSETS[spId];
+  const out = [];
+  if (ls) {
+    for (const [l, mv] of Object.entries(ls)) {
+      if (Number(l) === lv) out.push(mv);
+    }
+  }
+  return out;
+}
+
+// Tiến độ EXP tới level kế: trả về [cur, need] (cho UI vẽ thanh exp)
+export function expProgress(mon) {
+  const spec = SPECIES[mon.sp];
+  if (!spec || mon.lv >= CONFIG.MAX_LEVEL) return [0, 1];
+  const lo = expForLevel(spec.expCurve, mon.lv);
+  const hi = expForLevel(spec.expCurve, mon.lv + 1);
+  return [(mon.exp ?? lo) - lo, hi - lo];
+}

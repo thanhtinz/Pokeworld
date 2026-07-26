@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#e3350d">
+  <title>PokeWorld H5</title>
+  <meta name="description" content="Game Pokémon H5 chơi trên trình duyệt — bắt, huấn luyện, đấu gym.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <main id="screen"></main>
+    <nav id="bottom-nav" hidden>
+      <button data-nav="home"><span class="nav-ico">🗺️</span>Bản đồ</button>
+      <button data-nav="party"><span class="nav-ico">⚔️</span>Đội</button>
+      <button data-nav="bag"><span class="nav-ico">🎒</span>Túi</button>
+      <button data-nav="dex"><span class="nav-ico">📖</span>Pokédex</button>
+      <button data-nav="menu"><span class="nav-ico">☰</span>Menu</button>
+    </nav>
+  </div>
+  <div id="toast-wrap"></div>
+  <div id="modal-wrap"></div>
+  <script type="module" src="js/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>

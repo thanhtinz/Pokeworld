@@ -1,0 +1,75 @@
+// PokeWorld H5 | data/natures.js | 25 tính cách (nature) chuẩn, tăng/giảm 10% chỉ số
+
+// up = chỉ số +10%, down = chỉ số -10%; up === down => trung tính
+export const NATURES = {
+  // Trung tính
+  hardy:   { up: 'atk', down: 'atk' },
+  docile:  { up: 'def', down: 'def' },
+  serious: { up: 'spe', down: 'spe' },
+  bashful: { up: 'spa', down: 'spa' },
+  quirky:  { up: 'spd', down: 'spd' },
+  // Tăng atk
+  lonely:  { up: 'atk', down: 'def' },
+  brave:   { up: 'atk', down: 'spe' },
+  adamant: { up: 'atk', down: 'spa' },
+  naughty: { up: 'atk', down: 'spd' },
+  // Tăng def
+  bold:    { up: 'def', down: 'atk' },
+  relaxed: { up: 'def', down: 'spe' },
+  impish:  { up: 'def', down: 'spa' },
+  lax:     { up: 'def', down: 'spd' },
+  // Tăng spe
+  timid:   { up: 'spe', down: 'atk' },
+  hasty:   { up: 'spe', down: 'def' },
+  jolly:   { up: 'spe', down: 'spa' },
+  naive:   { up: 'spe', down: 'spd' },
+  // Tăng spa
+  modest:  { up: 'spa', down: 'atk' },
+  mild:    { up: 'spa', down: 'def' },
+  quiet:   { up: 'spa', down: 'spe' },
+  rash:    { up: 'spa', down: 'spd' },
+  // Tăng spd
+  calm:    { up: 'spd', down: 'atk' },
+  gentle:  { up: 'spd', down: 'def' },
+  sassy:   { up: 'spd', down: 'spe' },
+  careful: { up: 'spd', down: 'spa' },
+};
+
+// Mảng tên để random
+export const NATURE_LIST = [
+  'hardy', 'docile', 'serious', 'bashful', 'quirky',
+  'lonely', 'brave', 'adamant', 'naughty',
+  'bold', 'relaxed', 'impish', 'lax',
+  'timid', 'hasty', 'jolly', 'naive',
+  'modest', 'mild', 'quiet', 'rash',
+  'calm', 'gentle', 'sassy', 'careful',
+];
+
+// Tên hiển thị tiếng Việt ngắn gọn
+export const NATURE_VI = {
+  hardy: 'Gan dạ',
+  docile: 'Hiền lành',
+  serious: 'Nghiêm túc',
+  bashful: 'Bẽn lẽn',
+  quirky: 'Kỳ quặc',
+  lonely: 'Cô đơn',
+  brave: 'Dũng cảm',
+  adamant: 'Kiên định',
+  naughty: 'Nghịch ngợm',
+  bold: 'Bạo dạn',
+  relaxed: 'Thư thái',
+  impish: 'Tinh nghịch',
+  lax: 'Thoải mái',
+  timid: 'Nhút nhát',
+  hasty: 'Hấp tấp',
+  jolly: 'Vui vẻ',
+  naive: 'Ngây thơ',
+  modest: 'Khiêm tốn',
+  mild: 'Ôn hòa',
+  quiet: 'Trầm lặng',
+  rash: 'Nóng vội',
+  calm: 'Điềm tĩnh',
+  gentle: 'Dịu dàng',
+  sassy: 'Ương ngạnh',
+  careful: 'Cẩn thận',
+};
