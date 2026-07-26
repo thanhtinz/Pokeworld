@@ -239,7 +239,6 @@ html, body {
   border-radius: 99px;
   overflow: hidden;
   border: 1px solid var(--line-soft);
-  flex: 1;
 }
 .hpbar-fill { height: 100%; border-radius: 99px; transition: width .5s ease; }
 .hp-hi { background: linear-gradient(180deg, #69db7c, #37b24d); box-shadow: 0 0 6px rgba(81, 207, 102, .6); }
@@ -251,7 +250,6 @@ html, body {
   border-radius: 99px;
   overflow: hidden;
   margin-top: 4px;
-  flex: 1;
 }
 .expbar-fill { height: 100%; background: linear-gradient(90deg, #5c7cfa, #9775fa); transition: width .5s ease; }
 
@@ -403,8 +401,8 @@ html, body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(60% 45% at 82% 8%, rgba(255, 255, 255, .3), transparent 70%),
-    radial-gradient(45% 35% at 12% 92%, rgba(255, 255, 255, .12), transparent 70%);
+    radial-gradient(50% 38% at 82% 6%, rgba(255, 255, 255, .22), transparent 70%),
+    radial-gradient(40% 30% at 10% 94%, rgba(255, 255, 255, .09), transparent 70%);
   mix-blend-mode: screen;
 }
 .holo-card:active { transform: scale(.96); }
@@ -549,6 +547,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 .bt-name small { color: var(--gold-num); font-weight: 400; font-size: .58rem; }
 .bt-row { display: flex; align-items: center; gap: 6px; }
+.bt-row .hpbar, .bt-row .expbar { flex: 1; margin-top: 0; }
 .bt-row + .bt-row { margin-top: 4px; }
 .bt-lab {
   font-family: var(--pix);
