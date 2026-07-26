@@ -33,6 +33,17 @@ export const spriteShinyUrl = (dexId, back = false) =>
 export const monSprite = (mon, back = false) =>
   mon.shiny ? spriteShinyUrl(mon.sp, back) : spriteUrl(mon.sp, back);
 
+// Sprite pixel ĐỘNG (gen 5 B/W animated .gif) — dùng trong trận đấu.
+// Cấu trúc repo PokeAPI: animated/{id}.gif, animated/back/{id}.gif,
+// animated/shiny/{id}.gif, animated/back/shiny/{id}.gif
+const ANIM_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated';
+export const animSpriteUrl = (dexId, back = false, shiny = false) =>
+  `${ANIM_BASE}/${back ? 'back/' : ''}${shiny ? 'shiny/' : ''}${dexId}.gif`;
+
+// Animated sprite theo mon instance (tự chọn shiny)
+export const animSprite = (mon, back = false) =>
+  animSpriteUrl(mon.sp, back, !!mon.shiny);
+
 export const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
 
 // Ngày dạng số yyyymmdd (cho daily)
