@@ -3,7 +3,7 @@ import { G, dexCounts } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
 import { spriteUrl, esc } from '../util.js';
-import { typeBadge, header } from './kit.js';
+import { typeBadge, header, holoStyle } from './kit.js';
 
 const STAT_ORDER = [['hp', 'HP'], ['atk', 'Tấn công'], ['def', 'Phòng thủ'], ['spa', 'Đặc công'], ['spd', 'Đặc thủ'], ['spe', 'Tốc độ']];
 
@@ -23,9 +23,10 @@ export function render(el) {
           const caughtIt = !!G.p.dex.caught[id];
           const cls = caughtIt ? 'caught' : seenIt ? 'seen' : 'unknown';
           return `
-          <button class="dex-cell ${cls}" data-id="${id}" ${seenIt ? '' : 'disabled'}>
+          <button class="holo-card dex-cell ${cls}" data-id="${id}" ${seenIt ? '' : 'disabled'}
+                  ${caughtIt ? `style="${holoStyle(s.types)}"` : ''}>
+            <span class="lv-chip">#${String(id).padStart(3, '0')}</span>
             <img src="${spriteUrl(id)}" width="56" height="56" alt="" loading="lazy">
-            <small>#${String(id).padStart(3, '0')}</small>
             <span class="dex-name">${seenIt ? esc(s.name) : '?'}</span>
             ${caughtIt ? '<span class="dex-check">✓</span>' : ''}
           </button>`;

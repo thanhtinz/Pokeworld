@@ -6,7 +6,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { NATURE_VI } from '../data/natures.js';
 import { monSprite, esc } from '../util.js';
-import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header } from './kit.js';
+import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle } from './kit.js';
 
 const STAT_VI = { hp: 'HP', atk: 'Tấn công', def: 'Phòng thủ', spa: 'Đặc công', spd: 'Đặc thủ', spe: 'Tốc độ' };
 
@@ -19,15 +19,18 @@ export function render(el) {
       ${header('Đội hình')}
       <div class="party-list">
         ${party.map((m, i) => `
-          <button class="card party-slot ${sel === i ? 'sel' : ''} ${isFainted(m) ? 'ko' : ''}" data-i="${i}">
-            <img src="${monSprite(m)}" width="48" height="48" alt="">
+          <button class="holo-card party-slot ${sel === i ? 'sel' : ''} ${isFainted(m) ? 'ko' : ''}" data-i="${i}"
+                  style="${holoStyle(SPECIES[m.sp] ? SPECIES[m.sp].types : [])}">
+            <span class="lv-chip">Lv.${m.lv}</span>
+            <img class="holo-sprite" src="${monSprite(m)}" width="72" height="72" alt="">
             <div class="ps-mid">
-              <div class="ps-name">${esc(displayName(m))}${m.shiny ? ' ✨' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
+              <span class="holo-name ps-name">${esc(displayName(m))}${m.shiny ? ' ✨' : ''}</span>
+              ${statusTag(m.status)}
               ${hpBar(m.hpCur, maxHp(m))}
               <small class="ps-hp">${m.hpCur}/${maxHp(m)}</small>
             </div>
           </button>`).join('')}
-        ${party.length === 0 ? '<div class="card">Chưa có Pokémon nào.</div>' : ''}
+        ${party.length === 0 ? '<div class="card party-empty-note">Chưa có Pokémon nào.</div>' : ''}
       </div>
       <button class="btn" id="btn-box">📦 Box (${G.p.box.length})</button>
       <div id="party-detail"></div>`;

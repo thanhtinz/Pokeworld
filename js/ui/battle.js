@@ -11,7 +11,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
-import { monSprite, esc, sleep, fmt } from '../util.js';
+import { monSprite, animSprite, esc, sleep, fmt } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag } from './kit.js';
 import { show } from '../main.js';
 
@@ -65,6 +65,18 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     $log.scrollTop = $log.scrollHeight;
   }
 
+  // Popup thưởng "+X₽" / "+X EXP" bay lên rồi mờ dần (chỉ trình bày)
+  function floatPop(text, cls = '', topPct = 46) {
+    const wrap = el.querySelector('.battle');
+    if (!wrap) return;
+    const d = document.createElement('div');
+    d.className = `float-pop ${cls}`;
+    d.textContent = text;
+    d.style.top = topPct + '%';
+    wrap.appendChild(d);
+    setTimeout(() => d.remove(), 1500);
+  }
+
   // ==== Vẽ 2 khung ====
   function renderEnemy() {
     const m = eMon();
@@ -74,10 +86,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     $enemy.innerHTML = `
       <div class="bt-info">
         <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' ✨' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
-        ${hpBar(m.hpCur, maxHp(m))}
+        <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
-      <img class="bt-sprite bt-sprite-enemy ${isFainted(m) ? 'faint' : ''}" src="${monSprite(m)}" alt="${esc(displayName(m))}">`;
+      <img class="bt-sprite bt-sprite-enemy ${isFainted(m) ? 'faint' : ''}" src="${animSprite(m)}"
+           onerror="this.onerror=null;this.src='${monSprite(m)}'" alt="${esc(displayName(m))}">`;
   }
 
   function renderMe() {
@@ -87,12 +100,13 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     const [cur, need] = expProgress(m);
     const expPct = Math.min(100, Math.round(cur / Math.max(1, need) * 100));
     $me.innerHTML = `
-      <img class="bt-sprite bt-sprite-me ${isFainted(m) ? 'faint' : ''}" src="${monSprite(m, true)}" alt="${esc(displayName(m))}">
+      <img class="bt-sprite bt-sprite-me ${isFainted(m) ? 'faint' : ''}" src="${animSprite(m, true)}"
+           onerror="this.onerror=null;this.src='${monSprite(m, true)}'" alt="${esc(displayName(m))}">
       <div class="bt-info">
         <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' ✨' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
-        ${hpBar(m.hpCur, mx)}
+        <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, mx)}</div>
         <div class="bt-hpnum"><span class="hp-txt">${m.hpCur}/${mx}</span></div>
-        <div class="expbar"><div class="expbar-fill" style="width:${expPct}%"></div></div>
+        <div class="bt-row"><span class="bt-lab">EXP</span><div class="expbar"><div class="expbar-fill" style="width:${expPct}%"></div></div></div>
       </div>`;
   }
 
@@ -264,6 +278,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
           await sleep(420);
           break;
         case 'exp':
+          if (ev.amount) floatPop(`+${fmt(ev.amount)} EXP`, 'exp', 58);
           updateBars();
           if (ev.levels && ev.levels > 0) renderMe(); // lên level: vẽ lại số liệu
           await sleep(320);
@@ -341,6 +356,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
           G.p.defeatedTrainers[trainerId] = true;
           if (trainer.rewardMoney) {
             addMoney(trainer.rewardMoney);
+            floatPop(`+${fmt(trainer.rewardMoney)}₽`, '', 40);
             log(`Nhận ${fmt(trainer.rewardMoney)}₽ tiền thưởng!`);
           }
           if (trainer.rewardItem) {

@@ -4,7 +4,7 @@ import { newPokemon } from '../engine/pokemon.js';
 import { SPECIES } from '../data/species.js';
 import { QUESTS } from '../data/quests.js';
 import { spriteUrl, esc } from '../util.js';
-import { toast, confirmDlg, typeBadge } from './kit.js';
+import { toast, confirmDlg, typeBadge, holoStyle } from './kit.js';
 import { show } from '../main.js';
 
 const STARTERS = [1, 4, 7]; // Bulbasaur / Charmander / Squirtle
@@ -34,8 +34,8 @@ export function render(el) {
             const s = SPECIES[id];
             if (!s) return '';
             return `
-            <button class="starter-card" data-sp="${id}">
-              <img class="portrait" src="assets/portraits/${id}.png" width="72" alt="${esc(s.name)}"
+            <button class="holo-card starter-card" data-sp="${id}" style="${holoStyle(s.types)}">
+              <img class="portrait" src="assets/portraits/${id}.png" width="84" alt="${esc(s.name)}"
                    onerror="this.onerror=null;this.src='${spriteUrl(id)}'">
               <b>${esc(s.name)}</b>
               <span class="starter-types">${s.types.map(typeBadge).join(' ')}</span>

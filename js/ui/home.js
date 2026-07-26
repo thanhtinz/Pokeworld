@@ -22,7 +22,7 @@ export function render(el) {
           <p class="zone-desc">${esc(zone.desc || '')}</p>
         </div>
       </div>
-      <div class="home-money">💰 ${fmt(G.p.money)}₽ <button class="btn-mini" data-goto="quest">📜 Nhiệm vụ</button></div>
+      <div class="home-money"><span class="money-chip">💰 <b>${fmt(G.p.money)}₽</b></span> <button class="btn-mini" data-goto="quest">📜 Nhiệm vụ</button></div>
     </div>
 
     ${fainted ? `<div class="card warn-card">😵 Cả đội đã gục! Hãy về thị trấn để hồi phục ở Trung tâm Pokémon.</div>` : ''}

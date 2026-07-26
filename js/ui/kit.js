@@ -56,6 +56,13 @@ export function hpBar(cur, max) {
   return `<div class="hpbar"><div class="hpbar-fill ${cls}" style="width:${pct}%"></div></div>`;
 }
 
+// Inline CSS vars cho card holo: gradient theo hệ của Pokémon (pha tím galaxy trong CSS)
+export function holoStyle(types = []) {
+  const c1 = TYPE_COLORS[types[0]] || '#7048e8';
+  const c2 = TYPE_COLORS[types[1] || types[0]] || c1;
+  return `--t1:${c1};--t2:${c2}`;
+}
+
 // Badge hệ (Lửa/Nước...) có màu
 export function typeBadge(t) {
   return `<span class="type-badge" style="background:${TYPE_COLORS[t] || '#888'}">${TYPE_VI[t] || t}</span>`;
