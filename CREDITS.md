@@ -52,6 +52,12 @@ Resource. Người rip: Nintendofreak106.
   Dùng ảnh tĩnh cho shiny vì bản động nặng thêm khoảng 26 MB; màu và hướng
   vẫn đúng, có mạng thì tự nâng lên ảnh động của CDN.
 
+## Dấu chân Pokédex — `assets/footprints/`
+
+649 dấu chân 16×16, từ gói `pokemonfootprints.tar.gz` của veekun do người
+dùng gửi. Ảnh gốc là hình đen nền trong suốt nên giao diện đảo màu lại
+cho hợp nền tối.
+
 ## Ảnh Pokémon và vật phẩm — `assets/pokesprite/`
 
 Từ [msikma/pokesprite](https://github.com/msikma/pokesprite).

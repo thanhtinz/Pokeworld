@@ -78,6 +78,11 @@ export function render(el) {
         <img src="${boxIcon(id)}" data-up="${spriteUrl(id)}" width="120" height="120" alt="${esc(s.name)}" class="dex-big px-icon ${caughtIt ? '' : 'silhouette'}">
         <div>${s.types.map(typeBadge).join(' ')}</div>
         <small>Cao ${s.height ?? '?'} m · Nặng ${s.weight ?? '?'} kg</small>
+        <div class="dex-print">
+          <img src="assets/footprints/${id}.png" width="32" height="32" alt=""
+               onerror="this.closest('.dex-print').remove()">
+          <small>Dấu chân</small>
+        </div>
       </div>
       <div class="card">
         <h3>Chỉ số gốc</h3>

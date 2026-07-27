@@ -1466,3 +1466,8 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Khung thong tin dam hon mot chut de noi tren nen sang */
 .screen-battle .bt-info { background: rgba(8, 5, 18, .88); }
 .screen-battle .bt-log { background: rgba(8, 5, 18, .86); }
+
+/* Dau chan trong Pokedex: anh goc la hinh den nen trong suot -> dao mau cho hop nen toi */
+.dex-print { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.dex-print img { image-rendering: pixelated; filter: invert(1); opacity: .85; }
+.dex-print small { color: var(--muted); font-size: .74rem; }
