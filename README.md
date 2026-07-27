@@ -1,46 +1,57 @@
-# PokeWorld H5
+# PokeWorld — Game Pokémon Online (H5)
 
-Game Pokémon dạng **web H5** — chơi ngay trên trình duyệt, tối ưu **màn hình dọc** cho điện thoại, hoạt ảnh nhẹ nhàng. Cài được lên màn hình chính như app (PWA), chơi offline sau lần tải đầu.
+Game Pokémon **idle + cốt truyện** chạy trên trình duyệt, màn hình dọc cho điện thoại, cài được như app (PWA). Kiến trúc **client tĩnh + server online**: test miễn phí trên GitHub Pages, đem lên VPS là thành game online nhiều người chơi.
 
-**Chơi ngay:** https://thanhtinz.github.io/Pokeworld/
+**🎮 Bản test (GitHub Pages):** https://thanhtinz.github.io/Pokeworld/
 
 ## Tính năng
 
-- 🌱 Chọn starter (Bulbasaur / Charmander / Squirtle), 32 loài Gen 1
-- 🍃 Khám phá 6 khu vực (đồng cỏ, rừng, hang, hồ) — gặp Pokémon hoang ngẫu nhiên
-- ⚔️ Đấu theo lượt chuẩn công thức Gen: khắc hệ 18x18, STAB, crit, IV/EV, nature, trạng thái (bỏng/độc/ngủ/tê/băng)
-- ⚪ Bắt Pokémon (công thức catch rate + ball + trạng thái), shiny 1/1024
-- 📈 EXP 4 đường cong, học chiêu theo level, tiến hóa (level / đá)
-- 🏅 Trainer + Gym, huy hiệu
-- 📖 Pokédex seen/caught, 🎒 túi đồ, 🛒 cửa hàng, 📜 nhiệm vụ, 🎁 điểm danh chuỗi ngày
-- 💾 Save tự động vào máy (localStorage)
+### Client (chơi được ngay, offline)
+- 🔑 Tài khoản trên máy: đăng ký/đăng nhập, chọn nhân vật **Nam (Red) / Nữ (Leaf)**, nhiều hồ sơ 1 máy
+- 📖 **Cốt truyện 8 chương**: Professor Oak, rival Blue, Team Rocket, trùm Giovanni — cutscene chân dung nhân vật, hộp thoại PMD, khóa khu vực theo tiến trình
+- 🍃 **Idle farm**: Pokémon tự đánh quái, tiền + EXP tự chảy, offline 8 giờ vẫn tích lũy, tự học chiêu/tiến hóa
+- ⚔️ Trận đánh tay đầy đủ với trainer/gym: công thức chuẩn Gen (khắc hệ 18×18, IV/EV, nature, status, STAB, crit)
+- ⚪ Bắt Pokémon (công thức catch + ball + trạng thái), shiny, Pokédex, túi đồ, shop, nhiệm vụ, điểm danh chuỗi ngày
+- 🎨 Asset thật: sprite Pokémon pixel động (PokeAPI), trainer FRLG, chân dung + UI Mystery Dungeon
 
-## Công nghệ
+### Server (thư mục `server/` — chạy trên VPS)
+- 🌐 Tài khoản online (bcrypt + JWT), save trên server + validate chống hack
+- 🏆 Bảng xếp hạng · 👥 Bạn bè · 💍 Kết hôn · 💬 Chat thế giới · ⚔️ **PvP realtime**
+- 🛡️ **Admin panel** `/admin`: quản lý người chơi (ban/tặng quà/reset), bật sự kiện x2, audit log
+- 🐳 Docker + docker-compose — deploy VPS 1 lệnh. Chi tiết: [`docs/SERVER.md`](docs/SERVER.md)
 
-- Vanilla JS (ES modules) — **không framework, không build step**
-- Sprite từ [PokeAPI](https://github.com/PokeAPI/sprites) (CDN)
-- PWA: manifest + service worker (cache shell + sprite)
-- Deploy tự động lên GitHub Pages qua GitHub Actions mỗi lần push `main`
-
-## Cấu trúc
+## Cấu trúc dự án
 
 ```
-index.html            # shell + bottom nav
-css/style.css         # toàn bộ style (dark, portrait, max 480px)
-js/main.js            # router màn hình
-js/state.js           # save/load, tiền, túi, quest engine, daily
-js/util.js            # rng, sprite url, esc
-js/data/              # PURE DATA: species, moves, types, zones, trainers, quests...
-js/engine/            # logic thuần: pokemon, exp, damage, status, battle, catch, evolution
-js/ui/                # các màn hình: home, battle, party, dex, bag, shop, quest, menu, starter
-tests/smoke.mjs       # smoke test chạy bằng node (CI chạy trước khi deploy)
+index.html, css/, sw.js       # client shell + PWA
+js/data/                      # PURE DATA: species, moves, types, zones, trainers, quests, story
+js/engine/                    # logic thuần: pokemon, battle, catch, exp, evolution, idle, story, accounts
+js/ui/                        # màn hình: login, home(idle), battle, party, dex, bag, shop, quest, menu
+js/net/                       # lớp kết nối server (REST + socket) — offline nếu chưa cấu hình
+server/                       # backend Node.js: API, socket, PvP, admin panel, Docker
+tests/smoke.mjs               # test data+engine (CI chạy trước deploy)
+tools/, docs/                 # build phụ trợ, tài liệu
 ```
 
 ## Dev
 
 ```bash
-python3 -m http.server 8000    # mở http://localhost:8000
-node tests/smoke.mjs           # test data + engine không cần trình duyệt
+python3 -m http.server 8000     # chạy client: http://localhost:8000
+node tests/smoke.mjs            # test client (data + engine)
+cd server && npm i && npm start # chạy server local
+node server/test/smoke.mjs      # test server (API + socket + PvP)
 ```
 
-> Fan game phi lợi nhuận. Pokémon © Nintendo/Game Freak — sprite dùng cho mục đích học tập.
+Deploy client: push `main` → CI test + tự đồng bộ nhánh `gh-pages` (GitHub Pages).
+Deploy server: xem [`docs/SERVER.md`](docs/SERVER.md).
+
+## Lộ trình
+
+- [x] Engine + data Gen 1, idle, cốt truyện, tài khoản local, PWA
+- [ ] Đủ 151 Pokémon Kanto (đang làm)
+- [ ] Server online: BXH, bạn bè, kết hôn, chat, PvP, admin (đang làm)
+- [ ] Nối client ↔ server, màn Online trong game
+- [ ] Mở rộng cốt truyện + 8 gym + Elite Four, shop nâng cao
+- [ ] Gacha skin bằng tiền tệ KIẾM TRONG GAME (không nạp tiền thật)
+
+> ⚠️ Fan game phi lợi nhuận, không thu phí dưới mọi hình thức. Pokémon © Nintendo/Game Freak/Creatures. Sprite dùng cho mục đích học tập.

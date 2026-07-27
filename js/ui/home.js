@@ -72,7 +72,7 @@ export function render(el) {
     </div>`}
 
     <div class="idle-controls">
-      <button class="btn" id="btn-travel">${itemIcon('town_map', '🗺️', 22)} Di chuyển</button>
+      <button class="btn" id="btn-travel">${itemIcon('bicycle', '🗺️', 22)} Di chuyển</button>
       <button class="btn" id="btn-trainers">${itemIcon('vs_seeker', '⚔️', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
     </div>
   `;
