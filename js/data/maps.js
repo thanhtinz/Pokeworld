@@ -46,14 +46,16 @@ export const MAPS = {
       '######-#################',
     ],
     buildings: [
-      { b: 'center', x: 3, y: 2, kind: 'heal', name: 'Pokémon Center', text: 'Chào mừng! Để tôi chăm sóc Pokémon cho bạn.' },
-      { b: 'mart', x: 15, y: 3, kind: 'shop', name: 'Poké Mart', text: 'Mời vào xem hàng!' },
+      { b: 'center', x: 3, y: 2, kind: 'enter', name: 'Pokémon Center', text: 'Cửa tự động mở ra.' },
+      { b: 'mart', x: 15, y: 3, kind: 'enter', name: 'Poké Mart', text: 'Cửa tự động mở ra.' },
       { b: 'lab', x: 8, y: 10, kind: 'lab', name: 'Professor Oak\'s Lab', text: 'Phòng nghiên cứu Pokémon của Giáo sư Oak.' },
       { b: 'house', x: 2, y: 10, kind: 'home', name: 'Your House', text: 'Nhà của bạn. Ấm áp thật.' },
       { b: 'house2', x: 17, y: 10, kind: 'talk', name: 'Neighbor\'s House', text: 'Cửa khoá rồi.' },
     ],
     warps: [
       { x: 6, y: 19, to: 'route_1', tx: 6, ty: 1 },
+      { x: 5, y: 6, to: 'pc_town', tx: 6, ty: 8 },
+      { x: 16, y: 6, to: 'mart_town', tx: 3, ty: 7 },
     ],
     npcs: [
       { x: 15, y: 16, kind: 'talk', sprite: 'juan', name: 'Professor Oak', text: 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!' },
@@ -229,13 +231,96 @@ export const MAPS = {
     ],
     buildings: [
       { b: 'gym', x: 5, y: 12, kind: 'gym', name: 'Cerulean Gym', text: 'Phòng Gym hệ Nước. Sẵn sàng chưa?', trainerId: 'gym_thuy' },
-      { b: 'center', x: 14, y: 12, kind: 'heal', name: 'Pokémon Center', text: 'Nghỉ ngơi một chút nhé!' },
+      { b: 'center', x: 14, y: 12, kind: 'enter', name: 'Pokémon Center', text: 'Cửa tự động mở ra.' },
     ],
     warps: [
       { x: 11, y: 0, to: 'route_2', tx: 18, ty: 18 },
+      { x: 16, y: 16, to: 'pc_lake', tx: 6, ty: 8 },
     ],
     npcs: [
       { x: 20, y: 8, kind: 'talk', sprite: 'winona', name: 'Swimmer', text: 'Nghe nói có Gyarados khổng lồ dưới hồ này...' },
+    ],
+  },
+  pc_town: {
+    name: 'Trung Tâm Pokémon',
+    image: 'assets/interiors/pokecenter.png',
+    spawn: { x: 6, y: 8 },
+    rows: [
+      '##############',
+      '##############',
+      '##############',
+      '##############',
+      '#............#',
+      '##...........#',
+      '##........####',
+      '##........####',
+      '######..######',
+    ],
+    buildings: [],
+    warps: [
+      { x: 6, y: 8, to: 'town_1', tx: 5, ty: 7 },
+      { x: 7, y: 8, to: 'town_1', tx: 5, ty: 7 },
+    ],
+    spots: [
+      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.' },
+      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Pokémon. Mở hộp chứa nhé?' },
+    ],
+    npcs: [
+      { x: 6, y: 2, kind: 'deco', sprite: 'nurse_joy', name: 'Nurse Joy', text: '' },
+    ],
+  },
+  mart_town: {
+    name: 'Poké Mart',
+    image: 'assets/interiors/mart.png',
+    spawn: { x: 3, y: 7 },
+    rows: [
+      '###########',
+      '###########',
+      '###.......#',
+      '###.......#',
+      '###...##..#',
+      '......##..#',
+      '......##..#',
+      '###..######',
+    ],
+    buildings: [],
+    warps: [
+      { x: 3, y: 7, to: 'town_1', tx: 16, ty: 7 },
+      { x: 4, y: 7, to: 'town_1', tx: 16, ty: 7 },
+    ],
+    spots: [
+      { x: 2, y: 3, kind: 'shop', name: 'Poké Mart', text: 'Chào mừng! Bạn cần mua gì nào?' },
+    ],
+    npcs: [
+      { x: 1, y: 2, kind: 'deco', sprite: 'mart_clerk', name: 'Clerk', text: '' },
+    ],
+  },
+  pc_lake: {
+    name: 'Trung Tâm Pokémon',
+    image: 'assets/interiors/pokecenter.png',
+    spawn: { x: 6, y: 8 },
+    rows: [
+      '##############',
+      '##############',
+      '##############',
+      '##############',
+      '#............#',
+      '##...........#',
+      '##........####',
+      '##........####',
+      '######..######',
+    ],
+    buildings: [],
+    warps: [
+      { x: 6, y: 8, to: 'lake_1', tx: 16, ty: 17 },
+      { x: 7, y: 8, to: 'lake_1', tx: 16, ty: 17 },
+    ],
+    spots: [
+      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.' },
+      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Pokémon. Mở hộp chứa nhé?' },
+    ],
+    npcs: [
+      { x: 6, y: 2, kind: 'deco', sprite: 'nurse_joy', name: 'Nurse Joy', text: '' },
     ],
   },
 };

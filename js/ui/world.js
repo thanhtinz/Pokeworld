@@ -36,6 +36,12 @@ export function render(el) {
 
   const tileset = new Image();
   tileset.src = TILESET.src;
+  const roomCache = {};
+  const roomImage = (src) => {
+    let img = roomCache[src];
+    if (!img) { img = new Image(); img.src = src; roomCache[src] = img; }
+    return img;
+  };
   const avatarImg = owImage(activeAvatar());
 
   function sizeCanvas() {
@@ -113,6 +119,34 @@ export function render(el) {
     ctx.drawImage(tileset, sx, sy, sw, sh, dx, dy, size, size);
   }
 
+  // Vẽ NPC + người chơi (cả ngoài trời lẫn trong nhà)
+  function drawActors(map, size, camX, camY) {
+    // Nhân vật cao gấp đôi ô: rộng bằng 1 ô, cao 2 ô, chân đặt đúng ô đang đứng
+    const chW = size, chH = size * (OW_H / OW_W);
+    const put = (img, dir, moving, cx, cy) => {
+      if (!owReady(img)) return;
+      const f = owFrame(dir, moving);
+      ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
+        Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
+    };
+    for (const n of map.npcs || []) {
+      put(owImage(n.sprite), n.dir || 'down', false,
+        (n.x + 0.5) * size - camX, (n.y + 1) * size - camY);
+    }
+    const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
+    put(avatarImg, player.dir, player.moving,
+      player.x * size - camX, (player.y + 0.5) * size - camY + bob);
+  }
+
+  function drawHud(map) {
+    // Tên khu vực luôn khớp bản đồ đang đứng
+    const chip = el.querySelector('#world-zone');
+    if (chip && chip.textContent !== map.name) chip.textContent = map.name;
+    // Nút A sáng lên khi đứng trước NPC, trước cửa hoặc trước quầy
+    const hint = el.querySelector('#btn-act');
+    if (hint) hint.classList.toggle('act-ready', !!facingThing());
+  }
+
   function draw() {
     const map = currentMap();
     const baked = currentBake();
@@ -126,50 +160,33 @@ export function render(el) {
 
     ctx.fillStyle = '#0b0716';
     ctx.fillRect(0, 0, w, h);
-    if (!tileset.complete || !tileset.naturalWidth) return;
 
-    const x0 = Math.max(0, Math.floor(camX / size));
-    const y0 = Math.max(0, Math.floor(camY / size));
-    const x1 = Math.min(baked.w, Math.ceil((camX + w) / size));
-    const y1 = Math.min(baked.h, Math.ceil((camY + h) / size));
-
-    for (let y = y0; y < y1; y++) {
-      for (let x = x0; x < x1; x++) {
-        const i = y * baked.w + x;
-        const px = Math.round(x * size - camX), py = Math.round(y * size - camY);
-        drawTile(baked.ground[i], px, py, size);
-        if (baked.over[i] >= 0) drawTile(baked.over[i], px, py, size);
-        if (baked.top[i] >= 0) drawTile(baked.top[i], px, py, size);
+    if (baked.image) {
+      // Trong nhà: nền là nguyên một tấm ảnh phòng, phóng theo cỡ ô
+      const room = roomImage(baked.image);
+      if (room.complete && room.naturalWidth) {
+        ctx.drawImage(room, Math.round(-camX), Math.round(-camY),
+          Math.round(baked.w * size), Math.round(baked.h * size));
+      }
+    } else {
+      if (!tileset.complete || !tileset.naturalWidth) return;
+      const x0 = Math.max(0, Math.floor(camX / size));
+      const y0 = Math.max(0, Math.floor(camY / size));
+      const x1 = Math.min(baked.w, Math.ceil((camX + w) / size));
+      const y1 = Math.min(baked.h, Math.ceil((camY + h) / size));
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          const i = y * baked.w + x;
+          const px = Math.round(x * size - camX), py = Math.round(y * size - camY);
+          drawTile(baked.ground[i], px, py, size);
+          if (baked.over[i] >= 0) drawTile(baked.over[i], px, py, size);
+          if (baked.top[i] >= 0) drawTile(baked.top[i], px, py, size);
+        }
       }
     }
 
-    // Nhân vật cao gấp đôi ô: vẽ rộng bằng 1 ô, cao 2 ô, chân đặt đúng ô đang đứng
-    const chW = size, chH = size * (OW_H / OW_W);
-    function drawChar(img, dir, moving, cx, cy) {
-      if (!owReady(img)) return;
-      const f = owFrame(dir, moving);
-      ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
-        Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
-    }
-
-    // NPC quay mặt xuống, đứng yên
-    for (const n of map.npcs || []) {
-      if (n.x < x0 - 2 || n.x > x1 + 1 || n.y < y0 - 2 || n.y > y1 + 1) continue;
-      drawChar(owImage(n.sprite), n.dir || 'down', false,
-        (n.x + 0.5) * size - camX, (n.y + 1) * size - camY);
-    }
-
-    // Người chơi
-    drawChar(avatarImg, player.dir, player.moving,
-      player.x * size - camX, (player.y + 0.5) * size - camY);
-
-    // Tên khu vực luôn khớp bản đồ đang đứng
-    const chip = el.querySelector('#world-zone');
-    if (chip && chip.textContent !== map.name) chip.textContent = map.name;
-
-    // Gợi ý bấm A khi đứng trước NPC hoặc trước cửa
-    const hint = el.querySelector('#btn-act');
-    if (hint) hint.classList.toggle('act-ready', !!facingThing());
+    drawActors(map, size, camX, camY);
+    drawHud(map);
   }
 
   // ==== Vòng lặp ====

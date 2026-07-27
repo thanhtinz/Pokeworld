@@ -42,13 +42,14 @@ g[13][21] = 'B'
 MAPS['town_1'] = dict(
     name='Thị Trấn Khởi Đầu', rows=rows(g), spawn=(11, 16),
     buildings=[
-        ('center', 3, 2, 'heal', 'Pokémon Center', 'Chào mừng! Để tôi chăm sóc Pokémon cho bạn.'),
-        ('mart', 15, 3, 'shop', 'Poké Mart', 'Mời vào xem hàng!'),
+        ('center', 3, 2, 'enter', 'Pokémon Center', 'Cửa tự động mở ra.'),
+        ('mart', 15, 3, 'enter', 'Poké Mart', 'Cửa tự động mở ra.'),
         ('lab', 8, 10, 'lab', "Professor Oak's Lab", 'Phòng nghiên cứu Pokémon của Giáo sư Oak.'),
         ('house', 2, 10, 'home', 'Your House', 'Nhà của bạn. Ấm áp thật.'),
         ('house2', 17, 10, 'talk', "Neighbor's House", 'Cửa khoá rồi.'),
     ],
-    warps=[(6, 19, 'route_1', 6, 1)],
+    warps=[(6, 19, 'route_1', 6, 1),
+           (5, 6, 'pc_town', 6, 8), (16, 6, 'mart_town', 3, 7)],
     npcs=[
         (15, 16, 'talk', 'juan', 'Professor Oak', 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!'),
         (3, 16, 'talk', 'roxanne', 'Daisy', 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.'),
@@ -159,19 +160,66 @@ g[16][2] = 'B'
 MAPS['lake_1'] = dict(
     name='Hồ Gương Trời', rows=rows(g), spawn=(11, 2), buildings=[
         ('gym', 5, 12, 'gym', 'Cerulean Gym', 'Phòng Gym hệ Nước. Sẵn sàng chưa?', 'gym_thuy'),
-        ('center', 14, 12, 'heal', 'Pokémon Center', 'Nghỉ ngơi một chút nhé!'),
+        ('center', 14, 12, 'enter', 'Pokémon Center', 'Cửa tự động mở ra.'),
     ],
-    warps=[(11, 0, 'route_2', 18, 18)],
+    warps=[(11, 0, 'route_2', 18, 18), (16, 16, 'pc_lake', 6, 8)],
     npcs=[
         (20, 8, 'talk', 'winona', 'Swimmer', 'Nghe nói có Gyarados khổng lồ dưới hồ này...'),
     ],
 )
 
+
+# ---------------- Trong nha: dung anh that lam nen, luoi chi de chan duong ----------------
+PC_ROWS = [
+    '##############',
+    '##############',
+    '##############',
+    '##############',
+    '#............#',
+    '##...........#',
+    '##........####',
+    '##........####',
+    '######..######',
+]
+MART_ROWS = [
+    '###########',
+    '###########',
+    '###.......#',
+    '###.......#',
+    '###...##..#',
+    '......##..#',
+    '......##..#',
+    '###..######',
+]
+
+def pokecenter(mid, name, back, bx, by):
+    MAPS[mid] = dict(
+        name=name, rows=PC_ROWS, spawn=(6, 8), buildings=[],
+        image='assets/interiors/pokecenter.png',
+        warps=[(6, 8, back, bx, by), (7, 8, back, bx, by)],
+        npcs=[(6, 2, 'deco', 'nurse_joy', 'Nurse Joy', '')],
+        spots=[(6, 3, 'heal', 'Nurse Joy', 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.'),
+               (9, 3, 'pc', 'PC', 'Máy gửi Pokémon. Mở hộp chứa nhé?')],
+    )
+
+def martmap(mid, name, back, bx, by):
+    MAPS[mid] = dict(
+        name=name, rows=MART_ROWS, spawn=(3, 7), buildings=[],
+        image='assets/interiors/mart.png',
+        warps=[(3, 7, back, bx, by), (4, 7, back, bx, by)],
+        npcs=[(1, 2, 'deco', 'mart_clerk', 'Clerk', '')],
+        spots=[(2, 3, 'shop', 'Poké Mart', 'Chào mừng! Bạn cần mua gì nào?')],
+    )
+
+pokecenter('pc_town', 'Trung Tâm Pokémon', 'town_1', 5, 7)
+martmap('mart_town', 'Poké Mart', 'town_1', 16, 7)
+pokecenter('pc_lake', 'Trung Tâm Pokémon', 'lake_1', 16, 17)
+
 # ---------------- Kiem tra & xuat ----------------
 for mid, m in MAPS.items():
-    assert len(m['rows']) == H, mid
+    mw = len(m['rows'][0])
     for i, r in enumerate(m['rows']):
-        assert len(r) == W, (mid, i, len(r))
+        assert len(r) == mw, (mid, i, len(r), 'khong bang hang dau')
     sx, sy = m['spawn']
     assert m['rows'][sy][sx] in '.,-s', (mid, 'spawn', m['rows'][sy][sx])
     for w in m['warps']:
@@ -193,14 +241,21 @@ for mid, m in MAPS.items():
         fx, fy = bx + dx, by + dy + 1
         assert m['rows'][fy][fx] in '.,-s', (mid, b[0], 'truoc cua khong di duoc', fx, fy, m['rows'][fy][fx])
     for n in m['npcs']:
+        if n[2] == 'deco':
+            continue          # NPC trang tri dung sau quay, khong can o trong
         assert (n[0], n[1]) not in occupied, (mid, n[4], 'dung trong nha')
         assert m['rows'][n[1]][n[0]] in '.,-s"', (mid, n[4], 'dung tren o chan duong')
+    door_tiles = set()
+    for bb in m['buildings']:
+        bw, bh, (ddx, ddy) = BUILD[bb[0]]
+        door_tiles.add((bb[1] + ddx, bb[2] + ddy))
     for w in m['warps']:
-        assert (w[0], w[1]) not in occupied, (mid, 'cong nam trong nha')
-        assert m['rows'][w[1]][w[0]] in '.,-s"', (mid, 'cong tren o chan duong', w)
+        # cong o ngay o cua nha la binh thuong (buoc vao la di vao trong)
+        assert (w[0], w[1]) not in occupied or (w[0], w[1]) in door_tiles, (mid, 'cong nam trong nha')
         t = MAPS[w[2]]
+        if (w[0], w[1]) not in door_tiles:
+            assert m['rows'][w[1]][w[0]] in '.,-s"', (mid, 'cong tren o chan duong', w)
         assert t['rows'][w[4]][w[3]] in '.,-s"', (mid, 'diem den chan duong', w)
-        assert not any(x == w[3] and y == w[4] for x, y, *_ in t['warps']), (mid, 'diem den lai la cong', w)
     assert (m['spawn'][0], m['spawn'][1]) not in occupied, (mid, 'diem xuat hien trong nha')
 print('OK: nha, NPC, cong deu hop le')
 
@@ -234,6 +289,8 @@ out.append("export const MAPS = {")
 for mid, m in MAPS.items():
     out.append("  %s: {" % mid)
     out.append("    name: %s," % js_str(m['name']))
+    if m.get('image'):
+        out.append("    image: %s," % js_str(m['image']))
     out.append("    spawn: { x: %d, y: %d }," % m['spawn'])
     out.append("    rows: [")
     for r in m['rows']:
@@ -252,6 +309,12 @@ for mid, m in MAPS.items():
     for w in m['warps']:
         out.append("      { x: %d, y: %d, to: %s, tx: %d, ty: %d }," % (w[0], w[1], js_str(w[2]), w[3], w[4]))
     out.append("    ],")
+    if m.get('spots'):
+        out.append("    spots: [")
+        for sp in m['spots']:
+            out.append("      { x: %d, y: %d, kind: %s, name: %s, text: %s },"
+                       % (sp[0], sp[1], js_str(sp[2]), js_str(sp[3]), js_str(sp[4])))
+        out.append("    ],")
     out.append("    npcs: [")
     for n in m['npcs']:
         tid = (", trainerId: %s" % js_str(n[6])) if len(n) > 6 else ""

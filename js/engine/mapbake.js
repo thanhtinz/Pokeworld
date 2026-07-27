@@ -20,6 +20,8 @@ export function bake(mapId) {
   if (!map) return null;
 
   const w = mapWidth(map), h = mapHeight(map);
+  // Bản đồ trong nhà dùng một tấm ảnh làm nền, lưới ký tự chỉ để chắn đường
+  const isRoom = !!map.image;
   const n = w * h;
   const ground = new Int16Array(n);
   const over = new Int16Array(n).fill(-1);
@@ -39,6 +41,12 @@ export function bake(mapId) {
       const i = y * w + x;
       const t = TERRAIN[charAt(map, x, y)] || TERRAIN['.'];
       const k = t.kind;
+
+      if (isRoom) {                 // trong nhà: chỉ cần biết ô nào chắn đường
+        ground[i] = -1;
+        if (t.solid) solid[i] = 1;
+        continue;
+      }
 
       // Lớp nền: vùng nước/cát nằm trên cát, còn lại nằm trên cỏ
       if (WATERY.has(k)) {
@@ -90,7 +98,10 @@ export function bake(mapId) {
     solid[dy * w + dx] = 0;   // đứng lên ô cửa được để bấm vào
   }
 
-  const baked = { w, h, ground, over, top, solid, enc, doors, map };
+  // Ô "điểm tương tác": quầy lễ tân, máy PC... bấm A khi đứng trước là dùng được
+  for (const sp of map.spots || []) doors[`${sp.x},${sp.y}`] = sp;
+
+  const baked = { w, h, ground, over, top, solid, enc, doors, map, image: map.image || null };
   cache.set(mapId, baked);
   return baked;
 }
