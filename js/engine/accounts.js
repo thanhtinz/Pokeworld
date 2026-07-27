@@ -137,3 +137,23 @@ export function clearActiveSave() {
 export function activeAvatar() {
   return activeAccount()?.avatar || 'red';
 }
+
+// Đổi avatar của tài khoản đang đăng nhập ('red' nam | 'leaf' nữ)
+export function setAvatar(avatar) {
+  const s = readStore();
+  const acc = s.list.find(a => a.id === s.activeId);
+  if (!acc) return false;
+  acc.avatar = avatar === 'leaf' ? 'leaf' : 'red';
+  writeStore(s);
+  return true;
+}
+
+// Đánh dấu đã qua bước tạo nhân vật (để lần sau vào thẳng game)
+export function setCharCreated(v = true) {
+  const s = readStore();
+  const acc = s.list.find(a => a.id === s.activeId);
+  if (!acc) return false;
+  acc.charCreated = !!v;
+  writeStore(s);
+  return true;
+}

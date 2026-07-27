@@ -13,9 +13,22 @@ import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
 import * as loginScr from './ui/login.js';
+import * as splash from './ui/splash.js';
+import * as loading from './ui/loading.js';
+import * as auth from './ui/auth.js';
+import * as serverpick from './ui/serverpick.js';
+import * as createchar from './ui/createchar.js';
+import * as intro from './ui/intro.js';
+import * as character from './ui/character.js';
 import { activeAccount } from './engine/accounts.js';
 
-const SCREENS = { home, battle, party, dex, bag, shop, quest, starter, menu, login: loginScr };
+const SCREENS = {
+  home, battle, party, dex, bag, shop, quest, starter, menu, character,
+  login: loginScr, splash, loading, auth, serverpick, createchar, intro,
+};
+
+// Các màn thuộc luồng mở đầu -> ẩn thanh điều hướng dưới
+const NO_NAV = new Set(['splash', 'loading', 'auth', 'serverpick', 'createchar', 'intro', 'starter', 'battle', 'login']);
 
 let current = null;
 let currentParams = null;
@@ -30,9 +43,9 @@ export function show(name, params = {}) {
   el.className = `screen screen-${name}`;
   el.innerHTML = '';
   scr.render(el, params);
-  // Bottom nav: ẩn ở starter/battle/login
+  // Bottom nav: ẩn trong suốt luồng mở đầu và khi đang đánh
   const nav = document.getElementById('bottom-nav');
-  nav.hidden = (name === 'starter' || name === 'battle' || name === 'login');
+  nav.hidden = NO_NAV.has(name);
   nav.querySelectorAll('button').forEach(b =>
     b.classList.toggle('active', b.dataset.nav === name));
   el.scrollTop = 0;
@@ -56,10 +69,13 @@ document.addEventListener('click', e => {
 });
 
 // ==== Boot ====
-if (!activeAccount()) {
-  show('login');
-} else if (hasSave() && load()) {
-  show(G.p.starterChosen ? 'home' : 'starter');
-} else {
+// Luồng mở đầu: splash -> loading -> auth -> chọn máy chủ -> tạo nhân vật -> intro -> chọn starter
+// Đang chơi dở thì vào thẳng game, không bắt xem lại.
+const acc = activeAccount();
+if (acc && hasSave() && load() && G.p.starterChosen) {
+  show('home');
+} else if (acc && acc.charCreated && hasSave() && load()) {
   show('starter');
+} else {
+  show('splash');
 }

@@ -6,14 +6,26 @@ import { QUESTS } from '../data/quests.js';
 import { spriteUrl, esc } from '../util.js';
 import { toast, confirmDlg, typeBadge, holoStyle } from './kit.js';
 import { activeAccount } from '../engine/accounts.js';
+import { CHAPTERS } from '../data/story.js';
+import { markIntroSeen, emitStory } from '../engine/story.js';
+import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 
 const STARTERS = [1, 4, 7]; // Bulbasaur / Charmander / Squirtle
 
-export function render(el) {
+export async function render(el) {
   // Đã có save + đã chọn starter -> không nên ở đây
   if (G.p && G.p.starterChosen) { show('home'); return; }
   const hasPlayer = true; // tên đã có từ tài khoản -> vào thẳng phần chọn starter
+
+  // Lời thoại Giáo sư Oak chạy TRƯỚC khi bày 3 Pokémon (đúng thứ tự game gốc).
+  // Chỉ phát 1 lần cho mỗi ván chơi mới.
+  if (G.p && !G.p.metProfessor) {
+    G.p.metProfessor = true;
+    save();
+    const ch1 = CHAPTERS[0];
+    if (ch1?.dialog?.length) await playDialog(ch1.dialog);
+  }
 
   el.innerHTML = `
     <div class="starter-wrap">
@@ -79,8 +91,13 @@ export function render(el) {
       const mainKey = QUESTS && QUESTS.main_starter ? 'main_starter'
         : (qKeys.find(k => k.startsWith('main')) || qKeys[0]);
       if (mainKey) startQuest(mainKey);
+      // Thoại Giáo sư Oak đã xem ở đầu màn này -> đánh dấu để home không phát lại,
+      // rồi chốt luôn chương 1 (mục tiêu của chương là chọn starter).
+      markIntroSeen();
+      const chDone = emitStory('choose_starter', {});
       save();
       toast(`${s.name} đã gia nhập đội! Chúc hành trình vui vẻ!`);
+      if (chDone?.outro?.length) await playDialog(chDone.outro);
       show('home');
     });
   });
