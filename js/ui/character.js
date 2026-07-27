@@ -5,7 +5,7 @@ import {
   ensureData, totalStats, equip, unequip, upgradeEquip, sellEquip,
   sellPrice, buyEquip, buyStone, shopList, stoneCount, expToNext, MAX_TRAINER_LEVEL, STONE_ITEM,
 } from '../engine/equipment.js';
-import { SLOTS, RARITY, EQUIPMENT, UPGRADE, STAT_NAMES, statsOf, maxLevelOf } from '../data/equipment.js';
+import { SLOTS, RARITY, EQUIPMENT, UPGRADE, STAT_KEYS, STAT_NAMES, statsOf, maxLevelOf } from '../data/equipment.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 
@@ -22,6 +22,31 @@ function ensureCss() {
 const rarOf = (id) => RARITY[(EQUIPMENT[id] || {}).rarity] || RARITY.common;
 const slotName = (id) => (SLOTS.find(s => s.id === id) || {}).name || id;
 
+// Mốc 100% của mỗi thanh chỉ số = tổng món tốt nhất mỗi ô, cường hóa tối đa.
+// Tính một lần lúc nạp module để thanh luôn so với cùng một chuẩn.
+const STAT_MAX = (() => {
+  const out = {};
+  for (const k of STAT_KEYS) {
+    let sum = 0;
+    for (const s of SLOTS) {
+      let best = 0;
+      for (const [id, def] of Object.entries(EQUIPMENT)) {
+        if (def.slot !== s.id) continue;
+        best = Math.max(best, statsOf(id, maxLevelOf(id))[k] || 0);
+      }
+      sum += best;
+    }
+    out[k] = Math.max(1, Math.round(sum));
+  }
+  return out;
+})();
+
+// Màu riêng cho từng thanh để nhìn phát biết ngay là chỉ số nào
+const STAT_COLOR = {
+  expBonus: '#7048e8', moneyBonus: '#f0b429', catchBonus: '#20c997', shinyBonus: '#f783ac',
+  atkBonus: '#fa5252', defBonus: '#4dabf7', hpBonus: '#51cf66', idleSpeed: '#ff922b',
+};
+
 // Mô tả stat dạng "EXP nhận được +8%"
 function statLines(st) {
   return Object.entries(st)
@@ -33,47 +58,26 @@ export function render(el) {
   ensureCss();
   const p = ensureData();
   if (!p) return;
-  let tab = 'gear'; // gear | inv | shop
+  let tab = 'inv'; // gear | inv | shop
 
   function draw() {
-    const ts = totalStats();
-    const bonuses = statLines(ts);
-    const lv = p.trainer.level;
-    const need = expToNext(lv);
-    const pct = lv >= MAX_TRAINER_LEVEL ? 100
-      : Math.min(100, Math.round(p.trainer.exp / Math.max(1, need) * 100));
-
     el.innerHTML = `
       ${header('Nhân vật')}
 
-      <div class="card char-hero">
-        <img class="char-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()">
-        <div class="char-hero-mid">
-          <b class="char-name">${esc(p.name)}</b>
-          <div class="char-lv">Trainer Lv.${lv}${lv >= MAX_TRAINER_LEVEL ? ' (MAX)' : ''}</div>
-          <div class="char-xp"><div class="char-xp-fill" style="width:${pct}%"></div></div>
-          <small class="char-xp-num">${lv >= MAX_TRAINER_LEVEL ? 'Đã đạt cấp tối đa' : `${fmt(p.trainer.exp)} / ${fmt(need)} EXP`}</small>
-        </div>
-      </div>
+      ${gearRingHtml()}
 
-      <div class="card char-bonus">
-        <h3>Chỉ số cộng thêm</h3>
-        ${bonuses.length
-          ? `<div class="bonus-list">${bonuses.map(b => `<span class="bonus-pill">${esc(b)}</span>`).join('')}</div>`
-          : '<small class="empty-note">Chưa mặc trang bị nào. Hãy mua và mặc để nhận chỉ số cộng thêm.</small>'}
-      </div>
+      ${statBarsHtml()}
 
       <div class="tab-row">
-        <button type="button" class="tab-btn ${tab === 'gear' ? 'active' : ''}" data-tab="gear">Trang bị</button>
-        <button type="button" class="tab-btn ${tab === 'inv' ? 'active' : ''}" data-tab="inv">Túi (${p.inventory.length})</button>
+        <button type="button" class="tab-btn ${tab === 'inv' ? 'active' : ''}" data-tab="inv">Kho trang bị (${p.inventory.length})</button>
         <button type="button" class="tab-btn ${tab === 'shop' ? 'active' : ''}" data-tab="shop">Cửa hàng</button>
       </div>
 
-      <div class="char-body">${tab === 'gear' ? gearHtml() : tab === 'inv' ? invHtml() : shopHtml()}</div>`;
+      <div class="char-body">${tab === 'shop' ? shopHtml() : invHtml()}</div>`;
 
     el.querySelectorAll('.tab-btn').forEach(b =>
       b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
-    el.querySelectorAll('.slot-cell').forEach(b =>
+    el.querySelectorAll('.ring-cell').forEach(b =>
       b.addEventListener('click', () => onSlot(b.dataset.slot)));
     el.querySelectorAll('.inv-row').forEach(b =>
       b.addEventListener('click', () => onInv(b.dataset.uid)));
@@ -83,35 +87,71 @@ export function render(el) {
     if (bs) bs.addEventListener('click', onBuyStone);
   }
 
-  // ==== Lưới 6 ô ====
-  function gearHtml() {
-    return `<div class="slot-grid">
-      ${SLOTS.map(s => {
-        const eq = p.equipped[s.id];
-        const def = eq ? EQUIPMENT[eq.id] : null;
-        if (!def) {
-          return `<button class="slot-cell empty" data-slot="${s.id}" style="--rar:var(--line)">
-            <span class="slot-ico dim">${itemIcon(s.icon, '', 34)}</span>
-            <b class="slot-label">${esc(s.name)}</b>
-            <small>Trống</small>
-          </button>`;
-        }
-        const rar = rarOf(eq.id);
-        return `<button class="slot-cell" data-slot="${s.id}" style="--rar:${rar.color}">
-          ${eq.level ? `<span class="up-badge">+${eq.level}</span>` : ''}
-          <span class="slot-ico">${itemIcon(def.sprite, '', 34)}</span>
-          <b class="slot-label">${esc(def.name)}</b>
-          <small style="color:${rar.color}">${esc(rar.name)}</small>
+  // ==== Vòng trang bị: 3 ô trái - nhân vật giữa - 3 ô phải ====
+  function gearRingHtml() {
+    const cell = (s) => {
+      const eq = p.equipped[s.id];
+      const def = eq ? EQUIPMENT[eq.id] : null;
+      if (!def) {
+        return `<button type="button" class="ring-cell empty" data-slot="${s.id}" style="--rar:var(--line)">
+          <span class="ring-ico dim">${itemIcon(s.icon, '', 30)}</span>
+          <small class="ring-name">${esc(s.name)}</small>
         </button>`;
-      }).join('')}
-    </div>
-    <div class="card char-note"><small>${esc(UPGRADE.failNote)}</small></div>`;
+      }
+      const rar = rarOf(eq.id);
+      return `<button type="button" class="ring-cell" data-slot="${s.id}" style="--rar:${rar.color}">
+        ${eq.level ? `<span class="up-badge">+${eq.level}</span>` : ''}
+        <span class="ring-ico">${itemIcon(def.sprite, '', 30)}</span>
+        <small class="ring-name" style="color:${rar.color}">${esc(def.name)}</small>
+      </button>`;
+    };
+    const left = SLOTS.slice(0, 3).map(cell).join('');
+    const right = SLOTS.slice(3, 6).map(cell).join('');
+    const lv = p.trainer.level;
+    const need = expToNext(lv);
+    const maxed = lv >= MAX_TRAINER_LEVEL;
+    const pct = maxed ? 100 : Math.min(100, Math.round(p.trainer.exp / Math.max(1, need) * 100));
+    return `
+      <div class="card gear-ring">
+        <div class="ring-col">${left}</div>
+        <div class="ring-mid">
+          <img class="ring-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()">
+          <b class="ring-name-lbl">${esc(p.name)}</b>
+          <div class="char-lv">Trainer Lv.${lv}${maxed ? ' (MAX)' : ''}</div>
+          <div class="char-xp"><div class="char-xp-fill" style="width:${pct}%"></div></div>
+          <small class="char-xp-num">${maxed ? 'Cấp tối đa' : `${fmt(p.trainer.exp)}/${fmt(need)}`}</small>
+        </div>
+        <div class="ring-col">${right}</div>
+      </div>`;
+  }
+
+  // ==== Thanh chỉ số: so với mức tối đa lý thuyết của bộ trang bị tốt nhất ====
+  function statBarsHtml() {
+    const ts = totalStats();
+    const rows = STAT_KEYS.map(k => {
+      const v = ts[k] || 0;
+      // v > 0 luôn hiện ít nhất một vạch mỏng, không thì nhìn y hệt số 0
+      const pct = v ? Math.max(4, Math.min(100, Math.round(v / STAT_MAX[k] * 100))) : 0;
+      return `
+        <div class="stat-row">
+          <span class="stat-lab">${esc(STAT_NAMES[k] || k)}</span>
+          <span class="stat-track"><i style="width:${pct}%;background:${STAT_COLOR[k]}"></i></span>
+          <span class="stat-val" style="color:${v ? STAT_COLOR[k] : 'var(--muted)'}">+${v}%</span>
+        </div>`;
+    }).join('');
+    const any = STAT_KEYS.some(k => ts[k]);
+    return `
+      <div class="card char-stats">
+        <h3>Chỉ số nhân vật</h3>
+        <div class="stat-bars">${rows}</div>
+        ${any ? '' : '<small class="empty-note">Chưa mặc trang bị nào — mặc đồ vào để kéo các thanh này lên.</small>'}
+      </div>`;
   }
 
   // ==== Túi trang bị ====
   function invHtml() {
     if (!p.inventory.length) {
-      return '<div class="card empty-note">Túi trang bị trống. Mua ở tab Cửa hàng hoặc nhặt được sau trận đấu.</div>';
+      return '<div class="card empty-note">Kho trang bị trống. Mua ở tab Cửa hàng hoặc nhặt được sau trận đấu.<br>Thuốc, bóng và đá tiến hoá nằm ở màn <b>Túi</b> riêng.</div>';
     }
     return `<div class="item-list">${p.inventory.map(e => {
       const def = EQUIPMENT[e.id];
@@ -125,7 +165,8 @@ export function render(el) {
         </span>
         <span class="item-n">${fmt(sellPrice(e.id, e.level))}₽</span>
       </button>`;
-    }).join('')}</div>`;
+    }).join('')}</div>
+    <div class="card char-note"><small>${esc(UPGRADE.failNote)}</small></div>`;
   }
 
   // ==== Cửa hàng ====
@@ -221,7 +262,7 @@ export function render(el) {
     const r = upgradeEquip({ slot: slotId });
     if (!r.ok) { toast(r.error); return; }
     draw();
-    const cell = el.querySelector(`.slot-cell[data-slot="${slotId}"]`);
+    const cell = el.querySelector(`.ring-cell[data-slot="${slotId}"]`);
     if (cell) cell.classList.add(r.success ? 'fx-glow' : 'fx-shake');
     if (r.success) toast(`Cường hóa thành công! ${def.name} +${r.newLevel}`);
     else toast('Cường hóa thất bại. Trang bị vẫn nguyên vẹn, chỉ mất tiền và đá.');

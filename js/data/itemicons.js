@@ -12,9 +12,11 @@ export const ITEM_ICONS = {
   bicycle: 'key-item/bicycle',
   blastoisinite: 'mega-stone/blastoisinite',
   burn_heal: 'medicine/burn-heal',
+  card_key: 'key-item/card-key',
   charizardite_x: 'mega-stone/charizardite-x',
   charizardite_y: 'mega-stone/charizardite-y',
   coin_case: 'key-item/coin-case',
+  dome_fossil: 'fossil/dome',
   escape_rope: 'other-item/escape-rope',
   exp_share: 'key-item/exp-share',
   fame_checker: 'key-item/fame-checker',
@@ -22,6 +24,7 @@ export const ITEM_ICONS = {
   full_heal: 'medicine/full-heal',
   full_restore: 'medicine/full-restore',
   gengarite: 'mega-stone/gengarite',
+  good_rod: 'key-item/good-rod',
   great_ball: 'ball/great',
   gyaradosite: 'mega-stone/gyaradosite',
   hyper_potion: 'medicine/hyper-potion',
@@ -30,9 +33,12 @@ export const ITEM_ICONS = {
   leaf_stone: 'evo-item/leaf-stone',
   lucky_egg: 'hold-item/lucky-egg',
   max_potion: 'medicine/max-potion',
+  max_revive: 'medicine/max-revive',
   mewtwonite_x: 'mega-stone/mewtwonite-x',
   mewtwonite_y: 'mega-stone/mewtwonite-y',
   nugget: 'valuable-item/nugget',
+  old_rod: 'key-item/old-rod',
+  old_sea_map: 'key-item/old-sea-map',
   oran_berry: 'berry/oran',
   paralyze_heal: 'medicine/paralyze-heal',
   pidgeotite: 'mega-stone/pidgeotite',
@@ -42,8 +48,12 @@ export const ITEM_ICONS = {
   potion: 'medicine/potion',
   rare_candy: 'medicine/rare-candy',
   revive: 'medicine/revive',
+  sacred_ash: 'medicine/sacred-ash',
+  silph_scope: 'key-item/silph-scope',
   slowbronite: 'mega-stone/slowbronite',
+  ss_ticket: 'key-item/ss-ticket',
   super_potion: 'medicine/super-potion',
+  teachy_tv: 'key-item/teachy-tv',
   thunder_stone: 'evo-item/thunder-stone',
   town_map: 'key-item/town-map',
   ultra_ball: 'ball/ultra',
@@ -53,5 +63,8 @@ export const ITEM_ICONS = {
   water_stone: 'evo-item/water-stone',
 };
 
-export const itemIconPath = (id) =>
-  ITEM_ICONS[id] ? `assets/pokesprite/items/${ITEM_ICONS[id]}.png` : null;
+// Chấp nhận cả 'silph-scope' lẫn 'silph_scope' — hai kiểu viết đều xuất hiện trong dữ liệu
+export const itemIconPath = (id) => {
+  const key = String(id).replace(/-/g, '_');
+  return ITEM_ICONS[key] ? `assets/pokesprite/items/${ITEM_ICONS[key]}.png` : null;
+};

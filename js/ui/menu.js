@@ -7,7 +7,43 @@ import { ITEMS } from '../data/items.js';
 import { esc, fmt, todayNum } from '../util.js';
 import { toast, confirmDlg, header, itemIcon } from './kit.js';
 import { storyProgress } from '../engine/story.js';
+import { net } from '../net/session.js';
 import { show, refresh } from '../main.js';
+
+// Bảng menu: mỗi ô là một trang riêng. Thêm trang mới thì thêm một dòng ở đây.
+const HUB = [
+  { to: 'character', icon: 'silph_scope',  label: 'Nhân vật',    note: 'Trang bị & chỉ số' },
+  { to: 'party',     icon: 'exp_share',    label: 'Đội hình',    note: 'Sắp xếp Pokémon' },
+  { to: 'dex',       icon: 'town_map',     label: 'Pokédex',     note: 'Đã gặp & đã bắt' },
+  { to: 'bag',       icon: 'berry_pouch',  label: 'Túi',         note: 'Thuốc, bóng, đá' },
+  { to: 'shop',      icon: 'coin_case',    label: 'Cửa hàng',    note: 'Mua vật phẩm' },
+  { to: 'quest',     icon: 'vs_recorder',  label: 'Nhiệm vụ',    note: 'Hằng ngày & cốt truyện' },
+  { to: 'chat',      icon: 'vs_seeker',    label: 'Trò chuyện',  note: 'Thế giới & bang', badge: 'chat' },
+  { to: 'rank',      icon: 'nugget',       label: 'Xếp hạng',    note: 'Top người chơi' },
+  { to: 'guild',     icon: 'sacred_ash',   label: 'Bang hội',    note: 'Lập & tham gia' },
+  { to: 'friends',   icon: 'poke_flute',   label: 'Bạn bè',      note: 'Kết bạn, thách đấu', badge: 'dm' },
+  { to: 'serverpick', icon: 'card_key',    label: 'Máy chủ',     note: 'Đổi máy chủ' },
+];
+
+// Số thông báo chưa đọc hiện trên góc ô
+function badgeCount(kind) {
+  if (!net.connected) return 0;
+  if (kind === 'chat') return (net.unread.world || 0) + (net.unread.guild || 0);
+  if (kind === 'dm') return net.unread.dm || 0;
+  return 0;
+}
+
+function hubHtml() {
+  return `<div class="hub-grid">${HUB.map(t => {
+    const n = t.badge ? badgeCount(t.badge) : 0;
+    return `<button type="button" class="hub-cell" data-goto="${t.to}">
+      ${n ? `<span class="hub-badge">${n > 99 ? '99+' : n}</span>` : ''}
+      <span class="hub-ico">${itemIcon(t.icon, '', 30)}</span>
+      <b class="hub-label">${esc(t.label)}</b>
+      <small class="hub-note">${esc(t.note)}</small>
+    </button>`;
+  }).join('')}</div>`;
+}
 
 export function render(el) {
   const [seen, caught] = dexCounts();
@@ -43,17 +79,7 @@ export function render(el) {
       <small class="daily-streak">Chuỗi điểm danh: ${G.p.daily.streak} ngày</small>
     </div>
 
-    <button class="card menu-link" data-goto="quest">${itemIcon('vs_recorder', '', 22)} Nhiệm vụ ›</button>
-    <button class="card menu-link" data-goto="character">${itemIcon('amulet_coin', '', 22)} Nhân vật & Trang bị ›</button>
-
-    <div class="card">
-      <h3>Nhiều người chơi</h3>
-      <button class="btn menu-row" data-goto="chat">${itemIcon('vs_seeker', '', 22)} Trò chuyện</button>
-      <button class="btn menu-row" data-goto="rank">${itemIcon('fame_checker', '', 22)} Bảng xếp hạng</button>
-      <button class="btn menu-row" data-goto="guild">${itemIcon('coin_case', '', 22)} Bang hội</button>
-      <button class="btn menu-row" data-goto="friends">${itemIcon('poke_flute', '', 22)} Bạn bè</button>
-      <button class="btn menu-row" data-goto="serverpick">${itemIcon('town_map', '', 22)} Đổi máy chủ</button>
-    </div>
+    ${hubHtml()}
 
     <div class="card">
       <h3>Cài đặt</h3>
