@@ -302,9 +302,16 @@ try {
   ok('bonus tăng theo cấp', Math.abs(mine3.data.bonus.expMult - 1.04) < 1e-9);
 
   // ==== Chat bang hội qua socket ====
-  const gMsgA = waitFor(sockA, 'guild:msg');
-  const gMsgB = waitFor(sockB, 'guild:msg');
-  sockB.emit('guild:send', { text: 'Chao ca bang!' });
+  // Kết nối lại: socket của AshK đã bị ngắt trong phần test khóa tài khoản ở trên
+  sockA.close(); sockB.close();
+  await sleep(300);
+  const sockA2 = ioClient(BASE, { auth: { token: tokenA }, transports: ['websocket'] });
+  const sockB2 = ioClient(BASE, { auth: { token: tokenB }, transports: ['websocket'] });
+  ok('kết nối lại socket sau khi mở khóa', !!(await waitFor(sockA2, 'welcome')) && !!(await waitFor(sockB2, 'welcome')));
+
+  const gMsgA = waitFor(sockA2, 'guild:msg');
+  const gMsgB = waitFor(sockB2, 'guild:msg');
+  sockB2.emit('guild:send', { text: 'Chao ca bang!' });
   const [gA, gB] = [await gMsgA, await gMsgB];
   ok('cả 2 thành viên nhận chat bang hội', gA?.text === 'Chao ca bang!' && gB?.text === 'Chao ca bang!' && gA.from === 'MistyW');
 
@@ -358,14 +365,14 @@ try {
   ok('người đã rời không còn bang hội', mineBAfter.data.guild === null);
 
   // ==== Tin nhắn riêng (DM) ====
-  const dmIn = waitFor(sockB, 'dm:msg');
-  sockA.emit('dm:send', { to: 'MistyW', text: 'Chao ban nhe!' });
+  const dmIn = waitFor(sockB2, 'dm:msg');
+  sockA2.emit('dm:send', { to: 'MistyW', text: 'Chao ban nhe!' });
   const dmMsg = await dmIn;
   ok('người nhận nhận được DM', dmMsg?.text === 'Chao ban nhe!' && dmMsg.from === 'AshK', JSON.stringify(dmMsg));
 
   await sleep(1100);
-  const dmIn2 = waitFor(sockA, 'dm:msg');
-  sockB.emit('dm:send', { to: 'AshK', text: 'Chao lai ban!' });
+  const dmIn2 = waitFor(sockA2, 'dm:msg');
+  sockB2.emit('dm:send', { to: 'AshK', text: 'Chao lai ban!' });
   ok('gửi DM chiều ngược lại', (await dmIn2)?.text === 'Chao lai ban!');
 
   const dmListA = await api('/api/chat/dm', { token: tokenA });
@@ -380,14 +387,14 @@ try {
   ok('mở hội thoại thì hết tin chưa đọc', dmListA2.data.rows[0].unread === 0);
 
   await sleep(1100);
-  const dmSpam = waitFor(sockA, 'chat:error', 2000);
-  sockA.emit('dm:send', { to: 'MistyW', text: 'spam 1' });
-  sockA.emit('dm:send', { to: 'MistyW', text: 'spam 2' });
+  const dmSpam = waitFor(sockA2, 'chat:error', 2000);
+  sockA2.emit('dm:send', { to: 'MistyW', text: 'spam 1' });
+  sockA2.emit('dm:send', { to: 'MistyW', text: 'spam 2' });
   ok('chống spam DM (1 tin/giây)', !!(await dmSpam));
 
   await sleep(1100);
-  const dmNoUser = waitFor(sockA, 'chat:error', 2000);
-  sockA.emit('dm:send', { to: 'KhongTonTai', text: 'hello' });
+  const dmNoUser = waitFor(sockA2, 'chat:error', 2000);
+  sockA2.emit('dm:send', { to: 'KhongTonTai', text: 'hello' });
   ok('DM tới người không tồn tại bị chặn', !!(await dmNoUser));
 
   // ==== Admin: bang hội ====
@@ -408,7 +415,7 @@ try {
   const mineAfterDisband = await api('/api/guild/mine', { token: tokenA });
   ok('leader không còn bang hội sau khi giải tán', mineAfterDisband.data.guild === null);
 
-  sockC.close();
+  sockC.close(); sockA2.close(); sockB2.close();
 
   // ==== Lưu xuống đĩa ====
   await api('/api/admin/flush', { method: 'POST', token: admToken });

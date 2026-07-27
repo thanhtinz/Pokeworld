@@ -22,7 +22,7 @@ export function render(el) {
     ${header('Menu')}
 
     <div class="card profile-card">
-      <div class="profile-name"><img class="profile-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()"> <b>${esc(G.p.name)}</b>${storyProgress().finished ? ' <img src="assets/img/crown.png" class="crown-ico" alt="" title="Nhà Vô Địch" onerror="this.style.visibility='hidden'">' : ''}</div>
+      <div class="profile-name"><img class="profile-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()"> <b>${esc(G.p.name)}</b>${storyProgress().finished ? ` <img src="assets/img/crown.png" class="crown-ico" alt="" title="Nhà Vô Địch" onerror="this.style.visibility='hidden'">` : ''}</div>
       <div>${itemIcon('amulet_coin', '', 18)} ${fmt(G.p.money)}₽</div>
       <div class="badge-row">
         ${G.p.badges.length
