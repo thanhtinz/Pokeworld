@@ -40,7 +40,7 @@ async function chapterDone(ch) {
 }
 
 export function render(el) {
-  const zone = ZONES[G.p.zone] || ZONES.town_1;
+  const zone = ZONES[G.p.zone] || Object.values(ZONES)[0];
   const isTown = !(zone.encounters?.length);
   const ch = currentChapter();
   const prog = storyProgress();

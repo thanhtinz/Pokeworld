@@ -414,7 +414,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       grantTrainerRewards();
     } else if (allFainted()) {
       // Thua trận
-      G.p.zone = 'town_1';
+      G.p.zone = 'taba_town';
       for (const m of G.p.party) heal(m);
       const lost = Math.floor(G.p.money * 0.05);
       G.p.money -= lost;

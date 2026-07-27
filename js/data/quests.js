@@ -33,7 +33,7 @@ export const QUESTS = {
     kind: 'side',
     name: 'Khám Phá Rừng Xanh',
     desc: 'Tiến vào khu rừng phía bắc thị trấn để khám phá vùng đất mới.',
-    goal: { t: 'reach_zone', zone: 'forest_1' },
+    goal: { t: 'reach_zone', zone: 'dryadsgrove' },
     reward: { money: 300, items: [{ id: 'oran_berry', n: 5 }] },
   },
   side_bughunt: {

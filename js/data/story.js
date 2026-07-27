@@ -33,7 +33,7 @@ export const CHAPTERS = [
       ['rogue', 'Vậy thì... tớ chọn con KHẮC HỆ với cậu luôn! Hê hê. Mai đấu thử một trận nhé!'],
     ],
     reward: { items: [{ id: 'potion', n: 3 }] },
-    unlock: ['route_1'],
+    unlock: ['route1'],
   },
   {
     id: 'ch2', title: 'Chương 2 — Trận đấu đầu tiên',
@@ -60,7 +60,7 @@ export const CHAPTERS = [
       ['prof', 'Tuyệt vời! Nghe nói trong Rừng Xanh Thẳm xuất hiện người lạ mặc đồ đen... Cẩn thận đấy.'],
     ],
     reward: { money: 800, items: [{ id: 'potion', n: 3 }] },
-    unlock: ['forest_1'],
+    unlock: ['dryadsgrove'],
   },
   {
     id: 'ch4', title: 'Chương 4 — Bóng đen trong rừng',
@@ -88,7 +88,7 @@ export const CHAPTERS = [
       ['prof', 'Huy hiệu Đá! Cháu đúng là có tố chất. Giờ thì đến Hang Dơi Đá chặn Team Rocket thôi!'],
     ],
     reward: { money: 1500, items: [{ id: 'super_potion', n: 2 }] },
-    unlock: ['route_2', 'cave_1'],
+    unlock: ['route1_sanglorian', 'cotton_town'],
   },
   {
     id: 'ch6', title: 'Chương 6 — Giải cứu hang đá',
@@ -102,7 +102,7 @@ export const CHAPTERS = [
       ['boss', 'Lũ vô dụng... Nhóc con, hồ nước phía bắc sẽ là mỏ vàng của ta. Gyarados hồ đó sẽ thuộc về Team Rocket!'],
     ],
     reward: { money: 2000, items: [{ id: 'great_ball', n: 5 }] },
-    unlock: ['lake_1'],
+    unlock: ['cotton_town'],
   },
   {
     id: 'ch7', title: 'Chương 7 — Quyết chiến bên hồ',
@@ -137,9 +137,9 @@ export const CHAPTERS = [
 
 // Zone nào cần mở khóa bằng cốt truyện (zone không có ở đây = mở sẵn)
 export const ZONE_LOCKS = {
-  route_1:  'ch1',
-  forest_1: 'ch3',
-  route_2:  'ch5',
-  cave_1:   'ch5',
-  lake_1:   'ch6',
+  route1:  'ch1',
+  dryadsgrove: 'ch3',
+  route1_sanglorian:  'ch5',
+  cotton_town:   'ch5',
+  cotton_town:   'ch6',
 };

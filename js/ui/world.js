@@ -1,9 +1,10 @@
 // TuxeWorld H5 | ui/world.js | Màn bản đồ: vẽ canvas + joystick ảo + nút tương tác
 import { G, save } from '../state.js';
+import { atlasReady } from '../engine/mapbake.js';
+import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing,
 } from '../engine/overworld.js';
-import { TILESET, tileRect } from '../data/tiles.js';
 import { owImage, owFrame, owReady, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal } from '../engine/pokemon.js';
 import { activeAvatar } from '../engine/accounts.js';
@@ -35,16 +36,7 @@ export function render(el) {
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
 
-  const tileset = new Image();
-  tileset.src = TILESET.src;
-  const roomCache = {};
-  const roomImage = (src) => {
-    let img = roomCache[src];
-    if (!img) { img = new Image(); img.src = src; roomCache[src] = img; }
-    return img;
-  };
   const avatarImg = owImage(activeAvatar());
-
   function sizeCanvas() {
     const r = canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -115,10 +107,6 @@ export function render(el) {
   }
 
   // ==== Vẽ ====
-  function drawTile(idx, dx, dy, size) {
-    const { sx, sy, sw, sh } = tileRect(idx);
-    ctx.drawImage(tileset, sx, sy, sw, sh, dx, dy, size, size);
-  }
 
   // Vẽ NPC + người chơi (cả ngoài trời lẫn trong nhà)
   function drawActors(map, size, camX, camY) {
@@ -186,31 +174,36 @@ export function render(el) {
     ctx.fillStyle = '#0b0716';
     ctx.fillRect(0, 0, w, h);
 
-    if (baked.image) {
-      // Trong nhà: nền là nguyên một tấm ảnh phòng, phóng theo cỡ ô
-      const room = roomImage(baked.image);
-      if (room.complete && room.naturalWidth) {
-        ctx.drawImage(room, Math.round(-camX), Math.round(-camY),
-          Math.round(baked.w * size), Math.round(baked.h * size));
-      }
-    } else {
-      if (!tileset.complete || !tileset.naturalWidth) return;
-      const x0 = Math.max(0, Math.floor(camX / size));
-      const y0 = Math.max(0, Math.floor(camY / size));
-      const x1 = Math.min(baked.w, Math.ceil((camX + w) / size));
-      const y1 = Math.min(baked.h, Math.ceil((camY + h) / size));
+    if (!atlasReady(baked.atlas)) return;
+    const x0 = Math.max(0, Math.floor(camX / size));
+    const y0 = Math.max(0, Math.floor(camY / size));
+    const x1 = Math.min(baked.w, Math.ceil((camX + w) / size));
+    const y1 = Math.min(baked.h, Math.ceil((camY + h) / size));
+
+    // Vẽ từng lớp một, lớp sau đè lên lớp trước — đúng thứ tự Tiled lưu
+    const put = (t, px, py) => {
+      if (t < 0) return;
+      const sx = (t % baked.cols) * TILE, sy = Math.floor(t / baked.cols) * TILE;
+      ctx.drawImage(baked.atlas, sx, sy, TILE, TILE, px, py, size, size);
+    };
+    for (const lay of baked.layers) {
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
-          const i = y * baked.w + x;
-          const px = Math.round(x * size - camX), py = Math.round(y * size - camY);
-          drawTile(baked.ground[i], px, py, size);
-          if (baked.over[i] >= 0) drawTile(baked.over[i], px, py, size);
-          if (baked.top[i] >= 0) drawTile(baked.top[i], px, py, size);
+          put(lay[y * baked.w + x], Math.round(x * size - camX), Math.round(y * size - camY));
         }
       }
     }
 
     drawActors(map, size, camX, camY);
+
+    // Lớp "Above Player": mái nhà, tán cây — vẽ ĐÈ lên nhân vật
+    if (baked.above) {
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          put(baked.above[y * baked.w + x], Math.round(x * size - camX), Math.round(y * size - camY));
+        }
+      }
+    }
     drawHud(map);
   }
 
@@ -248,6 +241,11 @@ export function render(el) {
     busy = true;
     try {
       // Nói chuyện thì hiện chân dung: ảnh 2D nếu có, không thì phóng to sprite trên bản đồ
+      if (thing.type === 'talk') {
+        // Bảng hiệu / bảng thông báo lấy từ sự kiện thoại của bản đồ Tuxemon
+        await playDialog([[{ name: thing.name }, 'Bảng ghi: "' + thing.name + '".']]);
+        return;
+      }
       if (thing.text) {
         const who = { name: thing.name, img: thing.face || null, ow: thing.face ? null : (thing.sprite || null) };
         await playDialog([[who, thing.text]]);

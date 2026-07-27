@@ -4,22 +4,22 @@
 import { absUrl } from '../util.js';
 
 export const ARENAS = {
-  town_1: 'town',
+  taba_town: 'town',
   pc_town: 'town',
   mart_town: 'town',
   pc_lake: 'town',
-  route_1: 'grass',
-  route_2: 'tall_grass',
-  forest_1: 'forest',
-  cave_1: 'cave',
-  lake_1: 'lake',
-  route_3: 'grass',
-  meadow_1: 'tall_grass',
-  town_2: 'town',
+  route1: 'grass',
+  route1_sanglorian: 'tall_grass',
+  dryadsgrove: 'forest',
+  cotton_town: 'cave',
+  cotton_town: 'lake',
+  route1_sanglorian: 'grass',
+  dryadsgrove: 'tall_grass',
+  cotton_town: 'town',
   pc_town2: 'town',
   mart_town2: 'town',
-  beach_1: 'beach',
-  cave_2: 'cave',
+  leather_town: 'beach',
+  leather_town: 'cave',
 };
 
 export const DEFAULT_ARENA = 'grass';

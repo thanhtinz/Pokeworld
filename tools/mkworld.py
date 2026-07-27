@@ -24,16 +24,14 @@ import json
 import yaml
 
 # Khu vuc -> dia hinh Tuxemon tuong ung + khoang cap
+# Khu vuc = ID ban do do tools/mktmx.py sinh ra. Chi nhung ban do NGOAI TROI
+# moi co bang gap; nha va cua hang thi khong.
 ZONE_TERRAIN = {
-    'route_1':  (['grassland'], 2, 6),
-    'forest_1': (['woodland', 'jungle'], 4, 9),
-    'route_2':  (['grassland', 'urban'], 5, 11),
-    'cave_1':   (['underground', 'ruins'], 7, 13),
-    'lake_1':   (['freshwater', 'swamp'], 6, 12),
-    'route_3':  (['desert'], 9, 15),
-    'meadow_1': (['jungle', 'grassland'], 11, 17),
-    'beach_1':  (['coastal', 'sea'], 13, 19),
-    'cave_2':   (['mountains', 'underground'], 15, 22),
+    'route1':            (['grassland'], 2, 7),
+    'dryadsgrove':       (['woodland', 'jungle'], 5, 11),
+    'route1_sanglorian': (['grassland', 'urban'], 6, 12),
+    'cotton_town':       (['urban'], 8, 14),
+    'leather_town':      (['desert', 'ruins'], 11, 18),
 }
 # Vai con hiem duoc phep xuat hien them o khu vuc khac
 EXTRAPLANAR_ZONE = 'cave_2'
@@ -63,6 +61,19 @@ def read_species():
 
 def js(v):
     return json.dumps(v, ensure_ascii=False)
+
+
+def read_maps():
+    """Doc lai js/data/maps.js: ten + cong dich chuyen cua tung ban do."""
+    src = open('js/data/maps.js', encoding='utf-8').read()
+    out = {}
+    for m in re.finditer(r'^  ([a-z_0-9]+): \{\n    name: "([^"]+)"', src, re.M):
+        out[m.group(1)] = {'name': m.group(2), 'next': set()}
+    for m in re.finditer(r'^  ([a-z_0-9]+): \{(.*?)\n  \},', src, re.M | re.S):
+        for t in re.findall(r'"to":\s*"([a-z_0-9]+)"', m.group(2)):
+            if t in out:
+                out[m.group(1)]['next'].add(t)
+    return out
 
 
 def main():
@@ -97,7 +108,7 @@ def main():
             taken.add(m['slug'])
         zone_pool[zid] = (chosen, lo, hi)
 
-    write_zones(zone_pool)
+    write_zones(zone_pool, read_maps())
     write_starters(mons)
     n = write_trainers(zone_pool, mons)
     print('OK: %d khu vực, %d huấn luyện viên, %d con đã xếp chỗ'
@@ -108,61 +119,43 @@ STAGE_ORDER = {'basic': 0, 'standalone': 1, 'stage1': 2, 'stage2': 3}
 
 
 # ==================== Khu vuc ====================
-ZONE_META = {
-    'town_1':  ('Thị Trấn Khởi Đầu', 'town', None, 'town_map',
-                'Nơi hành trình bắt đầu. Có trung tâm hồi phục, cửa hàng và võ đường đầu tiên.',
-                ['route_1']),
-    'route_1': ('Đường Số 1', 'route', None, None,
-                'Đồng cỏ phía bắc thị trấn, đầy sinh vật hoang cấp thấp.',
-                ['town_1', 'forest_1', 'route_2']),
-    'forest_1': ('Rừng Xanh Thẳm', 'forest', None, None,
-                 'Khu rừng rậm rạp, tán cây che kín mặt trời.',
-                 ['route_1']),
-    'route_2': ('Đường Số 2', 'route', None, None,
-                'Đường mòn dẫn tới hang núi và hồ nước.',
-                ['route_1', 'cave_1', 'lake_1']),
-    'cave_1':  ('Hang Đá', 'cave', None, None,
-                'Hang động tối tăm, lãnh địa của những sinh vật sống dưới lòng đất.',
-                ['route_2', 'cave_2']),
-    'lake_1':  ('Hồ Gương Trời', 'lake', None, None,
-                'Hồ nước trong vắt, nơi đặt võ đường hệ Nước.',
-                ['route_2', 'route_3']),
-    'route_3': ('Đường Số 3', 'route', None, None,
-                'Con đường cát nóng phía nam hồ.',
-                ['lake_1', 'meadow_1', 'town_2']),
-    'meadow_1': ('Đồng Hoa Nắng', 'meadow', None, None,
-                 'Cánh đồng hoa nở quanh năm, sinh vật hệ Gỗ tụ về rất đông.',
-                 ['route_3']),
-    'town_2':  ('Làng Ven Núi', 'town', None, 'town_map',
-                'Ngôi làng nhỏ kẹp giữa núi và biển.',
-                ['route_3', 'beach_1']),
-    'beach_1': ('Bãi Biển Hoàng Hôn', 'beach', None, None,
-                'Bãi cát trải dài dưới nắng chiều, sóng vỗ suốt ngày đêm.',
-                ['town_2']),
-    'cave_2':  ('Hang Sâu Thẳm', 'cave', None, None,
-                'Mê cung đá sâu trong lòng núi, tối đến mức không thấy lối ra.',
-                ['cave_1']),
+DESC = {
+    'taba_town': 'Thị trấn quê nhà, nơi hành trình bắt đầu.',
+    'route1': 'Con đường cỏ dại đầu tiên ngoài thị trấn.',
+    'dryadsgrove': 'Rừng cây rậm rạp, sinh vật hệ Gỗ trú ngụ rất nhiều.',
+    'route1_sanglorian': 'Đoạn đường nối sang thị trấn kế tiếp.',
+    'cotton_town': 'Thị trấn buôn bán sầm uất.',
+    'leather_town': 'Thị trấn vùng đất khô, gió cát quanh năm.',
 }
+
 ZONE_TRAINERS = {
-    'town_1': ['gym_brock'], 'route_1': ['youngster_minh', 'lass_lan'],
-    'forest_1': ['bugcatcher_tung'], 'route_2': [], 'cave_1': ['hiker_dung'],
-    'lake_1': ['gym_thuy'], 'route_3': ['camper_route3', 'sailor_route3'],
-    'meadow_1': ['lass_rainbow'], 'town_2': ['rocket_grunt_3'],
-    'beach_1': ['swimmer_light'], 'cave_2': ['camper_victory', 'channeler_unknown'],
+    'taba_town': ['gym_brock'],
+    'route1': ['youngster_minh', 'lass_lan'],
+    'dryadsgrove': ['bugcatcher_tung', 'lass_rainbow'],
+    'route1_sanglorian': ['camper_route3', 'sailor_route3'],
+    'cotton_town': ['gym_thuy', 'rocket_grunt_3'],
+    'leather_town': ['camper_victory', 'channeler_unknown', 'swimmer_light'],
 }
 
 
-def write_zones(zone_pool):
+def write_zones(zone_pool, meta):
     out = ["// PokeWorld H5 | data/zones.js | Khu vực: bảng gặp sinh vật, huấn luyện viên, lối đi",
            '// Bảng gặp TỰ SINH TỪ tools/mkworld.py theo địa hình của Tuxemon — đừng sửa tay phần encounters.', '',
            "// kind: 'town' | 'route' | 'forest' | 'cave' | 'lake' | 'meadow' | 'beach'",
            'export const ZONES = {']
-    for zid, (name, kind, icon_sp, icon_item, desc, nxt) in ZONE_META.items():
+    for zid, info in meta.items():
+        name = info['name']
+        nxt = sorted(info['next'])
+        kind = ('town' if 'town' in zid or 'city' in zid
+                else 'route' if 'route' in zid
+                else 'forest' if 'grove' in zid or 'forest' in zid
+                else 'indoor')
+        desc = DESC.get(zid) or ('Khu vực %s.' % name)
         pool, lo, hi = zone_pool.get(zid, ([], 1, 5))
         out.append('  %s: {' % zid)
         icon_sp_txt = str(pool[0]['id']) if pool else 'null'
         out.append('    name: %s, kind: %s, icon: %s, iconSp: %s, iconItem: %s,'
-                   % (js(name), js(kind), js(kind), icon_sp_txt, js(icon_item) if icon_item else 'null'))
+                   % (js(name), js(kind), js(kind), icon_sp_txt, 'null'))
         out.append('    desc: %s,' % js(desc))
         if pool:
             out.append('    encounters: [')
@@ -230,34 +223,34 @@ def write_starters(mons):
 # ==================== Huan luyen vien ====================
 TRAINERS_META = [
     # (id, sprite, ten, kind, zone, so con, thuong, intro, lose, badge, badgeName)
-    ('youngster_minh', 'youngster', 'Nam Nhóc Tì', 'trainer', 'route_1', 2, 200,
+    ('youngster_minh', 'youngster', 'Nam Nhóc Tì', 'trainer', 'route1', 2, 200,
      'Ê bạn! Mình mới bắt được sinh vật đầu tiên, đấu thử một trận nhé!',
      'Ôi thua rồi... nhưng mình sẽ mạnh lên!', None, None),
-    ('lass_lan', 'lass', 'Bé Lan', 'trainer', 'route_1', 2, 240,
+    ('lass_lan', 'lass', 'Bé Lan', 'trainer', 'route1', 2, 240,
      'Trông dễ thương thôi chứ đánh không hiền đâu nha!',
      'Hức... bạn giỏi thật đấy.', None, None),
-    ('bugcatcher_tung', 'bug_catcher', 'Tùng Bắt Bọ', 'trainer', 'forest_1', 3, 320,
+    ('bugcatcher_tung', 'bug_catcher', 'Tùng Bắt Bọ', 'trainer', 'dryadsgrove', 3, 320,
      'Rừng này là sân nhà của tớ!', 'Sao lại thua ở chính khu rừng của mình...', None, None),
-    ('hiker_dung', 'camper', 'Dũng Leo Núi', 'trainer', 'cave_1', 3, 420,
+    ('hiker_dung', 'camper', 'Dũng Leo Núi', 'trainer', 'route1', 3, 420,
      'Trong hang tối nhưng ta thuộc từng ngóc ngách!', 'Đường hang khó vậy mà cậu vẫn thắng.', None, None),
-    ('camper_route3', 'camper_f', 'Liêm Cắm Trại', 'trainer', 'route_3', 3, 520,
+    ('camper_route3', 'camper_f', 'Liêm Cắm Trại', 'trainer', 'route1_sanglorian', 3, 520,
      'Cắm trại giữa sa mạc mới đã!', 'Nắng quá nên mình mất tập trung...', None, None),
-    ('sailor_route3', 'swimmer_f', 'Thuỷ Thủ Marina', 'trainer', 'route_3', 3, 560,
+    ('sailor_route3', 'swimmer_f', 'Thuỷ Thủ Marina', 'trainer', 'route1_sanglorian', 3, 560,
      'Tớ vừa lên bờ nghỉ chút, đấu một trận nhé!', 'Trên cạn tớ đúng là kém hơn thật.', None, None),
-    ('lass_rainbow', 'picnicker', 'Hạnh Dã Ngoại', 'trainer', 'meadow_1', 4, 700,
+    ('lass_rainbow', 'picnicker', 'Hạnh Dã Ngoại', 'trainer', 'dryadsgrove', 4, 700,
      'Đi picnic mà gặp đối thủ, vui quá!', 'Thua rồi nhưng hôm nay vẫn vui.', None, None),
-    ('rocket_grunt_3', 'rocket_m', 'Kẻ Áo Đen', 'rocket', 'town_2', 4, 900,
+    ('rocket_grunt_3', 'rocket_m', 'Kẻ Áo Đen', 'rocket', 'cotton_town', 4, 900,
      'Ngôi làng này sắp thuộc về bọn ta!', 'Bọn ta sẽ còn quay lại...', None, None),
-    ('swimmer_light', 'swimmer_m', 'Douglas Bơi Lội', 'trainer', 'beach_1', 4, 1000,
+    ('swimmer_light', 'swimmer_m', 'Douglas Bơi Lội', 'trainer', 'leather_town', 4, 1000,
      'Dưới nước tớ là số một!', 'Lên bờ rồi tớ đuối thật.', None, None),
-    ('camper_victory', 'hiker', 'Marcos Trèo Non', 'trainer', 'cave_2', 5, 1400,
+    ('camper_victory', 'hiker', 'Marcos Trèo Non', 'trainer', 'leather_town', 5, 1400,
      'Leo núi cả đời, chưa sợ ai bao giờ!', 'Cậu khoẻ hơn ta tưởng.', None, None),
-    ('channeler_unknown', 'scientist', 'Nhà Nghiên Cứu Mio', 'trainer', 'cave_2', 5, 1500,
+    ('channeler_unknown', 'scientist', 'Nhà Nghiên Cứu Mio', 'trainer', 'leather_town', 5, 1500,
      'Tôi đang đo địa chấn, đừng làm phiền!', 'Số liệu của tôi sai ở đâu đó rồi...', None, None),
-    ('gym_brock', 'brock', 'Thạch — Võ Đường Đất', 'gym', 'town_1', 3, 1200,
+    ('gym_brock', 'brock', 'Thạch — Võ Đường Đất', 'gym', 'taba_town', 3, 1200,
      'Ta là chủ võ đường đầu tiên. Cho ta xem cậu tiến bộ tới đâu!',
      'Cậu xứng đáng với huy hiệu này.', 'badge_boulder', 'Huy Hiệu Đá'),
-    ('gym_thuy', 'misty', 'Thuỷ — Võ Đường Nước', 'gym', 'lake_1', 4, 2000,
+    ('gym_thuy', 'misty', 'Thuỷ — Võ Đường Nước', 'gym', 'cotton_town', 4, 2000,
      'Nước mềm nhưng bào mòn được cả đá đấy!',
      'Được lắm, huy hiệu là của cậu.', 'badge_cascade', 'Huy Hiệu Thác'),
 ]

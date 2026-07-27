@@ -36,7 +36,7 @@ function defaultPlayer(name) {
     quests: { active: {}, done: {} },
     daily: { last: 0, streak: 0 },
     defeatedTrainers: {},
-    zone: 'town_1',
+    zone: 'taba_town',
     starterChosen: false,
     stats: { catches: 0, wins: 0, playSince: Date.now() },
     equipped: { hat: null, outfit: null, gloves: null, shoes: null, bag: null, charm: null },

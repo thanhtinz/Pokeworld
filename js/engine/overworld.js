@@ -1,6 +1,6 @@
 // TuxeWorld H5 | engine/overworld.js | Di chuyển trên bản đồ: va chạm, cổng dịch chuyển, gặp Tuxemon
-import { MAPS, TILE_SIZE, mapWidth, mapHeight } from '../data/maps.js';
-import { bake, isSolidAt, isEncAt, doorAt } from './mapbake.js';
+import { MAPS, TILE_SIZE } from '../data/maps.js';
+import { bake, isSolidAt, isEncAt, talkAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
 import { G, save, markSeen } from '../state.js';
 import { newTuxemon } from './pokemon.js';
@@ -11,13 +11,14 @@ const ENC_STEP_MIN = 6;         // đi ít nhất ngần này ô cỏ mới có 
 const ENC_CHANCE = 0.16;        // xác suất mỗi ô cỏ sau khi đủ ngưỡng
 
 // Trạng thái người chơi trên bản đồ (đơn vị: ô, có phần lẻ để đi mượt)
-export const player = { mapId: 'town_1', x: 11.5, y: 16.5, dir: 'down', moving: false, steps: 0 };
+export const START_MAP = Object.keys(MAPS)[0];
+export const player = { mapId: START_MAP, x: 1.5, y: 1.5, dir: 'down', moving: false, steps: 0 };
 
 export function currentMap() {
-  return MAPS[player.mapId] || MAPS.town_1;
+  return MAPS[player.mapId] || MAPS[START_MAP];
 }
 
-export const currentBake = () => bake(player.mapId in MAPS ? player.mapId : 'town_1');
+export const currentBake = () => bake(player.mapId in MAPS ? player.mapId : START_MAP);
 
 // Đặt người chơi vào một bản đồ (dùng khi vào game / qua cổng)
 export function enterMap(mapId, tx, ty) {
@@ -47,7 +48,7 @@ export function restorePosition() {
   } else if (pos && MAPS[pos.map]) {
     enterMap(pos.map);
   } else {
-    const zone = G.p?.zone && MAPS[G.p.zone] ? G.p.zone : 'town_1';
+    const zone = G.p?.zone && MAPS[G.p.zone] ? G.p.zone : START_MAP;
     enterMap(zone);
   }
 }
@@ -62,7 +63,7 @@ function canWalk(baked, map, x, y) {
   const pad = 0.3;
   const pts = [[x - pad, y - pad], [x + pad, y - pad], [x - pad, y + pad], [x + pad, y + pad]];
   for (const [px, py] of pts) {
-    if (px < 0 || py < 0 || px >= mapWidth(map) || py >= mapHeight(map)) return false;
+    if (px < 0 || py < 0 || px >= map.w || py >= map.h) return false;
     if (isSolidAt(baked, Math.floor(px), Math.floor(py))) return false;
   }
   return !npcAt(map, Math.floor(x), Math.floor(y));
@@ -138,11 +139,9 @@ export function facingThing() {
   const { x, y } = facingTile();
   const npc = (map.npcs || []).find(n => n.x === x && n.y === y);
   if (npc) return { type: 'npc', ...npc };
-  const door = doorAt(currentBake(), x, y);
-  if (door) return { type: 'door', ...door };
-  // Đứng ngay trên ô cửa cũng tính là vào cửa
-  const here = doorAt(currentBake(), Math.floor(player.x), Math.floor(player.y));
-  if (here) return { type: 'door', ...here };
+  // Bảng hiệu / bảng thông báo: bản đồ Tuxemon đánh dấu bằng sự kiện thoại
+  const talk = talkAt(currentBake(), x, y);
+  if (talk) return { type: 'talk', ...talk };
   return null;
 }
 

@@ -18,7 +18,6 @@ const LOCAL_ASSETS = [
   'assets/img/worldmap.jpg', 'assets/tiles/terrain.png',
   'assets/ow/red.png', 'assets/ow/leaf.png', 'assets/ow/juan.png', 'assets/ow/roxanne.png',
   'assets/ow/nurse_joy.png', 'assets/ow/mart_clerk.png',
-  'assets/interiors/pokecenter.png', 'assets/interiors/mart.png',
   'assets/trainers/red.png', 'assets/trainers/leaf.png', 'assets/trainers/oak.png',
   'assets/trainers/rival.png',
   'assets/types/fire.png', 'assets/types/water.png', 'assets/types/grass.png',

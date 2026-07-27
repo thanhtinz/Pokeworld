@@ -1,4 +1,4 @@
-// TuxeWorld H5 | data/starters.js | Ba sinh vật khởi đầu — TỰ SINH TỪ tools/mkworld.py
+// PokeWorld H5 | data/starters.js | Ba sinh vật khởi đầu — TỰ SINH TỪ tools/mkworld.py
 // Đều là bậc cơ bản, ba hệ khác nhau và đều có đường tiến hoá.
 
 export const STARTERS = [

@@ -17,8 +17,10 @@ Cụ thể đã lấy:
 | Bảng học chiêu, chuỗi tiến hoá, chỉ số theo dáng thân | `js/data/learnsets.js`, `js/data/evolutions.js`, `js/data/species.js` |
 | 32 sprite nhân vật + NPC đi trên bản đồ | `assets/ow/` |
 | 32 ảnh 2D nhân vật + NPC cho trận đấu và hội thoại | `assets/trainers/` |
+| 20 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
 
-Toàn bộ do `tools/mktuxemon.py`, `tools/mkworld.py` và `tools/mksprites.py` sinh ra — chạy lại được
+Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py` và
+`tools/mksprites.py` sinh ra — chạy lại được
 bất cứ lúc nào, không sửa tay.
 
 CC BY-SA yêu cầu: ghi công (chính là trang này) và nếu sửa lại ảnh thì bản sửa
@@ -31,16 +33,6 @@ CC BY-SA 4.0.
 Từ [pagefaultgames/pokerogue-assets](https://github.com/pagefaultgames/pokerogue-assets)
 (`images/arenas`). Mỗi khu vực gồm nền trời-đất và hai cái bệ đứng, được cắt
 sát viền để đặt vào bố cục dọc của game.
-
-## Bộ tile bản đồ — `assets/tiles/terrain.png`
-
-Từ [dorianleveque/Pokemap](https://github.com/dorianleveque/Pokemap).
-Ô số 20 do dự án này sửa lại: lấy bụi cỏ của ô 25 và đổi nền cát thành nền cỏ.
-
-## Nội thất — `assets/interiors/`
-
-Cắt từ sheet "Pokémon Centre & Mart" (Pokémon Emerald) trên The Spriters
-Resource. Người rip: Nintendofreak106.
 
 ## Ảnh vật phẩm — `assets/pokesprite/items/`
 
