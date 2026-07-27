@@ -33,6 +33,10 @@ import { startSession, onChange, net } from './net/session.js';
 import { sanitizeSave } from './engine/mega.js';
 import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/pokemon.js';
+import { activeAvatar } from './engine/accounts.js';
+import { trainerLevel } from './engine/equipment.js';
+import { fmt } from './util.js';
+import { uiIcon } from './ui/icons.js';
 
 const SCREENS = {
   home, battle, party, dex, bag, shop, quest, starter, menu, character,
@@ -65,7 +69,29 @@ export function show(name, params = {}) {
   // Nút chat nổi: ẩn cùng lúc với nav, và ẩn luôn khi đang ở chính trang chat
   const fab = document.getElementById('chat-fab');
   if (fab) fab.hidden = nav.hidden || name === 'chat';
+  // Thanh trên hiện cùng nhịp với thanh dưới
+  drawTopBar(nav.hidden);
   el.scrollTop = 0;
+}
+
+// Vẽ icon SVG vào mọi chỗ đánh dấu data-ico (thanh dưới, nút chat nổi)
+for (const el of document.querySelectorAll('[data-ico]')) {
+  el.innerHTML = uiIcon(el.dataset.ico, el.classList.contains('tb-coin') ? 17 : 26);
+}
+
+// ==== Thanh trên: avatar, tên, cấp, tiền ====
+// Gọi lại sau mỗi lần đổi màn và mỗi lần refresh() nên số tiền luôn đúng.
+export function drawTopBar(hide = false) {
+  const bar = document.getElementById('top-bar');
+  if (!bar) return;
+  if (hide || !G.p) { bar.hidden = true; return; }
+  bar.hidden = false;
+  const ava = document.getElementById('tb-ava');
+  const src = `assets/trainers/${activeAvatar()}.png`;
+  if (ava.getAttribute('src') !== src) { ava.src = src; ava.style.visibility = ''; }
+  document.getElementById('tb-name').textContent = G.p.name || '';
+  document.getElementById('tb-lv').textContent = `Lv.${trainerLevel()}`;
+  document.getElementById('tb-money').textContent = fmt(G.p.money || 0);
 }
 
 // Vẽ lại màn hình hiện tại (sau khi state đổi)

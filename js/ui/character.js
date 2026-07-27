@@ -11,6 +11,9 @@ import {
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, maxLevelOf } from '../data/equipment.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
+import { G, dexCounts } from '../state.js';
+import { TRAINERS } from '../data/trainers.js';
+import { uiIcon } from './icons.js';
 
 // Nạp CSS riêng của màn này 1 lần (index.html do màn khác giữ)
 function ensureCss() {
@@ -36,6 +39,8 @@ export function render(el) {
       ${header('Nhân vật')}
 
       ${gearRingHtml()}
+
+      ${profileHtml()}
 
       <div class="tab-row">
         <button type="button" class="tab-btn ${tab === 'inv' ? 'active' : ''}" data-tab="inv">Kho trang bị (${p.inventory.length})</button>
@@ -94,6 +99,28 @@ export function render(el) {
       </div>`;
   }
 
+  // ==== Huy hiệu và thành tích ====
+  function profileHtml() {
+    const [seen, caught] = dexCounts();
+    const badgeNames = {};
+    for (const t of Object.values(TRAINERS || {})) {
+      if (t.badge) badgeNames[t.badge] = t.badgeName || t.badge;
+    }
+    return `
+      <div class="card char-profile">
+        <div class="badge-row">
+          ${G.p.badges.length
+            ? G.p.badges.map(b => `<span class="badge-pill"><img class="badge-crown${b === 'badge_boulder' ? ' badge-gray' : ''}" src="assets/img/crown.png" alt="" onerror="this.style.visibility='hidden'"> ${esc(badgeNames[b] || b)}</span>`).join('')
+            : '<small class="empty-note">Chưa có huy hiệu nào.</small>'}
+        </div>
+        <div class="stat-grid">
+          <div><b>${fmt(G.p.stats.catches)}</b><small>Đã bắt</small></div>
+          <div><b>${fmt(G.p.stats.wins)}</b><small>Trận thắng</small></div>
+          <div><b>${seen}/${caught}</b><small>Gặp/Bắt</small></div>
+        </div>
+      </div>`;
+  }
+
   // ==== Túi trang bị ====
   function invHtml() {
     if (!p.inventory.length) {
@@ -119,7 +146,7 @@ export function render(el) {
   function shopHtml() {
     const ids = shopList(p.trainer.level);
     return `
-      <div class="card shop-money">${itemIcon('amulet_coin', '', 18)} <b>${fmt(p.money)}</b>₽</div>
+      <div class="card shop-money">${uiIcon('coin', 18)} <b>${fmt(p.money)}</b>₽</div>
       <button class="card item-row" id="btn-buy-stone">
         ${itemIcon(STONE_ITEM.sprite, '', 28)}
         <span class="item-mid"><b>${esc(STONE_ITEM.name)}</b><small>${esc(STONE_ITEM.desc)} · đang có ×${stoneCount()}</small></span>

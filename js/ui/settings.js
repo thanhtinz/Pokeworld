@@ -1,11 +1,10 @@
 // PokeWorld H5 | ui/settings.js | Cài đặt: âm thanh, hình ảnh, tự động, tài khoản
 // Mọi công tắc ở đây đều nối thẳng vào engine/settings.js và có tác dụng thật.
-import { G, dexCounts, wipeSave } from '../state.js';
-import { logout, activeAvatar } from '../engine/accounts.js';
-import { TRAINERS } from '../data/trainers.js';
-import { esc, fmt } from '../util.js';
-import { toast, confirmDlg, header, itemIcon } from './kit.js';
-import { storyProgress } from '../engine/story.js';
+import { wipeSave } from '../state.js';
+import { logout } from '../engine/accounts.js';
+import { esc } from '../util.js';
+import { toast, confirmDlg, header } from './kit.js';
+import { uiIcon } from './icons.js';
 import { settings, setSetting, resetSettings, sfx } from '../engine/settings.js';
 import { isOnlineMode } from '../net/config.js';
 import { show } from '../main.js';
@@ -15,11 +14,6 @@ const SPEEDS = [['slow', 'Chậm'], ['normal', 'Vừa'], ['fast', 'Nhanh']];
 export function render(el) {
   function draw() {
     const s = settings();
-    const [seen, caught] = dexCounts();
-    const badgeNames = {};
-    for (const t of Object.values(TRAINERS || {})) {
-      if (t.badge) badgeNames[t.badge] = t.badgeName || t.badge;
-    }
 
     // Một dòng công tắc bật/tắt
     const sw = (key, name, desc) => `
@@ -31,25 +25,6 @@ export function render(el) {
 
     el.innerHTML = `
       ${header('Cài đặt', 'menu')}
-
-      <div class="card profile-card">
-        <div class="profile-name">
-          <img class="profile-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()">
-          <b>${esc(G.p.name)}</b>
-          ${storyProgress().finished ? `<img src="assets/img/crown.png" class="crown-ico" alt="" title="Nhà Vô Địch" onerror="this.style.visibility='hidden'">` : ''}
-        </div>
-        <div>${itemIcon('amulet_coin', '', 18)} ${fmt(G.p.money)}₽</div>
-        <div class="badge-row">
-          ${G.p.badges.length
-            ? G.p.badges.map(b => `<span class="badge-pill"><img class="badge-crown${b === 'badge_boulder' ? ' badge-gray' : ''}" src="assets/img/crown.png" alt="" onerror="this.style.visibility='hidden'"> ${esc(badgeNames[b] || b)}</span>`).join('')
-            : '<small>Chưa có huy hiệu nào.</small>'}
-        </div>
-        <div class="stat-grid">
-          <div><b>${fmt(G.p.stats.catches)}</b><small>Đã bắt</small></div>
-          <div><b>${fmt(G.p.stats.wins)}</b><small>Trận thắng</small></div>
-          <div><b>${seen}/${caught}</b><small>Gặp/Bắt</small></div>
-        </div>
-      </div>
 
       <div class="card set-group">
         <h3>Âm thanh</h3>
@@ -84,7 +59,7 @@ export function render(el) {
 
       <div class="card set-group">
         <h3>Tài khoản</h3>
-        <button class="btn" id="btn-server">${itemIcon('card_key', '', 20)} Đổi máy chủ</button>
+        <button class="btn" id="btn-server">${uiIcon('server', 20)} Đổi máy chủ</button>
         <button class="btn" id="btn-reset-set">Khôi phục cài đặt mặc định</button>
         <button class="btn" id="btn-logout">Đăng xuất</button>
         <button class="btn btn-danger" id="btn-wipe">Xóa save chơi lại</button>

@@ -16,19 +16,31 @@
 </head>
 <body>
   <div id="app">
+    <!-- Thanh trên: avatar, tên, cấp huấn luyện viên, tiền — hiện ở mọi màn chơi -->
+    <header id="top-bar" hidden>
+      <img id="tb-ava" src="" alt="" onerror="this.style.visibility='hidden'">
+      <span class="tb-mid">
+        <b id="tb-name"></b>
+        <small id="tb-lv"></small>
+      </span>
+      <span class="tb-money">
+        <span class="nav-ico tb-coin" data-ico="coin"></span>
+        <b id="tb-money">0</b>₽
+      </span>
+    </header>
     <main id="screen"></main>
     <nav id="bottom-nav" hidden>
-      <button data-nav="home"><span class="nav-ico"><img src="assets/pokesprite/items/key-item/town-map.png" alt="" onerror="this.style.visibility='hidden'"></span>Bản đồ</button>
-      <button data-nav="party"><span class="nav-ico"><img src="assets/pokesprite/items/ball/poke.png" alt="" onerror="this.style.visibility='hidden'"></span>Đội</button>
-      <button data-nav="bag"><span class="nav-ico"><img src="assets/pokesprite/items/key-item/berry-pouch.png" alt="" onerror="this.style.visibility='hidden'"></span>Túi</button>
-      <button data-nav="character"><span class="nav-ico"><img src="assets/pokesprite/items/key-item/silph-scope.png" alt="" onerror="this.style.visibility='hidden'"></span>Nhân vật</button>
-      <button data-nav="dex"><span class="nav-ico"><img src="assets/pokesprite/items/key-item/fame-checker.png" alt="" onerror="this.style.visibility='hidden'"></span>Pokédex</button>
+      <button data-nav="home"><span class="nav-ico" data-ico="map"></span>Bản đồ</button>
+      <button data-nav="party"><span class="nav-ico" data-ico="team"></span>Đội</button>
+      <button data-nav="bag"><span class="nav-ico" data-ico="bag"></span>Túi</button>
+      <button data-nav="character"><span class="nav-ico" data-ico="person"></span>Nhân vật</button>
+      <button data-nav="dex"><span class="nav-ico" data-ico="book"></span>Pokédex</button>
       <button data-nav="menu"><span class="nav-ico"><span class="nav-burger"></span></span>Menu</button>
     </nav>
 
     <!-- Chat nổi ở góc phải: bấm là mở trang trò chuyện, có tin mới thì hiện chấm đỏ -->
     <button id="chat-fab" type="button" aria-label="Trò chuyện" hidden>
-      <img src="assets/pokesprite/items/key-item/vs-seeker.png" alt="" onerror="this.style.visibility='hidden'">
+      <span class="nav-ico" data-ico="chat"></span>
       <i class="nav-dot" id="nav-dot" hidden></i>
     </button>
   </div>

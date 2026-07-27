@@ -3,6 +3,7 @@ import { G } from '../state.js';
 import { QUESTS } from '../data/quests.js';
 import { esc, fmt } from '../util.js';
 import { itemIcon } from './kit.js';
+import { uiIcon } from './icons.js';
 
 export function render(el) {
   const active = Object.entries(G.p.quests.active);
@@ -33,7 +34,7 @@ export function render(el) {
           <div class="base-bar"><div class="base-fill" style="width:${Math.round(cur / n * 100)}%"></div></div>
           <small>${cur}/${n}</small>
         </div>
-        ${rewardText(q) ? `<small class="q-reward">${itemIcon('nugget', '', 16)} ${esc(rewardText(q))}</small>` : ''}
+        ${rewardText(q) ? `<small class="q-reward">${uiIcon('coin', 16)} ${esc(rewardText(q))}</small>` : ''}
       </div>`;
     }).join('')}
 

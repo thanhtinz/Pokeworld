@@ -13,6 +13,7 @@ import { enterMap } from '../engine/overworld.js';
 import { TRAINERS } from '../data/trainers.js';
 import { esc, fmt, spriteUrl, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages } from '../util.js';
 import { toast, choose, hpBar, itemIcon, artUrl } from './kit.js';
+import { uiIcon } from './icons.js';
 import { show, refresh } from '../main.js';
 
 // Icon đại diện zone: ưu tiên sprite item, sau đó artwork Pokémon, cuối cùng bỏ trống
@@ -79,7 +80,6 @@ export function render(el) {
   el.innerHTML = `
     <div class="idle-top">
       <div class="zone-chip">${zoneIcon(zone, 22)} <b>${esc(zone.name)}</b></div>
-      <span class="money-chip">${itemIcon('nugget', '', 18)} <b id="money-val">${fmt(G.p.money)}</b>₽</span>
     </div>
 
     ${ch ? `
@@ -94,20 +94,20 @@ export function render(el) {
       <small class="zone-hint">${isTown
         ? 'Thị trấn không có Pokémon hoang. Ra tuyến đường rồi đi vào bụi cỏ cao để gặp Pokémon.'
         : 'Đi bộ vào bụi cỏ cao trên bản đồ để gặp Pokémon hoang dã.'}</small>
-      <button class="btn btn-primary btn-big" id="btn-world">${itemIcon('town_map', '', 22)} Đi bộ trên bản đồ</button>
+      <button class="btn btn-primary btn-big" id="btn-world">${uiIcon('walk', 22)} Đi bộ trên bản đồ</button>
     </div>
 
     ${partyHtml()}
 
     ${isTown ? `
     <div class="idle-controls">
-      <button class="btn" id="btn-center">${itemIcon('full_restore', '', 22)} Hồi phục</button>
-      <button class="btn" id="btn-shop">${itemIcon('coin_case', '', 22)} Cửa hàng</button>
+      <button class="btn" id="btn-center">${uiIcon('heal', 22)} Hồi phục</button>
+      <button class="btn" id="btn-shop">${uiIcon('shop', 22)} Cửa hàng</button>
     </div>` : ''}
 
     <div class="idle-controls">
-      <button class="btn" id="btn-travel">${itemIcon('bicycle', '', 22)} Di chuyển</button>
-      <button class="btn" id="btn-trainers">${itemIcon('vs_seeker', '', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
+      <button class="btn" id="btn-travel">${uiIcon('compass', 22)} Di chuyển</button>
+      <button class="btn" id="btn-trainers">${uiIcon('battle', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
     </div>
   `;
   upgradeImages(el);

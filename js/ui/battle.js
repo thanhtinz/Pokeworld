@@ -14,6 +14,7 @@ import { TRAINERS } from '../data/trainers.js';
 import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
 import { textDelay, sfx } from '../engine/settings.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
+import { uiIcon } from './icons.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
@@ -180,9 +181,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       ${megaReady() ? `<button class="btn btn-mega" id="bt-mega" ${busy ? 'disabled' : ''}>
         ${itemIcon('key_stone', '', 22)} MEGA EVOLUTION</button>` : ''}
       <div class="bt-subrow">
-        <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>${itemIcon('berry_pouch', '', 22)} Túi</button>
-        <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>${itemIcon('poke_ball', '', 22)} Đổi</button>
-        ${kind === 'wild' ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}>${itemIcon('escape_rope', '', 22)} Chạy</button>` : ''}
+        <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>${uiIcon('bag', 22)} Túi</button>
+        <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>${uiIcon('swap', 22)} Đổi</button>
+        ${kind === 'wild' ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}>${uiIcon('run', 22)} Chạy</button>` : ''}
       </div>`;
     $act.querySelectorAll('.move-btn').forEach(btn =>
       btn.addEventListener('click', () => playerAct({ t: 'move', i: Number(btn.dataset.mv) })));

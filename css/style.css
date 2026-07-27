@@ -81,6 +81,57 @@ html, body {
 }
 @keyframes twinkle { from { opacity: .35; } to { opacity: .95; } }
 
+/* ==== Thanh trên: avatar + tên + cấp + tiền ==== */
+#top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-top));
+  padding-top: calc(8px + env(safe-area-inset-top));
+  background: rgba(10, 6, 22, .86);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(140, 110, 220, .3);
+  flex: none;
+}
+#top-bar[hidden] { display: none; }
+#tb-ava {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, .3);
+}
+.tb-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tb-mid b {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tb-mid small { font-family: var(--pix, monospace); font-size: .5rem; color: var(--gold, #f0b429); }
+.tb-money {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .4);
+  border: 1px solid var(--line);
+  font-family: var(--pix2, monospace);
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--gold-num, #f0b429);
+}
+.tb-money .tb-coin { color: var(--gold-num, #f0b429); display: inline-flex; }
+
 #screen {
   flex: 1;
   overflow-y: auto;
@@ -1652,3 +1703,21 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Thanh kéo âm lượng */
 .set-range { flex: none; width: 116px; }
 .set-range input { width: 100%; margin: 0; accent-color: var(--violet, #7048e8); }
+
+/* Huy hiệu + thành tích trong màn Nhân vật */
+.char-profile { display: flex; flex-direction: column; gap: 10px; }
+.char-profile .badge-row { margin: 0; }
+
+/* ==== Icon giao diện vẽ bằng SVG (ui/icons.js) ==== */
+.ui-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.18em;
+  flex: none;
+  color: inherit;
+}
+.ui-ico svg { display: block; }
+/* Trong thanh dưới icon ăn theo màu nút nên nút đang chọn tự sáng vàng */
+#bottom-nav .nav-ico .ui-ico { color: inherit; }
+#chat-fab .ui-ico { color: var(--text); }

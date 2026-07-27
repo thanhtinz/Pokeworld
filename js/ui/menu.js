@@ -3,7 +3,8 @@ import { G, claimDaily } from '../state.js';
 import { DAILY_REWARDS } from '../data/quests.js';
 import { ITEMS } from '../data/items.js';
 import { esc, fmt, todayNum } from '../util.js';
-import { toast, header, itemIcon } from './kit.js';
+import { toast, header } from './kit.js';
+import { uiIcon } from './icons.js';
 import { net } from '../net/session.js';
 import { show, refresh } from '../main.js';
 
@@ -11,15 +12,15 @@ import { show, refresh } from '../main.js';
 // Bản đồ / Đội / Túi / Nhân vật / Pokédex đã có nút riêng nên không lặp lại ở đây.
 // 'act' = nút làm việc gì đó tại chỗ, 'to' = nút mở trang.
 const HUB = [
-  { act: 'daily',     icon: 'lucky_egg',   label: 'Điểm danh' },
-  { to: 'quest',      icon: 'vs_recorder', label: 'Nhiệm vụ' },
-  { to: 'shop',       icon: 'coin_case',   label: 'Cửa hàng' },
-  { to: 'rank',       icon: 'nugget',      label: 'Xếp hạng' },
-  { to: 'guild',      icon: 'sacred_ash',  label: 'Bang hội' },
-  { to: 'friends',    icon: 'poke_flute',  label: 'Bạn bè', badge: 'dm' },
-  { to: 'marriage',   icon: 'heart_scale', label: 'Kết hôn' },
-  { to: 'serverpick', icon: 'card_key',    label: 'Máy chủ' },
-  { to: 'settings',   icon: 'gear_cog',    label: 'Cài đặt' },
+  { act: 'daily',     icon: 'gift',    label: 'Điểm danh' },
+  { to: 'quest',      icon: 'quest',   label: 'Nhiệm vụ' },
+  { to: 'shop',       icon: 'shop',    label: 'Cửa hàng' },
+  { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng' },
+  { to: 'guild',      icon: 'guild',   label: 'Bang hội' },
+  { to: 'friends',    icon: 'friends', label: 'Bạn bè', badge: 'dm' },
+  { to: 'marriage',   icon: 'heart',   label: 'Kết hôn' },
+  { to: 'serverpick', icon: 'server',  label: 'Máy chủ' },
+  { to: 'settings',   icon: 'gear',    label: 'Cài đặt' },
 ];
 
 // Số thông báo chưa đọc hiện trên góc ô
@@ -43,7 +44,7 @@ export function render(el) {
         return `<button type="button" class="hub-cell${dot ? ' hub-ready' : ''}" ${attr}>
           ${n ? `<span class="hub-badge">${n > 99 ? '99+' : n}</span>` : ''}
           ${dot ? '<span class="hub-dot"></span>' : ''}
-          <span class="hub-ico">${itemIcon(t.icon, '', 32)}</span>
+          <span class="hub-ico">${uiIcon(t.icon, 30)}</span>
           <b class="hub-label">${esc(t.label)}</b>
         </button>`;
       }).join('')}

@@ -4,6 +4,7 @@ import { ITEMS } from '../data/items.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, itemIcon } from './kit.js';
 import { MEGA_ITEM_IDS } from '../engine/mega.js';
+import { uiIcon } from './icons.js';
 
 export function render(el) {
   let tab = 'buy';
@@ -17,7 +18,7 @@ export function render(el) {
 
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>Cửa hàng</h1></div>
-      <div class="card shop-money">${itemIcon('nugget', '', 20)} <b id="shop-balance">${fmt(G.p.money)}</b>₽</div>
+      <div class="card shop-money">${uiIcon('coin', 20)} <b id="shop-balance">${fmt(G.p.money)}</b>₽</div>
       <div class="tab-row">
         <button type="button" class="tab-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
         <button type="button" class="tab-btn ${tab === 'mega' ? 'active' : ''}" data-tab="mega">Đá Mega</button>
