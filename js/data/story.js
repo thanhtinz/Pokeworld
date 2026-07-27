@@ -22,7 +22,9 @@ export const SPEAKERS = {
 // Đội của Kyle theo từng mốc — chọn khắc hệ với starter của người chơi.
 // key = starter dex của NGƯỜI CHƠI: cỏ -> đối thủ cầm lửa, lửa -> nước, nước -> cỏ
 // Đối thủ luôn chọn con khắc hệ với con mình chọn (xoay vòng ba hệ)
-export const RIVAL_STARTER = { 83: 31, 31: 119, 119: 83 };
+// Đối thủ luôn nhặt con khắc chế mình, đúng như bản gốc Tuxemon
+// (maps/professor_lab.tmx): Rockitten -> Cardiling -> Tweesher -> Rockitten.
+export const RIVAL_STARTER = { 19: 80, 80: 25, 25: 19 };
 
 export const CHAPTERS = [
   {

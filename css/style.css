@@ -1765,6 +1765,9 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .seg button.on { border-color: var(--gold, #f0b429); color: var(--gold, #f0b429); background: rgba(240, 180, 41, .12); }
 
 /* Thanh kéo âm lượng */
+/* Chỗ hiện số phần trăm rộng cố định — không thì 100% xuống 5% là chữ co lại
+   kéo cả dòng nhích theo, nhìn như ô bị đổi chỗ. */
+#set-vol-num { min-width: 34px; display: inline-block; font-variant-numeric: tabular-nums; }
 .set-range { flex: none; width: 116px; }
 .set-range input { width: 100%; margin: 0; accent-color: var(--violet, #7048e8); }
 

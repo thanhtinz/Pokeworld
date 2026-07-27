@@ -11,7 +11,7 @@ import { MAPS } from '../js/data/maps.js';
 import { TRAINERS } from '../js/data/trainers.js';
 import { STARTERS } from '../js/data/starters.js';
 import { QUESTS, DAILY_REWARDS } from '../js/data/quests.js';
-import { CHAPTERS } from '../js/data/story.js';
+import { CHAPTERS, RIVAL_STARTER } from '../js/data/story.js';
 import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, ALL_KINDS, NONE_ID,
   applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
@@ -39,6 +39,18 @@ ok('13 hệ đều có tên tiếng Việt + màu',
   TYPES.length === 13 && TYPES.every(t => TYPE_NAMES[t] && TYPE_COLORS[t]));
 ok('25 tính cách', NATURE_LIST.length === 25 && Object.keys(NATURES).length === 25);
 ok('3 starter đều có thật', STARTERS.length === 3 && STARTERS.every(s => SPECIES[s.sp]));
+// Ba con khởi đầu phải khác loài, khác hệ, đều là bậc cơ bản và có đường tiến hoá
+ok('starter không trùng loài và không trùng hệ',
+  new Set(STARTERS.map(s => s.sp)).size === 3 && new Set(STARTERS.map(s => s.type)).size === 3,
+  STARTERS.map(s => `${s.name}/${s.type}`).join(' '));
+ok('starter đều là bậc cơ bản và tiến hoá được',
+  STARTERS.every(s => SPECIES[s.sp].stage === 'basic' && EVOLUTIONS[s.sp]),
+  STARTERS.map(s => `${s.name}:${SPECIES[s.sp].stage}`).join(' '));
+ok('đối thủ luôn nhặt một starter khác của mình',
+  STARTERS.every(s => {
+    const r = RIVAL_STARTER[s.sp];
+    return r && r !== s.sp && STARTERS.some(x => x.sp === r);
+  }), JSON.stringify(RIVAL_STARTER));
 
 // ==== Tham chiếu chéo: mọi mã data trỏ tới nhau đều phải tồn tại ====
 const bad = [];

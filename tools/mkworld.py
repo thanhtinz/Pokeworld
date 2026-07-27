@@ -201,24 +201,21 @@ export function rollEncounter(zoneId, rng = Math.random) {
 
 
 # ==================== Starter ====================
-# Ba con khoi dau: bac 'basic', ba he khac nhau, deu co duong tien hoa.
-STARTER_TYPES = ['wood', 'fire', 'water']
+# LAY DUNG BA CON CUA BAN GOC. Trong Tuxemon, canh chon con dau tien nam o
+# mods/tuxemon/maps/professor_lab.tmx: ba qua tuxeball xanh / do / lam ung voi
+# "add_monster rockitten,5" - "add_monster cardiling,5" - "add_monster tweesher,5",
+# va doi thu kay_wren luon nhat con khac che lai.
+# Truoc day file nay tu chon lay theo he wood/fire/water nen ra ba con khong
+# giong ban goc, nhin lai con hao hao nhau nua.
+STARTER_SLUGS = ['rockitten', 'cardiling', 'tweesher']
 
 
 def write_starters(mons):
-    evo = set()
-    src = open('js/data/evolutions.js', encoding='utf-8').read()
-    for m in re.finditer(r'^  (\d+): \{ into:', src, re.M):
-        evo.add(int(m.group(1)))
-    picks = []
-    for want in STARTER_TYPES:
-        cand = [m for m in mons
-                if m['stage'] == 'basic' and m['types'] and m['types'][0] == want and m['id'] in evo]
-        cand.sort(key=lambda m: m['slug'])
-        if cand:
-            picks.append(cand[0])
+    by_slug = {m['slug']: m for m in mons}
+    picks = [by_slug[s] for s in STARTER_SLUGS if s in by_slug]
     out = ["// PokeWorld H5 | data/starters.js | Ba sinh vật khởi đầu — TỰ SINH TỪ tools/mkworld.py",
-           '// Đều là bậc cơ bản, ba hệ khác nhau và đều có đường tiến hoá.', '',
+           '// Đúng ba con của bản gốc Tuxemon (maps/professor_lab.tmx):',
+           '// rockitten (Đất) · cardiling (Lửa) · tweesher (Băng).', '',
            'export const STARTERS = [']
     for m in picks:
         out.append('  { sp: %d, name: %s, type: %s },' % (m['id'], js(m['name']), js(m['types'][0])))

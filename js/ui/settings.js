@@ -31,7 +31,7 @@ export function render(el) {
         ${sw('sfx', 'Hiệu ứng âm thanh', 'Tiếng chạm nút, đòn đánh, nhận thưởng.')}
         ${sw('music', 'Nhạc nền', 'Nhạc riêng cho thị trấn, bản đồ và trận đấu.')}
         <div class="set-row">
-          <span class="set-mid"><b>Âm lượng</b><small>${Math.round(s.volume * 100)}%</small></span>
+          <span class="set-mid"><b>Âm lượng</b><small id="set-vol-num">${Math.round(s.volume * 100)}%</small></span>
           <span class="set-range">
             <input type="range" id="set-vol" min="0" max="100" step="5" value="${Math.round(s.volume * 100)}"
                    ${s.sfx ? '' : 'disabled'} aria-label="Âm lượng">
@@ -68,7 +68,8 @@ export function render(el) {
 
       <div class="card about-card">
         <b>TuxeWorld H5 v1.0</b>
-        <small>Fan game phi lợi nhuận, chơi vui trên trình duyệt. Tuxemon © Nintendo / Game Freak. Sprite: PokeAPI.</small>
+        <small>Fan game phi lợi nhuận, chơi vui trên trình duyệt.
+        Sinh vật, vật phẩm và ảnh nền lấy từ Tuxemon (CC BY-SA 4.0) — xem CREDITS.md.</small>
       </div>`;
 
     el.querySelectorAll('[data-sw]').forEach(b => b.addEventListener('click', () => {
@@ -80,9 +81,16 @@ export function render(el) {
 
     const vol = el.querySelector('#set-vol');
     if (vol) {
-      vol.addEventListener('input', () => setSetting('volume', Number(vol.value) / 100));
+      const num = el.querySelector('#set-vol-num');
+      // Chỉ sửa đúng con số, KHÔNG vẽ lại cả màn: vẽ lại giữa lúc đang kéo thì
+      // thanh trượt bị thay mới nên tuột tay, cả khối cài đặt cũng nhảy một cái.
+      vol.addEventListener('input', () => {
+        const v = Number(vol.value);
+        setSetting('volume', v / 100);
+        num.textContent = v + '%';
+      });
       // Thả tay mới kêu thử, không thì kéo một cái là kêu ầm ĩ
-      vol.addEventListener('change', () => { sfx('coin'); draw(); });
+      vol.addEventListener('change', () => sfx('coin'));
     }
 
     el.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
