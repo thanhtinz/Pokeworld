@@ -30,8 +30,7 @@ export async function render(el) {
 
   el.innerHTML = `
     <div class="starter-wrap">
-      <img class="title-art" src="assets/img/title.png" alt="" onerror="this.remove()">
-      <div class="logo">Poke<span>World</span></div>
+      <img class="title-art" src="assets/img/title.png" alt="TuxeWorld" onerror="this.remove()">
       <p class="tagline">Bắt · Huấn luyện · Chinh phục phòng Gym</p>
 
       ${hasPlayer ? '' : `

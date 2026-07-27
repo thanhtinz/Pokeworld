@@ -6,8 +6,7 @@ export function render(el) {
     <div class="splash">
       <div class="splash-bg"></div>
       <div class="splash-inner">
-        <img class="splash-title" src="assets/img/title.png" alt="" onerror="this.remove()">
-        <div class="logo splash-logo">Poke<span>World</span></div>
+        <img class="splash-title" src="assets/img/title.png" alt="TuxeWorld" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'logo splash-logo',textContent:'TuxeWorld'}))">
         <p class="tagline">Bắt · Huấn luyện · Chinh phục</p>
 
         <button class="splash-start" id="btn-start">

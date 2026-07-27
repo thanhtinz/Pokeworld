@@ -15,8 +15,7 @@ function drawHome(el) {
     <div class="splash auth-scr">
       <div class="splash-bg"></div>
       <div class="splash-inner">
-        <img class="splash-title" src="assets/img/title.png" alt="" onerror="this.remove()">
-        <div class="logo splash-logo">Poke<span>World</span></div>
+        <img class="splash-title" src="assets/img/title.png" alt="TuxeWorld" onerror="this.remove()">
 
         <div class="auth-btns">
           <button class="btn btn-primary btn-big" id="btn-to-login">Đăng nhập</button>

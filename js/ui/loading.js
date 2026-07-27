@@ -1,6 +1,8 @@
 // TuxeWorld H5 | ui/loading.js | Màn tải dữ liệu: nạp trước asset hay dùng + thanh tiến trình
-import { spriteUrl, animSpriteUrl } from '../util.js';
+import { spriteUrl } from '../util.js';
 import { show } from '../main.js';
+import { STARTERS } from '../data/starters.js';
+import { ZONES } from '../data/zones.js';
 
 const TIPS = [
   'Tuxemon hệ Nước rất mạnh trước hệ Lửa, Đá và Đất.',
@@ -11,22 +13,22 @@ const TIPS = [
   'Đá tiến hóa mua được ở cửa hàng trong thị trấn.',
 ];
 
+// Ảnh chắc chắn dùng ngay khi vào game. Danh sách cũ còn trỏ vào sprite thời
+// Pokémon đã xoá (oak, rival, juan, nurse_joy...) nên mỗi lần vào game là một
+// loạt 404; nay chỉ giữ tệp có thật và suy phần sinh vật ra TỪ CHÍNH DỮ LIỆU.
 const LOCAL_ASSETS = [
   'assets/img/title.png', 'assets/img/dlgbox.png', 'assets/img/crown.png',
-  'assets/img/worldmap.jpg', 'assets/tiles/terrain.png',
-  'assets/ow/red.png', 'assets/ow/leaf.png', 'assets/ow/juan.png', 'assets/ow/roxanne.png',
-  'assets/ow/nurse_joy.png', 'assets/ow/mart_clerk.png',
-  'assets/trainers/red.png', 'assets/trainers/leaf.png', 'assets/trainers/oak.png',
-  'assets/trainers/rival.png',
-  'assets/types/fire.png', 'assets/types/water.png', 'assets/types/grass.png',
-  'assets/types/electric.png', 'assets/types/normal.png',
+  'assets/img/worldmap.jpg',
+  'assets/ui/dpad.png', 'assets/ui/btn-a.png', 'assets/ui/btn-b.png',
+  'assets/ow/red.png', 'assets/ow/leaf.png', 'assets/ow/professor.png', 'assets/ow/nurse.png',
+  'assets/trainers/red.png', 'assets/trainers/leaf.png', 'assets/trainers/professor.png',
 ];
 
-// Sprite khởi đầu + vài loài hay gặp ở khu vực đầu
-const PRELOAD_DEX = [1, 4, 7, 25, 16, 19, 10, 129];
-
-// Vài sprite nạp sẵn cho màn chờ khỏi trống
-const LOCAL_ANIM = [1, 31, 83, 119, 60, 19].map(d => `assets/mon/${d}.png`);
+// Ba starter + vài loài gặp ngay ở khu vực đầu tiên
+const PRELOAD_DEX = [
+  ...STARTERS.map(s => s.sp),
+  ...(ZONES[Object.keys(ZONES)[0]]?.encounters || []).slice(0, 4).map(e => e.sp),
+];
 
 function loadImage(src, timeoutMs = 2500) {
   return new Promise(resolve => {
@@ -53,7 +55,7 @@ export async function render(el) {
     <div class="splash loading-scr">
       <div class="splash-bg"></div>
       <div class="splash-inner">
-        <div class="logo splash-logo">Poke<span>World</span></div>
+        <div class="logo splash-logo">Tuxe<span>World</span></div>
         <div class="load-wrap">
           <div class="load-bar"><div class="load-fill" id="load-fill"></div></div>
           <div class="load-row">
@@ -87,10 +89,10 @@ export async function render(el) {
     ]);
   }]);
   // Ảnh tải SONG SONG (mạng chậm/chặn cũng không treo màn hình)
-  const images = [
-    ...LOCAL_ASSETS, ...LOCAL_ANIM,
-    ...PRELOAD_DEX.flatMap(dex => [spriteUrl(dex), animSpriteUrl(dex)]),
-  ];
+  const images = [...new Set([
+    ...LOCAL_ASSETS,
+    ...PRELOAD_DEX.flatMap(dex => [spriteUrl(dex), spriteUrl(dex, true)]),
+  ])];
   tasks.push(['Đang tải hình ảnh...', async (bump) => {
     const step = 1 / images.length;
     await loadAllImages(images, () => bump(step));

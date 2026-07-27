@@ -19,8 +19,7 @@ export function render(el) {
 function drawList(el, accounts) {
   el.innerHTML = `
     <div class="starter-wrap">
-      <img class="title-art" src="assets/img/title.png" alt="" onerror="this.remove()">
-      <div class="logo">Poke<span>World</span></div>
+      <img class="title-art" src="assets/img/title.png" alt="TuxeWorld" onerror="this.remove()">
       <p class="tagline">Đăng nhập để bắt đầu hành trình</p>
 
       <div class="login-list">
