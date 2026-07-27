@@ -1,86 +1,150 @@
-// TuxeWorld H5 | engine/status.js | Trạng thái Burn/Poison/Sleep/Paralyze/Freeze
+// TuxeWorld H5 | engine/status.js | Trạng thái — CHẠY THEO BẢNG CỦA TUXEMON
+//
+// Bảng js/data/statuses.js sinh thẳng từ db/status của bản gốc: mỗi trạng thái
+// có loại tác động (kind), tham số (p), hệ số nhân chỉ số (mods) và hệ miễn
+// nhiễm. Mỗi con mang một trạng thái tại một thời điểm; món tốt không đẩy được
+// món xấu ra và ngược lại.
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
+import { STATUSES, statusName } from '../data/statuses.js';
 import { maxHp } from './pokemon.js';
 
-// brn=bỏng, psn=độc, slp=ngủ, par=tê liệt, frz=đóng băng
-export const STATUS_NAMES = {
-  brn: 'Bỏng', psn: 'Trúng độc', slp: 'Ngủ', par: 'Tê liệt', frz: 'Đóng băng',
-};
+export { statusName };
+export const STATUS_NAMES = Object.fromEntries(
+  Object.entries(STATUSES).map(([id, s]) => [id, s.name]));
 
-// Áp trạng thái. Trả về true nếu áp thành công (đang có status khác thì thất bại).
+const def = (id) => STATUSES[id] || null;
+const so = (v, mac) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : mac; };
+
 export function applyStatus(mon, id) {
-  if (mon.status) return false;
-  if (!STATUS_NAMES[id]) return false;
+  const s = def(id);
+  if (!s) return false;
   const spec = SPECIES[mon.sp];
-  // Miễn nhiễm theo hệ
-  for (const t of spec.types) {
-    if (id === 'brn' && t === 'fire') return false;
-    if (id === 'psn' && (t === 'poison' || t === 'steel')) return false;
-    if (id === 'par' && t === 'electric') return false;
-    if (id === 'frz' && t === 'ice') return false;
-  }
+  if ((s.immune || []).some(t => (spec?.types || []).includes(t))) return false;
+  const cu = def(mon.status);
+  if (cu && cu.cat !== s.cat) return false;
+  if (mon.status === id) return false;
   mon.status = id;
-  if (id === 'slp') {
-    mon.statusTurns = rng.int(1, 3); // ngủ 1-3 lượt
-  }
+  mon.statusTurns = s.kind === 'noddingoff' ? rng.int(1, 3) : 0;
+  mon.statusUsed = 0;
   return true;
 }
 
 export function cureStatus(mon) {
   mon.status = null;
   mon.statusTurns = 0;
+  mon.statusUsed = 0;
 }
 
-// Kiểm tra có được hành động lượt này không. Trả về [ok, msg|null] (msg tiếng Việt hoàn chỉnh).
+// Gỡ trạng thái theo nhóm ('positive' | 'negative' | 'all')
+export function removeStatus(mon, cat = 'all') {
+  const s = def(mon.status);
+  if (!s) return false;
+  if (cat !== 'all' && s.cat !== cat) return false;
+  cureStatus(mon);
+  return true;
+}
+
+// Hệ số nhân chỉ số do trạng thái
+export function statMult(mon, key) {
+  const s = def(mon.status);
+  return s?.mods?.[key] ?? 1;
+}
+
+// Có được hành động lượt này không. Trả [ok, msg|null]
 export function canAct(mon, name) {
-  if (mon.status === 'slp') {
+  const s = def(mon.status);
+  if (!s) return [true, null];
+  const p0 = s.p?.[0];
+
+  if (s.kind === 'noddingoff') {
     mon.statusTurns = (mon.statusTurns || 1) - 1;
-    if (mon.statusTurns <= 0) {
-      cureStatus(mon);
-      return [true, `${name} đã tỉnh dậy!`];
-    }
-    return [false, `${name} đang ngủ say...`];
+    if (mon.statusTurns <= 0) { cureStatus(mon); return [true, `${name} tỉnh ngủ!`]; }
+    return [false, `${name} đang ngủ gà ngủ gật...`];
   }
-  if (mon.status === 'frz') {
-    if (rng.roll(0.2)) { // 20% tự tan băng mỗi lượt
-      cureStatus(mon);
-      return [true, `${name} đã tan băng!`];
-    }
-    return [false, `${name} bị đóng băng cứng ngắc!`];
+  if (s.kind === 'confused' && rng.roll(so(p0, 0.5))) {
+    return [false, `${name} rối trí, đứng ngơ ra!`];
   }
-  if (mon.status === 'par') {
-    if (rng.roll(0.25)) { // 25% tê liệt không đánh được
-      return [false, `${name} bị tê liệt! Không thể cử động!`];
-    }
+  if (s.kind === 'charmed' && rng.roll(so(p0, 0.5))) {
+    return [false, `${name} bị mê hoặc, không nỡ ra đòn!`];
+  }
+  if (s.kind === 'flinching' && rng.roll(so(p0, 0.5))) {
+    return [false, `${name} chùn tay!`];
   }
   return [true, null];
 }
 
-// Damage cuối lượt do trạng thái. Trả về { dmg, msg|null }.
+// stuck chặn đòn cận chiến, grabbed chặn đòn tầm xa
+export function rangeBlocked(mon, range) {
+  const s = def(mon.status);
+  if (!s || (s.kind !== 'stuck' && s.kind !== 'grabbed')) return false;
+  return String(s.p?.[1] || '').split(':').filter(Boolean).includes(range);
+}
+
+export const isLocked = (mon) => def(mon.status)?.kind === 'lockdown';
+export const cantHeal = (mon) => def(mon.status)?.kind === 'festering';
+
+// Đòn dội lại khi bị đánh trúng (prickly/spiky)
+export function thornDamage(target, attacker, range) {
+  const s = def(target.status);
+  if (!s || (s.kind !== 'prickly' && s.kind !== 'spiky')) return 0;
+  const list = String(s.p?.[1] || '').split(':').filter(Boolean);
+  if (list.length && !list.includes(range)) return 0;
+  return Math.max(1, Math.floor(maxHp(attacker) / so(s.p?.[0], 8)));
+}
+
+// Lì đòn: một lần chịu đòn chí tử vẫn còn 1 máu
+export function survives(mon) {
+  const s = def(mon.status);
+  if (s?.kind !== 'diehard') return false;
+  if ((mon.statusUsed || 0) >= so(s.p?.[0], 1)) return false;
+  mon.statusUsed = (mon.statusUsed || 0) + 1;
+  mon.hpCur = 1;
+  return true;
+}
+
+// Cuối lượt: mất/hồi máu theo trạng thái. Trả { dmg, heal, msg|null }
 export function endOfTurn(mon, name) {
+  const s = def(mon.status);
+  if (!s) return { dmg: 0, heal: 0, msg: null };
   const max = maxHp(mon);
-  if (mon.status === 'brn') {
-    const d = Math.max(1, Math.floor(max / 16));
+  const phan = (mac) => Math.max(1, Math.floor(max / so(s.p?.[0], mac)));
+
+  if (s.kind === 'burnt' || s.kind === 'poisoned' || s.kind === 'lifeleech') {
+    const d = phan(s.kind === 'lifeleech' ? 16 : 8);
     mon.hpCur = Math.max(0, mon.hpCur - d);
-    return { dmg: d, msg: `${name} bị vết bỏng hành hạ!` };
+    const msg = s.kind === 'burnt' ? `${name} bị vết bỏng hành hạ!`
+      : s.kind === 'poisoned' ? `${name} bị chất độc hành hạ!`
+        : `${name} bị hút mất sinh lực!`;
+    return { dmg: d, heal: 0, msg };
   }
-  if (mon.status === 'psn') {
-    const d = Math.max(1, Math.floor(max / 8));
+  if (s.kind === 'wasting') {
+    // Bản gốc càng để lâu càng nặng
+    mon.statusUsed = (mon.statusUsed || 0) + 1;
+    const d = Math.max(1, Math.floor(max / so(s.p?.[0], 16)) * mon.statusUsed);
     mon.hpCur = Math.max(0, mon.hpCur - d);
-    return { dmg: d, msg: `${name} bị chất độc hành hạ!` };
+    return { dmg: d, heal: 0, msg: `${name} đang suy kiệt dần!` };
   }
-  return { dmg: 0, msg: null };
+  if (s.kind === 'recover' || s.kind === 'lifegift') {
+    if (cantHeal(mon)) return { dmg: 0, heal: 0, msg: null };
+    const truoc = mon.hpCur;
+    mon.hpCur = Math.min(max, mon.hpCur + phan(16));
+    return { dmg: 0, heal: mon.hpCur - truoc, msg: `${name} hồi lại một chút sinh lực.` };
+  }
+  return { dmg: 0, heal: 0, msg: null };
 }
 
-// Modifier speed do paralyze (dùng khi xếp thứ tự lượt)
-export function speedMult(mon) {
-  return mon.status === 'par' ? 0.5 : 1;
-}
+export const speedMult = (mon) => statMult(mon, 'speed');
 
-// Modifier tỉ lệ bắt theo status (dùng trong catchmon)
 export function catchBonus(mon) {
-  if (mon.status === 'slp' || mon.status === 'frz') return 2.5;
-  if (mon.status) return 1.5;
-  return 1;
+  const s = def(mon.status);
+  if (!s) return 1;
+  if (s.kind === 'noddingoff' || s.kind === 'stuck' || s.kind === 'grabbed') return 2.5;
+  return s.cat === 'negative' ? 1.5 : 1;
+}
+
+// Hết trận: chỉ trạng thái bản gốc đánh dấu "còn sau trận" mới giữ lại
+export function afterBattle(mon) {
+  const s = def(mon.status);
+  if (s && !s.keep) cureStatus(mon);
 }

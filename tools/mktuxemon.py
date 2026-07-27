@@ -113,6 +113,7 @@ def main():
             continue
         techs[slug] = load(p)
 
+    write_statuses(db, names, disp)
     write_types(elements, names)
     write_species(mons, dex, shapes, disp, elements)
     write_moves(techs, disp)
@@ -150,6 +151,71 @@ def write_type_icons(root):
             'assets/types/%s.png' % slug, optimize=True)
         n += 1
     return n
+
+
+# ==================== Trang thai ====================
+# Ten tieng Viet cho tung trang thai. Cai nao khong co trong bang thi lay ten
+# goc, van chay duoc.
+STATUS_VI = {
+    'blinded': 'Mù', 'burn': 'Bỏng', 'chargedup': 'Tích lực', 'charging': 'Đang dồn lực',
+    'charmed': 'Mê hoặc', 'confused': 'Rối trí', 'diehard': 'Lì đòn',
+    'elementalshield': 'Khiên nguyên tố', 'enraged': 'Nổi giận', 'exhausted': 'Kiệt sức',
+    'feedback': 'Phản đòn', 'festering': 'Mưng mủ', 'flinching': 'Chùn tay',
+    'focused': 'Tập trung', 'grabbed': 'Bị ghì', 'hardshell': 'Vỏ cứng',
+    'harpooned': 'Dính lao', 'lifegift': 'Ban sinh lực', 'lifeleech': 'Hút máu',
+    'lockdown': 'Bị khoá', 'noddingoff': 'Ngủ gật', 'poison': 'Trúng độc',
+    'prickly': 'Gai góc', 'recover': 'Hồi phục', 'retaliate': 'Đáp trả',
+    'revenge': 'Báo thù', 'slow': 'Chậm chạp', 'sniping': 'Nhắm bắn',
+    'softened': 'Mềm nhũn', 'spiky': 'Đầy gai', 'stuck': 'Kẹt cứng',
+    'wasting': 'Suy kiệt', 'wild': 'Hoang dại', 'eliminated': 'Bị loại', 'faint': 'Gục',
+}
+
+# Trang thai chi de danh dau trong may, khong phai thu dinh vao con vat
+STATUS_SKIP = {'faint', 'eliminated'}
+
+
+def write_statuses(db, names, disp):
+    d = os.path.join(db, 'status')
+    rows = []
+    for f in sorted(os.listdir(d)):
+        if not f.endswith('.yaml'):
+            continue
+        st = load(os.path.join(d, f))
+        slug = st.get('slug')
+        if not slug or slug in STATUS_SKIP:
+            continue
+        eff = [e for e in (st.get('effects') or []) if isinstance(e, dict)]
+        kind = next((e['type'] for e in eff if e.get('type') != 'statchange'), 'statchange')
+        params = next((e.get('parameters') or [] for e in eff if e.get('type') == kind), [])
+        mods = {k: v.get('value') for k, v in (st.get('stat_modifiers') or {}).items()
+                if v.get('operation') == '*'}
+        # He mien nhiem / dinh nang: modifiers kieu type
+        imm = [m['values'][0] for m in (st.get('modifiers') or [])
+               if m.get('attribute') == 'type' and m.get('multiplier') == 0 and m.get('values')]
+        rows.append((slug, {
+            'name': STATUS_VI.get(slug, disp(slug)),
+            'cat': st.get('category') or 'negative',
+            'kind': kind,
+            'p': params,
+            'mods': mods,
+            'immune': imm,
+            'keep': bool((st.get('behaviors') or {}).get('persists_after_combat')),
+        }))
+
+    out = ["// PokeWorld H5 | data/statuses.js | Trạng thái — TỰ SINH TỪ tools/mktuxemon.py",
+           '// Nguồn: Tuxemon db/status (CC BY-SA 4.0). Đừng sửa tay.',
+           '// kind = kiểu tác động (xem js/engine/status.js), p = tham số của bản gốc,',
+           '// mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận.', '',
+           'export const STATUSES = {']
+    for slug, r in rows:
+        out.append('  %s: { name: %s, cat: %s, kind: %s, p: %s, mods: %s, immune: %s%s },'
+                   % (js(slug), js(r['name']), js(r['cat']), js(r['kind']), js(r['p']),
+                      js(r['mods']), js(r['immune']), ', keep: true' if r['keep'] else ''))
+    out.append('};')
+    out.append('')
+    out.append('export const statusName = (id) => (STATUSES[id] && STATUSES[id].name) || id;')
+    open('js/data/statuses.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    return len(rows)
 
 
 # ==================== He ====================
@@ -253,6 +319,38 @@ export const speciesBySlug = (slug) => Object.values(SPECIES).find(s => s.slug =
 # recharge la so luot phai cho truoc khi dung lai — Tuxemon KHONG co PP.
 # range 'special' trong du lieu goc khong nam trong bang range_map nen khong gay
 # sat thuong; day la nhung chieu ho tro.
+# Nhung hieu ung cua chieu ma game nay chay duoc (xem js/engine/battle.js).
+# Cai khong nam trong day (multiattack phuc tap, swap doi hinh, forfeit...) thi
+# bo qua chu khong bia ra hieu ung khac.
+EFFECT_KEEP = {'give', 'healing', 'prop_healing', 'prop_damage', 'remove', 'money', 'multiattack'}
+
+
+def hieu_ung(t):
+    """Rut goi danh sach effects cua Tuxemon ve dang game doc duoc."""
+    out = []
+    for e in t.get('effects') or []:
+        if not isinstance(e, dict):
+            continue
+        kind = e.get('type')
+        if kind not in EFFECT_KEEP:
+            continue
+        par = [str(x) for x in (e.get('parameters') or [])]
+        row = {'t': kind}
+        if kind == 'give':
+            row['id'] = par[0] if par else ''
+            row['to'] = 'self' if len(par) > 1 and par[1] == 'own_monster' else 'foe'
+        elif kind in ('prop_healing', 'prop_damage'):
+            row['to'] = 'self' if par and par[0] == 'own_monster' else 'foe'
+            row['n'] = float(par[1]) if len(par) > 1 else 0.25
+        elif kind == 'multiattack':
+            row['n'] = int(float(par[0])) if par else 2
+        elif kind == 'remove':
+            row['cat'] = par[0] if par else 'negative'
+            row['to'] = 'self' if len(par) > 1 and par[1] == 'own_monster' else 'foe'
+        out.append(row)
+    return out
+
+
 def write_moves(techs, disp):
     out = ["// PokeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
@@ -270,10 +368,12 @@ def write_moves(techs, disp):
         cat = 'damage' if is_dmg else ('healing' if heal > 0 else 'status')
         power = round(float(t.get('power') or 0), 2) if is_dmg else 0
         acc = round(float(t.get('accuracy') if t.get('accuracy') is not None else 1) * 100)
-        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, potency: %s, heal: %s },'
+        eff = hieu_ung(t)
+        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, potency: %s, heal: %s%s },'
                    % (js(slug), js(disp(slug)), js(types), js(rng), js(cat), fmtnum(power), acc,
                       int(t.get('recharge') or 0), fmtnum(round(float(t.get('potency') or 0), 2)),
-                      fmtnum(round(heal, 2))))
+                      fmtnum(round(heal, 2)),
+                      (', eff: %s' % js(eff)) if eff else ''))
     out.append('};')
     out.append('')
     out.append('// Hệ chính của chiêu (giao diện cần một màu để tô)')

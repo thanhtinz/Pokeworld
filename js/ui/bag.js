@@ -1,6 +1,7 @@
 // TuxeWorld H5 | ui/bag.js | Túi đồ: lưới ô vật phẩm, dùng item ngoài trận
 import { G, save, removeItem, addItem, markCaught, CONFIG } from '../state.js';
 import { maxHp, displayName, isFainted, tryLearn, replaceMove } from '../engine/pokemon.js';
+import { removeStatus } from '../engine/status.js';
 import { gainExp, expForLevel, movesAtLevel } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
 import { SPECIES } from '../data/species.js';
@@ -199,10 +200,8 @@ export function render(el) {
       if (add > 0) { mon.hpCur = Math.min(mx, mon.hpCur + add); used = true; }
     }
 
-    // Chữa trạng thái
-    if (ef.cure && mon.status && (ef.cure === 'all' || ef.cure === mon.status)) {
-      mon.status = null;
-      mon.statusTurns = 0;
+    // Chữa trạng thái xấu
+    if (ef.cure && mon.status && removeStatus(mon, ef.cure === 'all' ? 'negative' : 'all')) {
       used = true;
     }
     return used;

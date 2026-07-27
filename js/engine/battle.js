@@ -6,7 +6,8 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { stats, maxHp, isFainted, displayName, addTp, tryLearn } from './pokemon.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
-import { applyStatus, canAct, endOfTurn, speedMult } from './status.js';
+import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
+  thornDamage, survives, cantHeal, isLocked, afterBattle, statusName } from './status.js';
 import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch } from './catchmon.js';
 
@@ -14,14 +15,6 @@ import { attemptCatch } from './catchmon.js';
 const STAT_VI = {
   hp: 'HP', armour: 'Giáp', dodge: 'Né', melee: 'Cận chiến',
   ranged: 'Tầm xa', speed: 'Tốc độ',
-};
-
-const STATUS_APPLIED_VI = {
-  brn: (n) => `${n} bị bỏng!`,
-  psn: (n) => `${n} bị trúng độc!`,
-  slp: (n) => `${n} ngủ thiếp đi!`,
-  par: (n) => `${n} bị tê liệt! Có thể không cử động được!`,
-  frz: (n) => `${n} bị đóng băng!`,
 };
 
 const freshStages = () => ({ armour: 0, dodge: 0, melee: 0, ranged: 0, speed: 0 });
@@ -48,7 +41,6 @@ export class Battle {
         active: null,
         stages: freshStages(), // stage của con đang ra sân
         mustSwitch: false,
-        flinched: false,
       };
       // Con đầu tiên còn sống ra sân
       for (let slot = 0; slot < s.mons.length; slot++) {
@@ -73,6 +65,9 @@ export class Battle {
     }
     if (action.t === 'run' && this.kind === 'trainer') {
       return [false, 'Không thể bỏ chạy khỏi trận đấu với huấn luyện viên!'];
+    }
+    if ((action.t === 'run' || action.t === 'switch') && isLocked(this.activeMon(sideIdx))) {
+      return [false, 'Đang bị khoá, không rút lui được!'];
     }
     if (action.t === 'move') {
       const mon = this.activeMon(sideIdx);
@@ -158,6 +153,8 @@ export class Battle {
   endBattle(winner, ev) {
     this.over = true;
     this.winner = winner;
+    // Bản gốc chỉ giữ lại trạng thái nào đánh dấu "còn sau trận" (độc, bỏng)
+    for (const side of this.sides) for (const m of side.mons) afterBattle(m);
     ev.push({ t: 'end', winner });
   }
 
@@ -224,6 +221,10 @@ export class Battle {
     const [ok, msg] = canAct(mon, displayName(mon));
     if (msg) ev.push({ t: 'msg', text: msg });
     if (!ok) return;
+    if (moveIdx !== 'struggle' && rangeBlocked(mon, MOVES[mon.moves[moveIdx]?.id]?.range)) {
+      ev.push({ t: 'msg', text: `${displayName(mon)} đang bị ghì, không ra đòn kiểu này được!` });
+      return;
+    }
 
     let mvId, mv;
     if (moveIdx === 'struggle') {
@@ -259,57 +260,67 @@ export class Battle {
 
     if (res.dmg > 0) {
       foe.hpCur = Math.max(0, foe.hpCur - res.dmg);
+      if (foe.hpCur <= 0 && survives(foe)) {
+        ev.push({ t: 'msg', text: `${displayName(foe)} lì đòn, vẫn còn 1 máu!` });
+      }
       ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: res.dmg,
                 crit: res.crit, eff: res.eff, moveType: (mv.types || ['normal'])[0] });
       if (res.crit) ev.push({ t: 'msg', text: 'Đòn chí mạng!' });
       const et = effText(res.eff);
       if (et) ev.push({ t: 'msg', text: et });
-      // Recoil / drain
-      const effDef = mv.effect;
-      if (effDef && effDef.kind === 'recoil') {
-        const rec = Math.max(1, Math.floor(res.dmg * effDef.frac));
-        mon.hpCur = Math.max(0, mon.hpCur - rec);
-        ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: rec, crit: false, eff: 1 });
-        ev.push({ t: 'msg', text: `${displayName(mon)} bị thương do phản lực!` });
-      } else if (effDef && effDef.kind === 'drain') {
-        const healAmt = Math.max(1, Math.floor(res.dmg * effDef.frac));
-        mon.hpCur = Math.min(maxHp(mon), mon.hpCur + healAmt);
-        ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount: healAmt });
-        ev.push({ t: 'msg', text: `${displayName(mon)} hút sinh lực từ ${displayName(foe)}!` });
+      // Gai đâm ngược người ra đòn
+      const gai = thornDamage(foe, mon, mv.range);
+      if (gai > 0) {
+        mon.hpCur = Math.max(0, mon.hpCur - gai);
+        ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: gai, crit: false, eff: 1 });
+        ev.push({ t: 'msg', text: `${displayName(mon)} bị gai đâm ngược!` });
       }
     }
 
-    // Hiệu ứng phụ
-    const effDef = mv.effect;
-    if (effDef && res.eff !== 0) {
-      const chance = (effDef.chance ?? 100) / 100;
-      if (effDef.kind === 'status' && rng.roll(chance) && !isFainted(foe)) {
-        if (applyStatus(foe, effDef.id)) {
-          const fn = STATUS_APPLIED_VI[effDef.id];
-          ev.push({ t: 'msg', text: fn ? fn(displayName(foe)) : `${displayName(foe)} dính trạng thái!` });
+    // Hiệu ứng phụ của chiêu, lấy đúng danh sách effects bên bản gốc
+    if (res.eff !== 0) this.applyEffects(i, oi, mv, res, ev);
+  }
+
+  // give (dính trạng thái) · healing / prop_healing (hồi máu) · prop_damage
+  // (mất máu theo phần) · remove (gỡ trạng thái) · money (nhặt tiền)
+  applyEffects(i, oi, mv, res, ev) {
+    const mon = this.activeMon(i);
+    const foe = this.activeMon(oi);
+    const ben = (to) => (to === 'self' ? [i, mon] : [oi, foe]);
+
+    for (const e of mv.eff || []) {
+      if (e.t === 'give') {
+        const [si, target] = ben(e.to);
+        if (!target || isFainted(target)) continue;
+        if (applyStatus(target, e.id)) {
+          ev.push({ t: 'msg', text: `${displayName(target)} dính ${statusName(e.id)}!` });
+          ev.push({ t: 'status', side: si, slot: this.sides[si].active, id: e.id });
         }
-      } else if (effDef.kind === 'stat' && rng.roll(chance)) {
-        const targetSide = effDef.target === 'self' ? i : oi;
-        const st = this.sides[targetSide].stages;
-        const old = st[effDef.stat] || 0;
-        st[effDef.stat] = clamp(old + effDef.stages, -6, 6);
-        if (st[effDef.stat] !== old) {
-          const tName = displayName(this.activeMon(targetSide));
-          const statName = STAT_VI[effDef.stat] || effDef.stat;
-          ev.push({
-            t: 'msg',
-            text: effDef.stages > 0
-              ? `${statName} của ${tName} tăng lên!`
-              : `${statName} của ${tName} giảm xuống!`,
-          });
+      } else if (e.t === 'healing' || e.t === 'prop_healing') {
+        const [si, target] = e.t === 'healing' ? [i, mon] : ben(e.to);
+        if (!target || cantHeal(target)) continue;
+        const max = maxHp(target);
+        // healing của bản gốc: (7 + cấp) * healing_power
+        const amount = e.t === 'healing'
+          ? Math.floor((7 + mon.lv) * (mv.heal || 1))
+          : Math.floor(max * (e.n || 0.25));
+        const truoc = target.hpCur;
+        target.hpCur = Math.min(max, target.hpCur + Math.max(1, amount));
+        ev.push({ t: 'heal', side: si, slot: this.sides[si].active, amount: target.hpCur - truoc });
+        ev.push({ t: 'msg', text: `${displayName(target)} hồi phục sinh lực!` });
+      } else if (e.t === 'prop_damage') {
+        const [si, target] = ben(e.to);
+        if (!target || isFainted(target)) continue;
+        const d = Math.max(1, Math.floor(maxHp(target) * (e.n || 0.25)));
+        target.hpCur = Math.max(0, target.hpCur - d);
+        ev.push({ t: 'dmg', side: si, slot: this.sides[si].active, dmg: d, crit: false, eff: 1 });
+      } else if (e.t === 'remove') {
+        const [, target] = ben(e.to);
+        if (target && removeStatus(target, e.cat)) {
+          ev.push({ t: 'msg', text: `${displayName(target)} rũ bỏ được trạng thái!` });
         }
-      } else if (effDef.kind === 'heal') {
-        const amount = Math.floor(maxHp(mon) * effDef.frac);
-        mon.hpCur = Math.min(maxHp(mon), mon.hpCur + amount);
-        ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount });
-        ev.push({ t: 'msg', text: `${displayName(mon)} hồi phục sinh lực!` });
-      } else if (effDef.kind === 'flinch' && rng.roll(chance)) {
-        this.sides[oi].flinched = true;
+      } else if (e.t === 'money') {
+        this.moneyBonus = (this.moneyBonus || 0) + 20 * mon.lv;
       }
     }
   }
@@ -331,11 +342,6 @@ export class Battle {
 
       if (mon && isFainted(mon) && a.t !== 'switch') {
         // Con vừa gục trong lượt này, bỏ qua action
-        continue;
-      }
-      if (s.flinched) {
-        s.flinched = false;
-        ev.push({ t: 'msg', text: `${displayName(mon)} chùn bước, không thể ra đòn!` });
         continue;
       }
       if (a.t === 'run') {
@@ -372,10 +378,7 @@ export class Battle {
             target.hpCur = Math.min(max, target.hpCur + amount);
             ev.push({ t: 'heal', side: i, slot: targetSlot, amount: target.hpCur - before });
           }
-          if (item.effect.cure) {
-            target.status = null;
-            target.statusTurns = 0;
-          }
+          if (item.effect.cure) removeStatus(target, 'negative');
           ev.push({ t: 'msg', text: `Đã dùng ${item.name}!` });
         }
       } else if (a.t === 'ball') {
@@ -419,10 +422,14 @@ export class Battle {
         const mon = this.activeMon(i);
         if (mon && !isFainted(mon)) {
           const r = endOfTurn(mon, displayName(mon));
+          if (r.heal > 0) {
+            ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount: r.heal });
+            if (r.msg) ev.push({ t: 'msg', text: r.msg });
+          }
           if (r.dmg > 0) {
             ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: r.dmg, crit: false, eff: 1 });
             if (r.msg) ev.push({ t: 'msg', text: r.msg });
-            if (isFainted(mon)) {
+            if (isFainted(mon) && !survives(mon)) {
               if (this.handleFaint(i, ev)) this.endBattle(1 - i, ev);
             }
           }

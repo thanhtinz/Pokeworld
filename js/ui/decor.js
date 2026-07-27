@@ -63,7 +63,8 @@ export function openDecor(startTab) {
     const lv = trainerLevel();
     if (tab === 'avatar') {
       const skins = Object.entries(SKINS).filter(([, d]) => unlocked(d, p, lv));
-      const list = skins.map(([id, d]) => [id, d, true]);
+      // Ở tab này đang nói chuyện ẢNH ĐẠI DIỆN, không phải quần áo
+      const list = skins.map(([id, d]) => [id, id === 'default' ? { ...d, name: 'Avatar mặc định' } : d, true]);
       // Ô "theo skin đang mặc" chỉ có nghĩa khi có từ hai bộ trở lên
       if (skins.length > 1) list.unshift(['auto', { name: 'Theo skin đang mặc' }, true]);
       return list;

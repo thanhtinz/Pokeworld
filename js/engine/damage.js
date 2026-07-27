@@ -17,6 +17,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { typeEff } from '../data/types.js';
 import { stats } from './pokemon.js';
+import { statMult } from './status.js';
 
 // Hệ số buff/debuff trong trận (-6..+6) — phần này game giữ lại cho dễ chơi
 function stageMult(s) {
@@ -62,21 +63,19 @@ export function calcDamage(att, def, moveId, ctx = {}) {
   const attStats = stats(att);
   const defStats = stats(def);
 
-  // Sức đánh
+  // Sức đánh — trạng thái nhân thẳng vào chỉ số, đúng như stat_modifiers bên gốc
   let strength;
   if (userKey === 'level') {
     strength = COEFF_DAMAGE + att.lv;
   } else {
-    let a = attStats[userKey];
-    // Bỏng làm yếu đòn cận chiến (bản gốc giảm qua status, giữ lại cho dễ hiểu)
-    if (att.status === 'brn' && userKey === 'melee') a = Math.floor(a / 2);
+    const a = attStats[userKey] * statMult(att, userKey);
     strength = a * stageMult(ctx.attStage) * (COEFF_DAMAGE + att.lv);
   }
 
   // Sức đỡ
   const resist = targetKey === 'resist'
     ? 1
-    : Math.max(1, defStats[targetKey] * stageMult(ctx.defStage));
+    : Math.max(1, defStats[targetKey] * statMult(def, targetKey) * stageMult(ctx.defStage));
 
   const eff = typeMultiplier(move.types, SPECIES[def.sp]?.types || []);
   const dmg = Math.floor(strength * (move.power * eff) / resist);

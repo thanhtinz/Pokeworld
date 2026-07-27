@@ -22,6 +22,8 @@ import { calcDamage, typeMultiplier, RANGE_MAP } from '../js/engine/damage.js';
 import { attemptCatch } from '../js/engine/catchmon.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
+import { STATUSES } from '../js/data/statuses.js';
+import { applyStatus, removeStatus, endOfTurn, statMult } from '../js/engine/status.js';
 import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
@@ -281,6 +283,34 @@ ok('chiêu nào cũng có số lượt hồi, không có PP',
 ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   Object.values(SPECIES).every(s => s.catchRate >= 0 && s.catchRate <= 100
     && s.catchLo > 0 && s.catchHi >= s.catchLo));
+
+// ==== Trạng thái lấy từ db/status của bản gốc ====
+ok('có bảng trạng thái Tuxemon', Object.keys(STATUSES).length >= 30, String(Object.keys(STATUSES).length));
+ok('trạng thái nào cũng có tên tiếng Việt, nhóm và kiểu tác động',
+  Object.values(STATUSES).every(s => s.name && ['positive', 'negative'].includes(s.cat) && s.kind));
+{
+  const m = newTuxemon(STARTERS[0].sp, 20);
+  ok('dính trạng thái xấu rồi thì trạng thái tốt không chen vào được',
+    applyStatus(m, 'poison') && !applyStatus(m, 'hardshell') && m.status === 'poison');
+  const truoc = m.hpCur;
+  const r = endOfTurn(m, 'Test');
+  ok('độc trừ máu mỗi lượt', r.dmg > 0 && m.hpCur === truoc - r.dmg);
+  ok('thuốc gỡ được trạng thái xấu', removeStatus(m, 'negative') && !m.status);
+  ok('trạng thái tốt nhân chỉ số đúng bảng gốc',
+    applyStatus(m, 'hardshell') && statMult(m, 'armour') === STATUSES.hardshell.mods.armour);
+  removeStatus(m, 'all');
+  const lua = Object.values(SPECIES).find(sp => sp.types.includes('fire'));
+  const conLua = newTuxemon(Object.keys(SPECIES).find(k => SPECIES[k] === lua) * 1, 10);
+  ok('hệ lửa miễn nhiễm bỏng', !applyStatus(conLua, 'burn'));
+}
+
+// Chiêu có hiệu ứng phụ lấy đúng từ effects của bản gốc
+{
+  const coEff = Object.values(MOVES).filter(m => (m.eff || []).length);
+  ok('phần lớn chiêu có hiệu ứng phụ', coEff.length >= 100, String(coEff.length));
+  ok('hiệu ứng "give" luôn trỏ tới một trạng thái có thật',
+    coEff.flatMap(m => m.eff).filter(e => e.t === 'give').every(e => STATUSES[e.id]));
+}
 
 // ==== Trận đấu chạy trọn vẹn ====
 const b = new Battle({

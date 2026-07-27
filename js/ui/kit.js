@@ -3,6 +3,7 @@ import { esc } from '../util.js';
 import { ITEMS, itemIconPath } from '../data/items.js';
 import { TYPE_VI, TYPE_COLORS } from '../data/types.js';
 import { statusIcon } from './icons.js';
+import { STATUSES } from '../data/statuses.js';
 
 export function toast(msg, ms = 2200) {
   const wrap = document.getElementById('toast-wrap');
@@ -95,10 +96,11 @@ export function header(title, backTo = null) {
   </div>`;
 }
 
-// Thẻ trạng thái (brn/psn/slp/par/frz) — icon lấy thẳng từ bộ ảnh của Tuxemon
+// Thẻ trạng thái: tên tiếng Việt + icon lấy thẳng từ bộ ảnh của Tuxemon.
+// Xanh lá = trạng thái tốt, đỏ tía = trạng thái xấu.
 export function statusTag(st) {
-  if (!st) return '';
-  const map = { brn: ['BỎNG', '#e8590c'], psn: ['ĐỘC', '#9c36b5'], slp: ['NGỦ', '#868e96'], par: ['TÊ', '#f0b429'], frz: ['BĂNG', '#3bc9db'] };
-  const [label, color] = map[st] || [st, '#888'];
-  return `<span class="status-tag" style="background:${color}">${statusIcon(st)}${label}</span>`;
+  const d = STATUSES[st];
+  if (!d) return '';
+  const color = d.cat === 'positive' ? '#2f9e44' : '#9c36b5';
+  return `<span class="status-tag" style="background:${color}">${statusIcon(st)}${esc(d.name)}</span>`;
 }

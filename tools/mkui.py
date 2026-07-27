@@ -34,14 +34,7 @@ MENU = {
 # Tam danh cua chieu (gfx/ui/icons/range)
 RANGES = ['melee', 'touch', 'ranged', 'reach', 'reliable']
 
-# Trang thai game dang dung -> icon ben Tuxemon (gfx/ui/icons/status)
-STATUS = {
-    'brn': 'icon_burn',
-    'psn': 'icon_poison',
-    'slp': 'icon_dozing',
-    'par': 'icon_lockdown',      # te liet -> khong cua quay duoc
-    'frz': 'icon_stuck',         # dong bang -> dinh cung mot cho
-}
+# Icon trang thai: chep het theo dung slug ben ban goc (js/data/statuses.js)
 
 
 def copy_scaled(src, dst):
@@ -78,13 +71,12 @@ def main():
         else:
             thieu.append(r)
 
-    for name, src in STATUS.items():
-        p = os.path.join(ui, 'icons/status', src + '.png')
-        if os.path.exists(p):
-            copy_scaled(p, 'assets/ui/status/%s.png' % name)
-            n += 1
-        else:
-            thieu.append(src)
+    for f in sorted(os.listdir(os.path.join(ui, 'icons/status'))):
+        if not f.startswith('icon_') or not f.endswith('.png'):
+            continue
+        slug = f[len('icon_'):-len('.png')]
+        copy_scaled(os.path.join(ui, 'icons/status', f), 'assets/ui/status/%s.png' % slug)
+        n += 1
 
     print('OK: %d anh giao dien' % n)
     if thieu:

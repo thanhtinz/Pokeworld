@@ -25,12 +25,13 @@ Cụ thể đã lấy:
 | Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |
 | Icon giao diện: ba lô, nhật ký, đội hình, cài đặt | `assets/ui/` |
 | Icon tầm đánh của chiêu (melee/touch/ranged/reach/reliable) | `assets/ui/range/` |
-| Icon trạng thái (bỏng, độc, ngủ, tê, băng) | `assets/ui/status/` |
+| 33 trạng thái + icon (độc, bỏng, mê hoặc, vỏ cứng...) | `js/data/statuses.js`, `assets/ui/status/` |
 
 Cả **luật chơi** cũng lấy theo bản gốc: công thức sát thương theo tầm đánh,
 chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt, khẩu vị thay cho tính
-cách — xem `js/engine/damage.js`, `js/engine/pokemon.js`, `js/engine/exp.js`,
-`js/engine/catchmon.js`, mỗi tệp có ghi rõ lấy từ đâu bên bản gốc.
+cách, bảng trạng thái và hiệu ứng phụ của chiêu — xem `js/engine/damage.js`,
+`js/engine/pokemon.js`, `js/engine/exp.js`, `js/engine/catchmon.js`,
+`js/engine/status.js`, mỗi tệp có ghi rõ lấy từ đâu bên bản gốc.
 
 Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py`,
 `tools/mksprites.py`, `tools/mkitems.py`, `tools/mkarena.py`, `tools/mksounds.py`,
