@@ -14,12 +14,14 @@ import { EVOLUTIONS } from '../data/evolutions.js';
 export const TRAINER_PX = 104;                       // bề rộng khung sprite nhân vật
 // Chiều cao THÂN NGƯỜI (đã cắt hết khoảng trống quanh sprite) để so trực tiếp
 // với bề rộng khung Pokémon: cao hơn con chưa tiến hoá, thấp hơn con đã tiến hoá.
-export const TRAINER_SIZE = 'min(96px, 25vw)';
+export const TRAINER_SIZE = 'min(150px, 38vw)';
 export const TRAINER_HEIGHT_M = 1.5;
 
-const SMALL_MAX = 92;                 // con chưa tiến hoá: không vượt quá mức này
-const BIG_MIN = 124;                  // con đã tiến hoá: không nhỏ hơn mức này
-const HARD_MAX = 200;
+// Mốc lấy theo cỡ sprite cũ (địch 140 / mình 130) để Pokémon vẫn to như trước,
+// rồi con đã tiến hoá được đẩy lên hẳn một bậc nữa.
+const SMALL_MAX = 138;                // con chưa tiến hoá: cỡ như cũ
+const BIG_MIN = 176;                  // con đã tiến hoá: to hơn hẳn
+const HARD_MAX = 250;
 
 // Tập các loài là ĐÍCH của một lần tiến hoá — tính một lần lúc nạp module
 const EVOLVED = new Set(Object.values(EVOLUTIONS).map(e => e.into));
@@ -41,8 +43,8 @@ export function monPx(mon) {
   if (!mon) return SMALL_MAX;
   const dex = mon.sp;
   const h = heightOf(dex);
-  // Thang loga: 0.3m -> ~87, 1m -> ~116, 2m -> ~143, 9m -> ~200
-  const raw = Math.round(70 + 46 * Math.log2(1 + h));
+  // Thang loga: 0.3m -> ~127, 1m -> ~152, 2m -> ~183, 9m -> ~273
+  const raw = Math.round(100 + 52 * Math.log2(1 + h));
   const big = biggerThanTrainer(dex);
   // Dạng Mega luôn to hơn dạng thường của chính nó (mega.js đánh dấu bằng megaOf)
   const mega = mon.megaOf ? 1.15 : 1;

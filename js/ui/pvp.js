@@ -93,7 +93,7 @@ export function render(el, ctx = {}) {
       </div>`;
     const img = `
       <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
-           style="width:min(${monPx(mon)}px, 44vw)"
+           style="width:min(${monPx(mon)}px, 58vw)"
            src="${monLocalSrc(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">`;
     // Bên mình đứng TRÁI DƯỚI, đối thủ đứng PHẢI TRÊN — giống game Pokémon gốc.
     return back ? img + info : info + img;

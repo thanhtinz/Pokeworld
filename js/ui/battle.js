@@ -25,7 +25,6 @@ import {
 } from '../engine/trainerfight.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { monPx, TRAINER_SIZE } from '../engine/battlesize.js';
-import { charBodyHtml } from '../data/chars.js';
 import { EQUIPMENT, RARITY } from '../data/equipment.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
@@ -123,7 +122,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       <span class="bt-duo bt-duo-foe">
         ${fighterImg(b.sides[1].fighter)}
         <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
-             style="width:min(${monPx(m)}px, 44vw)"
+             style="width:min(${monPx(m)}px, 58vw)"
              src="${monLocalSrc(m)}" onerror="${monFallbackAttr(m)}"
              data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">
       </span>`;
@@ -139,7 +138,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     $me.innerHTML = `
       <span class="bt-duo bt-duo-me">
         <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
-             style="width:min(${monPx(m)}px, 44vw)"
+             style="width:min(${monPx(m)}px, 58vw)"
              src="${monLocalSrc(m, true)}" onerror="${monFallbackAttr(m, true)}"
              data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
         ${fighterImg(me, true)}
@@ -241,11 +240,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
   // Ảnh nhân vật đứng sát Pokémon của mình cho thấy hai bên cùng ra trận.
   function fighterImg(f, self = false) {
     if (!f || !f.avatar) return '';
-    if (self) {
-      // Nhân vật người chơi: cắt khung đứng yên trong bộ sprite Mana Seed
-      return charBodyHtml(f.avatar, { dir: 'right', height: TRAINER_SIZE, cls: 'bt-fighter bt-fighter-me' });
-    }
-    return `<img class="bt-fighter" src="assets/trainers/${f.avatar}.png" alt="" onerror="this.remove()">`;
+    // Nhân vật mình vẽ to hơn (cao hơn Pokémon chưa tiến hoá), đối thủ nhỏ hơn một bậc
+    const cls = self ? 'bt-fighter bt-fighter-me' : 'bt-fighter';
+    const size = self ? ` style="width:${TRAINER_SIZE}"` : '';
+    return `<img class="${cls}" src="assets/trainers/${f.avatar}.png"${size} alt="" onerror="this.remove()">`;
   }
 
   // Hàng kỹ năng của nhân vật: thanh năng lượng + các nút đã mở khoá

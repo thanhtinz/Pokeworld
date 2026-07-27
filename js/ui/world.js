@@ -5,7 +5,6 @@ import {
 } from '../engine/overworld.js';
 import { TILESET, tileRect } from '../data/tiles.js';
 import { owImage, owFrame, owReady, OW_W, OW_H } from '../engine/owsprite.js';
-import { charImage, charFrame, charReady, CHAR_CELL } from '../data/chars.js';
 import { heal } from '../engine/pokemon.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
@@ -43,7 +42,7 @@ export function render(el) {
     if (!img) { img = new Image(); img.src = src; roomCache[src] = img; }
     return img;
   };
-  const avatarImg = charImage(activeAvatar());
+  const avatarImg = owImage(activeAvatar());
 
   function sizeCanvas() {
     const r = canvas.getBoundingClientRect();
@@ -122,30 +121,21 @@ export function render(el) {
 
   // Vẽ NPC + người chơi (cả ngoài trời lẫn trong nhà)
   function drawActors(map, size, camX, camY) {
-    // NPC dùng sprite GBA 16x32: rộng 1 ô, cao 2 ô, chân đặt đúng ô đang đứng
+    // Nhân vật cao gấp đôi ô: rộng bằng 1 ô, cao 2 ô, chân đặt đúng ô đang đứng
     const chW = size, chH = size * (OW_H / OW_W);
-    const putNpc = (img, dir, cx, cy) => {
+    const put = (img, dir, moving, cx, cy) => {
       if (!owReady(img)) return;
-      const f = owFrame(dir, false);
+      const f = owFrame(dir, moving);
       ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
         Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
     };
     for (const n of map.npcs || []) {
-      putNpc(owImage(n.sprite), n.dir || 'down',
+      put(owImage(n.sprite), n.dir || 'down', false,
         (n.x + 0.5) * size - camX, (n.y + 1) * size - camY);
     }
-
-    // Người chơi dùng ô 64x64 của bộ Mana Seed. Nhân vật chỉ chiếm phần giữa ô
-    // nên vẽ nguyên ô rộng gấp đôi cỡ ô bản đồ, thân người vẫn vừa một ô.
-    if (charReady(avatarImg)) {
-      const f = charFrame(player.dir, player.moving);
-      const s = size * 2.1;
-      const bob = player.moving ? Math.sin(Date.now() / 90) * 1.5 : 0;
-      const cx = player.x * size - camX;
-      const cy = (player.y + 0.5) * size - camY + bob;
-      ctx.drawImage(avatarImg, f.sx, f.sy, f.sw, f.sh,
-        Math.round(cx - s / 2), Math.round(cy - s * 0.78), Math.round(s), Math.round(s));
-    }
+    const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
+    put(avatarImg, player.dir, player.moving,
+      player.x * size - camX, (player.y + 0.5) * size - camY + bob);
   }
 
   function drawHud(map) {

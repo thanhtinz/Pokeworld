@@ -516,23 +516,27 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 .bt-enemy, .bt-me {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  gap: 6px;
   padding: 8px 4px;
   position: relative;
 }
-.bt-enemy { justify-content: space-between; min-height: 150px; }
-.bt-me { justify-content: space-between; min-height: 140px; margin-top: auto; }
+/* Khung máu nổi ĐÈ lên nền như game gốc, không chiếm chỗ của sprite —
+   trước đây nó nằm cùng hàng nên Pokémon to bị bóp lại còn một nửa. */
+.bt-enemy { justify-content: flex-end; min-height: 172px; }
+.bt-me { justify-content: flex-start; min-height: 168px; margin-top: auto; }
 .bt-info {
+  position: absolute;
+  z-index: 2;
   background: rgba(8, 5, 18, .82);
   border: 2px solid var(--line);
   border-radius: 12px;
-  padding: 10px 12px;
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 52%;
+  padding: 9px 11px;
+  width: min(58%, 214px);
   box-shadow: 0 4px 14px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .05);
 }
+.bt-enemy .bt-info { left: 4px; top: 6px; }
+.bt-me .bt-info { right: 4px; bottom: 6px; }
 .bt-name {
   font-family: var(--pix);
   font-weight: 400;
@@ -1485,10 +1489,10 @@ img[src*='sprites'] { image-rendering: pixelated; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 3px;
-  padding: 12px 6px 10px;
-  min-height: 96px;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 6px 12px;
+  min-height: 88px;
   border-radius: var(--radius, 14px);
   background: var(--card);
   border: 1px solid var(--line);
@@ -1521,10 +1525,21 @@ img[src*='sprites'] { image-rendering: pixelated; }
   font-size: 8px;
   line-height: 1.2;
 }
+/* Chấm sáng nhắc "còn nhận được" (điểm danh hôm nay chưa lấy) */
+.hub-ready { border-color: rgba(240, 180, 41, .55); }
+.hub-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gold, #f0b429);
+  box-shadow: 0 0 8px var(--gold, #f0b429);
+}
 @media (max-width: 340px) {
   .hub-grid { gap: 8px; }
-  .hub-cell { min-height: 88px; padding: 10px 4px 8px; }
-  .hub-note { display: none; }
+  .hub-cell { min-height: 80px; padding: 10px 4px 8px; }
 }
 
 /* ==== Nhân vật đánh cùng Pokémon (kiểu Palworld) ==== */
@@ -1533,6 +1548,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
   display: flex;
   align-items: flex-end;
   gap: 2px;
+  max-width: 100%;
 }
 .bt-duo-me { flex-direction: row; }
 .bt-fighter {
@@ -1550,7 +1566,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
   image-rendering: pixelated;
   flex: none;
 }
-.bt-fighter-me { filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .55)); }
+.bt-fighter-me { filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .6)); }
 .bt-duo-foe .bt-fighter { transform: scaleX(-1); }
 @keyframes tf-hit {
   0%, 100% { transform: translateY(0) scale(1); }
