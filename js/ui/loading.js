@@ -16,7 +16,7 @@ const TIPS = [
 // Danh sách asset cục bộ cần nạp trước (đường dẫn tương đối)
 const LOCAL_ASSETS = [
   'assets/img/title.png', 'assets/img/dlgbox.png', 'assets/img/crown.png',
-  'assets/img/worldmap.jpg',
+  'assets/img/worldmap.jpg', 'assets/tiles/terrain.png',
   'assets/trainers/red.png', 'assets/trainers/leaf.png', 'assets/trainers/oak.png',
   'assets/trainers/rival.png',
   'assets/types/fire.png', 'assets/types/water.png', 'assets/types/grass.png',

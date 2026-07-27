@@ -24,13 +24,13 @@ async function storyDone(ch) {
   toast(`${ch.title} hoàn thành!`);
 }
 
-export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {}) {
+export function render(el, { kind = 'wild', enemy = null, trainerId = null, from = 'home' } = {}) {
   // ==== Dựng trận ====
   let trainer = null;
   let enemySide;
   if (kind === 'trainer') {
     trainer = TRAINERS[trainerId];
-    if (!trainer) { toast('Không tìm thấy trainer!'); show('home'); return; }
+    if (!trainer) { toast('Không tìm thấy trainer!'); show(from); return; }
     // Rival: đội động khắc hệ với starter người chơi (engine/story.js)
     const party = trainer.kind === 'rival' ? rivalTeam(trainerId) : (trainer.party || []);
     const mons = party.map(e =>
@@ -38,7 +38,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     enemySide = { mons: mons.filter(Boolean), kind: 'trainer' };
     for (const m of enemySide.mons) markSeen(m.sp);
   } else {
-    if (!enemy) { show('home'); return; }
+    if (!enemy) { show(from); return; }
     enemySide = { mons: [enemy], kind: 'wild' };
   }
   const b = new Battle({ kind, sides: [{ mons: G.p.party, kind: 'player' }, enemySide] });
@@ -439,7 +439,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     save();
     updateBars();
     $act.innerHTML = `<button class="btn btn-primary btn-big" id="bt-cont">Tiếp tục</button>`;
-    $act.querySelector('#bt-cont').addEventListener('click', () => show('home'));
+    // Đánh xong thì quay lại đúng nơi vừa rời đi (bản đồ hoặc màn chính)
+    $act.querySelector('#bt-cont').addEventListener('click', () => show(from));
   }
 
   // ==== Mở màn ====

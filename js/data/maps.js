@@ -1,223 +1,266 @@
-// PokeWorld H5 | data/maps.js | Bản đồ đi lại được, viết bằng lưới ký tự cho dễ sửa
-// Ký hiệu:  . cỏ   , cỏ hoa   " cỏ cao (gặp Pokémon)   f cỏ rừng (gặp Pokémon)
-//           # cây   ~ nước    - đường đất   s cát   o đá   B bảng hiệu
-//           W tường nhà   R mái nhà   D cửa   = sàn   c nền hang   C vách hang
+// PokeWorld H5 | data/maps.js | Bản đồ đi lại được — TỰ SINH TỪ tools/mkmaps.py, đừng sửa tay
+// Ký hiệu ô: . cỏ  , cỏ hoa  " cỏ cao (gặp Pokémon)  - đường đất  s cát
+//            ~ nước  W nước sâu  # cây  o đá  B bảng hiệu
+import { BUILDINGS } from './tiles.js';
 
-// Ký tự -> { t: chỉ số ô trong tileset, solid: chắn đường, enc: có gặp Pokémon }
-export const TILE_LEGEND = {
-  '.': { t: 0 },
-  ',': { t: 8 },
-  '"': { t: 1, enc: true },
-  'f': { t: 12, enc: true },
-  '-': { t: 2 },
-  's': { t: 10 },
-  '=': { t: 11 },
-  'c': { t: 13 },
-  '#': { t: 4, solid: true },
-  '~': { t: 3, solid: true },
-  'o': { t: 9, solid: true },
-  'W': { t: 5, solid: true },
-  'R': { t: 6, solid: true },
-  'B': { t: 15, solid: true },
-  'C': { t: 14, solid: true },
-  'D': { t: 7 },              // cửa: đi lên được, chạm vào thì mở cửa hàng/trung tâm
+export const TILE_SIZE = 16;
+
+// Ký tự -> loại địa hình. solid: chắn đường. enc: đi vào có thể gặp Pokémon.
+export const TERRAIN = {
+  '.': { kind: 'grass' },
+  ',': { kind: 'grass', decor: 'flower' },
+  '"': { kind: 'grass', decor: 'tall', enc: true },
+  '-': { kind: 'path' },
+  's': { kind: 'sand' },
+  '~': { kind: 'water', solid: true },
+  'W': { kind: 'deep', solid: true },
+  '#': { kind: 'tree', solid: true },
+  'o': { kind: 'grass', decor: 'rock', solid: true },
+  'B': { kind: 'grass', decor: 'sign', solid: true },
 };
 
-export const TILE_SIZE = 32;
-
-// spawn: vị trí xuất hiện mặc định. warps: cổng sang khu khác.
-// npcs: nhân vật đứng trên bản đồ (kind: heal | shop | pc | trainer | talk)
 export const MAPS = {
   town_1: {
     name: 'Thị Trấn Khởi Đầu',
-    spawn: { x: 11, y: 12 },
+    spawn: { x: 11, y: 16 },
     rows: [
-      '####################',
-      '#....,....,........#',
-      '#..RRRR....RRRR....#',
-      '#..RRRR....RRRR..#.#',
-      '#..WWDW....WWDW....#',
-      '#..--------------..#',
-      '#..-............-..#',
-      '#..-..RRRRRR....-..#',
-      '#..-..RRRRRR....-..#',
-      '#..-..WWWDWW....-..#',
-      '#..-------------...#',
-      '#....,.......,.....#',
-      '#..................#',
-      '#.....B............#',
-      '#........----......#',
-      '####################',
+      '########################',
+      '#......................#',
+      '#......................#',
+      '#..........,...........#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#..------------------..#',
+      '#.....-............,...#',
+      '#.....-................#',
+      '#.....-................#',
+      '#.....-................#',
+      '#.....-................#',
+      '#.....-..............B.#',
+      '#.....-................#',
+      '#..------------------..#',
+      '#.....-............,...#',
+      '#.""".-..........""""..#',
+      '#.""".-..........""""..#',
+      '######-#################',
     ],
-    warps: [{ x: 9, y: 15, to: 'route_1', tx: 10, ty: 1 }, { x: 10, y: 15, to: 'route_1', tx: 10, ty: 1 }],
+    buildings: [
+      { b: 'center', x: 3, y: 2, kind: 'heal', name: 'Pokémon Center', text: 'Chào mừng! Để tôi chăm sóc Pokémon cho bạn.' },
+      { b: 'mart', x: 15, y: 3, kind: 'shop', name: 'Poké Mart', text: 'Mời vào xem hàng!' },
+      { b: 'lab', x: 8, y: 10, kind: 'lab', name: 'Professor Oak\'s Lab', text: 'Phòng nghiên cứu Pokémon của Giáo sư Oak.' },
+      { b: 'house', x: 2, y: 10, kind: 'home', name: 'Your House', text: 'Nhà của bạn. Ấm áp thật.' },
+      { b: 'house2', x: 17, y: 10, kind: 'talk', name: 'Neighbor\'s House', text: 'Cửa khoá rồi.' },
+    ],
+    warps: [
+      { x: 6, y: 19, to: 'route_1', tx: 6, ty: 1 },
+    ],
     npcs: [
-      { x: 5, y: 4, kind: 'heal', sprite: 'lass', name: 'Nurse Joy', text: 'Để tôi chăm sóc Pokémon của bạn nhé!' },
-      { x: 13, y: 4, kind: 'shop', sprite: 'youngster', name: 'Poké Mart', text: 'Chào mừng! Bạn cần mua gì?' },
-      { x: 9, y: 9, kind: 'gym', sprite: 'brock', name: 'Gym Đá', trainerId: 'gym_brock', text: 'Phòng Gym hệ Đá. Sẵn sàng thách đấu chưa?' },
-      { x: 3, y: 11, kind: 'talk', sprite: 'oak', name: 'Professor Oak', text: 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!' },
+      { x: 15, y: 16, kind: 'talk', sprite: 'oak', name: 'Professor Oak', text: 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!' },
+      { x: 3, y: 16, kind: 'talk', sprite: 'lass', name: 'Daisy', text: 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.' },
+      { x: 19, y: 8, kind: 'talk', sprite: 'youngster', name: 'Boy', text: 'Poké Mart mới nhập Poké Ball đó!' },
     ],
   },
-
   route_1: {
     name: 'Đường Số 1',
-    spawn: { x: 10, y: 2 },
+    spawn: { x: 6, y: 2 },
     rows: [
-      '########....########',
-      '#.......--.........#',
-      '#..""""..-...""""..#',
-      '#..""""..-...""""..#',
-      '#........-.........#',
-      '#..#.....-......#..#',
-      '#..#..""""""....#..#',
-      '#.....""""""-......#',
-      '#..,.........-..,..#',
-      '#..."""".....-.....#',
-      '#...""""..#..-..#..#',
-      '#............-.....#',
-      '#..""""......-.""..#',
-      '#..""""......-.""..#',
-      '#............-.....#',
-      '####....########....',
+      '######-#################',
+      '#.....-.............,..#',
+      '#.....-..."""""""......#',
+      '#.....-..."""""""......#',
+      '#.""""-..."""""""......#',
+      '#.""""-..."""""""......#',
+      '#.""""-..."""""""..o...#',
+      '#.....-................#',
+      '#..#..-.....#..........#',
+      '#.....-................#',
+      '------------------.....#',
+      '#................-.....#',
+      '#."""""..."""""".-.....#',
+      '#."""""..."""""".-.....#',
+      '#."""""..."""""".-.....#',
+      '#."""""..........-.....#',
+      '#.......o........-.....#',
+      '#..#.........#...-.....#',
+      '#.,..............-.....#',
+      '#################-######',
     ],
+    buildings: [],
     warps: [
-      { x: 4, y: 15, to: 'town_1', tx: 9, ty: 14 },
-      { x: 5, y: 15, to: 'town_1', tx: 9, ty: 14 },
-      { x: 16, y: 15, to: 'route_2', tx: 3, ty: 2 },
-      { x: 17, y: 15, to: 'route_2', tx: 3, ty: 2 },
-      { x: 0, y: 7, to: 'forest_1', tx: 18, ty: 8 },
+      { x: 6, y: 0, to: 'town_1', tx: 6, ty: 18 },
+      { x: 17, y: 19, to: 'route_2', tx: 5, ty: 1 },
+      { x: 0, y: 10, to: 'forest_1', tx: 21, ty: 9 },
     ],
     npcs: [
-      { x: 14, y: 6, kind: 'trainer', sprite: 'youngster', name: 'Youngster Joey', trainerId: 'youngster_joey', text: 'Đấu một trận nhé!' },
-      { x: 6, y: 12, kind: 'trainer', sprite: 'lass', name: 'Lass Nina', trainerId: 'lass_nina', text: 'Pokémon của tớ dễ thương mà mạnh lắm!' },
+      { x: 12, y: 7, kind: 'trainer', sprite: 'youngster', name: 'Youngster Joey', text: 'Pokémon của tớ mạnh lắm đấy!', trainerId: 'youngster_joey' },
+      { x: 8, y: 14, kind: 'trainer', sprite: 'lass', name: 'Lass Nina', text: 'Dễ thương nhưng không hiền đâu nhé!', trainerId: 'lass_nina' },
     ],
   },
-
   route_2: {
     name: 'Đường Số 2',
-    spawn: { x: 3, y: 2 },
+    spawn: { x: 5, y: 2 },
     rows: [
-      '####....############',
-      '#...--..............',
-      '#..---..""""""".....',
-      '#....-..""""""".....',
-      '#....-..............',
-      '#....--------.....#.',
-      '#...........-...ooo.',
-      '#..""""""...-...ooo.',
-      '#..""""""...-.......',
-      '#...........-.......',
-      '#..#........-....##.',
-      '#..#..,,....------..',
-      '#........."""""""..#',
-      '#........."""""""..#',
-      '#..................#',
-      '########....########',
+      '#####-##################',
+      '#....-.................#',
+      '#....-...""""""".......#',
+      '#....-..."""""""....#..#',
+      '#....-.................#',
+      '#""".-.................#',
+      '#""".-.................#',
+      '#....-------------------',
+      '#.................-....#',
+      '#...."""""""......-....#',
+      '#...."""""""......-....#',
+      '#...."""""""...,..-....#',
+      '#.oo..............-....#',
+      '#...........oo....-.#..#',
+      '#.................-....#',
+      '#...."""""""......-....#',
+      '#.#.."""""""......-....#',
+      '#.................-....#',
+      '#.................-....#',
+      '##################-#####',
     ],
+    buildings: [],
     warps: [
-      { x: 4, y: 0, to: 'route_1', tx: 16, ty: 14 },
-      { x: 5, y: 0, to: 'route_1', tx: 16, ty: 14 },
-      { x: 19, y: 1, to: 'cave_1', tx: 2, ty: 8 },
-      { x: 8, y: 15, to: 'lake_1', tx: 10, ty: 1 },
-      { x: 9, y: 15, to: 'lake_1', tx: 10, ty: 1 },
+      { x: 5, y: 0, to: 'route_1', tx: 17, ty: 18 },
+      { x: 23, y: 7, to: 'cave_1', tx: 1, ty: 9 },
+      { x: 18, y: 19, to: 'lake_1', tx: 11, ty: 1 },
     ],
     npcs: [
-      { x: 15, y: 8, kind: 'trainer', sprite: 'camper', name: 'Camper Ethan', trainerId: 'camper_ethan', text: 'Đường này ta canh giữ!' },
+      { x: 14, y: 10, kind: 'trainer', sprite: 'camper', name: 'Camper Ethan', text: 'Đường này ta canh giữ!', trainerId: 'camper_ethan' },
+      { x: 3, y: 16, kind: 'talk', sprite: 'bug_catcher', name: 'Bug Catcher', text: 'Trong rừng phía tây nhiều bọ lắm!' },
     ],
   },
-
   forest_1: {
     name: 'Rừng Xanh Thẳm',
-    spawn: { x: 18, y: 8 },
+    spawn: { x: 21, y: 9 },
     rows: [
-      '####################',
-      '#ffff####ffff###ff.#',
-      '#ffff#....fff#..ff..',
-      '#....#.ff.....#.....',
-      '#.####.ff.###.#.###.',
-      '#.#..#....#f#.#...#.',
-      '#.#ff#.##.#f#.###.#.',
-      '#.#ff#.##.....#...#.',
-      '#.#..........#..#...',
-      '#.###.####.#.#..#.#.',
-      '#.....#ff#.#.#..#.#.',
-      '#.#####ff#.#.####.#.',
-      '#.#....ff#.#......#.',
-      '#.#.####.#.########.',
-      '#...#fff.#..........',
-      '####################',
+      '########################',
+      '########################',
+      '########################',
+      '####..."""""""..########',
+      '####..."""""""..########',
+      '####..########..########',
+      '####,.########..########',
+      '####..########..########',
+      '####..########..#####...',
+      '####..""""""............',
+      '####..""""""............',
+      '####..###########..#####',
+      '####..###########o.#####',
+      '####.,###########..#####',
+      '####..###########..#####',
+      '####...""""""".....#####',
+      '####...""""""".....#####',
+      '########################',
+      '########################',
+      '########################',
     ],
-    warps: [{ x: 19, y: 8, to: 'route_1', tx: 1, ty: 7 }],
+    buildings: [],
+    warps: [
+      { x: 23, y: 9, to: 'route_1', tx: 1, ty: 10 },
+      { x: 23, y: 10, to: 'route_1', tx: 1, ty: 10 },
+    ],
     npcs: [
-      { x: 7, y: 10, kind: 'trainer', sprite: 'bug_catcher', name: 'Bug Catcher Rick', trainerId: 'bug_catcher_rick', text: 'Bọ là nhất!' },
-      { x: 3, y: 3, kind: 'talk', sprite: 'rocket_m', name: 'Rocket Grunt', text: 'Cút khỏi đây, nhóc!' },
+      { x: 9, y: 16, kind: 'trainer', sprite: 'bug_catcher', name: 'Bug Catcher Rick', text: 'Bọ là nhất!', trainerId: 'bug_catcher_rick' },
+      { x: 10, y: 4, kind: 'talk', sprite: 'rocket_m', name: 'Rocket Grunt', text: 'Cút khỏi đây, nhóc!' },
     ],
   },
-
   cave_1: {
-    name: 'Hang Dơi Đá',
-    spawn: { x: 2, y: 8 },
+    name: 'Lối Mòn Cát',
+    spawn: { x: 1, y: 9 },
     rows: [
-      'CCCCCCCCCCCCCCCCCCCC',
-      'CccccCCCCcccccCCCCcC',
-      'CcCCcCCCCcCCCcCCCCcC',
-      'CcCCccccccCCCcccccCC',
-      'CcCCCCCCCcCCCCCCCcCC',
-      'CccccccCCcccCCCCCcCC',
-      'CCCCCCcCCCCcCCCCCcCC',
-      'CcccccccccccccccccCC',
-      'ccCCCCCCCCCCCCCCcCCC',
-      'CcCCCcccccCCCCCcccCC',
-      'CcCCCcCCCcCCCCCCCcCC',
-      'CcccccCCCccccccCCcCC',
-      'CCCCCCCCCCCCCCcCCcCC',
-      'CccccccccccCCCcccccC',
-      'CCCCCCCCCCcCCCCCCCCC',
-      'CCCCCCCCCCCCCCCCCCCC',
+      '########################',
+      '########################',
+      '########################',
+      '#####sssssssssssss######',
+      '#####ssssossosssss######',
+      '#####sssssssssssss######',
+      '#####sos#######sss######',
+      '#####sss#######sss######',
+      'ssssssss#######sosssoss#',
+      'ssssssos#######ssssssss#',
+      'ssssssssssssssssss######',
+      '########ssssssssss######',
+      '########sss####sss######',
+      '########ssssssssss######',
+      '########sssossosss######',
+      '########ssssssssss######',
+      '########################',
+      '########################',
+      '########################',
+      '########################',
     ],
-    warps: [{ x: 1, y: 8, to: 'route_2', tx: 18, ty: 1 }],
+    buildings: [],
+    warps: [
+      { x: 0, y: 9, to: 'route_2', tx: 22, ty: 7 },
+    ],
     npcs: [
-      { x: 16, y: 11, kind: 'trainer', sprite: 'rocket_f', name: 'Rocket Duo', trainerId: 'rocket_2', text: 'Bọn ta đang bận đào đá quý!' },
+      { x: 17, y: 14, kind: 'trainer', sprite: 'rocket_f', name: 'Rocket Duo', text: 'Bọn ta đang bận đào đá quý!', trainerId: 'rocket_2' },
+      { x: 12, y: 11, kind: 'talk', sprite: 'camper', name: 'Hiker', text: 'Lối mòn này gió lớn, cẩn thận đấy!' },
     ],
   },
-
   lake_1: {
     name: 'Hồ Gương Trời',
-    spawn: { x: 10, y: 2 },
+    spawn: { x: 11, y: 2 },
     rows: [
-      '#########....#######',
-      '#.....,....--......#',
-      '#..sssssssssssss...#',
-      '#..s~~~~~~~~~~~s...#',
-      '#..s~~~~~~~~~~~s...#',
-      '#..s~~~~~~~~~~~s...#',
-      '#..s~~~~~~~~~~~ss..#',
-      '#..s~~~~~~~~~~~~s..#',
-      '#..ss~~~~~~~~~~~s..#',
-      '#...ss~~~~~~~~ss...#',
-      '#....sssssssss.....#',
-      '#..""".......""""..#',
-      '#..""".RRRR..""""..#',
-      '#......WWDW........#',
-      '#..................#',
-      '####################',
+      '###########-############',
+      '#..........-...........#',
+      '#.,........-...........#',
+      '#..sssssssssssssssss...#',
+      '#..ss~~~~~~~~~~~~~ss...#',
+      '#..ss~~~~~~~~~~~~~ss...#',
+      '#..ss~~WWWWWWWWW~~ss...#',
+      '#..ss~~WWWWWWWWW~~ss...#',
+      '#..ss~~WWWWWWWWW~~ss...#',
+      '#..ss~~~~~~~~~~~~~ss...#',
+      '#..sssssssssssssssss...#',
+      '#..........-...........#',
+      '#..........-...........#',
+      '#."""".....-......"""".#',
+      '#."""".....-......"""".#',
+      '#..........-.........,.#',
+      '#.B........-...........#',
+      '#.--------------------.#',
+      '#......................#',
+      '########################',
+    ],
+    buildings: [
+      { b: 'gym', x: 5, y: 12, kind: 'gym', name: 'Cerulean Gym', text: 'Phòng Gym hệ Nước. Sẵn sàng chưa?', trainerId: 'gym_thuy' },
+      { b: 'center', x: 14, y: 12, kind: 'heal', name: 'Pokémon Center', text: 'Nghỉ ngơi một chút nhé!' },
     ],
     warps: [
-      { x: 9, y: 0, to: 'route_2', tx: 8, ty: 14 },
-      { x: 10, y: 0, to: 'route_2', tx: 8, ty: 14 },
+      { x: 11, y: 0, to: 'route_2', tx: 18, ty: 18 },
     ],
     npcs: [
-      { x: 9, y: 13, kind: 'gym', sprite: 'misty', name: 'Gym Nước', trainerId: 'gym_thuy', text: 'Sóng lớn sắp cuốn cậu đi đấy!' },
-      { x: 15, y: 11, kind: 'talk', sprite: 'swimmer_f', name: 'Swimmer', text: 'Nghe nói có Gyarados khổng lồ dưới hồ này...' },
+      { x: 20, y: 8, kind: 'talk', sprite: 'swimmer_f', name: 'Swimmer', text: 'Nghe nói có Gyarados khổng lồ dưới hồ này...' },
     ],
   },
 };
 
-// Tra ô theo tọa độ. Ngoài biên coi như tường.
-export function tileAt(map, x, y) {
+export const mapWidth = (map) => map.rows[0].length;
+export const mapHeight = (map) => map.rows.length;
+
+// Tra ký tự địa hình. Ngoài biên coi như cây.
+export function charAt(map, x, y) {
   const row = map.rows[y];
-  if (!row || x < 0 || x >= row.length) return { t: 4, solid: true };
-  return TILE_LEGEND[row[x]] || { t: 0 };
+  if (!row || x < 0 || x >= row.length) return '#';
+  return row[x];
 }
 
-export const mapWidth = (map) => Math.max(...map.rows.map(r => r.length));
-export const mapHeight = (map) => map.rows.length;
+export function terrainAt(map, x, y) {
+  return TERRAIN[charAt(map, x, y)] || TERRAIN['.'];
+}
+
+// Ô cửa của từng toà nhà: { 'x,y': {...building} }
+export function doorsOf(map) {
+  const out = {};
+  for (const b of map.buildings || []) {
+    const def = BUILDINGS[b.b];
+    if (!def) continue;
+    out[`${b.x + def.door[0]},${b.y + def.door[1]}`] = b;
+  }
+  return out;
+}

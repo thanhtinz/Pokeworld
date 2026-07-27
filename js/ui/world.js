@@ -1,18 +1,15 @@
 // PokeWorld H5 | ui/world.js | Màn bản đồ: vẽ canvas + joystick ảo + nút tương tác
 import { G, save } from '../state.js';
 import {
-  player, currentMap, enterMap, restorePosition, update, facingNpc, TILE_SIZE,
+  player, currentMap, currentBake, restorePosition, update, facingThing,
 } from '../engine/overworld.js';
-import { TILE_LEGEND, tileAt, mapWidth, mapHeight } from '../data/maps.js';
+import { TILESET, tileRect } from '../data/tiles.js';
 import { heal } from '../engine/pokemon.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
-import { show, refresh } from '../main.js';
-
-const TILESET_SRC = 'assets/tiles/tileset.png';
-const TILES_PER_ROW = 4;   // bộ tile 4x4 ô
+import { show } from '../main.js';
 
 let raf = null;
 
@@ -37,7 +34,7 @@ export function render(el) {
   ctx.imageSmoothingEnabled = false;
 
   const tileset = new Image();
-  tileset.src = TILESET_SRC;
+  tileset.src = TILESET.src;
   const avatarImg = new Image();
   avatarImg.src = `assets/trainers/${activeAvatar()}.png`;
   const npcCache = {};
@@ -61,9 +58,7 @@ export function render(el) {
   let touchId = null;
   const MAX_R = 42;
 
-  function setKnob(dx, dy) {
-    knob.style.transform = `translate(${dx}px, ${dy}px)`;
-  }
+  const setKnob = (dx, dy) => { knob.style.transform = `translate(${dx}px, ${dy}px)`; };
   function joyStart(e) {
     const t = e.changedTouches ? e.changedTouches[0] : e;
     touchId = e.changedTouches ? t.identifier : 'mouse';
@@ -115,30 +110,37 @@ export function render(el) {
 
   // ==== Vẽ ====
   function drawTile(idx, dx, dy, size) {
-    const sx = (idx % TILES_PER_ROW) * TILE_SIZE;
-    const sy = Math.floor(idx / TILES_PER_ROW) * TILE_SIZE;
-    ctx.drawImage(tileset, sx, sy, TILE_SIZE, TILE_SIZE, dx, dy, size, size);
+    const { sx, sy, sw, sh } = tileRect(idx);
+    ctx.drawImage(tileset, sx, sy, sw, sh, dx, dy, size, size);
   }
 
   function draw() {
     const map = currentMap();
+    const baked = currentBake();
     const w = canvas.clientWidth, h = canvas.clientHeight;
-    const size = Math.max(34, Math.round(Math.min(w, h) / 11));   // ô to vừa mắt trên điện thoại
-    const camX = player.x * size - w / 2;
-    const camY = player.y * size - h / 2;
+    // Ô đủ to để nhìn rõ trên điện thoại, nhưng luôn đủ lớn để bản đồ phủ kín màn hình
+    const size = Math.ceil(Math.max(Math.min(w, h) / 12, h / baked.h, w / baked.w));
+    // Máy quay bám người chơi nhưng không lia ra ngoài rìa bản đồ
+    const clamp = (v, lo, hi) => (hi < lo ? lo : Math.min(hi, Math.max(lo, v)));
+    const camX = clamp(player.x * size - w / 2, 0, baked.w * size - w);
+    const camY = clamp(player.y * size - h / 2, 0, baked.h * size - h);
 
     ctx.fillStyle = '#0b0716';
     ctx.fillRect(0, 0, w, h);
+    if (!tileset.complete || !tileset.naturalWidth) return;
 
     const x0 = Math.max(0, Math.floor(camX / size));
     const y0 = Math.max(0, Math.floor(camY / size));
-    const x1 = Math.min(mapWidth(map), Math.ceil((camX + w) / size));
-    const y1 = Math.min(mapHeight(map), Math.ceil((camY + h) / size));
+    const x1 = Math.min(baked.w, Math.ceil((camX + w) / size));
+    const y1 = Math.min(baked.h, Math.ceil((camY + h) / size));
 
     for (let y = y0; y < y1; y++) {
       for (let x = x0; x < x1; x++) {
-        const tl = tileAt(map, x, y);
-        drawTile(tl.t, Math.round(x * size - camX), Math.round(y * size - camY), size);
+        const i = y * baked.w + x;
+        const px = Math.round(x * size - camX), py = Math.round(y * size - camY);
+        drawTile(baked.ground[i], px, py, size);
+        if (baked.over[i] >= 0) drawTile(baked.over[i], px, py, size);
+        if (baked.top[i] >= 0) drawTile(baked.top[i], px, py, size);
       }
     }
 
@@ -148,27 +150,27 @@ export function render(el) {
       let img = npcCache[n.sprite];
       if (!img) { img = new Image(); img.src = `assets/trainers/${n.sprite}.png`; npcCache[n.sprite] = img; }
       if (img.complete && img.naturalWidth) {
-        const s = size * 0.95;
-        ctx.drawImage(img, Math.round(n.x * size - camX + (size - s) / 2), Math.round(n.y * size - camY - s * 0.28), s, s);
+        const s = size * 1.3;
+        const cx = (n.x + 0.5) * size - camX, cy = (n.y + 0.5) * size - camY;
+        ctx.drawImage(img, Math.round(cx - s / 2), Math.round(cy - s * 0.78), s, s);
       }
     }
 
     // Người chơi (nhún nhẹ khi đi cho có cảm giác bước chân)
     const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
     if (avatarImg.complete && avatarImg.naturalWidth) {
-      const s = size * 1.05;
-      ctx.drawImage(
-        avatarImg,
-        Math.round(player.x * size - camX - s / 2 + size / 2),
-        Math.round(player.y * size - camY - s * 0.55 + size / 2 + bob),
-        s, s,
-      );
+      const s = size * 1.4;
+      const cx = player.x * size - camX, cy = player.y * size - camY;
+      ctx.drawImage(avatarImg, Math.round(cx - s / 2), Math.round(cy - s * 0.78 + bob), s, s);
     }
 
-    // Gợi ý bấm A khi đứng trước NPC
-    const npc = facingNpc();
+    // Tên khu vực luôn khớp bản đồ đang đứng
+    const chip = el.querySelector('#world-zone');
+    if (chip && chip.textContent !== map.name) chip.textContent = map.name;
+
+    // Gợi ý bấm A khi đứng trước NPC hoặc trước cửa
     const hint = el.querySelector('#btn-act');
-    if (hint) hint.classList.toggle('act-ready', !!npc);
+    if (hint) hint.classList.toggle('act-ready', !!facingThing());
   }
 
   // ==== Vòng lặp ====
@@ -197,28 +199,39 @@ export function render(el) {
   }
   raf = requestAnimationFrame(loop);
 
-  // ==== Tương tác với NPC ====
+  // ==== Tương tác ====
   async function interact() {
     if (busy) return;
-    const npc = facingNpc();
-    if (!npc) return;
+    const thing = facingThing();
+    if (!thing) return;
     busy = true;
     try {
-      if (npc.text) await playDialog([['sys', `${npc.name}: "${npc.text}"`]]);
-      if (npc.kind === 'heal') {
-        G.p.party.forEach(m => heal(m));
-        save();
-        toast('Cả đội đã hồi phục hoàn toàn!');
-      } else if (npc.kind === 'shop') {
-        cleanup(); show('shop'); return;
-      } else if (npc.kind === 'pc') {
-        cleanup(); show('party'); return;
-      } else if (npc.kind === 'trainer' || npc.kind === 'gym') {
-        const won = !!G.p.defeatedTrainers?.[npc.trainerId];
-        const i = await choose(npc.name, [
-          { label: 'Chiến đấu!', sub: won ? 'Đã thắng trước đó' : 'Chưa từng thắng' },
-        ]);
-        if (i === 0) { cleanup(); show('battle', { kind: 'trainer', trainerId: npc.trainerId, from: 'world' }); return; }
+      if (thing.text) await playDialog([['sys', `${thing.name}: "${thing.text}"`]]);
+      switch (thing.kind) {
+        case 'heal':
+          G.p.party.forEach(m => heal(m));
+          save();
+          toast('Cả đội đã hồi phục hoàn toàn!');
+          break;
+        case 'shop':
+          cleanup(); show('shop'); return;
+        case 'pc':
+        case 'home':
+          cleanup(); show('party'); return;
+        case 'lab':
+          cleanup(); show('dex'); return;
+        case 'trainer':
+        case 'gym': {
+          const won = !!G.p.defeatedTrainers?.[thing.trainerId];
+          const i = await choose(thing.name, [
+            { label: 'Chiến đấu!', sub: won ? 'Đã thắng trước đó' : 'Chưa từng thắng' },
+            { label: 'Thôi để sau' },
+          ]);
+          if (i === 0) { cleanup(); show('battle', { kind: 'trainer', trainerId: thing.trainerId, from: 'world' }); return; }
+          break;
+        }
+        default:
+          break;
       }
     } finally {
       busy = false;
