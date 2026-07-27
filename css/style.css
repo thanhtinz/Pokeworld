@@ -1145,3 +1145,57 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .starter-grid { gap: 12px; }
 .modal-opts { display: flex; flex-direction: column; gap: 10px; }
 .menu-link { min-height: 48px; display: flex; align-items: center; gap: 6px; }
+
+/* ==== VFX trong dau truong idle ==== */
+.fx { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+
+/* Vet chem cheo qua sprite */
+.fx-slash::before {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 150px; height: 5px; margin: -2px 0 0 -75px;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  transform: rotate(-28deg) scaleX(0);
+  animation: slashIn .32s ease-out forwards;
+  filter: drop-shadow(0 0 6px #fff);
+}
+.fx-super::before { background: linear-gradient(90deg, transparent, #ffd43b, #fff, transparent); height: 8px; width: 190px; margin-left: -95px; }
+.fx-weak::before { opacity: .45; width: 110px; margin-left: -55px; height: 3px; }
+@keyframes slashIn {
+  0% { transform: rotate(-28deg) scaleX(0); opacity: 0; }
+  35% { transform: rotate(-28deg) scaleX(1); opacity: 1; }
+  100% { transform: rotate(-28deg) scaleX(1); opacity: 0; }
+}
+
+/* Chop sang toan man khi khac he */
+.fx-flash { background: radial-gradient(circle at 50% 45%, rgba(255,235,150,.5), transparent 62%); animation: fxFade .3s ease-out forwards; }
+/* Chop do khi minh bi danh */
+.fx-hurt { background: radial-gradient(circle at 50% 78%, rgba(227,53,13,.42), transparent 58%); animation: fxFade .36s ease-out forwards; }
+@keyframes fxFade { from { opacity: 1; } to { opacity: 0; } }
+
+/* Vong sang khi quai xuat hien */
+.fx-appear::after {
+  content: ''; position: absolute; left: 50%; top: 46%;
+  width: 40px; height: 40px; margin: -20px 0 0 -20px;
+  border: 3px solid rgba(160,200,255,.85); border-radius: 50%;
+  animation: ringOut .65s ease-out forwards;
+}
+@keyframes ringOut {
+  from { transform: scale(.35); opacity: .95; }
+  to { transform: scale(3.4); opacity: 0; }
+}
+
+/* Sprite lao len danh roi ve cho */
+.lunge { animation: lungeAnim .34s ease-out; }
+@keyframes lungeAnim {
+  0% { transform: translate(0, 0); }
+  45% { transform: translate(14px, -12px) scale(1.06); }
+  100% { transform: translate(0, 0); }
+}
+
+/* So sat thuong bay len */
+.pop-dmg { color: #ff8787; }
+.pop-crit { color: #ffd43b; font-size: .95rem; text-shadow: 0 0 8px rgba(255,212,59,.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx, .lunge { animation: none !important; display: none; }
+}

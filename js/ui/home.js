@@ -2,7 +2,10 @@
 import { G, save, allFainted, emitQuest } from '../state.js';
 import { heal, displayName, maxHp, isFainted } from '../engine/pokemon.js';
 import { expProgress } from '../engine/exp.js';
-import { startIdle, stopIdle, onIdle, currentWild, activeMon, throwBall, claimOffline, isResting } from '../engine/idle.js';
+import {
+  startIdle, stopIdle, onIdle, currentWild, activeMon, throwBall, claimOffline, isResting,
+  isPaused, togglePause, fleeWild,
+} from '../engine/idle.js';
 import { currentChapter, needIntro, markIntroSeen, emitStory, zoneLockedBy, storyProgress } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { ZONES } from '../data/zones.js';
@@ -24,6 +27,9 @@ import { show, refresh } from '../main.js';
 
 let offlineClaimed = false; // chỉ nhận offline 1 lần mỗi phiên
 let unsub = null;
+// Khóa chống phát trùng cutscene: refresh() lồng nhau từng tạo 2 hộp thoại chồng lên nhau
+let introBusy = false;
+let introTimer = null;
 
 // Chương hoàn thành -> phát thoại kết + báo thưởng
 async function chapterDone(ch) {
@@ -77,7 +83,12 @@ export function render(el) {
 
     <div class="idle-controls">
       <button class="btn btn-primary" id="btn-ball">${itemIcon('poke_ball', '', 22)} Ném bóng</button>
+      <button class="btn" id="btn-flee">${itemIcon('escape_rope', '', 22)} Bỏ chạy</button>
+    </div>
+
+    <div class="idle-controls">
       <button class="btn" id="btn-heal-item">${itemIcon('potion', '', 22)} Hồi máu</button>
+      <button class="btn" id="btn-pause">${itemIcon('poke_flute', '', 22)} <span id="pause-lab">${isPaused() ? 'Tiếp tục' : 'Tạm dừng'}</span></button>
     </div>`}
 
     <div class="idle-controls">
@@ -109,6 +120,44 @@ export function render(el) {
     d.style.left = (30 + Math.random() * 40) + '%';
     popLayer.appendChild(d);
     setTimeout(() => d.remove(), 1600);
+  }
+
+  // ==== VFX: hiệu ứng hình ảnh trong đấu trường ====
+  const arenaEl = () => el.querySelector('#arena');
+
+  // Lớp hiệu ứng dùng 1 lần rồi tự dọn
+  function spawnFx(cls, ms = 600, target = null) {
+    const host = target || arenaEl();
+    if (!host) return null;
+    const d = document.createElement('div');
+    d.className = 'fx ' + cls;
+    host.appendChild(d);
+    setTimeout(() => d.remove(), ms);
+    return d;
+  }
+
+  // Vệt chém + chớp sáng, mạnh hơn khi khắc hệ
+  function vfxSlash(eff = 1) {
+    const cls = eff > 1 ? 'fx-slash fx-super' : eff < 1 && eff > 0 ? 'fx-slash fx-weak' : 'fx-slash';
+    spawnFx(cls, 500);
+    if (eff > 1) spawnFx('fx-flash', 320);
+  }
+  // Chớp đỏ khi mình bị đánh
+  function vfxHurtFlash() { spawnFx('fx-hurt', 380); }
+  // Vòng sáng khi quái xuất hiện
+  function vfxAppear() { spawnFx('fx-appear', 700); }
+  // Sprite lao lên rồi về chỗ
+  function vfxLunge(sel) {
+    const s = el.querySelector(sel);
+    if (!s) return;
+    s.classList.remove('lunge'); void s.offsetWidth; s.classList.add('lunge');
+  }
+
+  // Trạng thái "đang đi tìm" giữa hai lần gặp
+  function setSearching(left) {
+    if (!wildSlot) return;
+    const box = wildSlot.querySelector('.searching');
+    if (box) box.textContent = 'Đang tìm Pokémon' + '.'.repeat(3 - Math.min(2, left));
   }
 
   // Emote PMD bay lên trong arena (tim khi bắt được, nốt nhạc khi lên cấp...)
@@ -186,15 +235,33 @@ export function render(el) {
   unsub = onIdle(ev => {
     if (moneyVal) moneyVal.textContent = fmt(G.p.money);
     switch (ev.t) {
-      case 'appear': drawWild(); popEmote('alert'); log(`Một ${displayName(ev.mon)} Lv.${ev.mon.lv} hoang dã xuất hiện!`, 'log-hl'); break;
+      case 'search': setSearching(ev.left); break;
+      case 'appear': drawWild(); popEmote('alert'); vfxAppear(); log(`Một ${displayName(ev.mon)} Lv.${ev.mon.lv} hoang dã xuất hiện!`, 'log-hl'); break;
       case 'hit': {
         updateWildHp();
         const spr = wildSlot?.querySelector('.wild-sprite');
-        if (spr && ev.dmg > 0) { spr.classList.remove('shake'); void spr.offsetWidth; spr.classList.add('shake'); }
+        if (spr && ev.dmg > 0) {
+          spr.classList.remove('shake'); void spr.offsetWidth; spr.classList.add('shake');
+          vfxSlash(ev.eff);                     // vệt chém + chớp sáng theo độ khắc hệ
+          pop(`-${ev.dmg}`, ev.crit ? 'pop-crit' : 'pop-dmg');
+          if (ev.crit) log('Đòn chí mạng!', 'log-hl');
+        }
+        vfxLunge('.me-sprite');                 // Pokémon của mình lao lên đánh
         if (ev.missed) log(`${ev.move} đánh trượt!`);
         break;
       }
-      case 'hurt': drawMe(); break;
+      case 'hurt': {
+        drawMe();
+        if (ev.dmg > 0) {
+          const mine = mePanel?.querySelector('.me-sprite');
+          if (mine) { mine.classList.remove('shake'); void mine.offsetWidth; mine.classList.add('shake'); }
+          vfxHurtFlash();
+        }
+        break;
+      }
+      case 'flee': log(`Đã bỏ chạy khỏi ${ev.name}.`); drawWild(); break;
+      case 'paused': log('Đã tạm dừng tự đánh.', 'log-hl'); break;
+      case 'resumed': log('Tiếp tục tự đánh.', 'log-hl'); break;
       case 'ko':
         pop(`+${fmt(ev.money)}₽`);
         if (ev.exp) pop(`+${ev.exp} EXP`, 'pop-exp');
@@ -230,21 +297,34 @@ export function render(el) {
   if (isTown) stopIdle(); else startIdle();
 
   // ==== Cốt truyện ====
-  const btnStory = el.querySelector('#btn-story');
-  if (btnStory && ch) btnStory.addEventListener('click', async () => {
-    if (needIntro()) {
+  // Xem thoại mở đầu chương: dừng idle -> phát thoại -> ghi nhận tiến trình
+  async function playChapterIntro() {
+    if (introBusy || !ch || !needIntro()) return;
+    introBusy = true;
+    try {
       stopIdle();
       await playDialog(ch.dialog);
       markIntroSeen();
-      // Chương goal đặc biệt hoàn thành ngay khi xem thoại (vd ch1 chọn starter đã xong)
+      // Chương có mục tiêu hoàn thành ngay khi xem thoại (vd ch1: đã chọn starter)
       const done = emitStory('choose_starter', {});
-      if (done) { await chapterDone(done); }
+      if (done) await chapterDone(done);
       if (!isTown) startIdle();
-      refresh();
-    } else {
-      toast(ch.desc);
+    } finally {
+      introBusy = false;
     }
+    refresh();
+  }
+
+  const btnStory = el.querySelector('#btn-story');
+  if (btnStory && ch) btnStory.addEventListener('click', () => {
+    if (needIntro()) playChapterIntro();
+    else toast(ch.desc);
   });
+
+  // Chương mới -> cutscene tự chạy như game gốc (không bắt người chơi tự đi tìm nút).
+  // Hủy lịch cũ trước khi đặt lịch mới để mỗi lần render chỉ còn đúng 1 hàng chờ.
+  clearTimeout(introTimer);
+  if (ch && needIntro() && !introBusy) introTimer = setTimeout(playChapterIntro, 350);
 
   // ==== Ném bóng ====
   const btnBall = el.querySelector('#btn-ball');
@@ -267,6 +347,22 @@ export function render(el) {
   });
 
   // ==== Hồi máu nhanh bằng thuốc ====
+  // ==== Bỏ chạy khỏi con đang gặp ====
+  const btnFlee = el.querySelector('#btn-flee');
+  if (btnFlee) btnFlee.addEventListener('click', () => {
+    const r = fleeWild();
+    if (!r.ok) toast(r.error);
+  });
+
+  // ==== Tạm dừng / tiếp tục tự đánh ====
+  const btnPause = el.querySelector('#btn-pause');
+  if (btnPause) btnPause.addEventListener('click', () => {
+    const paused = togglePause();
+    const lab = el.querySelector('#pause-lab');
+    if (lab) lab.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+    btnPause.classList.toggle('btn-primary', paused);
+  });
+
   const btnHealItem = el.querySelector('#btn-heal-item');
   if (btnHealItem) btnHealItem.addEventListener('click', async () => {
     const meds = Object.entries(G.p.bag).filter(([id]) => ITEMS[id]?.kind === 'medicine' && ITEMS[id].effect?.heal);

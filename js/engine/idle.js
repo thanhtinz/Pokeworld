@@ -14,6 +14,8 @@ import { rng } from '../util.js';
 
 export const TICK_MS = 1400;
 const REST_MS = 12000;          // cả đội gục -> nghỉ hồi sức
+const SEARCH_TICKS = 2;         // số nhịp "đi tìm" trước khi gặp con tiếp theo
+const FLEE_TICKS = 3;           // bỏ chạy xong thì nghỉ lâu hơn chút
 const OFFLINE_CAP_MIN = 480;    // offline tối đa 8 giờ
 const KILLS_PER_MIN = 5;        // ước lượng tốc độ farm cho offline
 
@@ -21,6 +23,8 @@ const idle = {
   timer: null,
   wild: null,          // mon hoang hiện tại
   resting: 0,          // timestamp hết nghỉ
+  paused: false,       // người chơi tạm dừng tự đánh
+  searchLeft: 0,       // số nhịp còn phải "đi tìm" trước khi gặp con tiếp theo
   listeners: new Set(),
 };
 
@@ -66,6 +70,7 @@ function spawnWild() {
 
 function tick() {
   if (!G.p) return;
+  if (idle.paused) return;      // người chơi đã tạm dừng
   // Đang nghỉ hồi sức
   if (isResting()) return;
   const me = activeMon();
@@ -81,8 +86,13 @@ function tick() {
     }, REST_MS);
     return;
   }
-  // Chưa có quái -> xuất hiện
+  // Chưa có quái -> đi tìm vài nhịp rồi mới gặp (đỡ dồn dập)
   if (!idle.wild) {
+    if (idle.searchLeft > 0) {
+      idle.searchLeft -= 1;
+      emit({ t: 'search', left: idle.searchLeft });
+      return;
+    }
     idle.wild = spawnWild();
     if (idle.wild) emit({ t: 'appear', mon: idle.wild });
     return;
@@ -118,6 +128,7 @@ function tick() {
       if (evolve(me, evoTo)) emit({ t: 'evolve', from: oldName, to: displayName(me) });
     }
     idle.wild = null;
+    idle.searchLeft = SEARCH_TICKS;
     save();
     return;
   }
@@ -136,11 +147,39 @@ function tick() {
 
 export function startIdle() {
   if (idle.timer) return;
+  idle.searchLeft = SEARCH_TICKS;   // vào khu vực là đi tìm trước, không đánh ngay
   idle.timer = setInterval(tick, TICK_MS);
-  tick();
 }
 export function stopIdle() {
   if (idle.timer) { clearInterval(idle.timer); idle.timer = null; }
+  idle.wild = null;
+  idle.searchLeft = SEARCH_TICKS;
+}
+
+// ==== Điều khiển của người chơi ====
+export const isPaused = () => !!idle.paused;
+
+export function pauseIdle() {
+  idle.paused = true;
+  emit({ t: 'paused' });
+}
+export function resumeIdle() {
+  idle.paused = false;
+  emit({ t: 'resumed' });
+}
+export function togglePause() {
+  idle.paused ? resumeIdle() : pauseIdle();
+  return idle.paused;
+}
+
+// Bỏ chạy khỏi con đang gặp — luôn thành công (đây là chế độ treo máy, không phải trận thật)
+export function fleeWild() {
+  if (!idle.wild) return { ok: false, error: 'Chưa gặp Pokémon nào.' };
+  const name = displayName(idle.wild);
+  idle.wild = null;
+  idle.searchLeft = FLEE_TICKS;
+  emit({ t: 'flee', name });
+  return { ok: true, name };
 }
 
 // Ném bóng bắt con hoang hiện tại. Trả về kết quả hoặc null nếu không có quái.
