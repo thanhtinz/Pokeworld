@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PokeWorld — Quản trị</title>
+<style>
+  :root { --bg:#12141f; --card:#1c1f2e; --line:#2e3244; --text:#e8eaf5; --muted:#8f97b8;
+          --accent:#e3350d; --ok:#3fb950; --warn:#f0b429; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font:14px/1.5 system-ui,sans-serif; }
+  a { color:#6ea8fe; }
+  header { display:flex; align-items:center; gap:12px; padding:12px 18px; background:var(--card);
+           border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+  header h1 { font-size:16px; }
+  header .sp { flex:1; }
+  .wrap { max-width:1200px; margin:0 auto; padding:18px; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .tab { padding:8px 16px; background:var(--card); border:1px solid var(--line); border-radius:8px; cursor:pointer; }
+  .tab.on { background:var(--accent); border-color:var(--accent); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; text-align:center; }
+  .stat b { display:block; font-size:26px; color:var(--warn); }
+  .stat span { color:var(--muted); font-size:12px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; }
+  tr:hover td { background:rgba(255,255,255,.03); }
+  input,select,button,textarea { font:inherit; color:inherit; }
+  input,select,textarea { background:#0e1018; border:1px solid var(--line); border-radius:7px; padding:8px 10px; width:100%; }
+  button { background:#2a2f45; border:1px solid var(--line); border-radius:7px; padding:8px 14px; cursor:pointer; }
+  button:hover { background:#333a55; }
+  button.primary { background:var(--accent); border-color:var(--accent); }
+  button.danger { background:#5a1f28; border-color:#7c2d3e; color:#ff9aa8; }
+  button.ok { background:#1d4429; border-color:#2c6b3f; color:#8ce8a5; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .row > * { flex:0 0 auto; }
+  .muted { color:var(--muted); }
+  .badge { display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; }
+  .b-ban { background:#5a1f28; color:#ff9aa8; }
+  .b-on { background:#1d4429; color:#8ce8a5; }
+  .login-box { max-width:340px; margin:12vh auto; }
+  .login-box input { margin-bottom:10px; }
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#000d;
+           padding:10px 20px; border-radius:99px; opacity:0; transition:.25s; pointer-events:none; }
+  #toast.show { opacity:1; }
+  pre { background:#0e1018; padding:10px; border-radius:7px; overflow:auto; max-height:340px; font-size:12px; }
+  .hide { display:none !important; }
+</style>
+</head>
+<body>
+
+<div id="login" class="login-box">
+  <div class="card">
+    <h1 style="margin-bottom:14px">🛡️ PokeWorld — Quản trị</h1>
+    <input id="lg-user" placeholder="Tài khoản admin" autocomplete="username">
+    <input id="lg-pass" type="password" placeholder="Mật khẩu" autocomplete="current-password">
+    <button class="primary" style="width:100%" onclick="doLogin()">Đăng nhập</button>
+    <p class="muted" style="margin-top:10px;font-size:12px">Tài khoản đặt trong file <code>.env</code> (ADMIN_USER / ADMIN_PASS).</p>
+  </div>
+</div>
+
+<div id="app" class="hide">
+  <header>
+    <h1>🛡️ PokeWorld Admin</h1>
+    <span class="muted" id="server-name"></span>
+    <span class="sp"></span>
+    <button onclick="loadTab()">⟳ Làm mới</button>
+    <button onclick="doFlush()">💾 Lưu DB</button>
+    <button class="danger" onclick="doLogout()">Thoát</button>
+  </header>
+  <div class="wrap">
+    <div class="tabs">
+      <div class="tab on" data-tab="dash">Tổng quan</div>
+      <div class="tab" data-tab="players">Người chơi</div>
+      <div class="tab" data-tab="config">Cấu hình & Sự kiện</div>
+      <div class="tab" data-tab="pvp">Lịch sử PvP</div>
+      <div class="tab" data-tab="audit">Nhật ký</div>
+    </div>
+    <div id="view"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let token = localStorage.getItem('pw_admin_token') || '';
+let tab = 'dash';
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Number(n||0).toLocaleString('vi-VN');
+const dt = ts => ts ? new Date(ts).toLocaleString('vi-VN') : '—';
+
+async function api(path, opts = {}) {
+  const res = await fetch('/api/admin' + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, ...(opts.headers||{}) },
+  });
+  if (res.status === 403 || res.status === 401) { doLogout(); throw new Error('Hết phiên đăng nhập'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Lỗi máy chủ');
+  return data;
+}
+
+async function doLogin() {
+  try {
+    const r = await fetch('/api/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: $('#lg-user').value, password: $('#lg-pass').value }),
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.error || 'Đăng nhập thất bại');
+    token = d.token;
+    localStorage.setItem('pw_admin_token', token);
+    showApp();
+  } catch (e) { toast(e.message); }
+}
+function doLogout() {
+  token = ''; localStorage.removeItem('pw_admin_token');
+  $('#app').classList.add('hide'); $('#login').classList.remove('hide');
+}
+function showApp() {
+  $('#login').classList.add('hide'); $('#app').classList.remove('hide');
+  loadTab();
+}
+async function doFlush() { await api('/flush', { method: 'POST' }); toast('Đã lưu DB xuống đĩa'); }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  tab = t.dataset.tab;
+  loadTab();
+});
+
+async function loadTab() {
+  try {
+    if (tab === 'dash') return renderDash(await api('/stats'));
+    if (tab === 'players') return renderPlayers(await api('/players'));
+    if (tab === 'config') return renderConfig(await api('/stats'));
+    if (tab === 'pvp') return renderPvp(await api('/pvp'));
+    if (tab === 'audit') return renderAudit(await api('/audit'));
+  } catch (e) { toast(e.message); }
+}
+
+function renderDash(s) {
+  $('#server-name').textContent = s.config?.serverName || '';
+  $('#view').innerHTML = `
+    <div class="grid">
+      <div class="stat"><b>${fmt(s.users)}</b><span>Tài khoản</span></div>
+      <div class="stat"><b style="color:var(--ok)">${fmt(s.online)}</b><span>Đang online</span></div>
+      <div class="stat"><b>${fmt(s.activeToday)}</b><span>Hoạt động 24h</span></div>
+      <div class="stat"><b>${fmt(s.newToday)}</b><span>Đăng ký mới 24h</span></div>
+      <div class="stat"><b>${fmt(s.pvpToday)}</b><span>Trận PvP 24h</span></div>
+      <div class="stat"><b>${fmt(s.marriages)}</b><span>Cặp đôi</span></div>
+      <div class="stat"><b style="color:var(--accent)">${fmt(s.banned)}</b><span>Bị khóa</span></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:10px">📢 Thông báo toàn server</h3>
+      <div class="row">
+        <input id="bc-text" placeholder="Nội dung gửi tới mọi người chơi đang online" style="flex:1">
+        <button class="primary" onclick="doBroadcast()">Gửi</button>
+      </div>
+    </div>`;
+}
+async function doBroadcast() {
+  const text = $('#bc-text').value.trim();
+  if (!text) return;
+  await api('/broadcast', { method: 'POST', body: JSON.stringify({ text }) });
+  $('#bc-text').value = ''; toast('Đã gửi thông báo');
+}
+
+function renderPlayers(d) {
+  $('#view').innerHTML = `
+    <div class="card">
+      <div class="row" style="margin-bottom:12px">
+        <input id="q" placeholder="Tìm theo tên..." style="flex:1" oninput="searchPlayers()">
+        <span class="muted">Tổng: ${fmt(d.total)}</span>
+      </div>
+      <div style="overflow:auto">
+      <table>
+        <thead><tr><th>Tên</th><th>Tiền</th><th>Dex</th><th>Huy hiệu</th><th>PvP</th><th>Hoạt động</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody id="prows">
+          ${d.rows.map(p => `
+          <tr>
+            <td><b>${esc(p.username)}</b><br><span class="muted" style="font-size:11px">${p.avatar}</span></td>
+            <td>${fmt(p.money)}₽</td>
+            <td>${p.dex}</td>
+            <td>${p.badges}</td>
+            <td>${p.stats?.pvpWin||0}/${p.stats?.pvpLose||0}</td>
+            <td class="muted" style="font-size:12px">${dt(p.lastSeen)}</td>
+            <td>${p.banned ? `<span class="badge b-ban">KHÓA</span>` : `<span class="badge b-on">OK</span>`}
+                ${p.warnings?.length ? `<span class="badge" style="background:#4a3a10;color:#f0b429" title="${esc(p.warnings.join('\\n'))}">⚠ ${p.warnings.length}</span>` : ''}</td>
+            <td class="row">
+              <button onclick="grant('${p.id}','${esc(p.username)}')">🎁</button>
+              <button onclick="resetPass('${p.id}')">🔑</button>
+              ${p.banned
+                ? `<button class="ok" onclick="ban('${p.id}',false)">Mở</button>`
+                : `<button class="danger" onclick="ban('${p.id}',true)">Khóa</button>`}
+              <button class="danger" onclick="delPlayer('${p.id}','${esc(p.username)}')">🗑</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      </div>
+    </div>`;
+}
+let searchTimer;
+function searchPlayers() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    const q = $('#q').value;
+    const d = await api('/players?q=' + encodeURIComponent(q));
+    const keep = $('#q').value;
+    renderPlayers(d);
+    $('#q').value = keep; $('#q').focus();
+  }, 300);
+}
+async function ban(id, banned) {
+  const reason = banned ? (prompt('Lý do khóa tài khoản:', 'Vi phạm quy định') || '') : '';
+  if (banned && reason === null) return;
+  await api(`/player/${id}/ban`, { method: 'POST', body: JSON.stringify({ banned, reason }) });
+  toast(banned ? 'Đã khóa' : 'Đã mở khóa'); loadTab();
+}
+async function grant(id, name) {
+  const money = Number(prompt(`Tặng tiền cho ${name} (số âm để trừ):`, '10000'));
+  if (Number.isNaN(money)) return;
+  const itemId = prompt('ID vật phẩm (bỏ trống nếu không tặng):', 'rare_candy') || '';
+  const itemQty = itemId ? Number(prompt('Số lượng:', '5')) || 1 : 0;
+  await api(`/player/${id}/grant`, { method: 'POST', body: JSON.stringify({ money, itemId, itemQty }) });
+  toast('Đã tặng'); loadTab();
+}
+async function resetPass(id) {
+  const password = prompt('Mật khẩu mới (>= 6 ký tự):');
+  if (!password) return;
+  await api(`/player/${id}/password`, { method: 'POST', body: JSON.stringify({ password }) });
+  toast('Đã đổi mật khẩu');
+}
+async function delPlayer(id, name) {
+  if (!confirm(`XÓA VĨNH VIỄN tài khoản ${name}? Không thể hoàn tác!`)) return;
+  if (!confirm('Chắc chắn chứ?')) return;
+  await api(`/player/${id}`, { method: 'DELETE' });
+  toast('Đã xóa'); loadTab();
+}
+
+function renderConfig(s) {
+  const c = s.config || {};
+  $('#view').innerHTML = `
+    <div class="card">
+      <h3 style="margin-bottom:12px">⚙️ Cấu hình máy chủ</h3>
+      <div style="display:grid;gap:12px;max-width:520px">
+        <label>Tên máy chủ<input id="c-name" value="${esc(c.serverName)}"></label>
+        <label>Thông báo chào (MOTD)<textarea id="c-motd" rows="2">${esc(c.motd)}</textarea></label>
+        <label>Hệ số EXP (1-10)<input id="c-exp" type="number" min="1" max="10" step="0.5" value="${c.expMult}"></label>
+        <label>Hệ số tiền (1-10)<input id="c-money" type="number" min="1" max="10" step="0.5" value="${c.moneyMult}"></label>
+        <label>Hệ số tỉ lệ shiny (1-50)<input id="c-shiny" type="number" min="1" max="50" step="1" value="${c.shinyMult}"></label>
+        <button class="primary" onclick="saveConfig()">Lưu & áp dụng ngay</button>
+      </div>
+      <p class="muted" style="margin-top:12px">Thay đổi có hiệu lực tức thì với mọi người chơi đang online (không cần khởi động lại).</p>
+    </div>`;
+}
+async function saveConfig() {
+  await api('/config', { method: 'PUT', body: JSON.stringify({
+    serverName: $('#c-name').value, motd: $('#c-motd').value,
+    expMult: $('#c-exp').value, moneyMult: $('#c-money').value, shinyMult: $('#c-shiny').value,
+  })});
+  toast('Đã áp dụng cấu hình'); loadTab();
+}
+
+function renderPvp(d) {
+  $('#view').innerHTML = `<div class="card"><h3 style="margin-bottom:10px">⚔️ Lịch sử PvP (100 trận gần nhất)</h3>
+    <table><thead><tr><th>Thời gian</th><th>Người thắng</th><th>Người thua</th><th></th></tr></thead><tbody>
+    ${d.rows.map(r => `<tr><td class="muted">${dt(r.ts)}</td><td><b style="color:var(--ok)">${esc(r.winner||'—')}</b></td>
+      <td>${esc(r.loser||'—')}</td><td>${r.disputed?'<span class="badge b-ban">LỆCH KẾT QUẢ</span>':''}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Chưa có trận nào</td></tr>'}
+    </tbody></table></div>`;
+}
+
+function renderAudit(d) {
+  $('#view').innerHTML = `<div class="card"><h3 style="margin-bottom:10px">📋 Nhật ký thao tác admin</h3>
+    <table><thead><tr><th>Thời gian</th><th>Admin</th><th>Hành động</th><th>Đối tượng</th><th>Chi tiết</th></tr></thead><tbody>
+    ${d.rows.map(r => `<tr><td class="muted">${dt(r.ts)}</td><td>${esc(r.admin)}</td>
+      <td><b>${esc(r.action)}</b></td><td>${esc(r.target)}</td><td class="muted">${esc(r.detail||'')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Chưa có</td></tr>'}
+    </tbody></table></div>`;
+}
+
+$('#lg-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+if (token) showApp();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+services:
+  pokeworld:
+    build: .
+    container_name: pokeworld-server
+    restart: unless-stopped
+    ports:
+      - "8790:8790"
+    environment:
+      PORT: 8790
+      DATA_DIR: /data
+      # ĐỔI 3 dòng dưới trước khi chạy thật!
+      JWT_SECRET: "doi-thanh-chuoi-ngau-nhien-that-dai"
+      ADMIN_USER: "admin"
+      ADMIN_PASS: "doi-mat-khau-nay"
+    volumes:
+      - pokeworld-data:/data
+
+volumes:
+  pokeworld-data:
