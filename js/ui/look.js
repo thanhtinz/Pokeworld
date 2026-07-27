@@ -1,8 +1,6 @@
 // TuxeWorld H5 | ui/look.js | Dựng HTML cho đồ thời trang đang mặc
-//
-// Mọi món thời trang đều là ảnh quản trị viên tải lên; món "không mặc gì" thì
-// không có ảnh và giao diện trở về kiểu mặc định. Mọi màn hình đi qua đây để
-// khung avatar / khung chat / danh hiệu / skin ở đâu cũng hiện giống nhau.
+// Mọi màn hình đi qua đây để khung avatar / khung chat / danh hiệu / skin ở đâu
+// cũng hiện giống nhau. Món nào cũng là ảnh quản trị viên tải lên.
 import { AVATAR_FRAMES, CHAT_FRAMES, TITLES, SKINS, imgOf } from '../data/cosmetics.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { G } from '../state.js';
@@ -35,11 +33,10 @@ export function skinSrc(skinId) {
   const id = skinId ?? G.p?.look?.skin;
   return imgOf(SKINS[id]) || `assets/trainers/${activeAvatar()}.png`;
 }
-// Tên cũ, giữ cho những chỗ chỉ cần ảnh nhân vật cả người
+// Tên cũ
 export const avatarSrc = skinSrc;
 
-// ==== Ảnh đại diện = GƯƠNG MẶT của skin ====
-// Người chơi chọn lấy mặt của skin nào làm avatar; 'auto' = theo skin đang mặc.
+// Ảnh đại diện = gương mặt của skin; 'auto' = theo bộ đang mặc.
 export function avatarSkinId() {
   const pick = G.p?.look?.avatar;
   if (pick && pick !== 'auto' && SKINS[pick]) return pick;
@@ -48,22 +45,20 @@ export function avatarSkinId() {
 
 export const avatarFaceSrc = () => skinSrc(avatarSkinId());
 
-// Ô mặt: một khối lấy ảnh skin làm nền rồi cắt vào đúng vùng đầu. Cắt kiểu nào
-// còn tuỳ cỡ ảnh thật nên upgradeFaces() quyết định sau khi ảnh tải xong.
+// Ô mặt: lấy ảnh skin làm nền rồi cắt vào vùng đầu. Cắt kiểu nào còn tuỳ cỡ
+// ảnh thật nên upgradeFaces() quyết định sau khi ảnh tải xong.
 export function faceHtml(src, cls = '') {
   return `<span class="ava-face ${cls}" data-face="${esc(src)}" style="background-image:${cssUrl(src)}"></span>`;
 }
 
 export const myFaceHtml = (cls = '') => faceHtml(avatarFaceSrc(), cls);
 
-// Cả người: ảnh 3x4 thì chỉ lấy MỘT khung (đứng yên, nhìn xuống) chứ không bày
-// nguyên tấm 12 ô ra màn hình; ảnh thường thì hiện nguyên ảnh.
+// Cả người: ảnh 3x4 thì chỉ lấy một khung đứng yên, ảnh thường hiện nguyên tấm.
 export function bodyHtml(src, cls = '') {
   return `<span class="ava-body ${cls}" data-face="${esc(src)}" style="background-image:${cssUrl(src)}"></span>`;
 }
 
-// Ảnh đi bản đồ là lưới 3 cột x 4 hàng ô 16x32 -> ô trên bên trái là mặt nhìn
-// xuống. Ảnh khác (tranh nhân vật cả người) thì phóng vào phần đầu.
+// Ảnh đi bản đồ = lưới 3x4 ô 16x32; ảnh khác coi như tranh cả người.
 const SHEET_RATIO = 3 / 8;
 
 export function upgradeFaces(root = document) {

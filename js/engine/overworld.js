@@ -71,9 +71,66 @@ function freeSpot(mapId, x, y) {
   return [x, y];
 }
 
+// ==== NPC đi lại ====
+// Bản đồ lấy từ Tuxemon chỉ cho toạ độ và hướng đứng, không có kịch bản đi lại.
+// Mỗi NPC ở đây tự đi quanh chỗ của mình vài ô rồi quay về, thỉnh thoảng chỉ
+// đứng xoay người — làng xóm nhìn có người sống chứ không phải tượng.
+const NPC_SPEED = 1.8;           // ô mỗi giây, chậm hơn người chơi
+const NPC_RANGE = 2;             // đi xa nhất ngần này ô so với chỗ đứng gốc
+const DIRS = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];
+
+export function updateNpcs(dt) {
+  const map = currentMap();
+  const baked = currentBake();
+  for (const n of map.npcs || []) {
+    if (n.fixed) continue;
+    if (n.home === undefined) {
+      n.home = { x: n.x, y: n.y };
+      n.ox = 0; n.oy = 0;
+      n.wait = 1 + Math.random() * 4;
+      n.moving = false;
+    }
+    // Đang bước: trượt dần sang ô đích
+    if (n.moving) {
+      const step = NPC_SPEED * dt;
+      n.ox += Math.sign(n.tx - n.x - n.ox) * Math.min(step, Math.abs(n.tx - n.x - n.ox));
+      n.oy += Math.sign(n.ty - n.y - n.oy) * Math.min(step, Math.abs(n.ty - n.y - n.oy));
+      if (Math.abs(n.tx - n.x - n.ox) < 0.01 && Math.abs(n.ty - n.y - n.oy) < 0.01) {
+        n.x = n.tx; n.y = n.ty; n.ox = 0; n.oy = 0;
+        n.moving = false;
+        n.wait = 1 + Math.random() * 4;
+      }
+      continue;
+    }
+    n.wait -= dt;
+    if (n.wait > 0) continue;
+    const [dir, dx, dy] = DIRS[Math.floor(Math.random() * DIRS.length)];
+    n.dir = dir;
+    const tx = n.x + dx, ty = n.y + dy;
+    const xa = Math.abs(tx - n.home.x), ya = Math.abs(ty - n.home.y);
+    const trong = xa <= NPC_RANGE && ya <= NPC_RANGE;
+    // Một phần ba số lần chỉ xoay người cho khỏi đi lại liên tục
+    if (!trong || Math.random() < 0.34 || !npcCanWalk(baked, map, tx, ty, n)) {
+      n.wait = 1 + Math.random() * 3;
+      continue;
+    }
+    n.tx = tx; n.ty = ty; n.moving = true;
+  }
+}
+
+// NPC không giẫm lên tường, lên cổng dịch chuyển, lên nhau hay lên người chơi
+function npcCanWalk(baked, map, x, y, self) {
+  if (x < 0 || y < 0 || x >= map.w || y >= map.h) return false;
+  if (isSolidAt(baked, x, y)) return false;
+  if ((map.warps || []).some(w => w.x === x && w.y === y)) return false;
+  if (Math.floor(player.x) === x && Math.floor(player.y) === y) return false;
+  return !(map.npcs || []).some(o => o !== self && ((o.x === x && o.y === y) || (o.moving && o.tx === x && o.ty === y)));
+}
+
 // NPC cũng chắn đường
 function npcAt(map, x, y) {
-  return (map.npcs || []).find(n => n.x === x && n.y === y) || null;
+  return (map.npcs || []).find(n => (n.x === x && n.y === y)
+    || (n.moving && n.tx === x && n.ty === y)) || null;
 }
 
 // Kiểm tra vị trí đích có đi được không (chừa lề để không kẹt góc).

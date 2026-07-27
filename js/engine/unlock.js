@@ -1,13 +1,8 @@
 // TuxeWorld H5 | engine/unlock.js | Mở khoá tính năng theo cấp huấn luyện viên
-//
-// Mở hết mọi thứ ngay từ phút đầu thì người mới nhìn đâu cũng thấy nút mà chẳng
-// hiểu để làm gì, chơi vài hôm là hết cái để mong. Mấy tính năng phụ (xã hội,
-// đấu người) mở dần theo cấp để lúc nào cũng còn thứ sắp tới.
-//
-// Cốt lõi KHÔNG bao giờ khoá: bản đồ, đội hình, túi, Tuxedex, nhân vật, cài đặt.
+// Cốt lõi không bao giờ khoá: bản đồ, đội hình, túi, Tuxedex, nhân vật, cài đặt.
 import { trainerLevel } from './player.js';
 
-// Khoá là tên màn hình trong router (js/main.js)
+// Khoá = tên màn hình trong router (js/main.js)
 export const FEATURES = {
   quest:    { lv: 2,  name: 'Nhiệm vụ',    note: 'Nhận nhiệm vụ hằng ngày và cốt truyện' },
   shop:     { lv: 3,  name: 'Cửa hàng',    note: 'Mua bóng, thuốc và vật phẩm' },
@@ -23,7 +18,7 @@ export const featureLevel = (id) => FEATURES[id]?.lv || 0;
 
 export function isUnlocked(id, lv) {
   const f = FEATURES[id];
-  if (!f) return true;                       // không nằm trong bảng = luôn mở
+  if (!f) return true;
   return (lv ?? trainerLevel()) >= f.lv;
 }
 
@@ -32,14 +27,14 @@ export function lockNote(id) {
   return f ? `Mở ở Trainer Lv.${f.lv}` : '';
 }
 
-// Những tính năng vừa mở khi nhảy từ cấp cũ lên cấp mới (để báo cho người chơi)
+// Những tính năng vừa mở khi nhảy từ cấp cũ lên cấp mới
 export function unlockedBetween(oldLv, newLv) {
   return Object.entries(FEATURES)
     .filter(([, f]) => f.lv > oldLv && f.lv <= newLv)
     .map(([id, f]) => ({ id, ...f }));
 }
 
-// Danh sách sắp tới, xếp theo cấp cần — màn Nhân vật bày ra cho biết đường phấn đấu
+// Danh sách sắp tới, xếp theo cấp cần
 export function upcoming(lv = trainerLevel(), max = 3) {
   return Object.entries(FEATURES)
     .filter(([, f]) => f.lv > lv)

@@ -3,8 +3,7 @@ import { G, save } from '../state.js';
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
-  player, currentMap, currentBake, restorePosition, update, facingThing,
-} from '../engine/overworld.js';
+  player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal } from '../engine/pokemon.js';
 import { activeAvatar } from '../engine/accounts.js';
@@ -134,8 +133,8 @@ export function render(el) {
         Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
     };
     for (const n of map.npcs || []) {
-      put(owImage(n.sprite), n.dir || 'down', false,
-        (n.x + 0.5) * size - camX, (n.y + 1) * size - camY);
+      put(owImage(n.sprite), n.dir || 'down', !!n.moving,
+        (n.x + (n.ox || 0) + 0.5) * size - camX, (n.y + (n.oy || 0) + 1) * size - camY);
     }
     const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
     const px = player.x * size - camX;
@@ -242,6 +241,7 @@ export function render(el) {
     last = now;
     if (!busy) {
       const k = keyVec();
+      updateNpcs(dt);
       const ev = update(dt, vec.x + k.x, vec.y + k.y);
       if (ev?.t === 'warp') {
         el.querySelector('#world-zone').textContent = currentMap().name;

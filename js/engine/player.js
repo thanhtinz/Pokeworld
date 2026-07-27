@@ -1,8 +1,4 @@
 // TuxeWorld H5 | engine/player.js | Dữ liệu người chơi: cấp huấn luyện viên + thời trang
-//
-// Trước đây file này còn cả hệ thống trang bị (mặc đồ cộng chỉ số, cường hoá,
-// mua bán). Đã bỏ hẳn: nhân vật không chiến đấu nên đồ cộng chỉ số không có
-// nghĩa, chỉ giữ THỜI TRANG — thứ mặc vào cho đẹp và người khác nhìn thấy.
 import { G, save, CONFIG } from '../state.js';
 import { setGrants, NONE_ID } from '../data/cosmetics.js';
 
@@ -26,21 +22,21 @@ export function trainerExpFor(kind, enemyLv = 5) {
   return kind === 'trainer' ? 20 + lv * 3 : 5 + lv;
 }
 
-// ==== Bảo đảm dữ liệu save có đủ field (save cũ vẫn chạy được) ====
+// Bảo đảm bản lưu có đủ trường (bản lưu cũ vẫn chạy được)
 export function ensureData() {
   const p = G.p;
   if (!p) return null;
   if (!p.trainer || typeof p.trainer !== 'object') p.trainer = { level: 1, exp: 0 };
   if (typeof p.trainer.level !== 'number') p.trainer.level = 1;
   if (typeof p.trainer.exp !== 'number') p.trainer.exp = 0;
-  // Mặc định là "không mặc gì" — mọi món thời trang đều do admin tải ảnh lên
+
   if (!p.look || typeof p.look !== 'object') p.look = {};
   for (const [k, v] of Object.entries(NONE_ID)) {
     if (typeof p.look[k] !== 'string') p.look[k] = v;
   }
-  // Skin riêng cho từng loài Tuxemon: { [mã loài]: mã skin }
+  // { [mã loài]: mã skin }
   if (!p.monSkins || typeof p.monSkins !== 'object') p.monSkins = {};
-  // Món thời trang được quản trị viên trao tay (khoá dạng "title:tet_2026")
+  // Món được trao tay, khoá dạng "title:tet_2026"
   if (!Array.isArray(p.granted)) p.granted = [];
   setGrants(p.granted);
   return p;

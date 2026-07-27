@@ -37,7 +37,6 @@ export function render(el) {
   const dexIds = Object.keys(SPECIES).filter(id => !SPECIES[id].glitched);
   const caught = Object.keys(G.p.dex?.caught || {}).length;
   const seen = Object.keys(G.p.dex?.seen || {}).length;
-  const skins = Object.keys(p.monSkins || {}).length;
   const next = upcoming(lv);
 
   el.innerHTML = `
@@ -77,25 +76,7 @@ export function render(el) {
       <span class="fa-link-go">›</span>
     </button>
 
-    <button type="button" class="card menu-link fa-link" id="btn-decor">
-      <span class="fa-link-ico">${uiIcon('person', 22)}</span>
-      <span class="fa-link-mid">
-        <b>Trang trí</b>
-        <small>Ảnh đại diện · Khung avatar · Bong bóng chat</small>
-      </span>
-      <span class="fa-link-go">›</span>
-    </button>
-
-    <button type="button" class="card menu-link fa-link" data-goto="party">
-      <span class="fa-link-ico">${uiIcon('team', 22)}</span>
-      <span class="fa-link-mid">
-        <b>Skin Tuxemon</b>
-        <small>${skins ? `Đang mặc cho ${skins} loài` : 'Bấm một con trong Đội hình rồi chọn Skin'}</small>
-      </span>
-      <span class="fa-link-go">›</span>
     </button>`;
 
-  el.querySelector('#btn-decor').addEventListener('click', async () =>
-    (await import('./decor.js')).openDecor());
   upgradeFaces(el);
 }

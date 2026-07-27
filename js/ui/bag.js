@@ -1,8 +1,4 @@
 // TuxeWorld H5 | ui/bag.js | Túi đồ: lưới ô vật phẩm, dùng item ngoài trận
-//
-// Không còn tab: mọi thứ trong túi bày hết ra thành lưới ô, chia nhóm bằng
-// dòng tiêu đề nhỏ. Bấm một ô thì mở bảng trượt xem mô tả rồi mới dùng —
-// đỡ lỡ tay dùng nhầm thuốc quý.
 import { G, save, removeItem, addItem, markCaught, CONFIG } from '../state.js';
 import { maxHp, displayName, isFainted, tryLearn, replaceMove } from '../engine/pokemon.js';
 import { gainExp, expForLevel, movesAtLevel } from '../engine/exp.js';
@@ -22,7 +18,7 @@ const NHOM = [
   ['held', 'Vật cầm'],
 ];
 
-// Câu ghi dưới tên trong bảng chi tiết: dùng được ở đâu
+// Câu ghi dưới tên: dùng được ở đâu
 const CACH_DUNG = {
   ball: 'Chỉ ném được trong trận với Tuxemon hoang.',
   stone: 'Dùng cho một Tuxemon để tiến hoá.',
@@ -61,7 +57,7 @@ export function render(el) {
       b.addEventListener('click', () => openItem(b.dataset.id)));
   }
 
-  // Bảng chi tiết một vật phẩm: ảnh to, mô tả, rồi mới tới nút dùng
+  // Bảng chi tiết một vật phẩm
   function openItem(id) {
     const it = ITEMS[id];
     if (!it) return;

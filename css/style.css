@@ -1814,35 +1814,29 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   inset: 0;
   z-index: 85;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 16px;
   background: rgba(5, 3, 12, 0);
   transition: background .18s;
 }
 .sheet-overlay.in { background: rgba(5, 3, 12, .72); }
 .sheet {
   width: 100%;
-  max-width: 520px;
-  max-height: 82dvh;
+  max-width: 460px;
+  max-height: 78dvh;
   display: flex;
   flex-direction: column;
-  padding: 6px 14px calc(14px + env(safe-area-inset-bottom));
+  padding: 14px;
   background: linear-gradient(175deg, #241640, #170d2c);
   border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: 18px 18px 0 0;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, .6);
-  transform: translateY(100%);
-  transition: transform .2s ease-out;
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
+  transform: scale(.94);
+  opacity: 0;
+  transition: transform .18s ease-out, opacity .18s ease-out;
 }
-.sheet-overlay.in .sheet { transform: translateY(0); }
-.sheet-grip {
-  width: 38px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--line);
-  margin: 4px auto 8px;
-}
+.sheet-overlay.in .sheet { transform: scale(1); opacity: 1; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 .sheet-head b { font-size: 14px; }
 .sheet-x { font-size: 22px; line-height: 1; color: var(--muted); padding: 0 6px; }
@@ -1859,11 +1853,10 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   background-size: contain;
   image-rendering: pixelated;
 }
-/* Ảnh 3x4: ô đầu tiên (đứng yên, nhìn xuống) — trong ô 16x32 thì nhân vật nằm
-   ở nửa dưới, cái đầu rơi vào khoảng (2,10)-(16,24). */
-.ava-face.face-sheet { background-size: 342.9% 914.3%; background-position: 5.9% 8.8%; }
-/* Tranh cả người 64x64 kiểu Tuxemon: đầu ở khoảng (24,4)-(44,24) */
-.ava-face.face-zoom { background-size: 320% 320%; background-position: 54.5% 9%; }
+/* Chỉ lấy ĐÚNG CÁI ĐẦU. Ảnh đi bản đồ 3x4: trong ô 16x32 đầu nằm ở (2,12)-(14,24) */
+.ava-face.face-sheet { background-size: 400% 1066.7%; background-position: 5.6% 10.3%; }
+/* Tranh cả người 64x64 của Tuxemon: đầu ở (26,2)-(44,20) */
+.ava-face.face-zoom { background-size: 355.6% 355.6%; background-position: 56.5% 4.3%; }
 .ava-face.face-blank { background-image: none !important; }
 
 /* Ảnh đại diện trên thanh trên: ô vuông chứa gương mặt, bấm được */

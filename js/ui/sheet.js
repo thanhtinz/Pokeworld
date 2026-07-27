@@ -1,11 +1,7 @@
-// TuxeWorld H5 | ui/sheet.js | Bảng trượt từ đáy màn hình, có thể chia tab
-//
-// Dùng cho những thứ mở nhanh ngay tại chỗ (trang trí nhân vật, skin Tuxemon)
-// thay vì phải rời màn hình đang chơi.
+// TuxeWorld H5 | ui/sheet.js | Bảng nổi giữa màn hình, có thể chia tab
 import { esc } from '../util.js';
 
-// tabs = [{ id, name, draw(box, api) }] — draw tự đổ HTML vào box.
-// api = { close(), redraw() } để nội dung tự vẽ lại sau khi người chơi chọn.
+// tabs = [{ id, name, draw(box, api) }]; api = { close, redraw, go }
 export function openSheet({ title, tabs, tab: startTab, onClose } = {}) {
   const list = (tabs || []).filter(Boolean);
   if (!list.length) return null;
@@ -16,7 +12,6 @@ export function openSheet({ title, tabs, tab: startTab, onClose } = {}) {
   overlay.className = 'sheet-overlay';
   overlay.innerHTML = `
     <div class="sheet" role="dialog" aria-label="${esc(title || '')}">
-      <div class="sheet-grip"></div>
       <div class="sheet-head">
         <b>${esc(title || '')}</b>
         <button type="button" class="sheet-x" aria-label="Đóng">×</button>

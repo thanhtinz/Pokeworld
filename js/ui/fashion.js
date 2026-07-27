@@ -40,7 +40,6 @@ export function render(el, { tab: startTab } = {}) {
         <b class="ring-name-lbl">${esc(p.name)}</b>
         ${titleHtml(p.look.title)}
         <small class="char-note-txt">Mặc cho đẹp — không đổi sức mạnh của bạn hay của Tuxemon.</small>
-        <button type="button" class="btn btn-sm" id="btn-decor">Trang trí ảnh đại diện ›</button>
       </div>
 
       <div class="tab-row fa-tabs">
@@ -73,8 +72,6 @@ export function render(el, { tab: startTab } = {}) {
       </div>`;
 
     upgradeFaces(el);
-    el.querySelector('#btn-decor').addEventListener('click', async () =>
-      (await import('./decor.js')).openDecor());
     el.querySelectorAll('.tab-btn').forEach(b =>
       b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
     el.querySelectorAll('.fa-cell:not([disabled])').forEach(b =>

@@ -68,10 +68,8 @@ export function show(name, params = {}) {
     toast(`${FEATURES[name].name}: ${lockNote(name)}`);
     return;
   }
-  // Vào màn cần dữ liệu người chơi mà G.p đang trống thì nạp lại bản lưu. Nạp
-  // không được thì quay về luồng tạo nhân vật — trước đây rơi vào đây là mọi
-  // màn đều báo lỗi, xoá bộ nhớ đệm hay đăng nhập lại cũng y như cũ vì lỗi nằm
-  // ở chỗ không có dữ liệu chứ không phải ở bộ nhớ đệm.
+  // Thiếu dữ liệu người chơi thì nạp lại bản lưu, không được thì về màn tạo
+  // nhân vật (nếu không sẽ vỡ mọi màn mà xoá bộ nhớ đệm cũng không cứu được).
   if (CAN_DU_LIEU.has(name) && !G.p && !load()) {
     console.warn('vào', name, 'khi chưa có dữ liệu người chơi');
     name = activeAccount() ? 'createchar' : 'splash';
@@ -83,13 +81,10 @@ export function show(name, params = {}) {
   el.dispatchEvent(new CustomEvent('screen-leave'));
   el.className = `screen screen-${name}`;
   el.innerHTML = '';
-  // Màn nào lỗi thì hiện thẳng lỗi + nút tải lại. Trước đây render() ném lỗi là
-  // người chơi ngồi trước một màn TRẮNG không biết làm gì (hay gặp khi máy còn
-  // giữ bản cũ trong bộ nhớ đệm, mà bản cũ lại gọi tệp nay đã xoá).
+  // Màn nào lỗi hoặc trắng trơn thì hiện thẳng lỗi + nút tải lại, đừng để
+  // người chơi ngồi trước màn hình trắng.
   try {
     scr.render(el, params);
-    // Có màn "return sớm" khi thiếu dữ liệu và để lại màn hình trắng trơn —
-    // người chơi tưởng game treo. Trắng thì báo luôn cho biết đường mà làm.
     if (!el.children.length && !KHONG_CAN_NOI_DUNG.has(name)) {
       queueMicrotask(() => {
         if (current === name && !el.children.length) showCrash(el, name, new Error('Màn hình không có nội dung'));
@@ -158,7 +153,7 @@ export function drawTopBar(hide = false) {
   if (!bar) return;
   if (hide || !G.p) { bar.hidden = true; return; }
   bar.hidden = false;
-  // Ảnh đại diện hiện GƯƠNG MẶT của skin, bấm vào thì mở bảng Trang trí
+  // Ảnh đại diện hiện gương mặt của skin
   const face = document.getElementById('tb-face');
   const src = avatarFaceSrc();
   if (face.dataset.face !== src) {
@@ -175,13 +170,12 @@ export function drawTopBar(hide = false) {
   document.getElementById('tb-money').textContent = fmt(G.p.money || 0);
 }
 
-// Bấm ảnh đại diện trên thanh trên -> bảng Trang trí (ảnh đại diện / khung
-// avatar / bong bóng chat). Nạp động để trang chính khỏi cõng thêm lúc mở game.
+// Bấm ảnh đại diện trên thanh trên -> bảng Trang trí
 document.getElementById('tb-ava')?.addEventListener('click', async () => {
   if (inBattle()) { toast('Đang trong trận đấu!'); return; }
   (await import('./ui/decor.js')).openDecor();
 });
-// Đổi đồ trong bảng Trang trí thì thanh trên và màn đang mở phải đổi theo
+// Đổi đồ thì thanh trên vẽ lại theo
 document.addEventListener('look-change', () => { drawTopBar(document.getElementById('bottom-nav').hidden); });
 
 // Vẽ lại màn hình hiện tại (sau khi state đổi)
