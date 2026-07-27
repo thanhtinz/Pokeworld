@@ -26,7 +26,6 @@ export function newTuxemon(spId, level, opts = {}) {
     for (let i = 0; i < 6; i++) iv.push(rng.int(0, CONFIG.IV_MAX));
   }
 
-  // Nature
   const nature = opts.nature || rng.pick(NATURE_LIST);
 
   // Gender theo genderRatio (tỉ lệ đực; -1 = không giới tính)
@@ -43,7 +42,6 @@ export function newTuxemon(spId, level, opts = {}) {
     shiny = rng.roll(1 / CONFIG.SHINY_DENOM);
   }
 
-  // Ability
   const ability = opts.ability || rng.pick(spec.abilities || []) || 'none';
 
   const mon = {
@@ -128,7 +126,6 @@ export function displayName(mon) {
   return spec ? spec.name : '?';
 }
 
-// Hồi đầy máu + hết trạng thái + hồi PP
 export function heal(mon) {
   mon.hpCur = maxHp(mon);
   mon.status = null;

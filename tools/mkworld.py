@@ -130,11 +130,11 @@ DESC = {
 
 ZONE_TRAINERS = {
     'taba_town': ['gym_brock'],
-    'route1': ['youngster_minh', 'lass_lan'],
-    'dryadsgrove': ['bugcatcher_tung', 'lass_rainbow'],
-    'route1_sanglorian': ['camper_route3', 'sailor_route3'],
-    'cotton_town': ['gym_thuy', 'rocket_grunt_3'],
-    'leather_town': ['camper_victory', 'channeler_unknown', 'swimmer_light'],
+    'route1': ['youngster_minh', 'lass_lan', 'rival_1'],
+    'dryadsgrove': ['bugcatcher_tung', 'lass_rainbow', 'rocket_1'],
+    'route1_sanglorian': ['camper_route3', 'sailor_route3', 'rocket_2'],
+    'cotton_town': ['gym_thuy', 'rocket_grunt_3', 'rocket_boss'],
+    'leather_town': ['camper_victory', 'channeler_unknown', 'swimmer_light', 'rival_2'],
 }
 
 
@@ -253,6 +253,23 @@ TRAINERS_META = [
     ('gym_thuy', 'misty', 'Thuỷ — Võ Đường Nước', 'gym', 'cotton_town', 4, 2000,
      'Nước mềm nhưng bào mòn được cả đá đấy!',
      'Được lắm, huy hiệu là của cậu.', 'badge_cascade', 'Huy Hiệu Thác'),
+    # Huan luyen vien cua cot truyen — id phai khop js/data/story.js
+    # kind 'rival': doi hinh sinh o engine/story.js theo starter nguoi choi
+    ('rival_1', 'rogue', 'Vũ', 'rival', 'route1', 1, 500,
+     'Tới rồi à! Xem Tuxemon của ai mạnh hơn nào.',
+     'Hừm! Chỉ là may mắn thôi!', None, None),
+    ('rocket_1', 'rocket_m', 'Team Xero — Tay Chân', 'rocket', 'dryadsgrove', 2, 600,
+     'Ê nhóc! Chỗ này là địa bàn của Team Xero!',
+     'Khoan đã... nhóc này mạnh thật!', None, None),
+    ('rocket_2', 'rocket_f', 'Team Xero — Bộ Đôi', 'rocket', 'route1_sanglorian', 3, 1200,
+     'Lại là nhóc đó! Lần này bọn ta đông hơn!',
+     'Không thể tin được!', None, None),
+    ('rocket_boss', 'boss', 'Thủ Lĩnh Xero', 'rocket', 'cotton_town', 5, 5000,
+     'Ta sẽ cho mày thấy sức mạnh THẬT SỰ của Team Xero!',
+     'Thua... thua một đứa nhóc?!', None, None),
+    ('rival_2', 'rogue', 'Vũ — Trận Cuối', 'rival', 'leather_town', 4, 8000,
+     'Trận cuối rồi. Lần này tớ không nhường đâu!',
+     'Thua tâm phục khẩu phục...', None, None),
 ]
 
 
@@ -260,13 +277,14 @@ def write_trainers(zone_pool, mons):
     by_id = {m['id']: m for m in mons}
     out = ["// PokeWorld H5 | data/trainers.js | Huấn luyện viên — TỰ SINH TỪ tools/mkworld.py",
            '// Đội hình lấy từ chính bảng gặp của khu vực họ đứng, nên đánh ở đâu gặp sinh vật vùng đó.', '',
-           "// kind: 'trainer' | 'gym' | 'rocket'",
+           "// kind: 'trainer' | 'gym' | 'rocket' | 'rival'",
            'export const TRAINERS = {']
     for (tid, sprite, name, kind, zone, n, money, intro, lose, badge, badge_name) in TRAINERS_META:
         pool, lo, hi = zone_pool.get(zone, ([], 3, 8))
         if not pool:
-            # thi tran khong co bang gap -> lay tu khu vuc ke ben
-            pool, lo, hi = zone_pool.get('route_1', ([], 3, 8))
+            # Thi tran khong co bang gap -> muon tam bang cua tuyen duong dau tien,
+            # khong thi doi gym o thi tran ra rong va tran dau khong bat dau duoc.
+            pool, lo, hi = zone_pool.get('route1', ([], 3, 8))
         # gym manh hon: lay con bac cao nhat trong vung
         ranked = sorted(pool, key=lambda m: -STAGE_ORDER.get(m['stage'], 0))
         party = (ranked if kind == 'gym' else pool)[:n]

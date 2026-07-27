@@ -1,46 +1,44 @@
-// TuxeWorld H5 | ui/intro.js | Đoạn intro mở đầu (cinematic dựng bằng ảnh + chữ, có nút bỏ qua)
-// Muốn dùng video thật: đặt file vào assets/video/intro.mp4 — màn này tự phát video đó
-// và bỏ qua phần cinematic ảnh.
+// TuxeWorld H5 | ui/intro.js | Đoạn mở đầu: cinematic ảnh + lời dẫn, có nút bỏ qua
+// Muốn dùng video thật thì đặt tệp vào assets/video/intro.mp4 — có video là màn
+// này phát video và bỏ hẳn phần cinematic ảnh.
 import { activeAvatar } from '../engine/accounts.js';
 import { G } from '../state.js';
+import { STARTERS } from '../data/starters.js';
 import { esc, sleep, spriteUrl } from '../util.js';
 import { show } from '../main.js';
 
 const VIDEO_SRC = 'assets/video/intro.mp4';
 
-// Các cảnh: mỗi cảnh gồm ảnh nền/nhân vật + lời dẫn
+// Bối cảnh lấy đúng theo thế giới Tuxemon: Thị Trấn Taba, ba Tuxemon khởi đầu
+// của Giáo sư, lệnh cấm nuôi Tuxemon và tổ chức Team Xero đi lùng bắt.
 const SCENES = [
   {
     bg: 'assets/img/worldmap.jpg',
-    art: null,
-    text: 'Một thế giới rộng lớn, nơi con người và Tuxemon cùng chung sống...',
+    text: 'Đã có một thời con người và Tuxemon rong ruổi khắp thế giới cùng nhau...',
     ms: 3400,
   },
   {
     bg: 'assets/img/worldmap.jpg',
-    art: [spriteUrl(6), spriteUrl(9), spriteUrl(3)],
-    text: 'Có những sinh vật mạnh mẽ ẩn mình trong rừng sâu, hang tối và đáy hồ.',
+    art: STARTERS.map(s => spriteUrl(s.sp)),
+    text: 'Mỗi vùng đất một hệ, một giống loài — không nơi nào giống nơi nào.',
     ms: 3600,
   },
   {
-    bg: null,
-    art: ['assets/trainers/rocket_m.png', 'assets/trainers/giovanni.png'],
-    text: 'Nhưng bóng tối đang trỗi dậy — Team Rocket săn lùng Tuxemon khắp nơi.',
-    ms: 3600,
+    art: ['assets/trainers/chief.png', 'assets/trainers/grunt.png'],
+    text: 'Rồi lệnh cấm ập xuống: chỉ người được cấp phép mới được nuôi Tuxemon. '
+        + 'Team Xero đi lùng bắt những con còn sót lại.',
+    ms: 4200,
     dark: true,
   },
   {
-    bg: null,
-    art: ['assets/trainers/oak.png'],
-    text: 'Giáo sư Oak đang chờ một nhà huấn luyện đủ dũng cảm để thay đổi tất cả.',
-    ms: 3400,
+    art: ['assets/trainers/professor.png'],
+    text: 'Ở Thị Trấn Taba, Giáo sư vẫn giấu ba Tuxemon cuối cùng — chờ một người dám nhận.',
+    ms: 3800,
   },
   {
-    bg: null,
-    art: null,
     hero: true,
-    text: 'Và hành trình của bạn... bắt đầu từ hôm nay.',
-    ms: 3200,
+    text: 'Hôm nay, bạn bước ra khỏi cửa.',
+    ms: 3000,
   },
 ];
 
@@ -58,7 +56,6 @@ export async function render(el) {
   const finish = () => { if (!skipped) { skipped = true; show('starter'); } };
   el.querySelector('#btn-skip').addEventListener('click', finish);
 
-  // Nếu có video thật thì phát video, không thì chạy cinematic ảnh
   if (await hasVideo()) {
     stage.innerHTML = `<video id="intro-video" playsinline autoplay muted src="${VIDEO_SRC}"></video>`;
     const v = stage.querySelector('#intro-video');
@@ -69,7 +66,6 @@ export async function render(el) {
   runScenes(stage, caption, () => skipped, finish);
 }
 
-// Kiểm tra file video có tồn tại không (HEAD request, lỗi thì coi như không có)
 async function hasVideo() {
   try {
     const r = await fetch(VIDEO_SRC, { method: 'HEAD' });

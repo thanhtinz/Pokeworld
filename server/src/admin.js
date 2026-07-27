@@ -30,7 +30,6 @@ export function adminRouter(io) {
 
   r.use(adminRequired);
 
-  // Tổng quan
   r.get('/stats', (req, res) => {
     const db = getDb();
     const dayAgo = Date.now() - 86400000;
@@ -47,7 +46,6 @@ export function adminRouter(io) {
     });
   });
 
-  // Danh sách / tìm người chơi
   r.get('/players', (req, res) => {
     const q = String(req.query.q || '').toLowerCase();
     const rows = getDb().users
@@ -73,7 +71,6 @@ export function adminRouter(io) {
     res.json(rest);
   });
 
-  // Khóa / mở khóa tài khoản
   r.post('/player/:id/ban', (req, res) => {
     const u = find('users', x => x.id === req.params.id);
     if (!u) return res.status(404).json({ error: 'Không tìm thấy.' });
@@ -85,7 +82,6 @@ export function adminRouter(io) {
     res.json({ ok: true, banned: u.banned });
   });
 
-  // Tặng tiền / vật phẩm
   r.post('/player/:id/grant', (req, res) => {
     const u = find('users', x => x.id === req.params.id);
     if (!u) return res.status(404).json({ error: 'Không tìm thấy.' });
@@ -103,7 +99,6 @@ export function adminRouter(io) {
     res.json({ ok: true, money: u.save.money, bag: u.save.bag });
   });
 
-  // Đặt lại mật khẩu
   r.post('/player/:id/password', async (req, res) => {
     const u = find('users', x => x.id === req.params.id);
     if (!u) return res.status(404).json({ error: 'Không tìm thấy.' });
@@ -115,7 +110,6 @@ export function adminRouter(io) {
     res.json({ ok: true });
   });
 
-  // Xóa tài khoản
   r.delete('/player/:id', (req, res) => {
     const u = find('users', x => x.id === req.params.id);
     if (!u) return res.status(404).json({ error: 'Không tìm thấy.' });
@@ -175,7 +169,6 @@ export function adminRouter(io) {
     res.json({ ok: true, config: c });
   });
 
-  // Thông báo toàn server
   r.post('/broadcast', (req, res) => {
     const text = String(req.body?.text || '').slice(0, 300);
     if (!text) return res.status(400).json({ error: 'Nội dung trống.' });
@@ -243,17 +236,14 @@ export function adminRouter(io) {
     res.json({ cosmetics: cosmeticsOf(u) });
   });
 
-  // Nhật ký thao tác admin
   r.get('/audit', (req, res) => {
     res.json({ rows: getDb().auditLog.slice(-200).reverse() });
   });
 
-  // Lịch sử PvP
   r.get('/pvp', (req, res) => {
     res.json({ rows: getDb().pvpHistory.slice(-100).reverse() });
   });
 
-  // Lưu DB ngay lập tức
   r.post('/flush', (req, res) => { flush(); res.json({ ok: true }); });
 
   return r;

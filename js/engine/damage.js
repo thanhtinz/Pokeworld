@@ -23,7 +23,6 @@ export function calcDamage(att, def, moveId, ctx = {}) {
     return { dmg: 0, crit: false, eff: 1, missed: false };
   }
 
-  // Trượt?
   const acc = move.acc;
   if (acc && acc < 100 && !rng.roll(acc / 100)) {
     return { dmg: 0, crit: false, eff: 1, missed: true };
@@ -75,7 +74,6 @@ export function calcDamage(att, def, moveId, ctx = {}) {
   return { dmg, crit, eff, missed: false };
 }
 
-// Text thông báo hiệu quả cho UI
 export function effText(eff) {
   if (eff === 0) return 'Không có tác dụng!';
   if (eff > 1) return 'Hiệu quả vượt trội!';

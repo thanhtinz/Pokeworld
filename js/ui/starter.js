@@ -19,7 +19,7 @@ export async function render(el) {
   if (G.p && G.p.starterChosen) { show('home'); return; }
   const hasPlayer = true; // tên đã có từ tài khoản -> vào thẳng phần chọn starter
 
-  // Lời thoại Giáo sư Oak chạy TRƯỚC khi bày 3 Tuxemon (đúng thứ tự game gốc).
+  // Lời thoại Giáo sư chạy TRƯỚC khi bày 3 Tuxemon (đúng thứ tự game gốc).
   // Chỉ phát 1 lần cho mỗi ván chơi mới.
   if (G.p && !G.p.metProfessor) {
     G.p.metProfessor = true;
@@ -92,7 +92,7 @@ export async function render(el) {
       const mainKey = QUESTS && QUESTS.main_starter ? 'main_starter'
         : (qKeys.find(k => k.startsWith('main')) || qKeys[0]);
       if (mainKey) startQuest(mainKey);
-      // Thoại Giáo sư Oak đã xem ở đầu màn này -> đánh dấu để home không phát lại,
+      // Thoại Giáo sư đã xem ở đầu màn này -> đánh dấu để home không phát lại,
       // rồi chốt luôn chương 1 (mục tiêu của chương là chọn starter).
       markIntroSeen();
       const chDone = emitStory('choose_starter', {});

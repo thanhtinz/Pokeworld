@@ -17,7 +17,6 @@ const STAT_VI = {
   spd: 'Phòng thủ đặc biệt', spe: 'Tốc độ',
 };
 
-// Thông báo khi dính trạng thái
 const STATUS_APPLIED_VI = {
   brn: (n) => `${n} bị bỏng!`,
   psn: (n) => `${n} bị trúng độc!`,
@@ -93,7 +92,6 @@ export class Battle {
     return [true, null];
   }
 
-  // AI (wild/trainer) tự chọn action
   aiAction(i) {
     const mon = this.activeMon(i);
     if (!mon) return { t: 'pass' };

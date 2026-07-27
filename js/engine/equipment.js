@@ -26,7 +26,6 @@ export function ensureData() {
   if (!p.trainer || typeof p.trainer !== 'object') p.trainer = { level: 1, exp: 0 };
   if (typeof p.trainer.level !== 'number') p.trainer.level = 1;
   if (typeof p.trainer.exp !== 'number') p.trainer.exp = 0;
-  // Thời trang: danh hiệu / khung avatar / khung chat đang mặc
   if (!p.look || typeof p.look !== 'object') {
     p.look = { title: 'rookie', avatarFrame: 'none', chatFrame: 'none' };
   }
@@ -270,7 +269,6 @@ export function randomDrop(zoneLevel = 5) {
   return rng.pick(list);
 }
 
-// Danh sách món bán trong shop theo trainer level
 export function shopList(level) {
   const lv = level === undefined ? trainerLevel() : level;
   return Object.keys(EQUIPMENT).filter(id => (EQUIPMENT[id].reqLevel || 1) <= lv);

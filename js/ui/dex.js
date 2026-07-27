@@ -40,7 +40,6 @@ export function render(el) {
   function evoChain(id) {
     const evos = EVOLUTIONS || {};
     const target = e => (e && (e.to ?? e.dex)) ?? (typeof e === 'number' ? e : null);
-    // đi lùi về gốc
     let root = id;
     let guard = 0;
     while (guard++ < 10) {
@@ -52,7 +51,6 @@ export function render(el) {
       if (!prev) break;
       root = Number(prev);
     }
-    // đi tiến (nhánh đầu tiên)
     const chain = [root];
     guard = 0;
     let cur = root;

@@ -43,7 +43,6 @@ export function loadDb() {
   } else {
     db = structuredClone(EMPTY);
   }
-  // Config mặc định
   db.config = {
     motd: 'Chào mừng đến PokeWorld Online!',
     expMult: 1,

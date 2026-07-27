@@ -36,7 +36,7 @@ export const ZONES = {
       { sp: 310, w: 30, min: 2, max: 7 },   // Devidin (basic)
       { sp: 57, w: 30, min: 2, max: 7 },   // Elofly (basic)
     ],
-    trainers: ["youngster_minh", "lass_lan"],
+    trainers: ["youngster_minh", "lass_lan", "rival_1"],
     next: ["route1_sanglorian", "taba_ba_foyer", "taba_town"],
   },
   professor_lab: {
@@ -100,7 +100,7 @@ export const ZONES = {
       { sp: 174, w: 30, min: 5, max: 11 },   // Flacono (basic)
       { sp: 229, w: 30, min: 5, max: 11 },   // Fordin (basic)
     ],
-    trainers: ["bugcatcher_tung", "lass_rainbow"],
+    trainers: ["bugcatcher_tung", "lass_rainbow", "rocket_1"],
     next: ["cotton_town", "leather_town", "taba_town"],
   },
   player_house_bedroom: {
@@ -129,7 +129,7 @@ export const ZONES = {
       { sp: 325, w: 30, min: 6, max: 12 },   // Flummby (basic)
       { sp: 99, w: 30, min: 6, max: 12 },   // Hatchling (basic)
     ],
-    trainers: ["camper_route3", "sailor_route3"],
+    trainers: ["camper_route3", "sailor_route3", "rocket_2"],
     next: ["cotton_town", "route1"],
   },
   taba_ba_foyer: {
@@ -165,7 +165,7 @@ export const ZONES = {
       { sp: 107, w: 30, min: 8, max: 14 },   // Pythwire (basic)
       { sp: 19, w: 30, min: 8, max: 14 },   // Rockitten (basic)
     ],
-    trainers: ["gym_thuy", "rocket_grunt_3"],
+    trainers: ["gym_thuy", "rocket_grunt_3", "rocket_boss"],
     next: ["dryadsgrove", "route1_sanglorian"],
   },
   leather_town: {
@@ -180,7 +180,7 @@ export const ZONES = {
       { sp: 263, w: 30, min: 11, max: 18 },   // Pantherafira (basic)
       { sp: 390, w: 30, min: 11, max: 18 },   // Pawsand (basic)
     ],
-    trainers: ["camper_victory", "channeler_unknown", "swimmer_light"],
+    trainers: ["camper_victory", "channeler_unknown", "swimmer_light", "rival_2"],
     next: ["dryadsgrove"],
   },
 };

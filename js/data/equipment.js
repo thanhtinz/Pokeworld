@@ -126,16 +126,13 @@ export const UPGRADE = {
   stoneItem: 'upgrade_stone',
   // Tiền cần để lên từ `level` -> `level+1`
   costMoney(level) { return Math.round(500 * Math.pow(level + 1, 1.6)); },
-  // Số đá cường hóa cần
   costStone(level) { return 1 + Math.floor(level / 3); },
-  // Tỉ lệ thành công (0..1)
   successRate(level) {
     if (level < 5) return 1.0;
     if (level < 10) return 0.8;
     if (level < 15) return 0.6;
     return 0.4;
   },
-  // Hệ số nhân stat theo cấp cường hóa
   levelMult(level) { return 1 + level * 0.12; },
   failNote: 'Cường hóa thất bại KHÔNG làm mất hay hạ cấp trang bị — bạn chỉ tốn tiền và đá.',
 };
@@ -153,7 +150,6 @@ export function statsOf(id, level = 0) {
   return out;
 }
 
-// Cấp cường hóa tối đa của món
 export function maxLevelOf(id) {
   const eq = EQUIPMENT[id];
   return eq ? (RARITY[eq.rarity] || RARITY.common).maxLevel : 0;

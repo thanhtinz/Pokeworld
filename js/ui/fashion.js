@@ -11,7 +11,6 @@ import { toast, header } from './kit.js';
 import { uiIcon } from './icons.js';
 import { avatarFrame, chatFrame, titleHtml } from './look.js';
 
-// Bốn tab: ba loại thời trang + skin nhân vật
 const TABS = [
   ...COSMETIC_KINDS.map(k => ({ id: k.id, name: k.name, icon: k.icon, data: k.data })),
   { id: 'skin', name: 'Skin', icon: 'slot_skin', data: SKINS, soon: true },

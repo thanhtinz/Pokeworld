@@ -3,7 +3,6 @@
 // kind: 'main' | 'side' | 'daily'
 // goal.t: catch_any | catch_species | defeat_trainer | reach_zone | catch_count | win_battles
 export const QUESTS = {
-  // Nhiệm vụ chính
   main_starter: {
     kind: 'main',
     name: 'Người Bạn Đầu Tiên',
@@ -14,44 +13,42 @@ export const QUESTS = {
   },
   main_gym1: {
     kind: 'main',
-    name: 'Thử Thách Nhà Thi Đấu Đá',
-    desc: 'Đánh bại thủ lĩnh Brock ở thị trấn để giành Huy Hiệu Đá Tảng.',
+    name: 'Thử Thách Võ Đường Đất',
+    desc: 'Đánh bại Thạch ở Thị Trấn Taba để giành Huy Hiệu Đá.',
     goal: { t: 'defeat_trainer', id: 'gym_brock' },
     reward: { money: 2000, items: [{ id: 'great_ball', n: 3 }, { id: 'super_potion', n: 2 }] },
     next: null,
   },
 
-  // Nhiệm vụ phụ
   side_pikachu: {
     kind: 'side',
-    name: 'Tia Chớp Vàng',
-    desc: 'Nghe đồn có Pikachu xuất hiện gần Đường Số 1 và trong rừng. Hãy bắt một con!',
-    goal: { t: 'catch_species', sp: 25 },
-    reward: { money: 800, items: [{ id: 'thunder_stone', n: 1 }] },
+    name: 'Chim Lửa Đường Số 1',
+    desc: 'Nghe nói Cardiling hay đậu trên hàng rào Đường Số 1. Hãy bắt một con!',
+    goal: { t: 'catch_species', sp: 80 },
+    reward: { money: 800, items: [{ id: 'fire_stone', n: 1 }] },
   },
   side_forest: {
     kind: 'side',
-    name: 'Khám Phá Rừng Xanh',
-    desc: 'Tiến vào khu rừng phía bắc thị trấn để khám phá vùng đất mới.',
+    name: 'Khám Phá Dryadsgrove',
+    desc: 'Tiến vào rừng Dryadsgrove phía bắc thị trấn để khám phá vùng đất mới.',
     goal: { t: 'reach_zone', zone: 'dryadsgrove' },
     reward: { money: 300, items: [{ id: 'oran_berry', n: 5 }] },
   },
   side_bughunt: {
     kind: 'side',
     name: 'Vua Côn Trùng',
-    desc: 'Đánh bại Tùng Bắt Bọ trong rừng để chứng minh ai mới là vua côn trùng.',
+    desc: 'Đánh bại Tùng Bắt Bọ trong rừng Dryadsgrove để chứng minh ai mới là vua côn trùng.',
     goal: { t: 'defeat_trainer', id: 'bugcatcher_tung' },
     reward: { money: 600, items: [{ id: 'antidote', n: 3 }] },
   },
   side_magikarp: {
     kind: 'side',
-    name: 'Cá Chép Hóa Rồng',
-    desc: 'Bắt một con Magikarp ở hồ. Đừng coi thường nó, biết đâu sau này hoá rồng!',
-    goal: { t: 'catch_species', sp: 129 },
+    name: 'Đốm Lửa Giữa Rừng',
+    desc: 'Người ta đồn thấy Bursa cháy sáng trong rừng Dryadsgrove. Bắt một con xem thực hư!',
+    goal: { t: 'catch_species', sp: 101 },
     reward: { money: 500, items: [{ id: 'rare_candy', n: 1 }] },
   },
 
-  // Nhiệm vụ hằng ngày
   daily_catch3: {
     kind: 'daily',
     name: 'Thợ Săn Trong Ngày',

@@ -1,7 +1,7 @@
 // PokeWorld H5 | data/trainers.js | Huấn luyện viên — TỰ SINH TỪ tools/mkworld.py
 // Đội hình lấy từ chính bảng gặp của khu vực họ đứng, nên đánh ở đâu gặp sinh vật vùng đó.
 
-// kind: 'trainer' | 'gym' | 'rocket'
+// kind: 'trainer' | 'gym' | 'rocket' | 'rival'
 export const TRAINERS = {
   youngster_minh: {
     sprite: "youngster", name: "Nam Nhóc Tì", kind: "trainer", zone: "route1",
@@ -82,7 +82,7 @@ export const TRAINERS = {
   },
   gym_brock: {
     sprite: "brock", name: "Thạch — Võ Đường Đất", kind: "gym", zone: "taba_town",
-    party: [],
+    party: [{ sp: 60, lv: 10 }, { sp: 83, lv: 11 }, { sp: 293, lv: 12 }],
     rewardMoney: 1200,
     intro: "Ta là chủ võ đường đầu tiên. Cho ta xem cậu tiến bộ tới đâu!",
     lose: "Cậu xứng đáng với huy hiệu này.",
@@ -95,5 +95,40 @@ export const TRAINERS = {
     intro: "Nước mềm nhưng bào mòn được cả đá đấy!",
     lose: "Được lắm, huy hiệu là của cậu.",
     badge: "badge_cascade", badgeName: "Huy Hiệu Thác",
+  },
+  rival_1: {
+    sprite: "rogue", name: "Vũ", kind: "rival", zone: "route1",
+    party: [{ sp: 60, lv: 8 }],
+    rewardMoney: 500,
+    intro: "Tới rồi à! Xem Tuxemon của ai mạnh hơn nào.",
+    lose: "Hừm! Chỉ là may mắn thôi!",
+  },
+  rocket_1: {
+    sprite: "rocket_m", name: "Team Xero — Tay Chân", kind: "rocket", zone: "dryadsgrove",
+    party: [{ sp: 373, lv: 12 }, { sp: 45, lv: 13 }],
+    rewardMoney: 600,
+    intro: "Ê nhóc! Chỗ này là địa bàn của Team Xero!",
+    lose: "Khoan đã... nhóc này mạnh thật!",
+  },
+  rocket_2: {
+    sprite: "rocket_f", name: "Team Xero — Bộ Đôi", kind: "rocket", zone: "route1_sanglorian",
+    party: [{ sp: 212, lv: 13 }, { sp: 143, lv: 14 }, { sp: 192, lv: 15 }],
+    rewardMoney: 1200,
+    intro: "Lại là nhóc đó! Lần này bọn ta đông hơn!",
+    lose: "Không thể tin được!",
+  },
+  rocket_boss: {
+    sprite: "boss", name: "Thủ Lĩnh Xero", kind: "rocket", zone: "cotton_town",
+    party: [{ sp: 394, lv: 15 }, { sp: 277, lv: 16 }, { sp: 110, lv: 17 }, { sp: 299, lv: 18 }, { sp: 385, lv: 19 }],
+    rewardMoney: 5000,
+    intro: "Ta sẽ cho mày thấy sức mạnh THẬT SỰ của Team Xero!",
+    lose: "Thua... thua một đứa nhóc?!",
+  },
+  rival_2: {
+    sprite: "rogue", name: "Vũ — Trận Cuối", kind: "rival", zone: "leather_town",
+    party: [{ sp: 31, lv: 19 }, { sp: 105, lv: 20 }, { sp: 340, lv: 21 }, { sp: 407, lv: 22 }],
+    rewardMoney: 8000,
+    intro: "Trận cuối rồi. Lần này tớ không nhường đâu!",
+    lose: "Thua tâm phục khẩu phục...",
   },
 };

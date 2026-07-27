@@ -22,7 +22,6 @@ export const avatarFrame = (id) => frameAttrs(AVATAR_FRAMES, id, 'fr');
 // Khung bong bóng chat: gắn vào .chat-line
 export const chatFrame = (id) => frameAttrs(CHAT_FRAMES, id, 'cf');
 
-// Danh hiệu: ảnh thì hiện ảnh, không thì hiện thẻ chữ tô màu
 export function titleHtml(id, cls = 'title-pill') {
   const t = TITLES[id];
   if (!t) return '';

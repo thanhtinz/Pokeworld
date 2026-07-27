@@ -1,35 +1,35 @@
 // TuxeWorld H5 | data/story.js | Cốt truyện chiến dịch 8 chương
 // Mỗi chương: hội thoại mở đầu (dialog), mục tiêu (goal — cùng schema quest),
 // thưởng, zone mở khóa khi hoàn thành, hội thoại kết chương (outro).
-// speaker: 'prof' Giáo sư Oak | 'rogue' Blue | 'rocket' Team Rocket | 'me' người chơi | 'sys'
+// speaker: 'prof' Giáo sư | 'rogue' đối thủ Vũ | 'rocket' Team Xero | 'me' người chơi | 'sys'
 
 export const SPEAKERS = {
-  prof:   { name: 'Professor Oak',  icon: '👨‍🔬', img: 'professor' },
-  rival:  { name: 'Blue',          icon: '😏', img: 'rogue' },
-  nurse:  { name: 'Nurse Joy',      icon: '👩‍⚕️', img: 'nurse' },
-  rocket: { name: 'Team Rocket', icon: '🚀', img: 'grunt' },
-  boss:   { name: 'Giovanni', icon: '😈', img: 'boss' },
+  prof:   { name: 'Giáo Sư',     icon: '👨‍🔬', img: 'professor' },
+  rival:  { name: 'Vũ',          icon: '😏', img: 'rogue' },
+  nurse:  { name: 'Y Tá Trạm Hồi Sức', icon: '👩‍⚕️', img: 'nurse' },
+  rocket: { name: 'Team Xero', icon: '🕶️', img: 'grunt' },
+  boss:   { name: 'Thủ Lĩnh Xero', icon: '😈', img: 'boss' },
   me:     { name: 'Bạn',           icon: '🧢', img: null }, // avatar tài khoản (red/leaf)
   sys:    { name: '',              icon: '', img: null },
 };
 
-// Đội của rival Blue theo từng mốc — chọn khắc hệ với starter của người chơi.
-// key = starter dex của NGƯỜI CHƠI (1 cỏ -> Blue cầm 4 lửa, 4 -> 7 nước, 7 -> 1 cỏ)
+// Đội của đối thủ Vũ theo từng mốc — chọn khắc hệ với starter của người chơi.
+// key = starter dex của NGƯỜI CHƠI: cỏ -> đối thủ cầm lửa, lửa -> nước, nước -> cỏ
 // Đối thủ luôn chọn con khắc hệ với con mình chọn (xoay vòng ba hệ)
 export const RIVAL_STARTER = { 83: 31, 31: 119, 119: 83 };
 
 export const CHAPTERS = [
   {
     id: 'ch1', title: 'Chương 1 — Món quà của Giáo sư',
-    desc: 'Gặp Giáo sư Oak và nhận Tuxemon đầu tiên.',
+    desc: 'Gặp Giáo sư và nhận Tuxemon đầu tiên.',
     dialog: [
-      ['prof', 'Chào mừng đến Thị Trấn Khởi Đầu! Ta là Giáo sư Oak, người nghiên cứu Tuxemon của vùng này.'],
-      ['prof', 'Dạo này Team Rocket lộng hành, bắt trộm Tuxemon khắp nơi... Vùng này cần một nhà huấn luyện tài năng.'],
+      ['prof', 'Chào mừng đến Thị Trấn Taba! Ta là Giáo sư, người nghiên cứu Tuxemon của vùng này.'],
+      ['prof', 'Từ ngày có lệnh cấm, Team Xero đi lùng bắt Tuxemon khắp nơi... Vùng này cần một nhà huấn luyện dám lên tiếng.'],
       ['prof', 'Ta có ba Tuxemon quý. Hãy chọn một bạn đồng hành, và bắt đầu hành trình của cháu!'],
     ],
     goal: { t: 'choose_starter' },       // hoàn thành ngay khi chọn starter
     outro: [
-      ['rogue', 'Ê! Cậu cũng nhận Tuxemon từ ông nội tớ hả? Tớ là Blue!'],
+      ['rogue', 'Ê! Cậu cũng nhận Tuxemon từ ông nội tớ hả? Tớ là Vũ!'],
       ['rogue', 'Vậy thì... tớ chọn con KHẮC HỆ với cậu luôn! Hê hê. Mai đấu thử một trận nhé!'],
     ],
     reward: { items: [{ id: 'potion', n: 3 }] },
@@ -37,7 +37,7 @@ export const CHAPTERS = [
   },
   {
     id: 'ch2', title: 'Chương 2 — Trận đấu đầu tiên',
-    desc: 'Blue đang chờ ở Đường Số 1. Thắng cậu ấy để chứng tỏ bản thân!',
+    desc: 'Vũ đang chờ ở Đường Số 1. Thắng cậu ấy để chứng tỏ bản thân!',
     dialog: [
       ['rogue', 'Tới rồi à! Xem Tuxemon của ai mạnh hơn nào. Đừng khóc nếu thua đấy!'],
     ],
@@ -57,72 +57,72 @@ export const CHAPTERS = [
     ],
     goal: { t: 'catch_count', n: 2 },
     outro: [
-      ['prof', 'Tuyệt vời! Nghe nói trong Rừng Xanh Thẳm xuất hiện người lạ mặc đồ đen... Cẩn thận đấy.'],
+      ['prof', 'Tuyệt vời! Nghe nói trong rừng Dryadsgrove xuất hiện người lạ mặc đồ đen... Cẩn thận đấy.'],
     ],
     reward: { money: 800, items: [{ id: 'potion', n: 3 }] },
     unlock: ['dryadsgrove'],
   },
   {
     id: 'ch4', title: 'Chương 4 — Bóng đen trong rừng',
-    desc: 'Điều tra Rừng Xanh Thẳm. Đánh bại tên Team Rocket!',
+    desc: 'Điều tra rừng Dryadsgrove. Đánh bại tên Team Xero!',
     dialog: [
-      ['rocket', 'Ê nhóc! Chỗ này là địa bàn của Team Rocket. Bọn ta đang "thu hoạch" Tuxemon ở đây!'],
-      ['rocket', 'Muốn qua thì bước qua xác Zubat của ta đã!'],
+      ['rocket', 'Ê nhóc! Chỗ này là địa bàn của Team Xero. Bọn ta đang "thu hoạch" Tuxemon ở đây!'],
+      ['rocket', 'Muốn qua thì thắng Tuxemon của ta đã!'],
     ],
     goal: { t: 'defeat_trainer', id: 'rocket_1' },
     outro: [
-      ['rocket', 'Khoan đã... nhóc này mạnh thật! Rút lui! Nhưng kế hoạch ở hang đá vẫn tiếp tục...'],
-      ['prof', 'Hang đá?! Chúng đang đào trộm đá tiến hóa ở Hang Dơi Đá! Nhưng trước hết, hãy thử sức với Phòng Gym của thị trấn đi đã.'],
+      ['rocket', 'Khoan đã... nhóc này mạnh thật! Rút lui! Nhưng kế hoạch ngoài sa mạc vẫn tiếp tục...'],
+      ['prof', 'Sa mạc?! Chúng đang đào trộm đá tiến hoá ngoài Đường1 Sanglorian! Nhưng trước hết, hãy thử sức với võ đường của thị trấn đi đã.'],
     ],
     reward: { money: 1000 },
     unlock: [],
   },
   {
     id: 'ch5', title: 'Chương 5 — Huy hiệu đầu tiên',
-    desc: 'Thách đấu Brock — chủ Phòng Gym hệ Đá của Thị Trấn Khởi Đầu.',
+    desc: 'Thách đấu Thạch — chủ Võ Đường hệ Đất của Thị Trấn Taba.',
     dialog: [
-      ['sys', 'Phòng Gym sừng sững giữa thị trấn. Brock, bậc thầy hệ Đá, đang chờ thách đấu...'],
+      ['sys', 'Võ đường sừng sững giữa thị trấn. Thạch, bậc thầy hệ Đất, đang chờ thách đấu...'],
     ],
     goal: { t: 'earn_badge', id: 'badge_boulder' },
     outro: [
-      ['prof', 'Huy hiệu Đá! Cháu đúng là có tố chất. Giờ thì đến Hang Dơi Đá chặn Team Rocket thôi!'],
+      ['prof', 'Huy hiệu Đất! Cháu đúng là có tố chất. Giờ thì ra Đường1 Sanglorian chặn Team Xero thôi!'],
     ],
     reward: { money: 1500, items: [{ id: 'super_potion', n: 2 }] },
     unlock: ['route1_sanglorian', 'cotton_town'],
   },
   {
     id: 'ch6', title: 'Chương 6 — Giải cứu hang đá',
-    desc: 'Team Rocket đang khai thác trộm trong Hang Dơi Đá. Đánh đuổi chúng!',
+    desc: 'Team Xero đang đào trộm đá tiến hoá ngoài Đường1 Sanglorian. Đánh đuổi chúng!',
     dialog: [
       ['rocket', 'Lại là nhóc đó! Lần này bọn ta có hai người, xem mày làm gì được!'],
     ],
     goal: { t: 'defeat_trainer', id: 'rocket_2' },
     outro: [
       ['rocket', 'Không thể tin được! Đại ca ơi cứu em!!'],
-      ['boss', 'Lũ vô dụng... Nhóc con, hồ nước phía bắc sẽ là mỏ vàng của ta. Gyarados hồ đó sẽ thuộc về Team Rocket!'],
+      ['boss', 'Lũ vô dụng... Nhóc con, Thị Trấn Bông sẽ là mỏ vàng của ta. Con Leviadile dưới hồ ở đó sẽ thuộc về Team Xero!'],
     ],
     reward: { money: 2000, items: [{ id: 'great_ball', n: 5 }] },
     unlock: ['cotton_town'],
   },
   {
     id: 'ch7', title: 'Chương 7 — Quyết chiến bên hồ',
-    desc: 'Giovanni định bắt Gyarados của Hồ Gương Trời. Ngăn hắn lại!',
+    desc: 'Thủ lĩnh Team Xero định bắt Leviadile ở hồ Thị Trấn Bông. Ngăn hắn lại!',
     dialog: [
-      ['boss', 'Đến rồi à, phiền phức. Ta sẽ cho mày thấy sức mạnh THẬT SỰ của Team Rocket!'],
+      ['boss', 'Đến rồi à, phiền phức. Ta sẽ cho mày thấy sức mạnh THẬT SỰ của Team Xero!'],
     ],
     goal: { t: 'defeat_trainer', id: 'rocket_boss' },
     outro: [
-      ['boss', 'Thua... thua một đứa nhóc?! Team Rocket sẽ nhớ mặt mày! RÚT LUI!'],
-      ['nurse', 'Bạn đã cứu cả hồ nước! Chủ Gym Misty muốn gặp người hùng đấy.'],
+      ['boss', 'Thua... thua một đứa nhóc?! Team Xero sẽ nhớ mặt mày! RÚT LUI!'],
+      ['nurse', 'Bạn đã cứu cả hồ nước! Chủ võ đường Thuỷ ở Thị Trấn Bông muốn gặp người hùng đấy.'],
     ],
     reward: { money: 3000, items: [{ id: 'ultra_ball', n: 3 }] },
     unlock: [],
   },
   {
     id: 'ch8', title: 'Chương 8 — Nhà vô địch',
-    desc: 'Lấy Huy hiệu Nước từ Misty, rồi đấu trận cuối với Blue để trở thành Nhà Vô Địch của vùng!',
+    desc: 'Lấy Huy hiệu Nước từ Thuỷ, rồi đấu trận cuối với Vũ để trở thành Nhà Vô Địch của vùng!',
     dialog: [
-      ['sys', 'Hai thử thách cuối cùng: Phòng Gym Nước, và... người bạn đối thủ.'],
+      ['sys', 'Hai thử thách cuối cùng: Võ Đường Nước, và... người bạn đối thủ.'],
     ],
     goal: { t: 'defeat_trainer', id: 'rival_2' },
     require: { badge: 'badge_cascade' }, // cần badge nước trước khi rival_2 xuất hiện

@@ -98,7 +98,6 @@ export function logout() {
   writeStore(s);
 }
 
-// Đặt/đổi mật khẩu cho tài khoản đang đăng nhập
 export async function setPassword(pass) {
   if (!pass || pass.length < 4) return [false, 'Mật khẩu tối thiểu 4 ký tự.'];
   const s = readStore();
@@ -138,7 +137,6 @@ export function activeAvatar() {
   return activeAccount()?.avatar || 'red';
 }
 
-// Đổi avatar của tài khoản đang đăng nhập ('red' nam | 'leaf' nữ)
 export function setAvatar(avatar) {
   const s = readStore();
   const acc = s.list.find(a => a.id === s.activeId);

@@ -2,7 +2,6 @@
 import { spriteUrl, animSpriteUrl } from '../util.js';
 import { show } from '../main.js';
 
-// Mẹo hiển thị lúc chờ
 const TIPS = [
   'Tuxemon hệ Nước rất mạnh trước hệ Lửa, Đá và Đất.',
   'Làm Tuxemon hoang yếu máu rồi hãy ném bóng — tỉ lệ bắt cao hơn nhiều.',
@@ -12,7 +11,6 @@ const TIPS = [
   'Đá tiến hóa mua được ở cửa hàng trong thị trấn.',
 ];
 
-// Danh sách asset cục bộ cần nạp trước (đường dẫn tương đối)
 const LOCAL_ASSETS = [
   'assets/img/title.png', 'assets/img/dlgbox.png', 'assets/img/crown.png',
   'assets/img/worldmap.jpg', 'assets/tiles/terrain.png',
@@ -27,7 +25,6 @@ const LOCAL_ASSETS = [
 // Sprite khởi đầu + vài loài hay gặp ở khu vực đầu
 const PRELOAD_DEX = [1, 4, 7, 25, 16, 19, 10, 129];
 
-// Ảnh động để sẵn trong dự án — nạp trước vài con hay gặp nhất
 // Vài sprite nạp sẵn cho màn chờ khỏi trống
 const LOCAL_ANIM = [1, 31, 83, 119, 60, 19].map(d => `assets/mon/${d}.png`);
 

@@ -37,7 +37,6 @@ export const AVATAR_FRAMES = {
   flame:  { name: 'Viền Lửa',    css: 'flame',   how: 'badge', n: 2 },
 };
 
-// Khung bong bóng chat
 export const CHAT_FRAMES = {
   none:   { name: 'Bình thường', css: null,     how: 'start' },
   cloud:  { name: 'Mây Trắng',   css: 'cloud',  how: 'catch', n: 20 },
@@ -105,7 +104,6 @@ export function applyRemote(items, base = '') {
   stamp();
 }
 
-// Đường dẫn ảnh đầy đủ của một món, hoặc null nếu món này vẽ bằng CSS
 export function imgOf(def) {
   if (!def?.img) return null;
   return /^https?:\/\//.test(def.img) ? def.img : assetBase + def.img;

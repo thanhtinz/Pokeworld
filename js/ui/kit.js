@@ -3,7 +3,6 @@ import { esc } from '../util.js';
 import { itemIconPath } from '../data/itemicons.js';
 import { TYPE_VI, TYPE_COLORS } from '../data/types.js';
 
-// Toast thông báo nổi (tự biến mất)
 export function toast(msg, ms = 2200) {
   const wrap = document.getElementById('toast-wrap');
   const el = document.createElement('div');

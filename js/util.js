@@ -49,14 +49,8 @@ export const monPath = (dexId, back = false) =>
 export const monIconPath = (dexId) => `assets/mon/${dexId}_i.png`;
 
 export const spriteUrl = (dexId, back = false) => monPath(dexId, back);
-export const spriteShinyUrl = (dexId, back = false) => monPath(dexId, back);
 export const monSprite = (mon, back = false) => monPath(mon.sp, back);
 export const animSpriteUrl = (dexId, back = false) => monPath(dexId, back);
-export const animSprite = (mon, back = false) => monPath(mon.sp, back);
-
-// Sprite item chính hãng từ PokeAPI (id của mình dùng _ , CDN dùng -)
-export const itemSpriteUrl = (itemId) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${String(itemId).replace(/_/g, '-')}.png`;
 
 export const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
 
@@ -65,32 +59,12 @@ export const todayNum = () => {
   const d = new Date();
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 };
-export const dayNum = () => Math.floor(Date.now() / 86400000);
 
 // Ảnh nhỏ kiểu "trong hộp" — dùng cho danh sách đội, Tuxedex, túi đồ
 export const boxIcon = (dexId) => monIconPath(dexId);
 export const monBoxIcon = (mon) => monIconPath(mon.sp);
-export const EGG_ICON = 'assets/pokesprite/egg.png';
 
-// Ảnh vật phẩm cục bộ. Kho pokesprite chia theo nhóm nên cần biết nhóm.
-const ITEM_DIRS = ['ball', 'medicine', 'berry', 'evo-item', 'hold-item',
-  'mega-stone', 'battle-item', 'gem', 'fossil', 'valuable-item', 'key-item'];
-export const itemIconLocal = (itemId, dir) =>
-  `assets/pokesprite/items/${dir}/${String(itemId).replace(/_/g, '-')}.png`;
-export { ITEM_DIRS };
-
-// Chuỗi ảnh dự phòng cho thẻ <img>: ảnh chính hỏng thì tự thử ảnh kế tiếp.
-// Dùng: <img src="${a}" onerror="${fallbackAttr(b, c)}">
-export function fallbackAttr(...urls) {
-  const step = (i) => (i >= urls.length
-    ? 'this.onerror=null'
-    : `this.onerror=function(){${step(i + 1)}};this.src='${urls[i]}'`);
-  return step(0);
-}
-
-// Ảnh cục bộ hiện ngay, ảnh đẹp hơn (CDN) tải xong mới đổi sang.
-// Mạng chậm hay bị chặn thì người chơi vẫn thấy hình, không phải ô trống.
-// data-up có thể liệt kê nhiều ảnh cách nhau bằng dấu | — thử lần lượt, cái nào tải được thì dùng.
+// Ảnh nào tải được thì đổi sang, dùng cho <img data-up="ảnh1|ảnh2">
 export function upgradeImages(root) {
   if (!root) return;
   for (const img of root.querySelectorAll('img[data-up]')) {
@@ -106,9 +80,8 @@ export function upgradeImages(root) {
   }
 }
 
-// Toàn bộ ảnh sinh vật đã nằm trong dự án nên không còn chuỗi dự phòng qua CDN.
-// Giữ lại các tên hàm cũ để phần giao diện không phải sửa theo.
-export const animLocal = (dexId, back = false) => monPath(dexId, back);
+// Ảnh sinh vật đều nằm sẵn trong dự án nên không cần chuỗi dự phòng nữa;
+// giữ lại các tên hàm cũ để giao diện không phải sửa theo.
 export const monLocalSrc = (mon, back = false) => monPath(mon.sp, back);
 export const monFallbackAttr = (mon, back = false) =>
   `this.onerror=null;this.src='${monIconPath(mon.sp)}'`;

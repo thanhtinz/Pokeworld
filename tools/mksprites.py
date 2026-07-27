@@ -29,15 +29,15 @@ MAP_SPRITE = {
     # Huan luyen vien
     'youngster': 'childactor',
     'lass': 'girl1',
-    'bug_catcher': 'picnicker',
+    'bug_catcher': 'disciple_green',
     'camper': 'adventurer_green',
     'camper_f': 'heroine_brown',
-    'swimmer_f': 'swimmer',
+    'swimmer_f': 'swimmer_red',
     'swimmer_m': 'swimmer_blue',
-    'picnicker': 'florist',
-    'rocket_m': 'xerogrunt',
-    'rocket_f': 'xerogrunt_red',
-    'hiker': 'miner',
+    'picnicker': 'picnicker',
+    'rocket_m': 'cooldude_black',
+    'rocket_f': 'goth',
+    'hiker': 'miner_blue',
     'scientist': 'scientist',
     'brock': 'knight',
     'misty': 'swimmer_green',
@@ -99,10 +99,14 @@ def main():
             face.save('assets/trainers/%s.png' % name, optimize=True)
             n_tr += 1
         elif os.path.exists(src):
-            # Khong co anh 2D thi phong to khung "dung nhin xuong" cua sprite ban do
+            # Khong co anh 2D thi phong to khung "dung nhin xuong" cua sprite ban do.
+            # Phai cat sat vien truoc: trong o 16x32 nhan vat chi chiem ~20px duoi,
+            # nhan doi thang thi ra mot hinh be xiu lech han so voi anh 2D that.
             im = Image.open(src).convert('RGBA')
             cell = im.crop((0, 0, im.width // 3, im.height // 4))
-            big = cell.resize((cell.width * 2, cell.height * 2), Image.NEAREST)
+            cell = cell.crop(cell.getbbox() or (0, 0, cell.width, cell.height))
+            k = max(1, min(60 // cell.height, 62 // cell.width))
+            big = cell.resize((cell.width * k, cell.height * k), Image.NEAREST)
             out = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
             out.alpha_composite(big, ((64 - big.width) // 2, 64 - big.height))
             out.save('assets/trainers/%s.png' % name, optimize=True)
