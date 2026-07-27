@@ -322,10 +322,13 @@ html, body {
 }
 
 /* ==== Header màn ==== */
-.scr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+/* Chiều cao CHẴN: h1 dùng font pixel nên cao ra số lẻ, kéo theo mọi thứ bên
+   dưới nằm trên nửa pixel — pixel art vì thế nhìn nhoè và lệch. */
+.scr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; height: 40px; }
 .scr-head h1 {
   font-family: var(--pix);
   font-size: .92rem;
+  line-height: 40px;
   letter-spacing: 0;
   text-shadow: 0 2px 0 rgba(0, 0, 0, .5), 0 0 14px rgba(112, 72, 232, .5);
 }
@@ -1721,3 +1724,16 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Trong thanh dưới icon ăn theo màu nút nên nút đang chọn tự sáng vàng */
 #bottom-nav .nav-ico .ui-ico { color: inherit; }
 #chat-fab .ui-ico { color: var(--text); }
+
+/* ==== Khung chat (thời trang) — chỉ áp cho tin của chính mình ==== */
+.chat-title {
+  display: block;
+  font-style: normal;
+  font-size: 10px;
+  line-height: 1.4;
+  opacity: .95;
+}
+.chat-line.cf-cloud { background: rgba(200, 220, 255, .12); border: 1px solid rgba(200, 220, 255, .4); border-radius: 14px; padding: 7px 11px; }
+.chat-line.cf-leaf  { background: rgba(120, 200, 80, .12); border: 1px solid rgba(120, 200, 80, .45); border-radius: 4px 14px 14px 14px; padding: 7px 11px; }
+.chat-line.cf-ember { background: rgba(240, 128, 48, .14); border: 1px solid rgba(240, 128, 48, .5); border-radius: 14px; padding: 7px 11px; box-shadow: 0 0 10px -3px #f08030; }
+.chat-line.cf-royal { background: rgba(240, 180, 41, .12); border: 1px solid rgba(240, 180, 41, .55); border-radius: 14px; padding: 7px 11px; box-shadow: 0 0 12px -3px #f0b429, inset 0 0 8px -4px #f0b429; }

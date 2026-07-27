@@ -6,6 +6,8 @@ import * as api from '../net/api.js';
 import * as sock from '../net/socket.js';
 import { net, onChange, isOnline, clearUnread } from '../net/session.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
+import { TITLES } from '../data/cosmetics.js';
+import { ensureData } from '../engine/equipment.js';
 
 const CHANNELS = [['world', 'Thế giới'], ['guild', 'Bang hội'], ['dm', 'Riêng']];
 let channel = 'world';
@@ -29,6 +31,7 @@ export function render(el, { to = null } = {}) {
   el.addEventListener('screen-leave', stop);
 
   function draw() {
+    const myLook = (ensureData() || {}).look || {};
     const body = el.querySelector('#chat-body');
     if (!body) return;
     const lines = channel === 'dm'
@@ -45,10 +48,18 @@ export function render(el, { to = null } = {}) {
         }).join('')}
       </div>
       <div class="card chat-log" id="chat-log">
-        ${lines.length ? lines.map(m => `
-          <div class="chat-line ${m.from === net.me?.username ? 'mine' : ''}">
+        ${lines.length ? lines.map(m => {
+          const mine = m.from === net.me?.username;
+          // Khung chat + danh hiệu mới chỉ áp cho tin của CHÍNH MÌNH: máy chủ
+          // chưa gửi kèm trang phục của người khác.
+          const fr = mine && myLook.chatFrame && myLook.chatFrame !== 'none' ? ` cf-${esc(myLook.chatFrame)}` : '';
+          const t = mine ? TITLES[myLook.title] : null;
+          return `
+          <div class="chat-line ${mine ? 'mine' : ''}${fr}">
+            ${t ? `<i class="chat-title" style="color:${t.color}">${esc(t.name)}</i>` : ''}
             <b>${esc(m.from)}</b><span>${esc(m.text || '')}</span>
-          </div>`).join('')
+          </div>`;
+        }).join('')
         : '<div class="empty-note">Chưa có tin nhắn nào.</div>'}
       </div>
       ${channel === 'dm' && !dmWith ? `

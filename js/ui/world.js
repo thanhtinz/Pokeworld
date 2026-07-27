@@ -11,6 +11,7 @@ import { esc } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
+import { TITLES } from '../data/cosmetics.js';
 
 let raf = null;
 
@@ -134,8 +135,32 @@ export function render(el) {
         (n.x + 0.5) * size - camX, (n.y + 1) * size - camY);
     }
     const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
-    put(avatarImg, player.dir, player.moving,
-      player.x * size - camX, (player.y + 0.5) * size - camY + bob);
+    const px = player.x * size - camX;
+    const py = (player.y + 0.5) * size - camY + bob;
+    put(avatarImg, player.dir, player.moving, px, py);
+    drawTitle(px, py - chH + size * 0.34);
+  }
+
+  // Danh hiệu đang mặc, hiện ngay trên đầu nhân vật
+  function drawTitle(cx, topY) {
+    const t = TITLES[G.p?.look?.title];
+    if (!t) return;
+    ctx.save();
+    ctx.font = '600 11px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const w = Math.ceil(ctx.measureText(t.name).width) + 12;
+    const h = 16;
+    const x = Math.round(cx - w / 2);
+    const y = Math.round(topY - h - 2);
+    ctx.fillStyle = 'rgba(8, 5, 18, .78)';
+    ctx.strokeStyle = t.color;
+    ctx.lineWidth = 1;
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, h, 8); ctx.fill(); ctx.stroke(); }
+    else { ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h); }
+    ctx.fillStyle = t.color;
+    ctx.fillText(t.name, x + w / 2, y + h / 2 + 0.5);
+    ctx.restore();
   }
 
   function drawHud(map) {

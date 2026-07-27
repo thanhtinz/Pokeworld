@@ -9,7 +9,7 @@ export const SLOTS = [
   { id: 'gloves', name: 'Găng tay',   icon: 'slot_gloves' },
   { id: 'shoes',  name: 'Giày',       icon: 'slot_shoes' },
   { id: 'bag',    name: 'Ba lô',      icon: 'slot_bag' },
-  { id: 'charm',  name: 'Bùa',        icon: 'slot_charm' },
+  { id: 'skin',   name: 'Skin',       icon: 'slot_skin' },
 ];
 
 // mult: hệ số nhân stat gốc theo độ hiếm; maxLevel: giới hạn cường hóa
@@ -105,19 +105,19 @@ export const EQUIPMENT = {
                    sprite: 'rare_candy', stats: { moneyBonus: 30, expBonus: 12, hpBonus: 8 },
                    desc: 'Ba lô khổng lồ chứa cả kho kẹo hiếm, hành trình nào cũng dư dả.' },
 
-  // ==== Bùa ====
-  charm_teachy:  { name: 'Teachy Charm', slot: 'charm', rarity: 'common', reqLevel: 1, price: 2800,
+  // ==== Skin (bộ trang phục toàn thân) ====
+  skin_rookie:   { name: 'Áo Tân Binh', slot: 'skin', rarity: 'common', reqLevel: 1, price: 2800,
                    sprite: 'teachy_tv', stats: { catchBonus: 5 },
-                   desc: 'Bùa hướng dẫn tân thủ, nhắc bạn ném bóng đúng lúc.' },
-  charm_fame:    { name: 'Fame Charm', slot: 'charm', rarity: 'rare', reqLevel: 5, price: 10000,
+                   desc: 'Bộ đồ vải thô của người mới lên đường.' },
+  skin_ranger:   { name: 'Đồ Kiểm Lâm', slot: 'skin', rarity: 'rare', reqLevel: 5, price: 10000,
                    sprite: 'fame_checker', stats: { catchBonus: 9, shinyBonus: 4 },
-                   desc: 'Bùa danh vọng, Tuxemon nổi tiếng thích xuất hiện trước mặt bạn.' },
-  charm_record:  { name: 'Recorder Charm', slot: 'charm', rarity: 'epic', reqLevel: 12, price: 33000,
+                   desc: 'Bộ đồ xanh rêu của người gác rừng, đi bụi rậm không sợ gai.' },
+  skin_diver:    { name: 'Đồ Lặn Biển', slot: 'skin', rarity: 'epic', reqLevel: 12, price: 33000,
                    sprite: 'vs_recorder', stats: { catchBonus: 15, shinyBonus: 8, expBonus: 6 },
-                   desc: 'Bùa ghi hình mọi trận đấu, học được cả mẹo bắt của cao thủ.' },
-  charm_revive:  { name: 'Eternal Charm', slot: 'charm', rarity: 'legendary', reqLevel: 20, price: 105000,
+                   desc: 'Bộ đồ lặn kín người, xuống nước sâu cỡ nào cũng chịu được.' },
+  skin_champion: { name: 'Áo Nhà Vô Địch', slot: 'skin', rarity: 'legendary', reqLevel: 20, price: 105000,
                    sprite: 'max_revive', stats: { catchBonus: 22, shinyBonus: 18, hpBonus: 10 },
-                   desc: 'Bùa vĩnh cửu, ánh sáng của nó dụ ra cả những Tuxemon lấp lánh.' },
+                   desc: 'Áo choàng chỉ nhà vô địch mới được khoác lên vai.' },
 };
 
 // ==== Bảng cường hóa ====

@@ -42,7 +42,7 @@ const P = {
   slot_gloves: '<path d="M7 20V9a2 2 0 0 1 4 0V4a1.6 1.6 0 0 1 3 0v5a1.6 1.6 0 0 1 3 0v8a4 4 0 0 1-4 4H7Z"/>',
   slot_shoes: '<path d="M3 16V8h4l3 3 5 2 5 1v2H3Z"/><path d="M3 16h19v3H3z"/>',
   slot_bag: '<path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M8 13h8"/>',
-  slot_charm: '<path d="M12 3v4"/><circle cx="12" cy="12" r="5"/><path d="m12 9 1 2.2 2.4.3-1.7 1.7.4 2.4-2.1-1.1-2.1 1.1.4-2.4L8.6 11.5l2.4-.3L12 9Z"/>',
+  slot_skin: '<path d="M9 3 5 5v6h3v10h8V11h3V5l-4-2-3 2-3-2Z"/><path d="M9 3a3 3 0 0 0 6 0"/>',
   flag: '<path d="M6 21V4"/><path d="M6 5h12l-2.5 4L18 13H6"/>',
 };
 

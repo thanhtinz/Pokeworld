@@ -25,7 +25,23 @@ export function ensureData() {
   if (!p.trainer || typeof p.trainer !== 'object') p.trainer = { level: 1, exp: 0 };
   if (typeof p.trainer.level !== 'number') p.trainer.level = 1;
   if (typeof p.trainer.exp !== 'number') p.trainer.exp = 0;
+  // Thời trang: danh hiệu / khung avatar / khung chat đang mặc
+  if (!p.look || typeof p.look !== 'object') {
+    p.look = { title: 'rookie', avatarFrame: 'none', chatFrame: 'none' };
+  }
+  for (const [k, v] of Object.entries({ title: 'rookie', avatarFrame: 'none', chatFrame: 'none' })) {
+    if (typeof p.look[k] !== 'string') p.look[k] = v;
+  }
   return p;
+}
+
+// Đổi một món thời trang đang mặc. Trả về true nếu có thay đổi.
+export function wearCosmetic(kind, id) {
+  const p = ensureData();
+  if (!p || !p.look || p.look[kind] === id) return false;
+  p.look[kind] = id;
+  save();
+  return true;
 }
 
 // ==== Trainer level ====
