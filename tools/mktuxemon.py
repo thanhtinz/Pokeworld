@@ -369,11 +369,20 @@ def write_moves(techs, disp):
         power = round(float(t.get('power') or 0), 2) if is_dmg else 0
         acc = round(float(t.get('accuracy') if t.get('accuracy') is not None else 1) * 100)
         eff = hieu_ung(t)
-        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, potency: %s, heal: %s%s },'
+        # Chi lay tieng thuoc bo cua chieu thuc (slug bat dau bang sfx_); vai
+        # chieu goi tieng ben bo khac (sound_yehehe...) — bo qua, luc danh se
+        # dung tieng chung.
+        sfx = (t.get('sound') or {}).get('sfx') or ''
+        if not sfx.startswith('sfx_'):
+            sfx = ''
+        anim = (t.get('visuals') or {}).get('animation') or ''
+        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, potency: %s, heal: %s%s%s%s },'
                    % (js(slug), js(disp(slug)), js(types), js(rng), js(cat), fmtnum(power), acc,
                       int(t.get('recharge') or 0), fmtnum(round(float(t.get('potency') or 0), 2)),
                       fmtnum(round(heal, 2)),
-                      (', eff: %s' % js(eff)) if eff else ''))
+                      (', eff: %s' % js(eff)) if eff else '',
+                      (', sfx: %s' % js(sfx)) if sfx else '',
+                      (', anim: %s' % js(anim)) if anim else ''))
     out.append('};')
     out.append('')
     out.append('// Hệ chính của chiêu (giao diện cần một màu để tô)')

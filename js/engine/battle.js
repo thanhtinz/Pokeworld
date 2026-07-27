@@ -264,7 +264,8 @@ export class Battle {
         ev.push({ t: 'msg', text: `${displayName(foe)} lì đòn, vẫn còn 1 máu!` });
       }
       ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: res.dmg,
-                crit: res.crit, eff: res.eff, moveType: (mv.types || ['normal'])[0] });
+                crit: res.crit, eff: res.eff, moveType: (mv.types || ['normal'])[0],
+                sfx: mv.sfx || '', anim: mv.anim || '' });
       if (res.crit) ev.push({ t: 'msg', text: 'Đòn chí mạng!' });
       const et = effText(res.eff);
       if (et) ev.push({ t: 'msg', text: et });

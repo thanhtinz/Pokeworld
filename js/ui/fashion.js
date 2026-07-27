@@ -29,7 +29,10 @@ export function render(el, { tab: startTab } = {}) {
   function draw() {
     const cur = COSMETIC_KINDS.find(t => t.id === tab);
     const lv = trainerLevel();
-    const items = Object.entries(cur.data);
+    // Ô "không mặc gì" chỉ có nghĩa khi đang mặc một món khác để mà cởi ra;
+    // chưa có món nào thì tab để trống.
+    const items = Object.entries(cur.data)
+      .filter(([id]) => id !== NONE_ID[tab] || p.look[tab] !== NONE_ID[tab]);
 
     el.innerHTML = `
       ${header('Thời trang', 'character')}
@@ -49,7 +52,7 @@ export function render(el, { tab: startTab } = {}) {
       <div class="card fa-card">
         <div class="inv-head">
           <b>${esc(cur.name)}</b>
-          <small>${items.filter(([, d]) => unlocked(d, p, lv)).length}/${items.length} đã mở</small>
+          ${items.length ? `<small>${items.filter(([, d]) => unlocked(d, p, lv)).length}/${items.length} đã mở</small>` : ''}
         </div>
 
         <div class="fa-grid">

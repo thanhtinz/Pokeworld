@@ -62,6 +62,35 @@ def js(v):
     return "'%s'" % str(v).replace("'", "\\'")
 
 
+# Tieng dong rieng cho tung chieu: db/sounds/techniques.yaml co bang slug -> tep,
+# con moi chieu ghi san slug trong truong sound.sfx. Ca thu muc chi 500KB nen
+# chep het, danh cho moi chieu dung dung tieng cua no.
+def chep_tieng_chieu(root):
+    import glob
+    try:
+        import yaml
+    except ImportError:
+        return {}
+    p = os.path.join(root, 'mods/tuxemon/db/sounds/techniques.yaml')
+    if not os.path.exists(p):
+        return {}
+    with open(p, encoding='utf-8') as f:
+        rows = yaml.safe_load(f) or []
+    os.makedirs('assets/sfx/tech', exist_ok=True)
+    ban = {}
+    for r in rows:
+        slug, tep = r.get('slug'), r.get('file')
+        if not slug or not tep:
+            continue
+        src = os.path.join(root, 'mods/tuxemon/sounds', tep)
+        if not os.path.exists(src):
+            continue
+        ten = os.path.basename(tep)
+        shutil.copyfile(src, os.path.join('assets/sfx/tech', ten))
+        ban[slug] = 'assets/sfx/tech/' + ten
+    return ban
+
+
 def main():
     if len(sys.argv) < 2:
         raise SystemExit(__doc__)
@@ -69,10 +98,12 @@ def main():
     if not os.path.isdir(root):
         raise SystemExit('Khong thay %s' % root)
 
-    for d in ('assets/sfx', 'assets/music'):
+    for d in ('assets/sfx', 'assets/music', 'assets/sfx/tech'):
         os.makedirs(d, exist_ok=True)
         for f in os.listdir(d):
-            os.remove(os.path.join(d, f))
+            p = os.path.join(d, f)
+            if os.path.isfile(p):
+                os.remove(p)
 
     out = ["// TuxeWorld H5 | data/sounds.js | Bảng âm thanh — TỰ SINH TỪ tools/mksounds.py",
            '// Nguồn: bộ âm thanh và nhạc đi kèm Tuxemon (xem CREDITS.md).', '']
@@ -96,7 +127,17 @@ def main():
         out.append('};')
         out.append('')
 
+    tieng_chieu = chep_tieng_chieu(sys.argv[1])
+    out.append('// Tiếng riêng của từng chiêu (db/sounds/techniques.yaml của bản gốc)')
+    out.append('export const TECH_SFX = {')
+    for slug, path in sorted(tieng_chieu.items()):
+        total += os.path.getsize(path)
+        out.append('  %s: %s,' % (js(slug), js(path)))
+    out.append('};')
+    out.append('')
+
     open('js/data/sounds.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    print('  (%d tiếng riêng cho chiêu thức)' % len(tieng_chieu))
     print('OK: %d tiếng động, %d bản nhạc, tổng %.1f MB'
           % (len(SFX) - len([m for m in missing if 'music/' not in m]),
              len(MUSIC) - len([m for m in missing if 'music/' in m]),

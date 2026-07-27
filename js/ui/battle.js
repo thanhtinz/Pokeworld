@@ -15,7 +15,7 @@ import { TRAINERS } from '../data/trainers.js';
 import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
 import { textDelay, sfx, getSetting } from '../engine/settings.js';
 import { SFX } from '../data/sounds.js';
-import { vfxFor } from '../data/vfx.js';
+import { fxFor } from '../data/vfx.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
 import { uiIcon, rangeIcon } from './icons.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
@@ -90,12 +90,12 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
 
   // Hiệu ứng chiêu thức: dải ảnh của Tuxemon, chạy bằng CSS steps() đè lên
   // con vừa ăn đòn. Tắt "hiệu ứng chuyển động" trong Cài đặt thì bỏ qua.
-  function playFx(side, type) {
+  function playFx(side, type, anim) {
     if (!getSetting('motion')) return;
     const host = side === 0 ? $me : $enemy;
     const stage = host?.querySelector('.bt-stage');
     if (!stage) return;
-    const fx = vfxFor(type);
+    const fx = fxFor(anim, type);
     const el2 = document.createElement('i');
     el2.className = 'bt-fx';
     // Đường dẫn phải là tuyệt đối: url() nằm trong biến CSS được tính lại theo
@@ -310,9 +310,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           await sleep(textDelay(550));
           break;
         case 'dmg': {
-          sfx(ev.moveType && SFX[ev.moveType] ? ev.moveType
-            : ev.eff > 1 ? 'hit_strong' : ev.eff < 1 ? 'hit_weak' : 'hit');
-          playFx(ev.side, ev.moveType);
+          // Mỗi chiêu có tiếng riêng ghi sẵn bên bản gốc; không có thì lấy
+          // tiếng theo hệ, cuối cùng mới tới tiếng đánh chung.
+          sfx(ev.sfx || (ev.moveType && SFX[ev.moveType] ? ev.moveType
+            : ev.eff > 1 ? 'hit_strong' : ev.eff < 1 ? 'hit_weak' : 'hit'));
+          playFx(ev.side, ev.moveType, ev.anim);
           const spr = ev.side === 0 ? $me.querySelector('.bt-sprite') : $enemy.querySelector('.bt-sprite');
           if (spr) { spr.classList.remove('shake'); void spr.offsetWidth; spr.classList.add('shake'); }
           updateBars();

@@ -24,6 +24,8 @@ import { attemptCatch } from '../js/engine/catchmon.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
 import { STATUSES } from '../js/data/statuses.js';
+import { TECH_SFX } from '../js/data/sounds.js';
+import { fxFor } from '../js/data/vfx.js';
 import { applyStatus, removeStatus, endOfTurn, statMult } from '../js/engine/status.js';
 import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
@@ -294,6 +296,18 @@ ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) ==
   ok('exp thưởng = cấp bình phương (đã nêm theo loại trận)',
     expYield(con, 1, 'trainer') === Math.floor(100 * 1.5) && expYield(con, 1, 'wild') === Math.floor(100 * 0.85),
     `${expYield(con, 1, 'trainer')} / ${expYield(con, 1, 'wild')}`);
+}
+
+// Mỗi chiêu mang sẵn tiếng động và hiệu ứng riêng của bản gốc
+{
+  const coSfx = Object.values(MOVES).filter(m => m.sfx);
+  const coAnim = Object.values(MOVES).filter(m => m.anim);
+  ok('phần lớn chiêu có tiếng riêng', coSfx.length >= 200, String(coSfx.length));
+  ok('tiếng của chiêu đều có tệp thật', coSfx.every(m => TECH_SFX[m.sfx]),
+    coSfx.filter(m => !TECH_SFX[m.sfx]).slice(0, 3).map(m => m.sfx).join(' '));
+  ok('phần lớn chiêu có hiệu ứng riêng', coAnim.length >= 200, String(coAnim.length));
+  ok('hiệu ứng của chiêu luôn tìm được ảnh',
+    coAnim.every(m => fxFor(m.anim, m.types[0])?.src));
 }
 
 // Chiêu dùng "recharge" chứ không phải PP

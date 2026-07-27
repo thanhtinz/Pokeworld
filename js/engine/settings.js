@@ -13,7 +13,7 @@
 //   autoDialog  -> thoại cốt truyện tự chạy tiếp, không phải chạm từng câu
 //   autoSync    -> tự đẩy save lên máy chủ
 
-import { SFX, MUSIC } from '../data/sounds.js';
+import { SFX, MUSIC, TECH_SFX } from '../data/sounds.js';
 
 const KEY = 'pw_settings_v1';
 
@@ -99,10 +99,11 @@ function clip(src) {
 // Tên cũ (win/cancel/error) vẫn gọi được để không phải sửa khắp nơi
 const ALIAS = { cancel: 'click', error: 'hit_weak', win: 'levelup' };
 
+// name có thể là tên tiếng chung ('hit', 'catch'...) hoặc slug tiếng riêng của
+// một chiêu bên bản gốc ('sfx_kick', 'sfx_bubbles'...)
 export function sfx(name = 'tap') {
   if (!cfg.sfx) return;
-  const key = SFX[name] ? name : (ALIAS[name] || 'tap');
-  const src = SFX[key];
+  const src = TECH_SFX[name] || SFX[SFX[name] ? name : (ALIAS[name] || 'tap')];
   if (!src) return;
   try {
     // Nhân bản để nhiều tiếng chồng nhau được (bấm nhanh, đánh liên tiếp)

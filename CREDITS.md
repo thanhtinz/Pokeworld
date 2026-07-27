@@ -29,6 +29,8 @@ Cụ thể đã lấy:
 | Bảng gặp Tuxemon hoang của từng bản đồ | `js/data/encounters.js` |
 | Giá mua/bán trong cửa hàng | `js/data/items.js` |
 | 6 bản nhạc nền + bản đồ nào chơi bản nào | `assets/music/`, `js/data/maps.js` |
+| 29 tiếng động riêng của chiêu thức | `assets/sfx/tech/`, `js/data/sounds.js` |
+| 136 hiệu ứng hình riêng của chiêu thức | `assets/vfx/tech/`, `js/data/vfx.js` |
 
 Cả **luật chơi** cũng lấy theo bản gốc: công thức sát thương theo tầm đánh,
 chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt, khẩu vị thay cho tính
