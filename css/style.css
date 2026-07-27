@@ -1397,6 +1397,10 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 #chat-fab[hidden] { display: none; }
 #chat-fab:active { transform: scale(.92); }
+/* Đang kéo: bỏ hiệu ứng nhấn và chặn trình duyệt cuộn theo ngón tay */
+#chat-fab { touch-action: none; }
+#chat-fab.dragging { transform: scale(1.06); box-shadow: 0 10px 26px rgba(0, 0, 0, .7); cursor: grabbing; }
+#chat-fab.dragging:active { transform: scale(1.06); }
 #chat-fab img { width: 28px; height: 28px; image-rendering: pixelated; }
 /* Chấm đỏ nằm ở góc nút, không lọt ra ngoài */
 #chat-fab .nav-dot { top: 6px; right: 7px; width: 10px; height: 10px; }
@@ -1581,3 +1585,70 @@ img[src*='sprites'] { image-rendering: pixelated; }
   vertical-align: middle;
 }
 
+/* ==== Cờ từ Cài đặt (engine/settings.js gắn lên <html>) ==== */
+/* Tắt chuyển động: dừng mọi animation/transition cho máy yếu hoặc ai thấy chóng mặt */
+.no-motion *,
+.no-motion *::before,
+.no-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+/* Tắt lớp sao nền: đỡ một lớp phải vẽ lại mỗi khung hình */
+.no-stars #app::before,
+.no-stars #app::after { display: none; }
+
+/* ==== Trang Cài đặt ==== */
+.set-group { display: flex; flex-direction: column; gap: 2px; }
+.set-group h3 { font-size: 13px; margin-bottom: 6px; }
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.set-row:last-child { border-bottom: none; }
+.set-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.set-mid b { font-size: 13px; font-weight: 600; }
+.set-mid small { color: var(--muted); font-size: 11px; line-height: 1.35; }
+
+/* Công tắc bật/tắt */
+.switch {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .45);
+  border: 1px solid var(--line);
+  transition: background .18s, border-color .18s;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform .18s, background .18s;
+}
+.switch.on { background: rgba(112, 72, 232, .5); border-color: var(--violet, #7048e8); }
+.switch.on::after { transform: translateX(20px); background: var(--gold, #f0b429); }
+
+/* Chọn một trong nhiều mức (tốc độ chữ...) */
+.seg { display: flex; gap: 6px; flex: none; }
+.seg button {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, .3);
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.seg button.on { border-color: var(--gold, #f0b429); color: var(--gold, #f0b429); background: rgba(240, 180, 41, .12); }
+
+/* Thanh kéo âm lượng */
+.set-range { flex: none; width: 116px; }
+.set-range input { width: 100%; margin: 0; accent-color: var(--violet, #7048e8); }

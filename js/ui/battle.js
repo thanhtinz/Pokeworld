@@ -12,6 +12,7 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
 import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
+import { textDelay, sfx } from '../engine/settings.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
@@ -305,39 +306,40 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       switch (ev.t) {
         case 'msg':
           log(ev.text);
-          await sleep(550);
+          await sleep(textDelay(550));
           break;
         case 'dmg': {
+          sfx('hit');
           const spr = ev.side === 0 ? $me.querySelector('.bt-sprite') : $enemy.querySelector('.bt-sprite');
           if (spr) { spr.classList.remove('shake'); void spr.offsetWidth; spr.classList.add('shake'); }
           updateBars();
-          await sleep(520);
+          await sleep(textDelay(520));
           break;
         }
         case 'heal':
           updateBars();
-          await sleep(380);
+          await sleep(textDelay(380));
           break;
         case 'faint': {
           const spr = ev.side === 0 ? $me.querySelector('.bt-sprite') : $enemy.querySelector('.bt-sprite');
           if (spr) spr.classList.add('faint');
           updateBars();
-          await sleep(680);
+          await sleep(textDelay(680));
           break;
         }
         case 'sendOut':
           if (ev.side === 0) renderMe(); else renderEnemy();
-          await sleep(420);
+          await sleep(textDelay(420));
           break;
         case 'exp':
-          if (ev.amount) floatPop(`+${fmt(ev.amount)} EXP`, 'exp', 58);
+          if (ev.amount) { sfx('coin'); floatPop(`+${fmt(ev.amount)} EXP`, 'exp', 58); }
           updateBars();
           if (ev.levels && ev.levels > 0) renderMe(); // lên level: vẽ lại số liệu
-          await sleep(320);
+          await sleep(textDelay(320));
           break;
         case 'learn':
           if (ev.side === 0 && ev.full) pendingLearns.push({ slot: ev.slot, move: ev.move });
-          await sleep(150);
+          await sleep(textDelay(150));
           break;
         case 'catch':
           await playCatch(ev);

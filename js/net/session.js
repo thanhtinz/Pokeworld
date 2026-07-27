@@ -7,6 +7,7 @@ import { isOnlineMode, getToken } from './config.js';
 import * as api from './api.js';
 import * as sock from './socket.js';
 import { G } from '../state.js';
+import { getSetting, onSettingChange } from '../engine/settings.js';
 
 const MAX_LOG = 120;
 
@@ -79,7 +80,7 @@ export async function startSession() {
     // Đẩy bản lưu NGAY khi vào phiên. Không làm bước này thì trong 30 giây đầu
     // máy chủ chưa có dữ liệu người chơi, lập bang hội sẽ báo "chưa có dữ liệu game".
     await api.pushSave(buildSave());
-    api.startAutoSync(() => buildSave(), 30000);
+    if (getSetting('autoSync')) api.startAutoSync(() => buildSave(), 30000);
     const me = await api.fetchMe();
     if (me.ok) net.me = me.data?.user || me.data;
   }
@@ -117,3 +118,10 @@ export function clearUnread(kind) {
   // vô hạn: màn chat vẽ lại -> xoá đánh dấu -> báo đổi -> vẽ lại -> ... treo trang.
   if (net.unread[kind] > 0) { net.unread[kind] = 0; changed(); }
 }
+
+// Bật/tắt tự đồng bộ ngay khi người chơi đổi trong Cài đặt
+onSettingChange((k) => {
+  if (k !== 'autoSync') return;
+  if (getSetting('autoSync')) api.startAutoSync(() => buildSave(), 30000);
+  else api.stopAutoSync();
+});

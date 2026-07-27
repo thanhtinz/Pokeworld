@@ -95,10 +95,85 @@ document.getElementById('bottom-nav').addEventListener('click', e => {
   if (inBattle()) { toast('Đang trong trận đấu!'); return; }
   show(btn.dataset.nav);
 });
-document.getElementById('chat-fab').addEventListener('click', () => {
-  if (inBattle()) { toast('Đang trong trận đấu!'); return; }
-  show('chat');
-});
+// ==== Nút chat nổi: kéo thả được, nhớ vị trí theo máy ====
+// Kéo xong nút bám mép gần nhất và không bao giờ ra khỏi màn hình, kể cả khi
+// xoay ngang hoặc đổi cỡ cửa sổ.
+(function wireChatFab() {
+  const fab = document.getElementById('chat-fab');
+  if (!fab) return;
+  const KEY = 'pw_fab_pos';
+  const MARGIN = 10;
+  const NAV_GAP = 76;                       // chừa chỗ cho thanh điều hướng dưới
+  let dragging = false, moved = false, sx = 0, sy = 0, ox = 0, oy = 0;
+
+  const clampPos = (x, y) => {
+    const w = fab.offsetWidth || 52, h = fab.offsetHeight || 52;
+    return [
+      Math.min(Math.max(MARGIN, x), Math.max(MARGIN, innerWidth - w - MARGIN)),
+      Math.min(Math.max(MARGIN, y), Math.max(MARGIN, innerHeight - h - NAV_GAP)),
+    ];
+  };
+
+  function place(x, y, save = false) {
+    const [cx, cy] = clampPos(x, y);
+    fab.style.left = cx + 'px';
+    fab.style.top = cy + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+    if (save) { try { localStorage.setItem(KEY, JSON.stringify({ x: cx, y: cy })); } catch { /* bỏ qua */ } }
+  }
+
+  function restore() {
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { p = null; }
+    if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) place(p.x, p.y);
+  }
+
+  fab.addEventListener('pointerdown', (e) => {
+    dragging = true; moved = false;
+    sx = e.clientX; sy = e.clientY;
+    const r = fab.getBoundingClientRect();
+    ox = r.left; oy = r.top;
+    fab.setPointerCapture(e.pointerId);
+    fab.classList.add('dragging');
+  });
+
+  fab.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    // Nhích vài pixel mới tính là kéo, không thì chạm hơi lệch tay là mất cú bấm
+    if (!moved && Math.hypot(dx, dy) < 6) return;
+    moved = true;
+    e.preventDefault();
+    place(ox + dx, oy + dy);
+  });
+
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    fab.classList.remove('dragging');
+    if (e && e.pointerId !== undefined) { try { fab.releasePointerCapture(e.pointerId); } catch { /* bỏ qua */ } }
+    if (moved) {
+      const r = fab.getBoundingClientRect();
+      place(r.left, r.top, true);
+    }
+  }
+  fab.addEventListener('pointerup', endDrag);
+  fab.addEventListener('pointercancel', endDrag);
+
+  fab.addEventListener('click', (e) => {
+    if (moved) { e.preventDefault(); moved = false; return; }   // vừa kéo thì không mở trang
+    if (inBattle()) { toast('Đang trong trận đấu!'); return; }
+    show('chat');
+  });
+
+  // Đổi cỡ màn hình / xoay máy: kéo nút về trong khung
+  addEventListener('resize', () => {
+    if (fab.style.left) place(parseFloat(fab.style.left), parseFloat(fab.style.top), true);
+  });
+
+  restore();
+})();
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-goto]');
   if (b) show(b.dataset.goto);

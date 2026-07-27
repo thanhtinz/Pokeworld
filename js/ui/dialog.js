@@ -2,6 +2,7 @@
 import { esc } from '../util.js';
 import { SPEAKERS } from '../data/story.js';
 import { activeAvatar } from '../engine/accounts.js';
+import { getSetting, textDelay, sfx } from '../engine/settings.js';
 
 // Hiện chuỗi hội thoại [[người nói, text], ...] — Promise resolve khi xem hết.
 // "người nói" là mã trong SPEAKERS, hoặc một object tự đặt:
@@ -32,7 +33,8 @@ export function playDialog(lines) {
     const owEl = overlay.querySelector('.ow-face');
     let i = 0, typing = null, fullText = '';
 
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Tắt chuyển động (hệ điều hành hoặc cài đặt trong game) -> hiện thẳng cả câu
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches || !getSetting('motion');
 
     function showLine() {
       const [sp, text] = lines[i];
@@ -53,31 +55,45 @@ export function playDialog(lines) {
       speakerEl.style.display = who.name ? '' : 'none';
       fullText = text;
       textEl.textContent = '';
-      if (reduced) { textEl.textContent = fullText; return; }
+      if (reduced) { textEl.textContent = fullText; scheduleAuto(); return; }
       let pos = 0;
       clearInterval(typing);
       typing = setInterval(() => {
         pos += 2; // 2 ký tự / tick cho nhanh vừa phải
         textEl.textContent = fullText.slice(0, pos);
-        if (pos >= fullText.length) clearInterval(typing);
-      }, 24);
+        if (pos >= fullText.length) {
+          clearInterval(typing);
+          scheduleAuto();
+        }
+      }, textDelay(24));
+    }
+
+    // Chế độ tự chạy: gõ xong câu thì tự sang câu kế, không phải chạm
+    let autoTimer = null;
+    function scheduleAuto() {
+      clearTimeout(autoTimer);
+      if (!getSetting('autoDialog')) return;
+      autoTimer = setTimeout(next, textDelay(1400));
+    }
+
+    function next() {
+      clearInterval(typing);
+      clearTimeout(autoTimer);
+      i += 1;
+      if (i >= lines.length) { overlay.remove(); resolve(); }
+      else showLine();
     }
 
     overlay.addEventListener('click', () => {
+      sfx('tap');
       // Đang gõ dở -> hiện hết câu
       if (textEl.textContent.length < fullText.length) {
         clearInterval(typing);
         textEl.textContent = fullText;
+        scheduleAuto();
         return;
       }
-      i += 1;
-      if (i >= lines.length) {
-        clearInterval(typing);
-        overlay.remove();
-        resolve();
-      } else {
-        showLine();
-      }
+      next();
     });
 
     showLine();

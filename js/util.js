@@ -1,4 +1,5 @@
 // PokeWorld H5 | util.js | Tiện ích chung: RNG, clamp, sprite, escape HTML
+import { getSetting } from './engine/settings.js';
 
 // Nguồn số ngẫu nhiên. Bình thường dùng Math.random, nhưng khi đấu PvP thì
 // gieo hạt để HAI MÁY tính ra y hệt nhau — không có bước này thì mỗi bên thấy
@@ -137,6 +138,8 @@ export function animLocal(dexId, back = false, shiny = false) {
     if (id > STATIC_MAX) return null;
     return `assets/sprites/${back ? 'back/shiny' : 'shiny'}/${id}.png`;
   }
+  // Tắt ảnh động trong cài đặt -> trả null để rơi về ảnh hộp tĩnh (nhẹ hơn nhiều)
+  if (!getSetting('anim')) return null;
   if (id > ANIM_MAX) return null;
   const kind = back ? 'back' : 'front';
   if (ANIM_MISSING[kind].has(id)) return null;
