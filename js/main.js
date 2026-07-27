@@ -68,7 +68,22 @@ export function show(name, params = {}) {
   el.dispatchEvent(new CustomEvent('screen-leave'));
   el.className = `screen screen-${name}`;
   el.innerHTML = '';
-  scr.render(el, params);
+  // Màn nào lỗi thì hiện thẳng lỗi + nút tải lại. Trước đây render() ném lỗi là
+  // người chơi ngồi trước một màn TRẮNG không biết làm gì (hay gặp khi máy còn
+  // giữ bản cũ trong bộ nhớ đệm, mà bản cũ lại gọi tệp nay đã xoá).
+  try {
+    scr.render(el, params);
+    // Có màn "return sớm" khi thiếu dữ liệu và để lại màn hình trắng trơn —
+    // người chơi tưởng game treo. Trắng thì báo luôn cho biết đường mà làm.
+    if (!el.children.length && !KHONG_CAN_NOI_DUNG.has(name)) {
+      queueMicrotask(() => {
+        if (current === name && !el.children.length) showCrash(el, name, new Error('Màn hình không có nội dung'));
+      });
+    }
+  } catch (e) {
+    console.error('render', name, e);
+    showCrash(el, name, e);
+  }
   // Bottom nav: ẩn trong suốt luồng mở đầu và khi đang đánh
   const nav = document.getElementById('bottom-nav');
   nav.hidden = NO_NAV.has(name);
@@ -81,6 +96,34 @@ export function show(name, params = {}) {
   drawTopBar(nav.hidden);
   playMusic(MUSIC_BY_SCREEN[name] || 'town');
   el.scrollTop = 0;
+}
+
+// Mấy màn này tự chuyển tiếp ngay (không kịp vẽ gì) nên trắng là bình thường
+const KHONG_CAN_NOI_DUNG = new Set(['starter']);
+
+// Màn hình báo lỗi + nút xoá bộ nhớ đệm rồi tải lại
+function showCrash(el, name, err) {
+  el.innerHTML = `
+    <div class="card" style="margin:24px 14px">
+      <h2 style="margin-bottom:8px">Màn "${name}" không mở được</h2>
+      <p class="empty-note" style="text-align:left">Thường là do máy còn giữ bản game cũ.
+      Bấm nút dưới để xoá bộ nhớ đệm và tải lại bản mới nhất.</p>
+      <pre style="white-space:pre-wrap;font-size:11px;color:var(--muted);margin:8px 0">${
+        String(err && err.message || err).slice(0, 200)}</pre>
+      <button class="btn btn-primary" id="btn-hard-reload">Xoá bộ nhớ đệm & tải lại</button>
+    </div>`;
+  el.querySelector('#btn-hard-reload').addEventListener('click', hardReload);
+}
+
+// Gỡ service worker + xoá cache rồi nạp lại trang
+export async function hardReload() {
+  try {
+    const regs = await navigator.serviceWorker?.getRegistrations?.() || [];
+    await Promise.all(regs.map(r => r.unregister()));
+    const keys = await caches?.keys?.() || [];
+    await Promise.all(keys.map(k => caches.delete(k)));
+  } catch (e) { console.warn('hardReload', e); }
+  location.reload();
 }
 
 // Vẽ icon SVG vào mọi chỗ đánh dấu data-ico (thanh dưới, nút chat nổi)

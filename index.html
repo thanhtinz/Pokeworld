@@ -50,6 +50,14 @@
   <script>
     if ('serviceWorker' in navigator) {
       addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+      // Bản mới thay bản cũ -> tải lại MỘT lần. Không có bước này thì máy đang mở
+      // game sẽ chạy lẫn lộn tệp cũ với tệp mới, có màn mở ra trắng trơn.
+      let daTaiLai = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (daTaiLai) return;
+        daTaiLai = true;
+        location.reload();
+      });
     }
   </script>
 </body>

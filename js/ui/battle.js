@@ -67,7 +67,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
   // Nền trận đấu đổi theo khu vực đang đứng
   const arena = arenaFor(G.p.zone);
   el.innerHTML = `
-    <div class="battle" style="--arena-bg:url(${arena.bg});--base-foe:url(${arena.foe});--base-me:url(${arena.me})">
+    <div class="battle" style="--arena-bg:url(${arena.bg})">
       <div class="bt-enemy" id="bt-enemy"></div>
       <div class="bt-log" id="bt-log"></div>
       <div class="bt-me" id="bt-me"></div>
@@ -127,7 +127,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
-      <span class="bt-stage" style="--base:url(${arena.foe})">
+      <span class="bt-stage">
         <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
              src="${monImg(m)}" onerror="${monFallbackAttr(m)}"
@@ -143,7 +143,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const [cur, need] = expProgress(m);
     const expPct = Math.min(100, Math.round(cur / Math.max(1, need) * 100));
     $me.innerHTML = `
-      <span class="bt-stage" style="--base:url(${arena.me})">
+      <span class="bt-stage">
         <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
              src="${monImg(m, true)}" onerror="${monFallbackAttr(m, true)}"

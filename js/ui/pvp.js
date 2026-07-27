@@ -55,7 +55,7 @@ export function render(el, ctx = {}) {
   const arena = arenaFor(G.p.zone);
   el.innerHTML = `
     ${header(`PvP · ${esc(opponent.username)}`)}
-    <div class="battle" style="--arena-bg:url(${arena.bg});--base-foe:url(${arena.foe});--base-me:url(${arena.me})">
+    <div class="battle" style="--arena-bg:url(${arena.bg})">
       <div class="bt-enemy" id="pv-foe"></div>
       <div class="bt-log" id="pv-log"></div>
       <div class="bt-me" id="pv-me"></div>
@@ -93,7 +93,7 @@ export function render(el, ctx = {}) {
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(mon.hpCur, maxHp(mon))}</div>
       </div>`;
     const img = `
-      <span class="bt-stage" style="--base:url(${back ? arena.me : arena.foe})">
+      <span class="bt-stage">
         <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
              style="width:min(${monPx(mon)}px, 58vw)"
              src="${monImg(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">

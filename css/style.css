@@ -1514,16 +1514,19 @@ img[src*='sprites'] { image-rendering: pixelated; }
   justify-content: center;
   align-items: flex-end;
 }
+/* Bóng đổ dưới chân: Tuxemon gốc không có bệ đứng, con nào cũng đứng thẳng
+   trên nền. Vẽ một vệt bóng mềm cho có trọng lượng, không cần thêm ảnh nào. */
 .bt-stage::after {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: 4%;
   transform: translateX(-50%);
-  width: 118%;
-  aspect-ratio: 128 / 34;
-  background: var(--base) center bottom / 100% 100% no-repeat;
-  image-rendering: pixelated;
+  width: 76%;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center,
+    rgba(0, 0, 0, .45) 0%, rgba(0, 0, 0, .28) 55%, rgba(0, 0, 0, 0) 78%);
   z-index: -1;
   pointer-events: none;
 }

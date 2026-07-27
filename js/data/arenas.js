@@ -1,6 +1,7 @@
 // TuxeWorld H5 | data/arenas.js | Nền trận đấu theo khu vực
-// Ảnh lấy từ pokerogue-assets (images/arenas): mỗi bộ gồm nền trời-đất và
-// hai cái bệ đứng — bệ của mình ở dưới trái, bệ của đối thủ ở trên phải.
+// Nền lấy từ Tuxemon (gfx/ui/combat), ghép lại cho khung dọc bằng
+// tools/mkarena.py. Không có bệ đứng — Tuxemon đứng thẳng trên nền, giao diện
+// chỉ vẽ thêm một vệt bóng mềm dưới chân.
 import { absUrl } from '../util.js';
 
 export const ARENAS = {
@@ -31,7 +32,5 @@ export function arenaFor(zoneId) {
   return {
     name: a,
     bg: absUrl(`assets/arena/${a}_bg.png`),
-    foe: absUrl(`assets/arena/${a}_base_foe.png`),
-    me: absUrl(`assets/arena/${a}_base_me.png`),
   };
 }
