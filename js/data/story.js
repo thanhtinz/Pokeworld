@@ -1,14 +1,14 @@
 // TuxeWorld H5 | data/story.js | Cốt truyện chiến dịch 8 chương
 // Mỗi chương: hội thoại mở đầu (dialog), mục tiêu (goal — cùng schema quest),
 // thưởng, zone mở khóa khi hoàn thành, hội thoại kết chương (outro).
-// speaker: 'prof' Giáo sư Oak | 'rival' Blue | 'rocket' Team Rocket | 'me' người chơi | 'sys'
+// speaker: 'prof' Giáo sư Oak | 'rogue' Blue | 'rocket' Team Rocket | 'me' người chơi | 'sys'
 
 export const SPEAKERS = {
-  prof:   { name: 'Professor Oak',  icon: '👨‍🔬', img: 'oak' },
-  rival:  { name: 'Blue',          icon: '😏', img: 'rival' },
-  nurse:  { name: 'Nurse Joy',      icon: '👩‍⚕️', img: 'lass' },
-  rocket: { name: 'Team Rocket', icon: '🚀', img: 'rocket_m' },
-  boss:   { name: 'Giovanni', icon: '😈', img: 'giovanni' },
+  prof:   { name: 'Professor Oak',  icon: '👨‍🔬', img: 'professor' },
+  rival:  { name: 'Blue',          icon: '😏', img: 'rogue' },
+  nurse:  { name: 'Nurse Joy',      icon: '👩‍⚕️', img: 'nurse' },
+  rocket: { name: 'Team Rocket', icon: '🚀', img: 'grunt' },
+  boss:   { name: 'Giovanni', icon: '😈', img: 'boss' },
   me:     { name: 'Bạn',           icon: '🧢', img: null }, // avatar tài khoản (red/leaf)
   sys:    { name: '',              icon: '', img: null },
 };
@@ -29,8 +29,8 @@ export const CHAPTERS = [
     ],
     goal: { t: 'choose_starter' },       // hoàn thành ngay khi chọn starter
     outro: [
-      ['rival', 'Ê! Cậu cũng nhận Tuxemon từ ông nội tớ hả? Tớ là Blue!'],
-      ['rival', 'Vậy thì... tớ chọn con KHẮC HỆ với cậu luôn! Hê hê. Mai đấu thử một trận nhé!'],
+      ['rogue', 'Ê! Cậu cũng nhận Tuxemon từ ông nội tớ hả? Tớ là Blue!'],
+      ['rogue', 'Vậy thì... tớ chọn con KHẮC HỆ với cậu luôn! Hê hê. Mai đấu thử một trận nhé!'],
     ],
     reward: { items: [{ id: 'potion', n: 3 }] },
     unlock: ['route_1'],
@@ -39,11 +39,11 @@ export const CHAPTERS = [
     id: 'ch2', title: 'Chương 2 — Trận đấu đầu tiên',
     desc: 'Blue đang chờ ở Đường Số 1. Thắng cậu ấy để chứng tỏ bản thân!',
     dialog: [
-      ['rival', 'Tới rồi à! Xem Tuxemon của ai mạnh hơn nào. Đừng khóc nếu thua đấy!'],
+      ['rogue', 'Tới rồi à! Xem Tuxemon của ai mạnh hơn nào. Đừng khóc nếu thua đấy!'],
     ],
     goal: { t: 'defeat_trainer', id: 'rival_1' },
     outro: [
-      ['rival', 'Hừm! Chỉ là may mắn thôi! Tớ sẽ luyện tập và phục thù!'],
+      ['rogue', 'Hừm! Chỉ là may mắn thôi! Tớ sẽ luyện tập và phục thù!'],
       ['prof', 'Giỏi lắm! Đây là Tux Ball — hãy bắt thêm đồng đội. Gặp Tuxemon hoang trong bụi cỏ, làm yếu rồi ném bóng!'],
     ],
     reward: { money: 500, items: [{ id: 'poke_ball', n: 10 }] },
@@ -127,7 +127,7 @@ export const CHAPTERS = [
     goal: { t: 'defeat_trainer', id: 'rival_2' },
     require: { badge: 'badge_cascade' }, // cần badge nước trước khi rival_2 xuất hiện
     outro: [
-      ['rival', 'Thua tâm phục khẩu phục... Cậu xứng đáng là Nhà Vô Địch. Nhưng tớ sẽ không bỏ cuộc đâu!'],
+      ['rogue', 'Thua tâm phục khẩu phục... Cậu xứng đáng là Nhà Vô Địch. Nhưng tớ sẽ không bỏ cuộc đâu!'],
       ['prof', 'Cháu đã đi một hành trình dài... Từ hôm nay, cháu là NHÀ VÔ ĐỊCH của vùng! Hãy tiếp tục hoàn thành Tuxedex nhé!'],
     ],
     reward: { money: 10000, items: [{ id: 'rare_candy', n: 3 }, { id: 'lucky_egg', n: 1 }] },

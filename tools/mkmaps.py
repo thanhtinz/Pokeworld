@@ -16,14 +16,13 @@ BUILD = {'center': (5, 5, (2, 4)), 'mart': (4, 4, (1, 3)), 'gym': (4, 5, (1, 4))
          'lab': (7, 5, (4, 4)), 'house': (4, 5, (1, 4)), 'house2': (5, 5, (2, 4))}
 
 # Sprite tren ban do -> anh 2D trong assets/trainers/ (hien khi noi chuyen).
-FACE = {
-    'juan': 'oak', 'roxanne': 'lass', 'liza': 'youngster', 'tate': 'youngster',
-    'flannery': 'lass', 'sidney': 'camper_f', 'phoebe': 'school_kid',
-    'brawly': 'bug_catcher', 'steven': 'rocket_m', 'wallace': 'rocket_f',
-    'wattson': 'hiker', 'winona': 'swimmer_f', 'norman': 'gentleman',
-    'glacia': 'beauty', 'drake': 'sailor', 'roxanne': 'lass',
-    'nurse_joy': 'nurse', 'mart_clerk': 'clerk',
-}
+# Sprite tren ban do va anh 2D khi noi chuyen giờ dùng CHUNG một tên, nên chỉ
+# cần liệt kê những vai có mặt trên bản đồ để công cụ ảnh biết phải chép gì.
+FACE = {n: n for n in (
+    'professor', 'scientist', 'kid', 'kid2', 'florist', 'camper', 'bugcatcher',
+    'grunt', 'grunt_f', 'miner', 'swimmer', 'chief', 'lady', 'sailor',
+    'nurse', 'clerk',
+)}
 
 MAPS = {}
 
@@ -94,11 +93,11 @@ add('town_1', 'Thị Trấn Khởi Đầu', g, (15, 22),
         ('gym', 26, 14, 'gym', 'Rock Gym', 'Phòng Gym hệ Đá. Sẵn sàng thách đấu chưa?', 'gym_brock'),
     ],
     npcs=[
-        (14, 20, 'talk', 'juan', 'Professor Oak', 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!'),
-        (5, 20, 'talk', 'roxanne', 'Daisy', 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.'),
-        (24, 10, 'talk', 'liza', 'Boy', 'Poké Mart mới nhập Poké Ball đó!'),
-        (10, 10, 'talk', 'wattson', 'Old Man', 'Hồi trẻ ta từng đi hết Hang Đá, sâu bên trong còn một hang nữa đấy!'),
-        (28, 20, 'talk', 'tate', 'Kid', 'Phòng Gym hệ Đá khó lắm, cẩn thận nhé!'),
+        (14, 20, 'talk', 'professor', 'Professor Oak', 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!'),
+        (5, 20, 'talk', 'scientist', 'Daisy', 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.'),
+        (24, 10, 'talk', 'kid', 'Boy', 'Poké Mart mới nhập Poké Ball đó!'),
+        (10, 10, 'talk', 'miner', 'Old Man', 'Hồi trẻ ta từng đi hết Hang Đá, sâu bên trong còn một hang nữa đấy!'),
+        (28, 20, 'talk', 'kid2', 'Kid', 'Phòng Gym hệ Đá khó lắm, cẩn thận nhé!'),
     ])
 
 # ==================== 2. Duong so 1 (40x30) ====================
@@ -115,10 +114,10 @@ g.put(9, 11, 'B')
 add('route_1', 'Đường Số 1', g, (8, 2),
     warps=[(8, 0, 'town_1', 15, 24), (10, 29, 'route_2', 6, 1), (0, 12, 'forest_1', 33, 14)],
     npcs=[
-        (17, 11, 'trainer', 'tate', 'Youngster Joey', 'Pokémon của tớ mạnh lắm đấy!', 'youngster_minh'),
-        (11, 20, 'trainer', 'flannery', 'Lass Nina', 'Dễ thương nhưng không hiền đâu nhé!', 'lass_lan'),
-        (28, 12, 'trainer', 'brawly', 'Bug Catcher Rick', 'Bọ là nhất!', 'bugcatcher_tung'),
-        (33, 21, 'talk', 'norman', 'Hiker', 'Đi thẳng xuống nam là tới Đường Số 2.'),
+        (17, 11, 'trainer', 'kid2', 'Youngster Joey', 'Pokémon của tớ mạnh lắm đấy!', 'youngster_minh'),
+        (11, 20, 'trainer', 'florist', 'Lass Nina', 'Dễ thương nhưng không hiền đâu nhé!', 'lass_lan'),
+        (28, 12, 'trainer', 'bugcatcher', 'Bug Catcher Rick', 'Bọ là nhất!', 'bugcatcher_tung'),
+        (33, 21, 'talk', 'chief', 'Hiker', 'Đi thẳng xuống nam là tới Đường Số 2.'),
     ])
 
 # ==================== 3. Duong so 2 (40x30) ====================
@@ -135,10 +134,10 @@ g.rect(2, 20, 3, 3, '#').rect(35, 20, 3, 2, '#')
 add('route_2', 'Đường Số 2', g, (6, 2),
     warps=[(6, 0, 'route_1', 10, 28), (39, 9, 'cave_1', 1, 11), (12, 29, 'lake_1', 17, 1)],
     npcs=[
-        (21, 10, 'trainer', 'sidney', 'Camper Ethan', 'Đường này ta canh giữ!', 'hiker_dung'),
-        (13, 19, 'trainer', 'wallace', 'Rocket Duo', 'Bọn ta đang bận đào đá quý!', 'rocket_2'),
-        (28, 9, 'talk', 'phoebe', 'Bug Catcher', 'Trong rừng phía tây nhiều bọ lắm!'),
-        (14, 27, 'talk', 'glacia', 'Lady', 'Hồ Gương Trời ngay dưới kia, đẹp lắm!'),
+        (21, 10, 'trainer', 'camper', 'Camper Ethan', 'Đường này ta canh giữ!', 'hiker_dung'),
+        (13, 19, 'trainer', 'grunt_f', 'Rocket Duo', 'Bọn ta đang bận đào đá quý!', 'rocket_2'),
+        (28, 9, 'talk', 'bugcatcher', 'Bug Catcher', 'Trong rừng phía tây nhiều bọ lắm!'),
+        (14, 27, 'talk', 'lady', 'Lady', 'Hồ Gương Trời ngay dưới kia, đẹp lắm!'),
     ])
 
 # ==================== 4. Rung xanh tham (36x30) ====================
@@ -159,9 +158,9 @@ g.dots([(7, 8), (26, 25), (13, 26)], ',')
 add('forest_1', 'Rừng Xanh Thẳm', g, (33, 14),
     warps=[(35, 13, 'route_1', 1, 12), (35, 14, 'route_1', 1, 12), (35, 15, 'route_1', 1, 12)],
     npcs=[
-        (17, 25, 'trainer', 'brawly', 'Bug Catcher Rick', 'Bọ là nhất!', 'bugcatcher_tung'),
-        (13, 5, 'talk', 'steven', 'Rocket Grunt', 'Cút khỏi đây, nhóc!'),
-        (23, 19, 'talk', 'drake', 'Woodsman', 'Rừng này dễ lạc lắm, cứ men theo lối mòn.'),
+        (17, 25, 'trainer', 'bugcatcher', 'Bug Catcher Rick', 'Bọ là nhất!', 'bugcatcher_tung'),
+        (13, 5, 'talk', 'grunt', 'Rocket Grunt', 'Cút khỏi đây, nhóc!'),
+        (23, 19, 'talk', 'sailor', 'Woodsman', 'Rừng này dễ lạc lắm, cứ men theo lối mòn.'),
     ])
 
 # ==================== 5. Hang Da (34x26) ====================
@@ -177,9 +176,9 @@ add('cave_1', 'Hang Đá', g, (1, 11), enc_all=True,
     warps=[(0, 11, 'route_2', 38, 9), (0, 12, 'route_2', 38, 9),
            (33, 10, 'cave_2', 2, 13), (33, 11, 'cave_2', 2, 13)],
     npcs=[
-        (26, 21, 'trainer', 'wallace', 'Rocket Duo', 'Bọn ta đang bận đào đá quý!', 'rocket_2'),
-        (13, 17, 'talk', 'wattson', 'Hiker', 'Đi hết hang này về phía đông còn một hang sâu hơn nữa!'),
-        (30, 9, 'talk', 'roxanne', 'Geologist', 'Đá ở đây toàn loại quý đấy!'),
+        (26, 21, 'trainer', 'grunt_f', 'Rocket Duo', 'Bọn ta đang bận đào đá quý!', 'rocket_2'),
+        (13, 17, 'talk', 'miner', 'Hiker', 'Đi hết hang này về phía đông còn một hang sâu hơn nữa!'),
+        (30, 9, 'talk', 'scientist', 'Geologist', 'Đá ở đây toàn loại quý đấy!'),
     ])
 
 # ==================== 6. Ho Guong Troi (36x28) ====================
@@ -199,9 +198,9 @@ add('lake_1', 'Hồ Gương Trời', g, (17, 2),
         ('house', 28, 16, 'talk', 'Fisherman Hut', 'Mùi cá nồng nặc.'),
     ],
     npcs=[
-        (33, 12, 'talk', 'winona', 'Swimmer', 'Nghe nói có Gyarados khổng lồ dưới hồ này...'),
-        (6, 24, 'trainer', 'sidney', 'Camper Ethan', 'Đường này ta canh giữ!', 'hiker_dung'),
-        (14, 22, 'talk', 'liza', 'Girl', 'Trung tâm Pokémon ngay bên phải đó!'),
+        (33, 12, 'talk', 'swimmer', 'Swimmer', 'Nghe nói có Gyarados khổng lồ dưới hồ này...'),
+        (6, 24, 'trainer', 'camper', 'Camper Ethan', 'Đường này ta canh giữ!', 'hiker_dung'),
+        (14, 22, 'talk', 'kid', 'Girl', 'Trung tâm Pokémon ngay bên phải đó!'),
     ])
 
 # ==================== 7. Duong so 3 (38x30) ====================
@@ -218,10 +217,10 @@ g.put(20, 12, 'B')
 add('route_3', 'Đường Số 3', g, (19, 2),
     warps=[(19, 0, 'lake_1', 17, 26), (5, 29, 'meadow_1', 18, 1), (30, 29, 'town_2', 16, 1)],
     npcs=[
-        (18, 13, 'trainer', 'sidney', 'Camper Liam', 'Cắm trại ở đây mát lắm, đấu một trận không?', 'camper_route3'),
-        (6, 20, 'talk', 'wattson', 'Hiker', 'Xuống tây nam là Đồng Hoa Nắng, đông nam là Làng Ven Núi.'),
-        (28, 13, 'talk', 'winona', 'Swimmer', 'Tớ vừa bơi từ hồ lên, mệt quá!'),
-        (12, 26, 'trainer', 'winona', 'Swimmer Marina', 'Tớ lên bờ nghỉ chút, đấu thử nhé!', 'sailor_route3'),
+        (18, 13, 'trainer', 'camper', 'Camper Liam', 'Cắm trại ở đây mát lắm, đấu một trận không?', 'camper_route3'),
+        (6, 20, 'talk', 'miner', 'Hiker', 'Xuống tây nam là Đồng Hoa Nắng, đông nam là Làng Ven Núi.'),
+        (28, 13, 'talk', 'swimmer', 'Swimmer', 'Tớ vừa bơi từ hồ lên, mệt quá!'),
+        (12, 26, 'trainer', 'swimmer', 'Swimmer Marina', 'Tớ lên bờ nghỉ chút, đấu thử nhé!', 'sailor_route3'),
     ])
 
 # ==================== 8. Dong Hoa Nang (34x28) ====================
@@ -238,9 +237,9 @@ g.put(17, 13, 'B')
 add('meadow_1', 'Đồng Hoa Nắng', g, (18, 2),
     warps=[(18, 0, 'route_3', 5, 28)],
     npcs=[
-        (16, 14, 'talk', 'glacia', 'Flower Girl', 'Hoa ở đây nở quanh năm, Pokémon hệ Cỏ mê lắm!'),
-        (20, 14, 'trainer', 'flannery', 'Picnicker Hazel', 'Đi dã ngoại mà gặp đối thủ, vui quá!', 'lass_rainbow'),
-        (18, 24, 'talk', 'liza', 'Kid', 'Tớ thấy một con chim to đùng bay ngang qua đây!'),
+        (16, 14, 'talk', 'lady', 'Flower Girl', 'Hoa ở đây nở quanh năm, Pokémon hệ Cỏ mê lắm!'),
+        (20, 14, 'trainer', 'florist', 'Picnicker Hazel', 'Đi dã ngoại mà gặp đối thủ, vui quá!', 'lass_rainbow'),
+        (18, 24, 'talk', 'kid', 'Kid', 'Tớ thấy một con chim to đùng bay ngang qua đây!'),
     ])
 
 # ==================== 9. Lang Ven Nui (30x26) ====================
@@ -264,10 +263,10 @@ add('town_2', 'Làng Ven Núi', g, (15, 21),
         ('house', 20, 13, 'talk', 'Fisher Home', 'Lưới cá phơi trước cửa.'),
     ],
     npcs=[
-        (12, 19, 'talk', 'norman', 'Village Chief', 'Làng ta nằm giữa núi và biển, đi đâu cũng tiện.'),
-        (19, 19, 'talk', 'roxanne', 'Girl', 'Bãi biển phía nam đẹp lắm, nhất là lúc hoàng hôn.'),
-        (5, 19, 'talk', 'tate', 'Boy', 'Hang sâu trong núi tối lắm, đừng vào một mình!'),
-        (25, 19, 'trainer', 'steven', 'Rocket Grunt', 'Làng này sắp thuộc về Rocket!', 'rocket_grunt_3'),
+        (12, 19, 'talk', 'chief', 'Village Chief', 'Làng ta nằm giữa núi và biển, đi đâu cũng tiện.'),
+        (19, 19, 'talk', 'scientist', 'Girl', 'Bãi biển phía nam đẹp lắm, nhất là lúc hoàng hôn.'),
+        (5, 19, 'talk', 'kid2', 'Boy', 'Hang sâu trong núi tối lắm, đừng vào một mình!'),
+        (25, 19, 'trainer', 'grunt', 'Rocket Grunt', 'Làng này sắp thuộc về Rocket!', 'rocket_grunt_3'),
     ])
 
 # ==================== 10. Bai Bien Hoang Hon (36x28) ====================
@@ -284,9 +283,9 @@ g.put(16, 6, 'B')
 add('beach_1', 'Bãi Biển Hoàng Hôn', g, (17, 2),
     warps=[(17, 0, 'town_2', 15, 24)],
     npcs=[
-        (18, 8, 'talk', 'drake', 'Old Sailor', 'Ta lênh đênh bốn mươi năm, chưa từng thấy sóng dữ như hôm qua.'),
-        (10, 11, 'trainer', 'winona', 'Swimmer Douglas', 'Dưới nước tớ là số một!', 'swimmer_light'),
-        (27, 10, 'talk', 'phoebe', 'Kid', 'Sò biển ở đây bắt được Pokémon vỏ cứng đó!'),
+        (18, 8, 'talk', 'sailor', 'Old Sailor', 'Ta lênh đênh bốn mươi năm, chưa từng thấy sóng dữ như hôm qua.'),
+        (10, 11, 'trainer', 'swimmer', 'Swimmer Douglas', 'Dưới nước tớ là số một!', 'swimmer_light'),
+        (27, 10, 'talk', 'bugcatcher', 'Kid', 'Sò biển ở đây bắt được Pokémon vỏ cứng đó!'),
     ])
 
 # ==================== 11. Hang Sau Tham (32x28) ====================
@@ -303,9 +302,9 @@ g.dots([(6, 8), (17, 8), (11, 12), (24, 11), (10, 17), (20, 21), (28, 18), (13, 
 add('cave_2', 'Hang Sâu Thẳm', g, (2, 13), enc_all=True,
     warps=[(0, 13, 'cave_1', 32, 11)],
     npcs=[
-        (24, 20, 'trainer', 'wattson', 'Hiker Marcos', 'Leo núi cả đời, chưa sợ ai bao giờ!', 'camper_victory'),
-        (17, 12, 'trainer', 'roxanne', 'Researcher Mio', 'Tôi đang đo địa chấn, đừng làm phiền!', 'channeler_unknown'),
-        (28, 24, 'talk', 'steven', 'Rocket Grunt', 'Chỗ này là của bọn ta, biến đi!'),
+        (24, 20, 'trainer', 'miner', 'Hiker Marcos', 'Leo núi cả đời, chưa sợ ai bao giờ!', 'camper_victory'),
+        (17, 12, 'trainer', 'scientist', 'Researcher Mio', 'Tôi đang đo địa chấn, đừng làm phiền!', 'channeler_unknown'),
+        (28, 24, 'talk', 'grunt', 'Rocket Grunt', 'Chỗ này là của bọn ta, biến đi!'),
     ])
 
 # ==================== Trong nha: anh that lam nen ====================
@@ -322,16 +321,16 @@ MART_ROWS = [
 def pokecenter(mid, back, bx, by):
     add(mid, 'Trung Tâm Pokémon', PC_ROWS, (6, 8),
         warps=[(6, 8, back, bx, by), (7, 8, back, bx, by)],
-        npcs=[(6, 2, 'deco', 'nurse_joy', 'Nurse Joy', '')],
-        spots=[(6, 3, 'heal', 'Nurse Joy', 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', 'nurse_joy'),
+        npcs=[(6, 2, 'deco', 'nurse', 'Nurse Joy', '')],
+        spots=[(6, 3, 'heal', 'Nurse Joy', 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', 'nurse'),
                (9, 3, 'pc', 'PC', 'Máy gửi Pokémon. Mở hộp chứa nhé?', None)],
         image='assets/interiors/pokecenter.png')
 
 def martmap(mid, back, bx, by):
     add(mid, 'Poké Mart', MART_ROWS, (3, 7),
         warps=[(3, 7, back, bx, by), (4, 7, back, bx, by)],
-        npcs=[(1, 2, 'deco', 'mart_clerk', 'Clerk', '')],
-        spots=[(2, 3, 'shop', 'Poké Mart', 'Chào mừng! Bạn cần mua gì nào?', 'mart_clerk')],
+        npcs=[(1, 2, 'deco', 'clerk', 'Clerk', '')],
+        spots=[(2, 3, 'shop', 'Poké Mart', 'Chào mừng! Bạn cần mua gì nào?', 'clerk')],
         image='assets/interiors/mart.png')
 
 pokecenter('pc_town', 'town_1', 6, 9)

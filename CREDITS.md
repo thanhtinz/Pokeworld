@@ -15,8 +15,10 @@ Cụ thể đã lấy:
 | 13 hệ + bảng khắc chế + icon hệ | `js/data/types.js`, `assets/types/` |
 | 256 chiêu thức | `js/data/moves.js` |
 | Bảng học chiêu, chuỗi tiến hoá, chỉ số theo dáng thân | `js/data/learnsets.js`, `js/data/evolutions.js`, `js/data/species.js` |
+| 32 sprite nhân vật + NPC đi trên bản đồ | `assets/ow/` |
+| 32 ảnh 2D nhân vật + NPC cho trận đấu và hội thoại | `assets/trainers/` |
 
-Toàn bộ do `tools/mktuxemon.py` và `tools/mkworld.py` sinh ra — chạy lại được
+Toàn bộ do `tools/mktuxemon.py`, `tools/mkworld.py` và `tools/mksprites.py` sinh ra — chạy lại được
 bất cứ lúc nào, không sửa tay.
 
 CC BY-SA yêu cầu: ghi công (chính là trang này) và nếu sửa lại ảnh thì bản sửa
@@ -24,29 +26,11 @@ cũng phải để CC BY-SA. Icon nhỏ của 15 con được thu từ chính sp
 của chúng (bản gốc chỉ có ảnh dấu hỏi dùng chung), nên phần sửa đó cũng theo
 CC BY-SA 4.0.
 
-## Ảnh 2D huấn luyện viên — `assets/trainers/`
-
-Cắt ra từ [pagefaultgames/pokerogue-assets](https://github.com/pagefaultgames/pokerogue-assets)
-(dự án PokéRogue). Chỉ lấy tệp `.png`; các tệp `.json` đi kèm phát hành theo
-giấy phép AGPL-3.0 nên **không** sao chép vào đây. Khung đứng yên được tách ra
-bằng `tools/extract_trainers.py` — tự dò vùng liên thông trong ảnh, không dùng
-dữ liệu toạ độ của họ.
-
-Ngoại lệ giữ nguyên bản FireRed/LeafGreen: `oak.png` (PokéRogue không có
-Giáo sư Oak) và `red.png` / `leaf.png` — hai ảnh này là nhân vật người chơi
-tên Red và Leaf, hiện ở màn tạo nhân vật nên giữ đúng bản gốc.
-
 ## Nền trận đấu — `assets/arena/`
 
 Từ [pagefaultgames/pokerogue-assets](https://github.com/pagefaultgames/pokerogue-assets)
 (`images/arenas`). Mỗi khu vực gồm nền trời-đất và hai cái bệ đứng, được cắt
 sát viền để đặt vào bố cục dọc của game.
-
-## Sprite nhân vật trên bản đồ — `assets/ow/`
-
-Cắt từ các sheet Pokémon Emerald trên [The Spriters Resource](https://www.spriters-resource.com/),
-do người dùng cung cấp. Người rip: MufasaKong, Random Talking Bush, P-P,
-Fuxs The Fox.
 
 ## Bộ tile bản đồ — `assets/tiles/terrain.png`
 

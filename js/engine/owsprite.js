@@ -1,10 +1,11 @@
 // TuxeWorld H5 | engine/owsprite.js | Nhân vật đi lại trên bản đồ (sprite kiểu GBA)
 // Mỗi file assets/ow/<tên>.png là lưới 3 cột x 4 hàng, ô 16x32:
-//   hàng 0 xuống · hàng 1 lên · hàng 2 trái · hàng 3 phải
+//   hàng 0 xuống · hàng 1 trái · hàng 2 phải · hàng 3 lên
 //   cột 0 đứng yên · cột 1 và 2 là hai bước chân
 export const OW_W = 16, OW_H = 32;
 
-const DIR_ROW = { down: 0, up: 1, left: 2, right: 3 };
+// Bộ sprite Tuxemon xếp hàng: 0 xuống · 1 trái · 2 phải · 3 lên
+const DIR_ROW = { down: 0, left: 1, right: 2, up: 3 };
 const WALK_CYCLE = [1, 0, 2, 0];      // nhịp bước: trái - đứng - phải - đứng
 const STEP_MS = 150;
 
