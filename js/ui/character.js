@@ -1,12 +1,12 @@
-// PokeWorld H5 | ui/character.js | Màn Nhân Vật: 6 ô trang bị, cường hóa, túi, cửa hàng
+// PokeWorld H5 | ui/character.js | Màn Nhân Vật: 6 ô trang bị, cường hóa, kho đồ
 //
 // Trang bị ở đây là ĐỒ TRANG TRÍ: mặc cho nhân vật đẹp, không cộng sức mạnh và
 // không tham gia chiến đấu (nhân vật không đánh nhau, chỉ Pokémon đánh).
 import { save } from '../state.js';
 import { activeAvatar } from '../engine/accounts.js';
 import {
-  ensureData, equip, unequip, upgradeEquip, sellEquip,
-  sellPrice, buyEquip, buyStone, shopList, stoneCount, expToNext, MAX_TRAINER_LEVEL, STONE_ITEM,
+  ensureData, equip, unequip, upgradeEquip, sellEquip, sellPrice, stoneCount,
+  expToNext, MAX_TRAINER_LEVEL,
 } from '../engine/equipment.js';
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, maxLevelOf } from '../data/equipment.js';
 import { esc, fmt } from '../util.js';
@@ -32,33 +32,17 @@ export function render(el) {
   ensureCss();
   const p = ensureData();
   if (!p) return;
-  let tab = 'inv'; // gear | inv | shop
-
   function draw() {
     el.innerHTML = `
       ${header('Nhân vật')}
-
       ${gearRingHtml()}
-
       ${profileHtml()}
+      ${invHtml()}`;
 
-      <div class="tab-row">
-        <button type="button" class="tab-btn ${tab === 'inv' ? 'active' : ''}" data-tab="inv">Kho trang bị (${p.inventory.length})</button>
-        <button type="button" class="tab-btn ${tab === 'shop' ? 'active' : ''}" data-tab="shop">Cửa hàng</button>
-      </div>
-
-      <div class="char-body">${tab === 'shop' ? shopHtml() : invHtml()}</div>`;
-
-    el.querySelectorAll('.tab-btn').forEach(b =>
-      b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
     el.querySelectorAll('.ring-cell').forEach(b =>
       b.addEventListener('click', () => onSlot(b.dataset.slot)));
     el.querySelectorAll('.inv-row').forEach(b =>
       b.addEventListener('click', () => onInv(b.dataset.uid)));
-    el.querySelectorAll('.shop-row').forEach(b =>
-      b.addEventListener('click', () => onBuy(b.dataset.id)));
-    const bs = el.querySelector('#btn-buy-stone');
-    if (bs) bs.addEventListener('click', onBuyStone);
   }
 
   // ==== Vòng trang bị: 3 ô trái - nhân vật giữa - 3 ô phải ====
@@ -68,7 +52,7 @@ export function render(el) {
       const def = eq ? EQUIPMENT[eq.id] : null;
       if (!def) {
         return `<button type="button" class="ring-cell empty" data-slot="${s.id}" style="--rar:var(--line)">
-          <span class="ring-ico dim">${itemIcon(s.icon, '', 30)}</span>
+          <span class="ring-ico dim">${uiIcon(s.icon, 26)}</span>
           <small class="ring-name">${esc(s.name)}</small>
         </button>`;
       }
@@ -123,10 +107,15 @@ export function render(el) {
 
   // ==== Túi trang bị ====
   function invHtml() {
+    const head = `<div class="inv-head"><b>Kho trang bị</b><small>${p.inventory.length} món · ${stoneCount()} đá cường hoá</small></div>`;
     if (!p.inventory.length) {
-      return '<div class="card empty-note">Kho trang bị trống. Mua ở tab Cửa hàng hoặc nhặt được sau trận đấu.<br>Thuốc, bóng và đá tiến hoá nằm ở màn <b>Túi</b> riêng.</div>';
+      return `<div class="card inv-card">${head}
+        <div class="empty-note">Chưa có món nào. Mua ở <b>Cửa hàng → Trang bị</b> hoặc nhặt được sau trận đấu.</div>
+        <small class="char-note-txt">Thuốc, bóng và đá tiến hoá nằm ở màn <b>Túi</b> riêng.</small>
+      </div>`;
     }
-    return `<div class="item-list">${p.inventory.map(e => {
+    return `<div class="card inv-card">${head}
+      <div class="item-list">${p.inventory.map(e => {
       const def = EQUIPMENT[e.id];
       if (!def) return '';
       const rar = rarOf(e.id);
@@ -139,35 +128,8 @@ export function render(el) {
         <span class="item-n">${fmt(sellPrice(e.id, e.level))}₽</span>
       </button>`;
     }).join('')}</div>
-    <div class="card char-note"><small>${esc(UPGRADE.failNote)}</small></div>`;
-  }
-
-  // ==== Cửa hàng ====
-  function shopHtml() {
-    const ids = shopList(p.trainer.level);
-    return `
-      <div class="card shop-money">${uiIcon('coin', 18)} <b>${fmt(p.money)}</b>₽</div>
-      <button class="card item-row" id="btn-buy-stone">
-        ${itemIcon(STONE_ITEM.sprite, '', 28)}
-        <span class="item-mid"><b>${esc(STONE_ITEM.name)}</b><small>${esc(STONE_ITEM.desc)} · đang có ×${stoneCount()}</small></span>
-        <span class="item-n">${fmt(STONE_ITEM.price)}₽</span>
-      </button>
-      <div class="item-list">
-        ${ids.map(id => {
-          const def = EQUIPMENT[id];
-          const rar = rarOf(id);
-          return `<button class="card item-row shop-row" data-id="${esc(id)}" style="--rar:${rar.color}">
-            ${itemIcon(def.sprite, '', 28)}
-            <span class="item-mid">
-              <b>${esc(def.name)}</b>
-              <small style="color:${rar.color}">${esc(rar.name)} · ${esc(slotName(def.slot))} · Lv.${def.reqLevel}</small>
-            </span>
-            <span class="item-n">${fmt(def.price)}₽</span>
-          </button>`;
-        }).join('')}
-        ${ids.length === 0 ? '<div class="card empty-note">Chưa mở khóa món nào.</div>' : ''}
-      </div>
-      <div class="card char-note"><small>Lên Trainer Level để mở khóa trang bị mạnh hơn.</small></div>`;
+      <small class="char-note-txt">${esc(UPGRADE.failNote)}</small>
+    </div>`;
   }
 
   // ==== Chi tiết món ====
@@ -268,34 +230,6 @@ export function render(el) {
       toast(r.ok ? `Đã bán, nhận ${fmt(r.price)}₽.` : r.error);
       draw();
     } else if (i === 3) await showDetail(item.id, item.level);
-  }
-
-  // ==== Mua ====
-  async function onBuy(id) {
-    const def = EQUIPMENT[id];
-    const i = await choose(`Mua ${def.name}?`, [
-      { label: `Mua · ${fmt(def.price)}₽`, sub: esc(def.desc), disabled: p.money < def.price },
-      { label: 'Xem chi tiết' },
-    ]);
-    if (i === 0) {
-      const r = buyEquip(id);
-      toast(r.ok ? `Đã mua ${def.name}, xem ở tab Túi.` : r.error);
-      draw();
-    } else if (i === 1) await showDetail(id, 0);
-  }
-
-  async function onBuyStone() {
-    const qtys = [1, 5, 10];
-    const i = await choose('Mua Upgrade Stone', qtys.map(n => ({
-      label: `Mua ×${n}`,
-      sub: `${fmt(STONE_ITEM.price * n)}₽`,
-      disabled: p.money < STONE_ITEM.price * n,
-    })));
-    if (i === null) return;
-    const r = buyStone(qtys[i]);
-    toast(r.ok ? `Đã mua ${qtys[i]} Upgrade Stone.` : r.error);
-    save();
-    draw();
   }
 
   draw();

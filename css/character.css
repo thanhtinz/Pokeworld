@@ -32,9 +32,9 @@
 }
 .ring-cell:active { transform: scale(.96); }
 .ring-cell.empty { border-style: dashed; opacity: .7; }
-.ring-ico { line-height: 0; }
+.ring-ico { line-height: 0; display: flex; align-items: center; justify-content: center; height: 30px; }
 .ring-ico img { image-rendering: pixelated; }
-.ring-ico.dim { opacity: .35; filter: grayscale(1); }
+.ring-ico.dim { opacity: .5; color: var(--muted); }
 .ring-name {
   font-size: 9.5px;
   line-height: 1.2;
@@ -57,8 +57,8 @@
   justify-content: center;
 }
 .ring-ava {
-  width: 84px;
-  height: 84px;
+  width: 92px;
+  height: 92px;
   object-fit: contain;
   image-rendering: pixelated;
   border-radius: 12px;
@@ -186,3 +186,19 @@
   .stat-row { grid-template-columns: 78px 1fr 40px; gap: 6px; }
   .stat-lab { font-size: 10px; }
 }
+
+/* ==== Kho trang bị ==== */
+.inv-card { display: flex; flex-direction: column; gap: 10px; }
+.inv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.inv-head b { font-size: 13px; }
+.inv-head small { color: var(--muted); font-size: 11px; }
+.inv-card .item-list { display: flex; flex-direction: column; gap: 8px; }
+.inv-card .item-row {
+  background: rgba(0, 0, 0, .22);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rar, var(--line));
+  border-radius: 12px;
+  padding: 9px 11px;
+}
+.char-note-txt { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.gear-ring { padding: 14px 10px 12px; }

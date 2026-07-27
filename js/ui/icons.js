@@ -36,6 +36,13 @@ const P = {
   ball: '<circle cx="12" cy="12" r="8"/><path d="M4 12h5M15 12h5"/><circle cx="12" cy="12" r="2.5"/>',
   swap: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
   run: '<path d="M13 4a1.7 1.7 0 1 0 0-.01"/><path d="m10 21 2-6-3-3 1-4 3 3 3 1"/><path d="M4 12h3M4 16h4"/>',
+  // Ô trang bị (mỗi ô một hình riêng, thay cho sprite vật phẩm mờ nhìn giống hệt nhau)
+  slot_hat: '<path d="M4 16h16l-1-2a7 7 0 0 0-14 0l-1 2Z"/><path d="M3 16h18v3H3z"/>',
+  slot_outfit: '<path d="M9 4 6 6 4 10l3 1v9h10v-9l3-1-2-4-3-2-3 2-3-2Z"/>',
+  slot_gloves: '<path d="M7 20V9a2 2 0 0 1 4 0V4a1.6 1.6 0 0 1 3 0v5a1.6 1.6 0 0 1 3 0v8a4 4 0 0 1-4 4H7Z"/>',
+  slot_shoes: '<path d="M3 16V8h4l3 3 5 2 5 1v2H3Z"/><path d="M3 16h19v3H3z"/>',
+  slot_bag: '<path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M8 13h8"/>',
+  slot_charm: '<path d="M12 3v4"/><circle cx="12" cy="12" r="5"/><path d="m12 9 1 2.2 2.4.3-1.7 1.7.4 2.4-2.1-1.1-2.1 1.1.4-2.4L8.6 11.5l2.4-.3L12 9Z"/>',
   flag: '<path d="M6 21V4"/><path d="M6 5h12l-2.5 4L18 13H6"/>',
 };
 

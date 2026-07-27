@@ -1,13 +1,15 @@
 // PokeWorld H5 | data/equipment.js | Dữ liệu trang bị nhân vật: slot, độ hiếm, 24 món, bảng cường hóa
 
 // 6 ô trang bị của huấn luyện viên. icon = id sprite item PokeAPI dùng làm ảnh mờ cho ô trống.
+// icon = tên icon SVG trong ui/icons.js, dùng cho ô còn trống.
+// Trước đây mượn sprite vật phẩm nên sáu ô nhìn như nhau, toàn khối xám.
 export const SLOTS = [
-  { id: 'hat',    name: 'Mũ',         icon: 'silph-scope' },
-  { id: 'outfit', name: 'Trang phục', icon: 'ss-ticket' },
-  { id: 'gloves', name: 'Găng tay',   icon: 'card-key' },
-  { id: 'shoes',  name: 'Giày',       icon: 'bicycle' },
-  { id: 'bag',    name: 'Ba lô',      icon: 'berry-pouch' },
-  { id: 'charm',  name: 'Bùa',        icon: 'sacred-ash' },
+  { id: 'hat',    name: 'Mũ',         icon: 'slot_hat' },
+  { id: 'outfit', name: 'Trang phục', icon: 'slot_outfit' },
+  { id: 'gloves', name: 'Găng tay',   icon: 'slot_gloves' },
+  { id: 'shoes',  name: 'Giày',       icon: 'slot_shoes' },
+  { id: 'bag',    name: 'Ba lô',      icon: 'slot_bag' },
+  { id: 'charm',  name: 'Bùa',        icon: 'slot_charm' },
 ];
 
 // mult: hệ số nhân stat gốc theo độ hiếm; maxLevel: giới hạn cường hóa

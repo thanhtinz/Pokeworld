@@ -19,7 +19,6 @@ const HUB = [
   { to: 'guild',      icon: 'guild',   label: 'Bang hội' },
   { to: 'friends',    icon: 'friends', label: 'Bạn bè', badge: 'dm' },
   { to: 'marriage',   icon: 'heart',   label: 'Kết hôn' },
-  { to: 'serverpick', icon: 'server',  label: 'Máy chủ' },
   { to: 'settings',   icon: 'gear',    label: 'Cài đặt' },
 ];
 
