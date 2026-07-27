@@ -5,7 +5,7 @@ import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { NATURE_VI } from '../data/natures.js';
-import { monSprite, esc } from '../util.js';
+import { monSprite, monBoxIcon, upgradeImages, esc } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle, itemIcon } from './kit.js';
 
 const STAT_VI = { hp: 'HP', atk: 'Tấn công', def: 'Phòng thủ', spa: 'Đặc công', spd: 'Đặc thủ', spe: 'Tốc độ' };
@@ -22,7 +22,7 @@ export function render(el) {
           <button class="holo-card party-slot ${sel === i ? 'sel' : ''} ${isFainted(m) ? 'ko' : ''}" data-i="${i}"
                   style="${holoStyle(SPECIES[m.sp] ? SPECIES[m.sp].types : [])}">
             <span class="lv-chip">Lv.${m.lv}</span>
-            <img class="holo-sprite" src="${monSprite(m)}" width="72" height="72" alt="">
+            <img class="holo-sprite px-icon" src="${monBoxIcon(m)}" data-up="${monSprite(m)}" width="72" height="72" alt="">
             <div class="ps-mid">
               <span class="holo-name ps-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</span>
               ${statusTag(m.status)}
@@ -40,6 +40,7 @@ export function render(el) {
     el.querySelector('#btn-box').addEventListener('click', openBox);
 
     if (sel !== null && party[sel]) drawDetail(party[sel]);
+    upgradeImages(el);
   }
 
   function drawDetail(m) {
@@ -50,7 +51,7 @@ export function render(el) {
     box.innerHTML = `
       <div class="card detail-card">
         <div class="detail-top">
-          <img src="${monSprite(m)}" width="96" height="96" alt="" class="detail-sprite">
+          <img src="${monBoxIcon(m)}" data-up="${monSprite(m)}" width="96" height="96" alt="" class="detail-sprite px-icon">
           <div>
             <h2>${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</h2>
             <div>${(spec ? spec.types : []).map(typeBadge).join(' ')}</div>

@@ -1375,3 +1375,8 @@ img[src*='sprites'] { image-rendering: pixelated; }
 @keyframes actPulse { 50% { transform: scale(1.07); } }
 
 @media (prefers-reduced-motion: reduce) { .act-btn.act-ready { animation: none; } }
+
+/* Anh nho tu pokesprite: giu net pixel khi phong to */
+.px-icon { image-rendering: pixelated; object-fit: contain; }
+/* Anh hop Pokemon (pokesprite) von 68x56 va co nhieu khoang trong — phong to cho can doi */
+.dex-ico { transform: scale(1.25); transform-origin: center; }

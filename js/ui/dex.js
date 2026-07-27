@@ -2,7 +2,7 @@
 import { G, dexCounts } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
-import { spriteUrl, esc } from '../util.js';
+import { spriteUrl, boxIcon, upgradeImages, esc } from '../util.js';
 import { typeBadge, header, holoStyle } from './kit.js';
 
 const STAT_ORDER = [['hp', 'HP'], ['atk', 'Tấn công'], ['def', 'Phòng thủ'], ['spa', 'Đặc công'], ['spd', 'Đặc thủ'], ['spe', 'Tốc độ']];
@@ -26,7 +26,7 @@ export function render(el) {
           <button class="holo-card dex-cell ${cls}" data-id="${id}" ${seenIt ? '' : 'disabled'}
                   ${caughtIt ? `style="${holoStyle(s.types)}"` : ''}>
             <span class="lv-chip">#${String(id).padStart(3, '0')}</span>
-            <img src="${spriteUrl(id)}" width="56" height="56" alt="" loading="lazy">
+            <img class="px-icon dex-ico" src="${boxIcon(id)}" width="76" height="64" alt="" loading="lazy">
             <span class="dex-name">${seenIt ? esc(s.name) : '?'}</span>
             ${caughtIt ? '<span class="dex-check" title="Đã bắt"></span>' : ''}
           </button>`;
@@ -75,7 +75,7 @@ export function render(el) {
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" id="dex-back">‹</button><h1>#${String(id).padStart(3, '0')} ${esc(s.name)}</h1></div>
       <div class="card dex-detail">
-        <img src="${spriteUrl(id)}" width="120" height="120" alt="${esc(s.name)}" class="dex-big ${caughtIt ? '' : 'silhouette'}">
+        <img src="${boxIcon(id)}" data-up="${spriteUrl(id)}" width="120" height="120" alt="${esc(s.name)}" class="dex-big px-icon ${caughtIt ? '' : 'silhouette'}">
         <div>${s.types.map(typeBadge).join(' ')}</div>
         <small>Cao ${s.height ?? '?'} m · Nặng ${s.weight ?? '?'} kg</small>
       </div>
@@ -94,11 +94,12 @@ export function render(el) {
           ${chain.map((d, i) => `
             ${i > 0 ? '<span class="evo-arrow"></span>' : ''}
             <span class="evo-node ${G.p.dex.seen[d] ? '' : 'silhouette'}">
-              <img src="${spriteUrl(d)}" width="56" height="56" alt="">
+              <img class="px-icon dex-ico" src="${boxIcon(d)}" width="68" height="56" alt="">
               <small>${G.p.dex.seen[d] ? esc(SPECIES[d] ? SPECIES[d].name : '?') : '?'}</small>
             </span>`).join('')}
         </div>
       </div>` : ''}`;
+    upgradeImages(el);
     el.querySelector('#dex-back').addEventListener('click', drawList);
     el.scrollTop = 0;
   }

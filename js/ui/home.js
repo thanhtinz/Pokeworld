@@ -12,15 +12,15 @@ import { ZONES } from '../data/zones.js';
 import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
 import { SPECIES } from '../data/species.js';
-import { esc, fmt, monSprite, animSprite, spriteUrl } from '../util.js';
+import { esc, fmt, monSprite, animSprite, spriteUrl, boxIcon, monBoxIcon, upgradeImages } from '../util.js';
 import { toast, choose, hpBar, itemIcon, artUrl } from './kit.js';
 
 // Icon đại diện zone: ưu tiên sprite item, sau đó artwork Pokémon, cuối cùng bỏ trống
 function zoneIcon(z, size = 22) {
   if (!z) return '';
   if (z.iconItem) return itemIcon(z.iconItem, '', size);
-  if (z.iconSp) return `<span class="zone-ico"><img src="${artUrl(z.iconSp)}" width="${size}" height="${size}" alt=""
-    onerror="this.onerror=null;this.src='${spriteUrl(z.iconSp)}'"></span>`;
+  if (z.iconSp) return `<span class="zone-ico"><img class="px-icon" src="${boxIcon(z.iconSp)}" width="${size}" height="${size}" alt=""
+    data-up="${artUrl(z.iconSp)}|${spriteUrl(z.iconSp)}"></span>`;
   return '';
 }
 import { show, refresh } from '../main.js';
@@ -97,6 +97,7 @@ export function render(el) {
       <button class="btn" id="btn-trainers">${itemIcon('vs_seeker', '', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
     </div>
   `;
+  upgradeImages(el);
 
   const logEl = el.querySelector('#idle-log');
   const wildSlot = el.querySelector('#wild-slot');
@@ -187,8 +188,9 @@ export function render(el) {
         <span class="wild-lv">Lv.${w.lv}</span>
         ${hpBar(w.hpCur, mx)}
       </div>
-      <img class="wild-sprite" src="${animSprite(w)}" alt=""
-           onerror="this.onerror=null;this.src='${monSprite(w)}'">`;
+      <img class="wild-sprite px-icon" src="${monBoxIcon(w)}" alt=""
+           data-up="${animSprite(w)}|${monSprite(w)}">`;
+    upgradeImages(wildSlot);
   }
 
   function drawMe() {
@@ -201,14 +203,15 @@ export function render(el) {
     const mx = maxHp(m);
     const [cur, need] = expProgress(m);
     mePanel.innerHTML = `
-      <img class="me-sprite" src="${animSprite(m, true)}" alt=""
-           onerror="this.onerror=null;this.src='${monSprite(m, true)}'">
+      <img class="me-sprite px-icon" src="${monBoxIcon(m)}" alt=""
+           data-up="${animSprite(m, true)}|${monSprite(m, true)}">
       <div class="me-info">
         <div class="me-name">${esc(displayName(m))} <b class="me-lv">Lv.${m.lv}</b></div>
         <div class="bar-label">HP ${m.hpCur}/${mx}</div>
         ${hpBar(m.hpCur, mx)}
         <div class="expbar"><div class="expbar-fill" style="width:${Math.min(100, Math.round(cur / Math.max(1, need) * 100))}%"></div></div>
       </div>`;
+    upgradeImages(mePanel);
   }
 
   function updateWildHp() {

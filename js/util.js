@@ -56,3 +56,49 @@ export const todayNum = () => {
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 };
 export const dayNum = () => Math.floor(Date.now() / 86400000);
+
+// ===== Ảnh cục bộ từ pokesprite (msikma/pokesprite) =====
+// Ảnh nằm ngay trong dự án nên chơi được cả khi mất mạng / bị chặn CDN.
+import { slugOf } from './data/slugs.js';
+
+// Ảnh nhỏ kiểu "trong hộp" — dùng cho danh sách đội, Pokédex, túi đồ
+export const boxIcon = (dexId, shiny = false) => {
+  const slug = slugOf(dexId);
+  return slug ? `assets/pokesprite/${shiny ? 'shiny' : 'regular'}/${slug}.png` : 'assets/pokesprite/unknown.png';
+};
+export const monBoxIcon = (mon) => boxIcon(mon.sp, !!mon.shiny);
+export const EGG_ICON = 'assets/pokesprite/egg.png';
+
+// Ảnh vật phẩm cục bộ. Kho pokesprite chia theo nhóm nên cần biết nhóm.
+const ITEM_DIRS = ['ball', 'medicine', 'berry', 'evo-item', 'hold-item',
+  'mega-stone', 'battle-item', 'gem', 'fossil', 'valuable-item', 'key-item'];
+export const itemIconLocal = (itemId, dir) =>
+  `assets/pokesprite/items/${dir}/${String(itemId).replace(/_/g, '-')}.png`;
+export { ITEM_DIRS };
+
+// Chuỗi ảnh dự phòng cho thẻ <img>: ảnh chính hỏng thì tự thử ảnh kế tiếp.
+// Dùng: <img src="${a}" onerror="${fallbackAttr(b, c)}">
+export function fallbackAttr(...urls) {
+  const step = (i) => (i >= urls.length
+    ? 'this.onerror=null'
+    : `this.onerror=function(){${step(i + 1)}};this.src='${urls[i]}'`);
+  return step(0);
+}
+
+// Ảnh cục bộ hiện ngay, ảnh đẹp hơn (CDN) tải xong mới đổi sang.
+// Mạng chậm hay bị chặn thì người chơi vẫn thấy hình, không phải ô trống.
+// data-up có thể liệt kê nhiều ảnh cách nhau bằng dấu | — thử lần lượt, cái nào tải được thì dùng.
+export function upgradeImages(root) {
+  if (!root) return;
+  for (const img of root.querySelectorAll('img[data-up]')) {
+    const list = (img.dataset.up || '').split('|').filter(Boolean);
+    img.removeAttribute('data-up');
+    (function next(i) {
+      if (i >= list.length) return;
+      const probe = new Image();
+      probe.onload = () => { img.src = list[i]; };
+      probe.onerror = () => next(i + 1);
+      probe.src = list[i];
+    })(0);
+  }
+}

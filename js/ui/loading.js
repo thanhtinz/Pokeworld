@@ -17,6 +17,7 @@ const TIPS = [
 const LOCAL_ASSETS = [
   'assets/img/title.png', 'assets/img/dlgbox.png', 'assets/img/crown.png',
   'assets/img/worldmap.jpg', 'assets/tiles/terrain.png',
+  'assets/ow/red.png', 'assets/ow/leaf.png', 'assets/ow/juan.png', 'assets/ow/roxanne.png',
   'assets/trainers/red.png', 'assets/trainers/leaf.png', 'assets/trainers/oak.png',
   'assets/trainers/rival.png',
   'assets/types/fire.png', 'assets/types/water.png', 'assets/types/grass.png',

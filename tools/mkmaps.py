@@ -50,9 +50,9 @@ MAPS['town_1'] = dict(
     ],
     warps=[(6, 19, 'route_1', 6, 1)],
     npcs=[
-        (15, 16, 'talk', 'oak', 'Professor Oak', 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!'),
-        (3, 16, 'talk', 'lass', 'Daisy', 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.'),
-        (19, 8, 'talk', 'youngster', 'Boy', 'Poké Mart mới nhập Poké Ball đó!'),
+        (15, 16, 'talk', 'juan', 'Professor Oak', 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!'),
+        (3, 16, 'talk', 'roxanne', 'Daisy', 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.'),
+        (19, 8, 'talk', 'liza', 'Boy', 'Poké Mart mới nhập Poké Ball đó!'),
     ],
 )
 
@@ -72,8 +72,8 @@ MAPS['route_1'] = dict(
     name='Đường Số 1', rows=rows(g), spawn=(6, 2), buildings=[],
     warps=[(6, 0, 'town_1', 6, 18), (17, 19, 'route_2', 5, 1), (0, 10, 'forest_1', 21, 9)],
     npcs=[
-        (12, 7, 'trainer', 'youngster', 'Youngster Joey', 'Pokémon của tớ mạnh lắm đấy!', 'youngster_joey'),
-        (8, 14, 'trainer', 'lass', 'Lass Nina', 'Dễ thương nhưng không hiền đâu nhé!', 'lass_nina'),
+        (12, 7, 'trainer', 'tate', 'Youngster Joey', 'Pokémon của tớ mạnh lắm đấy!', 'youngster_joey'),
+        (8, 14, 'trainer', 'flannery', 'Lass Nina', 'Dễ thương nhưng không hiền đâu nhé!', 'lass_nina'),
     ],
 )
 
@@ -93,8 +93,8 @@ MAPS['route_2'] = dict(
     name='Đường Số 2', rows=rows(g), spawn=(5, 2), buildings=[],
     warps=[(5, 0, 'route_1', 17, 18), (23, 7, 'cave_1', 1, 9), (18, 19, 'lake_1', 11, 1)],
     npcs=[
-        (14, 10, 'trainer', 'camper', 'Camper Ethan', 'Đường này ta canh giữ!', 'camper_ethan'),
-        (3, 16, 'talk', 'bug_catcher', 'Bug Catcher', 'Trong rừng phía tây nhiều bọ lắm!'),
+        (14, 10, 'trainer', 'sidney', 'Camper Ethan', 'Đường này ta canh giữ!', 'camper_ethan'),
+        (3, 16, 'talk', 'phoebe', 'Bug Catcher', 'Trong rừng phía tây nhiều bọ lắm!'),
     ],
 )
 
@@ -118,8 +118,8 @@ MAPS['forest_1'] = dict(
     name='Rừng Xanh Thẳm', rows=rows(g), spawn=(21, 9), buildings=[],
     warps=[(23, 9, 'route_1', 1, 10), (23, 10, 'route_1', 1, 10)],
     npcs=[
-        (9, 16, 'trainer', 'bug_catcher', 'Bug Catcher Rick', 'Bọ là nhất!', 'bug_catcher_rick'),
-        (10, 4, 'talk', 'rocket_m', 'Rocket Grunt', 'Cút khỏi đây, nhóc!'),
+        (9, 16, 'trainer', 'brawly', 'Bug Catcher Rick', 'Bọ là nhất!', 'bug_catcher_rick'),
+        (10, 4, 'talk', 'steven', 'Rocket Grunt', 'Cút khỏi đây, nhóc!'),
     ],
 )
 
@@ -139,8 +139,8 @@ MAPS['cave_1'] = dict(
     name='Lối Mòn Cát', rows=rows(g), spawn=(1, 9), buildings=[],
     warps=[(0, 9, 'route_2', 22, 7)],
     npcs=[
-        (17, 14, 'trainer', 'rocket_f', 'Rocket Duo', 'Bọn ta đang bận đào đá quý!', 'rocket_2'),
-        (12, 11, 'talk', 'camper', 'Hiker', 'Lối mòn này gió lớn, cẩn thận đấy!'),
+        (17, 14, 'trainer', 'wallace', 'Rocket Duo', 'Bọn ta đang bận đào đá quý!', 'rocket_2'),
+        (12, 11, 'talk', 'wattson', 'Hiker', 'Lối mòn này gió lớn, cẩn thận đấy!'),
     ],
 )
 
@@ -163,7 +163,7 @@ MAPS['lake_1'] = dict(
     ],
     warps=[(11, 0, 'route_2', 18, 18)],
     npcs=[
-        (20, 8, 'talk', 'swimmer_f', 'Swimmer', 'Nghe nói có Gyarados khổng lồ dưới hồ này...'),
+        (20, 8, 'talk', 'winona', 'Swimmer', 'Nghe nói có Gyarados khổng lồ dưới hồ này...'),
     ],
 )
 

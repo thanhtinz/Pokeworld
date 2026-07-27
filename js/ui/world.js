@@ -4,6 +4,7 @@ import {
   player, currentMap, currentBake, restorePosition, update, facingThing,
 } from '../engine/overworld.js';
 import { TILESET, tileRect } from '../data/tiles.js';
+import { owImage, owFrame, owReady, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal } from '../engine/pokemon.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
@@ -35,9 +36,7 @@ export function render(el) {
 
   const tileset = new Image();
   tileset.src = TILESET.src;
-  const avatarImg = new Image();
-  avatarImg.src = `assets/trainers/${activeAvatar()}.png`;
-  const npcCache = {};
+  const avatarImg = owImage(activeAvatar());
 
   function sizeCanvas() {
     const r = canvas.getBoundingClientRect();
@@ -144,25 +143,25 @@ export function render(el) {
       }
     }
 
-    // NPC
-    for (const n of map.npcs || []) {
-      if (n.x < x0 - 1 || n.x > x1 || n.y < y0 - 1 || n.y > y1) continue;
-      let img = npcCache[n.sprite];
-      if (!img) { img = new Image(); img.src = `assets/trainers/${n.sprite}.png`; npcCache[n.sprite] = img; }
-      if (img.complete && img.naturalWidth) {
-        const s = size * 1.3;
-        const cx = (n.x + 0.5) * size - camX, cy = (n.y + 0.5) * size - camY;
-        ctx.drawImage(img, Math.round(cx - s / 2), Math.round(cy - s * 0.78), s, s);
-      }
+    // Nhân vật cao gấp đôi ô: vẽ rộng bằng 1 ô, cao 2 ô, chân đặt đúng ô đang đứng
+    const chW = size, chH = size * (OW_H / OW_W);
+    function drawChar(img, dir, moving, cx, cy) {
+      if (!owReady(img)) return;
+      const f = owFrame(dir, moving);
+      ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
+        Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
     }
 
-    // Người chơi (nhún nhẹ khi đi cho có cảm giác bước chân)
-    const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
-    if (avatarImg.complete && avatarImg.naturalWidth) {
-      const s = size * 1.4;
-      const cx = player.x * size - camX, cy = player.y * size - camY;
-      ctx.drawImage(avatarImg, Math.round(cx - s / 2), Math.round(cy - s * 0.78 + bob), s, s);
+    // NPC quay mặt xuống, đứng yên
+    for (const n of map.npcs || []) {
+      if (n.x < x0 - 2 || n.x > x1 + 1 || n.y < y0 - 2 || n.y > y1 + 1) continue;
+      drawChar(owImage(n.sprite), n.dir || 'down', false,
+        (n.x + 0.5) * size - camX, (n.y + 1) * size - camY);
     }
+
+    // Người chơi
+    drawChar(avatarImg, player.dir, player.moving,
+      player.x * size - camX, (player.y + 0.5) * size - camY);
 
     // Tên khu vực luôn khớp bản đồ đang đứng
     const chip = el.querySelector('#world-zone');

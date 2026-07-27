@@ -3,7 +3,7 @@ import { G, newGame, addToParty, markCaught, startQuest, save } from '../state.j
 import { newPokemon } from '../engine/pokemon.js';
 import { SPECIES } from '../data/species.js';
 import { QUESTS } from '../data/quests.js';
-import { spriteUrl, esc } from '../util.js';
+import { spriteUrl, boxIcon, esc } from '../util.js';
 import { toast, confirmDlg, typeBadge, holoStyle } from './kit.js';
 import { activeAccount } from '../engine/accounts.js';
 import { CHAPTERS } from '../data/story.js';
@@ -49,7 +49,7 @@ export async function render(el) {
             return `
             <button class="holo-card starter-card" data-sp="${id}" style="${holoStyle(s.types)}">
               <img class="portrait" src="assets/portraits/${id}.png" width="84" alt="${esc(s.name)}"
-                   onerror="this.onerror=null;this.src='${spriteUrl(id)}'">
+                   onerror="this.onerror=null;this.src='${boxIcon(id)}';this.classList.add('px-icon')">
               <b>${esc(s.name)}</b>
               <span class="starter-types">${s.types.map(typeBadge).join(' ')}</span>
             </button>`;

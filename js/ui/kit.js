@@ -1,5 +1,6 @@
 // PokeWorld H5 | ui/kit.js | Bộ helper UI dùng chung: toast, modal chọn, thanh HP, badge hệ
 import { esc } from '../util.js';
+import { itemIconPath } from '../data/itemicons.js';
 import { TYPE_VI, TYPE_COLORS } from '../data/types.js';
 
 // Toast thông báo nổi (tự biến mất)
@@ -56,11 +57,12 @@ export function hpBar(cur, max) {
   return `<div class="hpbar"><div class="hpbar-fill ${cls}" style="width:${pct}%"></div></div>`;
 }
 
-// Icon item: sprite thật từ PokeAPI. Tham số 2 giữ lại cho tương thích chữ ký cũ
-// (trước đây là emoji fallback) — nay ảnh lỗi thì ẩn hẳn, KHÔNG hiện emoji.
+// Icon vật phẩm: ảnh pokesprite nằm ngay trong dự án nên không cần mạng.
+// Tham số 2 giữ lại cho tương thích chữ ký cũ (trước đây là emoji) — nay ảnh lỗi thì ẩn hẳn.
 export function itemIcon(itemId, _legacy = '', size = 26) {
-  const url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${String(itemId).replace(/_/g, '-')}.png`;
-  return `<span class="item-ico"><img src="${url}" width="${size}" height="${size}" alt=""
+  const local = itemIconPath(itemId);
+  const cdn = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${String(itemId).replace(/_/g, '-')}.png`;
+  return `<span class="item-ico"><img class="px-icon" src="${local || cdn}" width="${size}" height="${size}" alt=""
     onerror="this.style.visibility='hidden'"></span>`;
 }
 
