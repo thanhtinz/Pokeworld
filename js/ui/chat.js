@@ -7,7 +7,7 @@ import * as sock from '../net/socket.js';
 import { net, onChange, isOnline, clearUnread } from '../net/session.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
 import { chatFrame, titleHtml } from './look.js';
-import { ensureData } from '../engine/equipment.js';
+import { ensureData } from '../engine/player.js';
 
 const CHANNELS = [['world', 'Thế giới'], ['guild', 'Bang hội'], ['dm', 'Riêng']];
 let channel = 'world';

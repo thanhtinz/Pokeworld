@@ -1,5 +1,8 @@
 // TuxeWorld H5 | ui/party.js | Đội hình 6 slot + chi tiết + Box
 import { G, save, CONFIG } from '../state.js';
+import { monImg, skinsFor } from '../engine/monskin.js';
+import { wearMonSkin, trainerLevel } from '../engine/player.js';
+import { unlocked, requirement } from '../data/cosmetics.js';
 import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/pokemon.js';
 import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
@@ -22,7 +25,7 @@ export function render(el) {
           <button class="holo-card party-slot ${sel === i ? 'sel' : ''} ${isFainted(m) ? 'ko' : ''}" data-i="${i}"
                   style="${holoStyle(SPECIES[m.sp] ? SPECIES[m.sp].types : [])}">
             <span class="lv-chip">Lv.${m.lv}</span>
-            <img class="holo-sprite px-icon" src="${monBoxIcon(m)}" data-up="${monSprite(m)}" width="72" height="72" alt="">
+            <img class="holo-sprite px-icon" src="${monImg(m)}" width="72" height="72" alt="">
             <div class="ps-mid">
               <span class="holo-name ps-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</span>
               ${statusTag(m.status)}
@@ -51,7 +54,7 @@ export function render(el) {
     box.innerHTML = `
       <div class="card detail-card">
         <div class="detail-top">
-          <img src="${monBoxIcon(m)}" data-up="${monSprite(m)}" width="96" height="96" alt="" class="detail-sprite px-icon">
+          <img src="${monImg(m)}" width="96" height="96" alt="" class="detail-sprite px-icon">
           <div>
             <h2>${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</h2>
             <div>${(spec ? spec.types : []).map(typeBadge).join(' ')}</div>
@@ -79,6 +82,7 @@ export function render(el) {
         <div class="detail-btns">
           <button class="btn" id="d-swap">Đổi vị trí</button>
           <button class="btn" id="d-nick">Biệt danh</button>
+          <button class="btn" id="d-skin">Skin</button>
           <button class="btn" id="d-tobox">Gửi vào Box</button>
         </div>
       </div>`;
@@ -92,6 +96,28 @@ export function render(el) {
       [p[sel], p[j]] = [p[j], p[sel]];
       sel = j;
       save(); draw();
+    });
+
+    // Skin Tuxemon: ảnh do quản trị viên tải lên, mặc theo LOÀI
+    box.querySelector('#d-skin').addEventListener('click', async () => {
+      const list = skinsFor(m.sp);
+      if (!list.length) {
+        toast('Chưa có skin nào cho loài này.');
+        return;
+      }
+      const lv = trainerLevel();
+      const cur = G.p.monSkins?.[m.sp] || '';
+      const opts = [{ label: 'Hình gốc', sub: cur ? '' : 'Đang dùng' }].concat(
+        list.map(([id, d]) => ({
+          label: d.name,
+          sub: unlocked(d, G.p, lv) ? (cur === id ? 'Đang mặc' : 'Bấm để mặc') : requirement(d),
+          disabled: !unlocked(d, G.p, lv),
+        })));
+      const i = await choose(`Skin cho ${displayName(m)}`, opts);
+      if (i === null) return;
+      wearMonSkin(m.sp, i === 0 ? '' : list[i - 1][0]);
+      toast(i === 0 ? 'Đã trả về hình gốc.' : `Đã mặc ${list[i - 1][1].name}.`);
+      draw();
     });
 
     box.querySelector('#d-nick').addEventListener('click', () => {

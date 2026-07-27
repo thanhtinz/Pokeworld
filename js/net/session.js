@@ -124,9 +124,9 @@ function buildSave() {
   const p = G.p || {};
   return {
     name: p.name, money: p.money, badges: p.badges,
-    party: p.party, box: p.box, dex: p.dex, inventory: p.inventory,
-    equipped: p.equipped, trainer: p.trainer, story: p.story, pos: p.pos,
-    look: p.look,
+    party: p.party, box: p.box, dex: p.dex,
+    trainer: p.trainer, story: p.story, pos: p.pos,
+    look: p.look, monSkins: p.monSkins,
   };
 }
 

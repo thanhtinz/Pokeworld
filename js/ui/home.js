@@ -4,6 +4,7 @@
 // bản đồ thì gặp Tuxemon là do người chơi bước vào bụi cỏ, nên phần tự đánh đã
 // bỏ hẳn. Màn này giờ chỉ còn: đang ở đâu, chương truyện nào, và các nút để đi.
 import { G, save, allFainted, emitQuest } from '../state.js';
+import { monImg } from '../engine/monskin.js';
 import { heal, displayName, maxHp, isFainted } from '../engine/pokemon.js';
 import { expProgress } from '../engine/exp.js';
 import { currentChapter, needIntro, markIntroSeen, emitStory, zoneLockedBy, storyProgress } from '../engine/story.js';
@@ -64,7 +65,7 @@ export function render(el) {
             const mx = maxHp(m);
             const [cur, need] = expProgress(m);
             return `<div class="team-mon ${isFainted(m) ? 'ko' : ''}">
-              <img class="team-sprite ${monSpriteClass(m)}" src="${monLocalSrc(m)}" alt="" onerror="${monFallbackAttr(m)}"
+              <img class="team-sprite ${monSpriteClass(m)}" src="${monImg(m)}" alt="" onerror="${monFallbackAttr(m)}"
                    data-up="${monUpgradeChain(m)}">
               <small class="team-name">${esc(displayName(m))}</small>
               <small class="team-lv">Lv.${m.lv}</small>

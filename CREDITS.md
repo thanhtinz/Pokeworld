@@ -18,12 +18,15 @@ Cụ thể đã lấy:
 | 50 sprite nhân vật + NPC đi trên bản đồ | `assets/ow/` |
 | 50 ảnh 2D nhân vật + NPC cho trận đấu và hội thoại | `assets/trainers/` |
 | 67 NPC đứng trên bản đồ (vị trí + hướng lấy từ sự kiện của bản đồ gốc) | `js/data/maps.js` |
-| 21 vật phẩm + icon (tuxeball, thuốc, đá tiến hoá) | `js/data/items.js`, `assets/items/` |
+| 20 vật phẩm + icon (tuxeball, thuốc, đá tiến hoá) | `js/data/items.js`, `assets/items/` |
+| Nền trận đấu (ghép lại cho màn dọc) | `assets/arena/` |
+| 15 hiệu ứng chiêu thức | `assets/vfx/`, `js/data/vfx.js` |
 | 20 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
 | Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |
 
 Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py`,
-`tools/mksprites.py` và `tools/mkitems.py` sinh ra — chạy lại được bất cứ lúc
+`tools/mksprites.py`, `tools/mkitems.py`, `tools/mkarena.py`, `tools/mksounds.py`
+và `tools/mkvfx.py` sinh ra — chạy lại được bất cứ lúc
 nào, không sửa tay.
 
 CC BY-SA yêu cầu: ghi công (chính là trang này) và nếu sửa lại ảnh thì bản sửa
@@ -31,11 +34,23 @@ cũng phải để CC BY-SA. Icon nhỏ của 15 con được thu từ chính sp
 của chúng (bản gốc chỉ có ảnh dấu hỏi dùng chung), nên phần sửa đó cũng theo
 CC BY-SA 4.0.
 
+## Âm thanh — `assets/sfx/`, `assets/music/`
+
+Đi kèm kho Tuxemon:
+
+- Hiệu ứng: **Kelvin Shadewing's Soundpack Vol.1** —
+  [kelvinshadewing.net](http://www.kelvinshadewing.net). Bộ này cho dùng cho mọi
+  mục đích kể cả thương mại, miễn ghi công và dẫn link về trang tác giả (đúng
+  như dòng này).
+- Nhạc nền: các bản trong `mods/tuxemon/music` của Tuxemon — Eric Skiff và
+  cộng đồng, **CC BY-SA 4.0**.
+
+Chỉ chép những tệp thật sự dùng (`tools/mksounds.py`), tổng khoảng 2 MB.
+
 ## Của riêng dự án
 
 | Thứ gì | Làm bằng |
 |---|---|
-| Nền trận đấu (`assets/arena/`) | `tools/mkarena.py` vẽ bằng code |
 | Chữ tiêu đề TuxeWorld (`assets/img/title.png`) | font pixel tự dựng trong script |
 | Icon giao diện | SVG vẽ tay trong `js/ui/icons.js` |
 

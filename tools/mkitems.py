@@ -47,8 +47,7 @@ ITEMS = [
     ('wood_booster',      'stone',    2000, 'Giúp Tuxemon hệ Gỗ tiến hoá.', {}),
     ('earth_booster',     'stone',    2000, 'Giúp Tuxemon hệ Đất tiến hoá.', {}),
     ('metal_booster',     'stone',    2000, 'Giúp Tuxemon hệ Kim tiến hoá.', {}),
-    # ==== Do cuong hoa trang bi + keo len cap ====
-    ('flintstone',        'stone',    1500, 'Đá lửa dùng để cường hoá trang bị.', {}),
+    # ==== Keo len cap ====
     ('lucky_bamboo',      'held',     2000, 'Trúc may mắn — tăng ngay 1 cấp cho Tuxemon.',
      {'levelUp': 1}),
     # ==== Mang theo / khac ====
@@ -67,7 +66,7 @@ VI = {
     'fire_booster': 'Đá Lửa', 'water_booster': 'Đá Nước', 'wood_booster': 'Đá Gỗ',
     'earth_booster': 'Đá Đất', 'metal_booster': 'Đá Kim',
     'fishing_rod': 'Cần Câu', 'nu_phone': 'Điện Thoại',
-    'flintstone': 'Đá Cường Hoá', 'lucky_bamboo': 'Trúc May Mắn',
+    'lucky_bamboo': 'Trúc May Mắn',
 }
 
 
@@ -118,8 +117,8 @@ def main():
         else:
             missing.append('anh:' + slug)
         eff = ', '.join('%s: %s' % (k, js(v)) for k, v in extra.items())
-        out.append("  %s: { name: %s, desc: %s, kind: %s, price: %d%s }," % (
-            slug, js(VI.get(slug, slug)), js(desc), js(kind), price,
+        out.append("  %s: { name: %s, desc: %s, kind: %s, price: %d, sell: %d%s }," % (
+            slug, js(VI.get(slug, slug)), js(desc), js(kind), price, round(price * 0.5),
             (', effect: { %s }' % eff) if eff else ''))
     out.append('};')
     out.append('''

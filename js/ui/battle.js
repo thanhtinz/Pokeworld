@@ -4,6 +4,7 @@ import {
   removeItem, addMoney, addItem,
 } from '../state.js';
 import { Battle } from '../engine/battle.js';
+import { monImg } from '../engine/monskin.js';
 import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '../engine/pokemon.js';
 import { expProgress } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
@@ -12,7 +13,9 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
 import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
-import { textDelay, sfx } from '../engine/settings.js';
+import { textDelay, sfx, getSetting } from '../engine/settings.js';
+import { SFX } from '../data/sounds.js';
+import { vfxFor } from '../data/vfx.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
@@ -20,9 +23,8 @@ import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 import { syncNow } from '../net/session.js';
 import { arenaFor } from '../data/arenas.js';
-import { addTrainerExp, randomDrop, grantEquip } from '../engine/equipment.js';
+import { addTrainerExp } from '../engine/player.js';
 import { monPx } from '../engine/battlesize.js';
-import { EQUIPMENT, RARITY } from '../data/equipment.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
 async function storyDone(ch) {
@@ -85,6 +87,22 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     $log.scrollTop = $log.scrollHeight;
   }
 
+  // Hiệu ứng chiêu thức: dải ảnh của Tuxemon, chạy bằng CSS steps() đè lên
+  // con vừa ăn đòn. Tắt "hiệu ứng chuyển động" trong Cài đặt thì bỏ qua.
+  function playFx(side, type) {
+    if (!getSetting('motion')) return;
+    const host = side === 0 ? $me : $enemy;
+    const stage = host?.querySelector('.bt-stage');
+    if (!stage) return;
+    const fx = vfxFor(type);
+    const el2 = document.createElement('i');
+    el2.className = 'bt-fx';
+    el2.style.cssText = `--fx:url(${fx.src});--fxw:${fx.w}px;--fxh:${fx.h}px;`
+      + `--fxn:${fx.frames};width:${fx.w}px;height:${fx.h}px;`;
+    stage.appendChild(el2);
+    setTimeout(() => el2.remove(), 700);
+  }
+
   // Popup thưởng "+X₽" / "+X EXP" bay lên rồi mờ dần (chỉ trình bày)
   function floatPop(text, cls = '', topPct = 46) {
     const wrap = el.querySelector('.battle');
@@ -112,7 +130,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       <span class="bt-stage" style="--base:url(${arena.foe})">
         <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
-             src="${monLocalSrc(m)}" onerror="${monFallbackAttr(m)}"
+             src="${monImg(m)}" onerror="${monFallbackAttr(m)}"
              data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">
       </span>`;
     upgradeImages($enemy);
@@ -128,7 +146,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       <span class="bt-stage" style="--base:url(${arena.me})">
         <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
-             src="${monLocalSrc(m, true)}" onerror="${monFallbackAttr(m, true)}"
+             src="${monImg(m, true)}" onerror="${monFallbackAttr(m, true)}"
              data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
       </span>
       <div class="bt-info">
@@ -286,7 +304,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           await sleep(textDelay(550));
           break;
         case 'dmg': {
-          sfx('hit');
+          sfx(ev.moveType && SFX[ev.moveType] ? ev.moveType
+            : ev.eff > 1 ? 'hit_strong' : ev.eff < 1 ? 'hit_weak' : 'hit');
+          playFx(ev.side, ev.moveType);
           const spr = ev.side === 0 ? $me.querySelector('.bt-sprite') : $enemy.querySelector('.bt-sprite');
           if (spr) { spr.classList.remove('shake'); void spr.offsetWidth; spr.classList.add('shake'); }
           updateBars();
@@ -294,11 +314,14 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           break;
         }
         case 'heal':
+          sfx('heal');
+          playFx(ev.side, 'heal');
           updateBars();
           await sleep(textDelay(380));
           break;
         case 'faint': {
           const spr = ev.side === 0 ? $me.querySelector('.bt-sprite') : $enemy.querySelector('.bt-sprite');
+          sfx('faint');
           if (spr) spr.classList.add('faint');
           updateBars();
           await sleep(textDelay(680));
@@ -311,7 +334,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         case 'exp':
           if (ev.amount) { sfx('coin'); floatPop(`+${fmt(ev.amount)} EXP`, 'exp', 58); }
           updateBars();
-          if (ev.levels && ev.levels > 0) renderMe(); // lên level: vẽ lại số liệu
+          if (ev.levels && ev.levels > 0) { sfx('levelup'); renderMe(); }
           await sleep(textDelay(320));
           break;
         case 'learn':
@@ -333,6 +356,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
 
   // Animation quả bóng bắt
   async function playCatch(ev) {
+    sfx('throw');
     const spr = $enemy.querySelector('.bt-sprite');
     if (spr) spr.classList.add('hidden');
     const ball = document.createElement('div');
@@ -347,6 +371,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     }
     if (ev.caught) {
       caught = true;
+      sfx('catch');
       ball.classList.add('caught');
       log(ev.crit ? 'Bắt được! (Bắt chí mạng!)' : 'Bắt được!');
       await sleep(750);
@@ -465,19 +490,17 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     $act.querySelector('#bt-cont').addEventListener('click', () => show(from));
   }
 
-  // Thắng trận thì nhà huấn luyện cũng lên kinh nghiệm và có thể nhặt được trang bị
+  // Thắng trận thì huấn luyện viên cũng lên kinh nghiệm, thỉnh thoảng nhặt được
+  // vật phẩm rơi ra (trước đây là trang bị — đã bỏ hệ thống đó).
   function grantTrainerRewards() {
-    const lv = eMon()?.lv || 5;
-    const exp = kind === 'trainer' ? 12 + lv * 3 : 4 + lv;
-    const levels = addTrainerExp(exp);   // trả về MẢNG các cấp vừa lên
-    if (levels.length) toast(`Nhà huấn luyện lên cấp ${levels[levels.length - 1]}!`);
-    // randomDrop chỉ CHỌN món, phải grantEquip mới thực sự vào túi
-    const dropId = randomDrop(lv);
-    if (dropId && grantEquip(dropId)) {
-      const def = EQUIPMENT[dropId];
-      const r = def ? RARITY[def.rarity] : null;
-      log(`Nhặt được trang bị: ${def ? def.name : dropId}${r ? ` (${r.name})` : ''}!`);
-      toast(`Nhặt được ${def ? def.name : dropId}!`);
+    const lv = Math.max(1, eMon()?.lv || 5);
+    const gained = addTrainerExp(12 + lv * 2);
+    if (gained.length) toast(`Trainer lên Lv.${gained[gained.length - 1]}!`);
+    if (Math.random() < 0.18) {
+      const pool = ['tuxeball', 'potion', 'restoration'];
+      const id = pool[Math.floor(Math.random() * pool.length)];
+      addItem(id, 1);
+      toast(`Nhặt được ${ITEMS[id].name}!`);
     }
   }
 

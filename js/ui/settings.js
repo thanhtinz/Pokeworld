@@ -29,6 +29,7 @@ export function render(el) {
       <div class="card set-group">
         <h3>Âm thanh</h3>
         ${sw('sfx', 'Hiệu ứng âm thanh', 'Tiếng chạm nút, đòn đánh, nhận thưởng.')}
+        ${sw('music', 'Nhạc nền', 'Nhạc riêng cho thị trấn, bản đồ và trận đấu.')}
         <div class="set-row">
           <span class="set-mid"><b>Âm lượng</b><small>${Math.round(s.volume * 100)}%</small></span>
           <span class="set-range">

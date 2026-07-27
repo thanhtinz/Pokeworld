@@ -15,7 +15,7 @@ const DATA_DIR = process.env.DATA_DIR || './data';
 export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads', 'cosmetics');
 const WEB_DIR = '/uploads/cosmetics';
 
-export const KINDS = ['title', 'avatarFrame', 'chatFrame', 'skin'];
+export const KINDS = ['title', 'avatarFrame', 'chatFrame', 'skin', 'monSkin'];
 // Cách mở khoá: có sẵn | bắt đủ số | thắng đủ trận | đủ huy hiệu | đủ cấp | admin trao tay
 export const HOWS = ['start', 'catch', 'win', 'badge', 'level', 'manual'];
 
@@ -67,7 +67,9 @@ export function upsertCosmetic(body = {}) {
     doc = { id, kind, createdAt: Date.now(), img: null };
     getDb().cosmetics.push(doc);
   }
-  Object.assign(doc, { name, how, n, color, css: clean(body.css, 20) || null });
+  // monSkin: sp = ma loai Tuxemon duoc doi hinh
+  const sp = Math.max(0, Math.min(9999, Math.round(Number(body.sp) || 0)));
+  Object.assign(doc, { name, how, n, color, sp, css: clean(body.css, 20) || null });
   markDirty();
   return [doc, null];
 }
@@ -123,7 +125,7 @@ export function clearImage(key) {
 export function publicCosmetics() {
   return getDb().cosmetics.map(c => ({
     id: c.id, kind: c.kind, name: c.name, color: c.color,
-    css: c.css || null, how: c.how, n: c.n || 0, img: c.img || null,
+    css: c.css || null, how: c.how, n: c.n || 0, img: c.img || null, sp: c.sp || 0,
   }));
 }
 

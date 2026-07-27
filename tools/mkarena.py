@@ -1,87 +1,105 @@
 # -*- coding: utf-8 -*-
-"""Ve nen tran dau cua rieng du an (khong dung anh cat tu game khac).
+"""Dung nen tran dau tu anh nen cua Tuxemon.
 
-Chay:  python3 tools/mkarena.py
+Chay:  python3 tools/mkarena.py <duong-dan-kho-Tuxemon>
+
+Nguon: https://github.com/Tuxemon/Tuxemon — gfx/ui/combat, CC BY-SA 4.0.
 
 Ghi de:
-  assets/arena/<kieu>_bg.png        nen troi + dat, 320x480 (man doc)
+  assets/arena/<kieu>_bg.png        nen doc 320x480
   assets/arena/<kieu>_base_me.png   be dung cua minh
   assets/arena/<kieu>_base_foe.png  be dung cua doi thu
 
-Truoc day bo nay cat tu kho asset cua PokeRogue. Ve lai bang code cho dong bo
-voi bang mau cua game va khong phai muon anh cua ai.
+Anh goc cua Tuxemon la canh NGANG 256x108 (danh cho man ngang). Khung tran dau
+cua game nay la MAN DOC, nen cong cu ghep lai: canh goc dat o phan tren, phan
+duoi keo dai bang chinh hang pixel duoi cung cua canh do (thanh bai dat truoc
+mat) va toi dan xuong cho co chieu sau. Mau hai cai be cung lay tu chinh anh
+nen nen nhin lien mot khoi.
 """
 import os
+import sys
 
 from PIL import Image, ImageDraw
 
-# Khung tran dau cua game la MAN DOC, nen nen cung ve doc luon; ve ngang roi
-# keo gian ra thi troi va dat bi bet thanh hai vet mau to.
 W, H = 320, 480
-HORIZON = 212         # duong chan troi
 
-# kieu: (troi tren, troi duoi, dat tren, dat duoi, mau be, vien be)
-THEMES = {
-    'grass':      ((124, 190, 245), (198, 231, 250), (108, 186, 96), (62, 132, 62),
-                   (126, 200, 108), (72, 140, 74)),
-    'tall_grass': ((104, 172, 236), (176, 218, 246), (84, 162, 78), (44, 110, 52),
-                   (104, 180, 92), (58, 122, 62)),
-    'forest':     ((92, 148, 196), (150, 196, 214), (66, 132, 74), (34, 88, 48),
-                   (86, 150, 86), (46, 100, 54)),
-    'cave':       ((44, 40, 66), (74, 66, 96), (86, 76, 96), (48, 42, 60),
-                   (104, 94, 116), (62, 54, 76)),
-    'lake':       ((116, 186, 240), (186, 226, 248), (86, 160, 214), (46, 108, 168),
-                   (120, 190, 226), (66, 130, 180)),
-    'beach':      ((132, 198, 246), (206, 236, 250), (238, 216, 160), (206, 176, 118),
-                   (240, 222, 172), (198, 168, 116)),
-    'town':       ((120, 184, 238), (200, 228, 248), (140, 178, 120), (96, 138, 88),
-                   (150, 186, 130), (100, 142, 92)),
+# kieu trong game -> ten anh nen ben Tuxemon
+SCENES = {
+    'grass': 'grass_background',
+    'tall_grass': 'plain_background',
+    'forest': 'forest_background',
+    'cave': 'cave_background',
+    'lake': 'sea_background',
+    'beach': 'beach_background',
+    'town': 'valley_background',
 }
 
 
-def vgrad(d, x0, y0, x1, y1, top, bot):
-    """To dan mau tu tren xuong."""
-    h = max(1, y1 - y0)
-    for i in range(h):
-        t = i / h
-        d.line([(x0, y0 + i), (x1, y0 + i)],
-               fill=tuple(round(a + (b - a) * t) for a, b in zip(top, bot)))
+def row_color(im, y):
+    """Mau trung binh cua mot hang pixel."""
+    row = im.crop((0, y, im.width, y + 1)).resize((1, 1), Image.BOX)
+    return row.getpixel((0, 0))[:3]
 
 
-def make_bg(name, th):
-    sky_t, sky_b, gr_t, gr_b = th[0], th[1], th[2], th[3]
-    im = Image.new('RGBA', (W, H))
-    d = ImageDraw.Draw(im)
-    vgrad(d, 0, 0, W, HORIZON, sky_t, sky_b)
-    vgrad(d, 0, HORIZON, W, H, gr_t, gr_b)
-    # Vai vet sang mo cho mat dat do phang. ImageDraw ve len anh RGBA la GHI DE
-    # ca alpha, ve mau nua trong suot se thanh vet toi -> pha mau san roi ve dac.
-    for i in range(HORIZON + 24, H, 34):
-        t = (i - HORIZON) / max(1, H - HORIZON)
-        base = tuple(round(a + (b - a) * t) for a, b in zip(gr_t, gr_b))
-        d.line([(0, i), (W, i)], fill=tuple(min(255, c + 8) for c in base))
-    im.save('assets/arena/%s_bg.png' % name, optimize=True)
+def build(src_path, name):
+    scene = Image.open(src_path).convert('RGBA')
+    top = scene.resize((W, round(scene.height * W / scene.width)), Image.NEAREST)
+
+    out = Image.new('RGBA', (W, H))
+    out.paste(top, (0, 0))
+
+    # Keo dai mat dat bang hang pixel duoi cung
+    strip = top.crop((0, top.height - 1, W, top.height)).resize((W, H - top.height), Image.NEAREST)
+    out.paste(strip, (0, top.height))
+
+    # To toi dan cho co chieu sau. PIL CHI pha alpha tren anh RGB — ve mau nua
+    # trong suot thang len anh RGBA la ghi de, ca vung se thanh den.
+    out = out.convert('RGB')
+    d = ImageDraw.Draw(out, 'RGBA')
+    for i in range(top.height, H):
+        t = (i - top.height) / max(1, H - top.height)
+        d.line([(0, i), (W, i)], fill=(0, 0, 0, int(38 * t)))
+
+    out.save('assets/arena/%s_bg.png' % name, optimize=True)
+    return row_color(top, top.height - 1)
 
 
-def make_base(name, th, w, h, out):
-    """Be dung: mot hinh bau duc det co vien."""
-    face, edge = th[4], th[5]
+def make_base(col, w, h, out_path):
+    """Be dung: hinh bau duc det, mau lay tu mat dat cua chinh canh do."""
+    face = tuple(min(255, round(c * 1.14)) for c in col)
+    edge = tuple(round(c * 0.68) for c in col)
     im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.ellipse([0, 0, w - 1, h - 1], fill=edge)
-    d.ellipse([2, 2, w - 3, h - 5], fill=face)
-    # Vien sang o mep tren cho co khoi
-    d.arc([2, 2, w - 3, h - 5], 180, 360, fill=tuple(min(255, c + 26) for c in face), width=2)
-    im.save(out, optimize=True)
+    d.ellipse([0, 0, w - 1, h - 1], fill=edge + (255,))
+    d.ellipse([2, 2, w - 3, h - 5], fill=face + (255,))
+    d.arc([2, 2, w - 3, h - 5], 180, 360,
+          fill=tuple(min(255, c + 30) for c in face) + (255,), width=2)
+    im.save(out_path, optimize=True)
 
 
 def main():
+    if len(sys.argv) < 2:
+        raise SystemExit(__doc__)
+    gfx = os.path.join(sys.argv[1], 'mods/tuxemon/gfx/ui/combat')
+    if not os.path.isdir(gfx):
+        raise SystemExit('Khong thay %s' % gfx)
+
     os.makedirs('assets/arena', exist_ok=True)
-    for name, th in THEMES.items():
-        make_bg(name, th)
-        make_base(name, th, 128, 34, 'assets/arena/%s_base_foe.png' % name)
-        make_base(name, th, 140, 38, 'assets/arena/%s_base_me.png' % name)
-    print('OK: %d bộ nền trận đấu' % len(THEMES))
+    for f in os.listdir('assets/arena'):
+        if f.endswith('.png'):
+            os.remove(os.path.join('assets/arena', f))
+
+    n = 0
+    for name, scene in SCENES.items():
+        src = os.path.join(gfx, scene + '.png')
+        if not os.path.exists(src):
+            print('THIEU:', scene)
+            continue
+        col = build(src, name)
+        make_base(col, 128, 34, 'assets/arena/%s_base_foe.png' % name)
+        make_base(col, 140, 38, 'assets/arena/%s_base_me.png' % name)
+        n += 1
+    print('OK: %d bộ nền trận đấu' % n)
 
 
 if __name__ == '__main__':

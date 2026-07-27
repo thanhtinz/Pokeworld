@@ -131,6 +131,26 @@
 }
 .char-xp-num { color: var(--muted); font-size: 10px; }
 
+/* ==== Thẻ hồ sơ + bảng số liệu ==== */
+.char-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px 12px 14px;
+}
+.char-card .char-xp { max-width: 220px; }
+.char-facts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  text-align: center;
+  padding: 12px 8px;
+}
+.char-facts div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.char-facts b { font-size: 17px; color: var(--gold, #f0b429); line-height: 1.2; }
+.char-facts small { font-size: 10.5px; color: var(--muted); }
+
 /* ==== Thanh chỉ số nhân vật ==== */
 .char-stats h3 { font-size: 13px; margin-bottom: 8px; }
 .stat-bars { display: flex; flex-direction: column; gap: 7px; }

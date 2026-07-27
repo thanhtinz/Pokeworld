@@ -27,6 +27,10 @@ export const SKINS = {
   default: { name: 'Trang phục gốc', how: 'start' },
 };
 
+// Skin cho TUXEMON: mỗi món gắn với một loài (trường sp), mặc vào thì con loài
+// đó của mình đổi hình trong trận đấu và trong đội hình.
+export const MON_SKINS = {};
+
 export const COSMETIC_KINDS = [
   { id: 'title', name: 'Danh hiệu', icon: 'flag', data: TITLES },
   { id: 'avatarFrame', name: 'Khung avatar', icon: 'person', data: AVATAR_FRAMES },
@@ -37,7 +41,10 @@ export const COSMETIC_KINDS = [
 // Ô "không mặc gì" của mỗi loại — không bao giờ bị xoá theo dữ liệu máy chủ
 export const NONE_ID = { title: 'none', avatarFrame: 'none', chatFrame: 'none', skin: 'default' };
 
-const TABLES = { title: TITLES, avatarFrame: AVATAR_FRAMES, chatFrame: CHAT_FRAMES, skin: SKINS };
+const TABLES = {
+  title: TITLES, avatarFrame: AVATAR_FRAMES, chatFrame: CHAT_FRAMES,
+  skin: SKINS, monSkin: MON_SKINS,
+};
 
 // Gắn sẵn kind + id vào từng món để chỗ nào cầm def cũng biết nó là món gì.
 function stamp() {
@@ -73,6 +80,7 @@ export function applyRemote(items, base = '') {
     table[it.id] = {
       name: it.name, color: it.color || '#ffd43b',
       how: it.how, n: it.n || 0, img: it.img || null,
+      sp: it.sp || 0,          // skin Tuxemon: mã loài được đổi hình
     };
     remoteKeys.add(`${it.kind}:${it.id}`);
   }

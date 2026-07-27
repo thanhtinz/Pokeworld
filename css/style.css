@@ -1528,6 +1528,25 @@ img[src*='sprites'] { image-rendering: pixelated; }
   pointer-events: none;
 }
 .bt-stage .bt-sprite { position: relative; z-index: 1; }
+/* Hiệu ứng chiêu thức: dải ảnh nhiều khung, chạy bằng steps() nên không cần JS
+   vẽ từng khung. Đặt giữa con bị đánh, phóng to 1.6 lần cho rõ trên điện thoại. */
+.bt-fx {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(1.35);
+  transform-origin: center center;
+  z-index: 3;
+  pointer-events: none;
+  background: var(--fx) 0 0 / calc(var(--fxw) * var(--fxn)) var(--fxh) no-repeat;
+  image-rendering: pixelated;
+  animation: bt-fx-run .55s steps(var(--fxn)) 1 forwards;
+}
+@keyframes bt-fx-run {
+  from { background-position-x: 0; }
+  to   { background-position-x: calc(var(--fxw) * var(--fxn) * -1); }
+}
+.no-motion .bt-fx { display: none; }
 /* Phong to phai bam goc duoi, khong thi con vat bay len khoi be */
 .bt-sprite.px-icon { transform-origin: bottom center; }
 /* Khung thong tin dam hon mot chut de noi tren nen sang */

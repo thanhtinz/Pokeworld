@@ -2,7 +2,7 @@
 //
 // Đồ ở đây KHÔNG cộng chỉ số — mặc vào chỉ để đẹp và để người khác thấy.
 // Món trong từng tab là ảnh quản trị viên tải lên trong trang /admin.
-import { ensureData, trainerLevel, wearCosmetic } from '../engine/equipment.js';
+import { ensureData, trainerLevel, wearCosmetic } from '../engine/player.js';
 import { COSMETIC_KINDS, NONE_ID, unlocked, requirement, imgOf } from '../data/cosmetics.js';
 import { esc } from '../util.js';
 import { toast, header } from './kit.js';

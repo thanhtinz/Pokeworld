@@ -39,8 +39,9 @@ function defaultPlayer(name) {
     zone: 'taba_town',
     starterChosen: false,
     stats: { catches: 0, wins: 0, playSince: Date.now() },
-    equipped: { hat: null, outfit: null, gloves: null, shoes: null, bag: null, charm: null },
-    inventory: [],
+    look: { title: 'none', avatarFrame: 'none', chatFrame: 'none', skin: 'default' },
+    monSkins: {},
+    granted: [],
     trainer: { level: 1, exp: 0 },
   };
 }

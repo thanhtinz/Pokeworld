@@ -4,6 +4,7 @@
 // hành động qua lại. Hai máy tự tính trận đấu, cùng hạt nên ra cùng kết quả.
 // Đánh xong mỗi bên báo người thắng; máy chủ chỉ ghi nhận khi hai bên khớp nhau.
 import { G, save } from '../state.js';
+import { monImg } from '../engine/monskin.js';
 import { Battle } from '../engine/battle.js';
 import { displayName, maxHp, isFainted } from '../engine/pokemon.js';
 import { SPECIES } from '../data/species.js';
@@ -95,7 +96,7 @@ export function render(el, ctx = {}) {
       <span class="bt-stage" style="--base:url(${back ? arena.me : arena.foe})">
         <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
              style="width:min(${monPx(mon)}px, 58vw)"
-             src="${monLocalSrc(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">
+             src="${monImg(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">
       </span>`;
     // Bên mình đứng TRÁI DƯỚI, đối thủ đứng PHẢI TRÊN — giống game Tuxemon gốc.
     return back ? img + info : info + img;

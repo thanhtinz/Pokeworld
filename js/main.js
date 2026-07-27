@@ -33,10 +33,18 @@ import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
 import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/pokemon.js';
-import { trainerLevel } from './engine/equipment.js';
+import { trainerLevel } from './engine/player.js';
 import { fmt } from './util.js';
 import { uiIcon } from './ui/icons.js';
 import { avatarSrc } from './ui/look.js';
+import { playMusic } from './engine/settings.js';
+
+// Nhạc nền theo màn: mấy màn mở đầu dùng nhạc nhẹ, đánh nhau thì đổi bản khác
+const MUSIC_BY_SCREEN = {
+  splash: 'title', loading: 'title', auth: 'title', login: 'title',
+  serverpick: 'title', createchar: 'title', intro: 'title', starter: 'title',
+  battle: 'battle', pvp: 'battle',
+};
 
 const SCREENS = {
   home, battle, party, dex, bag, shop, quest, starter, menu, character,
@@ -71,6 +79,7 @@ export function show(name, params = {}) {
   if (fab) fab.hidden = nav.hidden || name === 'chat';
   // Thanh trên hiện cùng nhịp với thanh dưới
   drawTopBar(nav.hidden);
+  playMusic(MUSIC_BY_SCREEN[name] || 'town');
   el.scrollTop = 0;
 }
 

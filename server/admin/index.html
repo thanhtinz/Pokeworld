@@ -319,7 +319,8 @@ async function disbandGuild(id, name) {
 }
 
 // ==== Thời trang: danh hiệu / khung avatar / khung chat / skin ====
-const KIND_VI = { title:'Danh hiệu', avatarFrame:'Khung avatar', chatFrame:'Khung chat', skin:'Skin' };
+const KIND_VI = { title:'Danh hiệu', avatarFrame:'Khung avatar', chatFrame:'Khung chat',
+                  skin:'Skin nhân vật', monSkin:'Skin Tuxemon' };
 const HOW_VI = { start:'Có sẵn từ đầu', catch:'Bắt đủ N sinh vật', win:'Thắng N trận',
                  badge:'Có N huy hiệu', level:'Trainer Lv.N', manual:'Admin trao tay' };
 let cosRows = [];
@@ -342,6 +343,7 @@ function renderCosmetics(d) {
         <label>Màu chữ<input id="co-color" type="color" value="#ffd43b" style="height:38px;padding:2px"></label>
         <label>Điều kiện nhận<select id="co-how">${(d.hows||[]).map(h => `<option value="${h}"${h==='manual'?' selected':''}>${HOW_VI[h]||h}</option>`).join('')}</select></label>
         <label>Số N (nếu điều kiện cần)<input id="co-n" type="number" min="0" value="0"></label>
+        <label>Mã loài (chỉ Skin Tuxemon)<input id="co-sp" type="number" min="0" value="0" placeholder="vd 83 = Anoleaf"></label>
       </div>
       <p class="muted" style="margin:10px 0">Chọn <b>Admin trao tay</b> nếu món này không có điều kiện tự đạt — khi đó chỉ admin trao ở tab Người chơi mới có.</p>
       <button class="primary" onclick="saveCosmetic()">Lưu món</button>
@@ -352,7 +354,8 @@ function renderCosmetics(d) {
       <h3 style="margin-bottom:10px">Kho thời trang (${cosRows.length} món)</h3>
       <p class="muted" style="margin-bottom:10px">Toàn bộ thời trang trong game là ảnh tải lên ở đây — món <b>chưa có ảnh</b> sẽ hiện trơ tên trong game, nhớ tải ảnh cho từng món. PNG nền trong suốt, tối đa 2MB.<br>
       Gợi ý cỡ ảnh: khung avatar ~100×100, khung chat ~128×48 (kéo giãn 9 phần), danh hiệu ~96×24, skin ~64×64.<br>
-      Riêng <b>skin</b>: ảnh 64×64 chỉ đổi ảnh nhân vật trong giao diện; muốn đổi cả nhân vật đi trên bản đồ thì tải bộ sprite <b>3 cột × 4 hàng</b> (vd 48×128 — hàng xuống/trái/phải/lên).</p>
+      Riêng <b>skin nhân vật</b>: ảnh 64×64 chỉ đổi ảnh nhân vật trong giao diện; muốn đổi cả nhân vật đi trên bản đồ thì tải bộ sprite <b>3 cột × 4 hàng</b> (vd 48×128 — hàng xuống/trái/phải/lên).<br>
+      <b>Skin Tuxemon</b>: ảnh 64×64 thay hình một loài trong trận đấu và đội hình — nhớ điền <b>mã loài</b> (số thứ tự trong Tuxedex).</p>
       <div style="overflow:auto">
       <table>
         <thead><tr><th>Ảnh</th><th>Loại</th><th>Mã</th><th>Tên</th><th>Điều kiện</th><th>Thao tác</th></tr></thead>
@@ -363,7 +366,7 @@ function renderCosmetics(d) {
               ? `<img src="${esc(c.img)}" alt="" style="height:34px;image-rendering:pixelated;background:#0e1018;border-radius:6px">`
               : '<span class="badge b-ban">THIẾU ẢNH</span>'}</td>
             <td>${KIND_VI[c.kind] || esc(c.kind)}</td>
-            <td><code>${esc(c.id)}</code></td>
+            <td><code>${esc(c.id)}</code>${c.kind === 'monSkin' && c.sp ? `<br><span class="muted">loài #${c.sp}</span>` : ''}</td>
             <td><b style="color:${esc(c.color||'#fff')}">${esc(c.name)}</b></td>
             <td>${howText(c)}</td>
             <td class="row">
@@ -386,7 +389,7 @@ function renderCosmetics(d) {
 async function saveCosmetic() {
   const body = {
     kind: $('#co-kind').value, id: $('#co-id').value, name: $('#co-name').value,
-    color: $('#co-color').value, how: $('#co-how').value, n: $('#co-n').value,
+    color: $('#co-color').value, how: $('#co-how').value, n: $('#co-n').value, sp: $('#co-sp').value,
   };
   await api('/cosmetics', { method: 'POST', body: JSON.stringify(body) });
   toast('Đã lưu món thời trang'); loadTab();
@@ -396,6 +399,7 @@ function editCosmetic(i) {
   if (!c) return;
   $('#co-kind').value = c.kind; $('#co-id').value = c.id; $('#co-name').value = c.name;
   $('#co-color').value = c.color || '#ffd43b'; $('#co-how').value = c.how; $('#co-n').value = c.n || 0;
+  $('#co-sp').value = c.sp || 0;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 async function delCosmetic(key, name) {

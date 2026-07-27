@@ -8,9 +8,10 @@ const TIPS = [
   'Tuxemon hệ Nước rất mạnh trước hệ Lửa, Đá và Đất.',
   'Làm Tuxemon hoang yếu máu rồi hãy ném bóng — tỉ lệ bắt cao hơn nhiều.',
   'Tuxemon đang ngủ hoặc đóng băng dễ bắt hơn gấp đôi.',
-  'Trang bị cường hóa giúp tăng EXP, tiền và tỉ lệ gặp shiny.',
+  'Skin Tuxemon và danh hiệu đổi trong màn Nhân vật — mặc cho đẹp thôi, không đổi sức mạnh.',
   'Bạn vẫn nhận tiền và EXP khi thoát game — tối đa 8 giờ.',
-  'Đá tiến hóa mua được ở cửa hàng trong thị trấn.',
+  'Đá tiến hoá bán ở cửa hàng trong thị trấn.',
+  'Tuxemon hệ Gỗ khắc hệ Đất và Nước, nhưng sợ Lửa.',
 ];
 
 // Ảnh chắc chắn dùng ngay khi vào game. Danh sách cũ còn trỏ vào sprite thời
@@ -85,7 +86,6 @@ export async function render(el) {
       import('../data/items.js'), import('../data/zones.js'),
       import('../data/trainers.js'), import('../data/quests.js'),
       import('../data/story.js'),
-      import('../data/equipment.js'),
     ]);
   }]);
   // Ảnh tải SONG SONG (mạng chậm/chặn cũng không treo màn hình)
