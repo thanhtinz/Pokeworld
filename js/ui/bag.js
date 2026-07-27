@@ -7,7 +7,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { esc } from '../util.js';
-import { toast, choose, confirmDlg, header } from './kit.js';
+import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 
 const TABS = [
   ['medicine', '💊 Thuốc'],
@@ -38,7 +38,7 @@ export function render(el) {
           const it = ITEMS[id];
           return `
           <button class="card item-row" data-id="${esc(id)}">
-            <span class="item-ico">${it.icon || '🎁'}</span>
+            ${itemIcon(id, it.icon || '🎁')}
             <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
             <span class="item-n">×${G.p.bag[id]}</span>
           </button>`;

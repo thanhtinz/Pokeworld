@@ -2,7 +2,7 @@
 import { G, spend, addMoney, addItem, removeItem } from '../state.js';
 import { ITEMS } from '../data/items.js';
 import { esc, fmt } from '../util.js';
-import { toast, choose } from './kit.js';
+import { toast, choose, itemIcon } from './kit.js';
 
 export function render(el) {
   let tab = 'buy';
@@ -24,7 +24,7 @@ export function render(el) {
           const it = ITEMS[id];
           return `
           <button class="card item-row" data-id="${esc(id)}">
-            <span class="item-ico">${it.icon || '🎁'}</span>
+            ${itemIcon(id, it.icon || '🎁')}
             <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
             <span class="item-n">${tab === 'buy'
               ? `${fmt(it.price)}₽`

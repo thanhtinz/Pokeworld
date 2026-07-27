@@ -919,3 +919,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 @media (prefers-reduced-motion: reduce) {
   .float-pop, .story-new, .dots, .cutscene-next { animation: none; }
 }
+
+/* Icon item dạng sprite */
+.item-ico { display: inline-flex; align-items: center; vertical-align: middle; }
+.item-ico img { image-rendering: pixelated; display: inline-block; }

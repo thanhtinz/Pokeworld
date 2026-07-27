@@ -56,6 +56,13 @@ export function hpBar(cur, max) {
   return `<div class="hpbar"><div class="hpbar-fill ${cls}" style="width:${pct}%"></div></div>`;
 }
 
+// Icon item: sprite thật từ PokeAPI, emoji chỉ là fallback khi ảnh lỗi
+export function itemIcon(itemId, emoji = '🎁', size = 26) {
+  const url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${String(itemId).replace(/_/g, '-')}.png`;
+  return `<span class="item-ico"><img src="${url}" width="${size}" height="${size}" alt=""
+    onerror="this.nextElementSibling.style.display='inline';this.remove()"><i style="display:none">${emoji}</i></span>`;
+}
+
 // Inline CSS vars cho card holo: gradient theo hệ của Pokémon (pha tím galaxy trong CSS)
 export function holoStyle(types = []) {
   const c1 = TYPE_COLORS[types[0]] || '#7048e8';

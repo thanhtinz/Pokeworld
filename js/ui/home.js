@@ -10,7 +10,7 @@ import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
 import { SPECIES } from '../data/species.js';
 import { esc, fmt, monSprite, animSprite } from '../util.js';
-import { toast, choose, hpBar } from './kit.js';
+import { toast, choose, hpBar, itemIcon } from './kit.js';
 import { show, refresh } from '../main.js';
 
 let offlineClaimed = false; // chỉ nhận offline 1 lần mỗi phiên
@@ -67,8 +67,8 @@ export function render(el) {
     <div class="idle-log" id="idle-log"></div>
 
     <div class="idle-controls">
-      <button class="btn btn-primary" id="btn-ball">⚪ Ném bóng</button>
-      <button class="btn" id="btn-heal-item">🧪 Hồi máu</button>
+      <button class="btn btn-primary" id="btn-ball">${itemIcon('poke_ball', '⚪', 22)} Ném bóng</button>
+      <button class="btn" id="btn-heal-item">${itemIcon('potion', '🧪', 22)} Hồi máu</button>
     </div>`}
 
     <div class="idle-controls">
@@ -230,7 +230,8 @@ export function render(el) {
     const balls = Object.entries(G.p.bag).filter(([id]) => ITEMS[id]?.kind === 'ball');
     if (!balls.length) { toast('Hết bóng! Mua thêm ở cửa hàng thị trấn.'); return; }
     const i = await choose('Chọn bóng', balls.map(([id, n]) => ({
-      label: `${ITEMS[id].icon || '⚪'} ${ITEMS[id].name} x${n}`,
+      html: `${itemIcon(id, ITEMS[id].icon || '⚪')} ${ITEMS[id].name} x${n}`,
+      label: `${ITEMS[id].name} x${n}`,
       sub: `x${(ITEMS[id].ballMult || 1).toFixed(1)} tỉ lệ bắt`,
     })));
     if (i === null) return;
@@ -250,7 +251,8 @@ export function render(el) {
     const m = activeMon();
     if (!m) { toast('Không có Pokémon nào cần hồi!'); return; }
     const i = await choose(`Dùng thuốc cho ${displayName(m)}`, meds.map(([id, n]) => ({
-      label: `${ITEMS[id].icon || '🧪'} ${ITEMS[id].name} x${n}`, sub: ITEMS[id].desc,
+      html: `${itemIcon(id, ITEMS[id].icon || '🧪')} ${ITEMS[id].name} x${n}`,
+      label: `${ITEMS[id].name} x${n}`, sub: ITEMS[id].desc,
     })));
     if (i === null) return;
     const [itemId] = meds[i];

@@ -44,6 +44,10 @@ export const animSpriteUrl = (dexId, back = false, shiny = false) =>
 export const animSprite = (mon, back = false) =>
   animSpriteUrl(mon.sp, back, !!mon.shiny);
 
+// Sprite item chính hãng từ PokeAPI (id của mình dùng _ , CDN dùng -)
+export const itemSpriteUrl = (itemId) =>
+  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${String(itemId).replace(/_/g, '-')}.png`;
+
 export const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
 
 // Ngày dạng số yyyymmdd (cho daily)
