@@ -51,7 +51,7 @@ export function render(el) {
             }).join('')}
           </div>
         </div>`).join('')}
-      ${tong === 0 ? '<div class="card empty-note">Túi đang trống. Mua thêm ở Cửa hàng nhé!</div>' : ''}`;
+      ${tong === 0 ? '<div class="card empty-note">Túi đang trống.</div>' : ''}`;
 
     el.querySelectorAll('.bag-cell').forEach(b =>
       b.addEventListener('click', () => openItem(b.dataset.id)));

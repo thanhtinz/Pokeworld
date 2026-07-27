@@ -108,7 +108,7 @@ export function openDecor(startTab) {
           ${id === dangMac ? '<span class="decor-worn">✓</span>' : ''}
           ${anh(id, d)}
         </button>`).join('')
-      : `<p class="empty-note decor-empty">Chưa có ${TABS.find(t => t.id === tab).loai} nào.</p>`;
+      : '';
 
     const cur = list.find(([id]) => id === sel);
     const [id, d, ok] = cur || [];

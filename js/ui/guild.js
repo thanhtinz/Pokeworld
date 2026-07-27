@@ -43,7 +43,7 @@ export function render(el) {
             <span><b>[${esc(x.tag || '')}] ${esc(x.name)}</b>
               <small>${x.members ?? 0}/${x.maxMembers ?? '?'} thành viên</small></span>
             <button class="btn-mini" data-join="${esc(x.id)}">Xin vào</button>
-          </div>`).join('') : '<div class="empty-note">Chưa có bang hội nào. Lập bang đầu tiên đi!</div>'}
+          </div>`).join('') : '<div class="empty-note">Chưa có bang hội nào.</div>'}
       </div>`;
 
     body.querySelector('#g-create').addEventListener('click', async () => {

@@ -30,7 +30,6 @@ export function render(el, { tab: startTab } = {}) {
     const cur = COSMETIC_KINDS.find(t => t.id === tab);
     const lv = trainerLevel();
     const items = Object.entries(cur.data);
-    const onlyNone = items.length <= 1;
 
     el.innerHTML = `
       ${header('Thời trang', 'character')}
@@ -53,9 +52,7 @@ export function render(el, { tab: startTab } = {}) {
           <b>${esc(cur.name)}</b>
           <small>${items.filter(([, d]) => unlocked(d, p, lv)).length}/${items.length} đã mở</small>
         </div>
-        ${onlyNone
-          ? '<div class="empty-note">Chưa có món nào. Quản trị viên tải ảnh lên trong trang /admin là hiện ở đây ngay.</div>'
-          : ''}
+
         <div class="fa-grid">
           ${items.map(([id, d]) => {
             const ok = unlocked(d, p, lv);

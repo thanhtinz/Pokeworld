@@ -107,7 +107,7 @@ export function render(el) {
             <span>${esc(f.username)}</span>
             <button class="btn-mini" data-ask="${esc(f.username)}">Cầu hôn</button>
           </div>`).join('')
-        : '<div class="empty-note">Chưa có bạn nào. Sang trang Bạn bè kết bạn trước đã.</div>'}
+        : '<div class="empty-note">Chưa có bạn nào.</div>'}
         ${friends.length ? '' : '<button class="btn" id="mr-friends">Sang trang Bạn bè</button>'}
       </div>`;
 
