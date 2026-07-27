@@ -72,6 +72,7 @@ export function render(el) {
       addToParty(mon);
       markCaught(id);
       G.p.starterChosen = true;
+      G.p.starterId = id; // dùng cho đội rival khắc hệ (engine/story.js)
       // Quest chính đầu tiên: ưu tiên 'main_starter', fallback quest main đầu trong data
       const qKeys = Object.keys(QUESTS || {});
       const mainKey = QUESTS && QUESTS.main_starter ? 'main_starter'

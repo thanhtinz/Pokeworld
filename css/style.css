@@ -821,3 +821,101 @@ img[src*='sprites'] { image-rendering: pixelated; }
   background-position: center, center, center 30%;
   border-color: var(--line);
 }
+
+/* ==== Man hinh IDLE ==== */
+.idle-top {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; gap: 8px;
+}
+.zone-chip {
+  background: rgba(10, 8, 24, .7); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 14px; font-size: .85rem;
+}
+.story-card {
+  width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
+  border-color: var(--gold); box-shadow: 0 0 12px rgba(240, 180, 41, .15);
+}
+.story-card.done { border-color: var(--line); box-shadow: none; }
+.story-badge {
+  font-family: 'Press Start 2P', monospace; font-size: .6rem;
+  color: var(--gold); white-space: nowrap;
+}
+.story-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.story-body small { color: var(--muted); font-size: .75rem; }
+.story-new { color: var(--gold); font-size: 1.1rem; animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+
+.arena {
+  position: relative; min-height: 210px; border-radius: var(--radius);
+  border: 1px solid var(--line); margin-bottom: 10px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(ellipse at 70% 20%, rgba(112, 72, 232, .28), transparent 55%),
+    radial-gradient(ellipse at 20% 80%, rgba(59, 91, 219, .22), transparent 50%),
+    linear-gradient(#0b0716, #171032);
+}
+.searching { color: var(--muted); font-family: 'Press Start 2P', monospace; font-size: .65rem; }
+.dots { animation: pulse 1s infinite; }
+.arena-wild { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wild-info { width: 180px; text-align: center; }
+.wild-name { font-family: 'Press Start 2P', monospace; font-size: .62rem; }
+.wild-lv { color: var(--gold); font-family: 'Press Start 2P', monospace; font-size: .6rem; margin-left: 6px; }
+.wild-info .hpbar { margin-top: 5px; }
+.wild-sprite { width: 120px; height: 120px; object-fit: contain; image-rendering: pixelated; }
+.arena-pop { position: absolute; inset: 0; pointer-events: none; }
+.float-pop {
+  position: absolute; bottom: 30%;
+  font-family: 'Press Start 2P', monospace; font-size: .72rem;
+  color: #ffd43b; text-shadow: 0 2px 0 rgba(0,0,0,.6);
+  animation: floatUp 1.5s ease-out forwards;
+}
+.pop-exp { color: #74c0fc; }
+@keyframes floatUp {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-70px); opacity: 0; }
+}
+
+.me-panel { display: flex; gap: 12px; align-items: center; }
+.me-sprite { width: 76px; height: 76px; object-fit: contain; image-rendering: pixelated; }
+.me-info { flex: 1; }
+.me-name { font-family: 'Press Start 2P', monospace; font-size: .62rem; margin-bottom: 6px; }
+.me-lv { color: var(--gold); }
+.bar-label { font-size: .7rem; color: var(--muted); margin-bottom: 3px; }
+.me-rest { text-align: center; color: var(--muted); width: 100%; padding: 8px; }
+
+.idle-log {
+  min-height: 76px; max-height: 96px; overflow: hidden;
+  font-size: .78rem; color: var(--muted);
+  padding: 6px 10px; margin-bottom: 10px;
+  background: rgba(8, 6, 18, .55); border-radius: 10px; border: 1px solid var(--line);
+}
+.log-line { opacity: .55; }
+.log-line:first-child { opacity: 1; color: var(--text); }
+.log-hl:first-child { color: var(--gold); }
+.log-money:first-child { color: #ffd43b; }
+
+.idle-controls { display: flex; gap: 8px; margin-bottom: 8px; }
+.idle-controls .btn { flex: 1; }
+
+/* ==== Cutscene hoi thoai ==== */
+.cutscene-overlay {
+  position: fixed; inset: 0; z-index: 85;
+  background: rgba(5, 4, 12, .55);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0 12px calc(24px + env(safe-area-inset-bottom));
+}
+.cutscene-box {
+  width: 100%; max-width: 456px;
+  background: rgba(12, 10, 28, .96);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 12px 14px 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .6);
+  animation: pop .18s;
+}
+.cutscene-speaker { font-family: 'Press Start 2P', monospace; font-size: .62rem; color: var(--gold); margin-bottom: 8px; }
+.cutscene-text { min-height: 60px; font-size: .95rem; line-height: 1.5; }
+.cutscene-next { text-align: right; color: var(--muted); font-size: .68rem; animation: pulse 1.2s infinite; margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .float-pop, .story-new, .dots, .cutscene-next { animation: none; }
+}

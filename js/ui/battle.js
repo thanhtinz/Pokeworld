@@ -13,7 +13,16 @@ import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
 import { monSprite, animSprite, esc, sleep, fmt } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag } from './kit.js';
+import { emitStory, rivalTeam } from '../engine/story.js';
+import { playDialog } from './dialog.js';
 import { show } from '../main.js';
+
+// Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
+async function storyDone(ch) {
+  if (!ch) return;
+  if (ch.outro?.length) await playDialog(ch.outro);
+  toast(`🏆 ${ch.title} hoàn thành!`);
+}
 
 export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {}) {
   // ==== Dựng trận ====
@@ -22,7 +31,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
   if (kind === 'trainer') {
     trainer = TRAINERS[trainerId];
     if (!trainer) { toast('Không tìm thấy trainer!'); show('home'); return; }
-    const mons = (trainer.party || []).map(e =>
+    // Rival: đội động khắc hệ với starter người chơi (engine/story.js)
+    const party = trainer.kind === 'rival' ? rivalTeam(trainerId) : (trainer.party || []);
+    const mons = party.map(e =>
       Array.isArray(e) ? newPokemon(e[0], e[1]) : newPokemon(e.sp, e.lv, e.opts || {}));
     enemySide = { mons: mons.filter(Boolean), kind: 'trainer' };
     for (const m of enemySide.mons) markSeen(m.sp);
@@ -370,9 +381,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
               G.p.badges.push(trainer.badge);
               toast(`🏅 Nhận huy hiệu ${trainer.badgeName || ''}!`);
               questToasts(emitQuest('earn_badge', { id: trainer.badge }));
+              await storyDone(emitStory('earn_badge', { id: trainer.badge }));
             }
           }
           questToasts(emitQuest('defeat_trainer', { id: trainerId }));
+          await storyDone(emitStory('defeat_trainer', { id: trainerId }));
         } else {
           log('Bạn lại thắng! (không có thưởng thêm)');
         }
