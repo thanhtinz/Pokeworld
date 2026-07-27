@@ -5,6 +5,7 @@ import { SPECIES } from '../data/species.js';
 import { QUESTS } from '../data/quests.js';
 import { spriteUrl, esc } from '../util.js';
 import { toast, confirmDlg, typeBadge, holoStyle } from './kit.js';
+import { activeAccount } from '../engine/accounts.js';
 import { show } from '../main.js';
 
 const STARTERS = [1, 4, 7]; // Bulbasaur / Charmander / Squirtle
@@ -12,7 +13,7 @@ const STARTERS = [1, 4, 7]; // Bulbasaur / Charmander / Squirtle
 export function render(el) {
   // Đã có save + đã chọn starter -> không nên ở đây
   if (G.p && G.p.starterChosen) { show('home'); return; }
-  const hasPlayer = !!G.p; // có save nhưng chưa chọn starter -> vào thẳng phần chọn
+  const hasPlayer = true; // tên đã có từ tài khoản -> vào thẳng phần chọn starter
 
   el.innerHTML = `
     <div class="starter-wrap">
@@ -66,7 +67,7 @@ export function render(el) {
       const s = SPECIES[id];
       const ok = await confirmDlg(`Chọn ${s.name} làm bạn đồng hành nhé?`, 'Chọn!');
       if (!ok) return;
-      if (!G.p) newGame(pendingName || 'Trainer');
+      if (!G.p) newGame((activeAccount()?.user) || pendingName || 'Trainer');
       const mon = newPokemon(id, 5);
       if (!mon) { toast('Có lỗi dữ liệu, thử lại sau!'); return; }
       addToParty(mon);

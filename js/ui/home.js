@@ -327,8 +327,10 @@ export function render(el) {
       const t = TRAINERS[tid];
       const won = !!G.p.defeatedTrainers[tid];
       const story = t.story && !won;
+      const face = t.sprite ? `<img class="tr-face" src="assets/trainers/${t.sprite}.png" alt="" onerror="this.remove()"> ` : '';
       return {
-        label: `${t.kind === 'gym' ? '🏛️' : story ? '📖' : '🧢'} ${t.name}${won ? ' ✓' : ''}`,
+        html: `${face}${t.name}${won ? ' ✓' : ''}`,
+        label: `${t.name}${won ? ' ✓' : ''}`,
         sub: t.kind === 'gym' ? `Gym — 🏅 ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${fmt(t.rewardMoney)}₽` : ''),
         tid,
       };

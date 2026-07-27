@@ -943,3 +943,43 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .nav-ico img { width: 26px; height: 26px; image-rendering: pixelated; display: inline-block; }
 .money-chip .item-ico { margin-right: 2px; }
 .btn .item-ico { vertical-align: -6px; margin-right: 2px; }
+
+/* ==== Dang nhap / dang ky ==== */
+.login-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; text-align: left; }
+.login-acc { display: flex; align-items: center; gap: 12px; width: 100%; }
+.login-ava { width: 48px; height: 48px; image-rendering: pixelated; }
+.login-ava-big { width: 96px; height: 96px; image-rendering: pixelated; margin: 0 auto 8px; display: block; }
+.login-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.login-info small { color: var(--muted); font-size: .75rem; }
+.login-lock { color: var(--muted); }
+.login-title { font-family: 'Press Start 2P', monospace; font-size: .85rem; margin-bottom: 14px; }
+.login-note { color: var(--muted); font-size: .74rem; margin-top: 12px; }
+
+.char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.char-card {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 8px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: transform .12s, border-color .15s, box-shadow .15s;
+}
+.char-card img { width: 96px; height: 96px; image-rendering: pixelated; }
+.char-card small { color: var(--muted); font-size: .72rem; }
+.char-card.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(240, 180, 41, .35);
+  transform: translateY(-2px);
+}
+
+/* Chan dung trong cutscene + danh sach trainer + profile */
+.cutscene-wrap { width: 100%; max-width: 456px; position: relative; }
+.cutscene-face {
+  position: absolute; right: 10px; top: -84px;
+  width: 96px; height: 96px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+}
+.cutscene-wrap .cutscene-box { max-width: none; width: 100%; }
+.tr-face { width: 34px; height: 34px; image-rendering: pixelated; vertical-align: middle; }
+.profile-ava { width: 40px; height: 40px; image-rendering: pixelated; vertical-align: middle; }

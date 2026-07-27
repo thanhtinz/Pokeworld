@@ -4,13 +4,13 @@
 // speaker: 'prof' Giáo sư Sồi | 'rival' Khôi | 'rocket' Băng Hỏa Tiễn | 'me' người chơi | 'sys'
 
 export const SPEAKERS = {
-  prof:   { name: 'Giáo sư Sồi',  icon: '👨‍🔬' },
-  rival:  { name: 'Khôi',          icon: '😏' },
-  nurse:  { name: 'Y tá Chi',      icon: '👩‍⚕️' },
-  rocket: { name: 'Băng Hỏa Tiễn', icon: '🚀' },
-  boss:   { name: 'Trùm Hỏa Tiễn', icon: '😈' },
-  me:     { name: 'Bạn',           icon: '🧢' },
-  sys:    { name: '',              icon: '' },
+  prof:   { name: 'Giáo sư Sồi',  icon: '👨‍🔬', img: 'oak' },
+  rival:  { name: 'Khôi',          icon: '😏', img: 'rival' },
+  nurse:  { name: 'Y tá Chi',      icon: '👩‍⚕️', img: 'lass' },
+  rocket: { name: 'Băng Hỏa Tiễn', icon: '🚀', img: 'rocket_m' },
+  boss:   { name: 'Trùm Hỏa Tiễn', icon: '😈', img: 'giovanni' },
+  me:     { name: 'Bạn',           icon: '🧢', img: null }, // avatar tài khoản (red/leaf)
+  sys:    { name: '',              icon: '', img: null },
 };
 
 // Đội của rival Khôi theo từng mốc — chọn khắc hệ với starter của người chơi.

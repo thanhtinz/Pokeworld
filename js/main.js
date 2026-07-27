@@ -12,8 +12,10 @@ import * as shop from './ui/shop.js';
 import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
+import * as loginScr from './ui/login.js';
+import { activeAccount } from './engine/accounts.js';
 
-const SCREENS = { home, battle, party, dex, bag, shop, quest, starter, menu };
+const SCREENS = { home, battle, party, dex, bag, shop, quest, starter, menu, login: loginScr };
 
 let current = null;
 let currentParams = null;
@@ -28,9 +30,9 @@ export function show(name, params = {}) {
   el.className = `screen screen-${name}`;
   el.innerHTML = '';
   scr.render(el, params);
-  // Bottom nav: ẩn ở starter/battle
+  // Bottom nav: ẩn ở starter/battle/login
   const nav = document.getElementById('bottom-nav');
-  nav.hidden = (name === 'starter' || name === 'battle');
+  nav.hidden = (name === 'starter' || name === 'battle' || name === 'login');
   nav.querySelectorAll('button').forEach(b =>
     b.classList.toggle('active', b.dataset.nav === name));
   el.scrollTop = 0;
@@ -54,7 +56,9 @@ document.addEventListener('click', e => {
 });
 
 // ==== Boot ====
-if (hasSave() && load()) {
+if (!activeAccount()) {
+  show('login');
+} else if (hasSave() && load()) {
   show(G.p.starterChosen ? 'home' : 'starter');
 } else {
   show('starter');

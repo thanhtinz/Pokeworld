@@ -1,5 +1,6 @@
 // PokeWorld H5 | ui/menu.js | Thông tin trainer, điểm danh, cài đặt
 import { G, dexCounts, claimDaily, wipeSave } from '../state.js';
+import { logout, activeAvatar } from '../engine/accounts.js';
 import { DAILY_REWARDS } from '../data/quests.js';
 import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
@@ -21,7 +22,7 @@ export function render(el) {
     ${header('Menu')}
 
     <div class="card profile-card">
-      <div class="profile-name">🧢 <b>${esc(G.p.name)}</b>${storyProgress().finished ? ' <img src="assets/img/crown.png" class="crown-ico" alt="👑" title="Nhà Vô Địch">' : ''}</div>
+      <div class="profile-name"><img class="profile-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()"> <b>${esc(G.p.name)}</b>${storyProgress().finished ? ' <img src="assets/img/crown.png" class="crown-ico" alt="👑" title="Nhà Vô Địch">' : ''}</div>
       <div>💰 ${fmt(G.p.money)}₽</div>
       <div class="badge-row">
         ${G.p.badges.length
@@ -46,6 +47,7 @@ export function render(el) {
 
     <div class="card">
       <h3>Cài đặt</h3>
+      <button class="btn" id="btn-logout">🚪 Đăng xuất</button>
       <button class="btn btn-danger" id="btn-wipe">🗑️ Xóa save chơi lại</button>
     </div>
 
@@ -64,6 +66,10 @@ export function render(el) {
     refresh();
   });
 
+  el.querySelector('#btn-logout').addEventListener('click', () => {
+    logout();
+    location.reload();
+  });
   el.querySelector('#btn-wipe').addEventListener('click', async () => {
     if (!await confirmDlg('Xóa toàn bộ dữ liệu và chơi lại từ đầu?', 'Xóa')) return;
     if (!await confirmDlg('Chắc chắn chứ? Không thể hoàn tác!', 'Xóa luôn')) return;

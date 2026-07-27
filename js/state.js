@@ -1,6 +1,7 @@
 // PokeWorld H5 | state.js | Trạng thái game + save/load localStorage + quest engine
 import { clamp, todayNum } from './util.js';
 import { QUESTS } from './data/quests.js';
+import { loadActiveSave, writeActiveSave, clearActiveSave } from './engine/accounts.js';
 
 const SAVE_KEY = 'pokeworld_save_v1';
 export const SAVE_VERSION = 1;
@@ -41,7 +42,7 @@ function defaultPlayer(name) {
   };
 }
 
-export function hasSave() { return !!localStorage.getItem(SAVE_KEY); }
+export function hasSave() { return !!loadActiveSave(); }
 
 export function newGame(name) {
   G.p = defaultPlayer(name);
@@ -51,15 +52,14 @@ export function newGame(name) {
 
 export function save() {
   if (!G.p) return;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(G.p)); }
+  try { writeActiveSave(JSON.parse(JSON.stringify(G.p))); }
   catch (e) { console.warn('save fail', e); }
 }
 
 export function load() {
-  const raw = localStorage.getItem(SAVE_KEY);
-  if (!raw) return false;
+  const data = loadActiveSave();
+  if (!data) return false;
   try {
-    const data = JSON.parse(raw);
     // Vá field thiếu khi update version
     const def = defaultPlayer(data.name);
     for (const k of Object.keys(def)) if (data[k] === undefined) data[k] = def[k];
@@ -73,7 +73,7 @@ export function load() {
 }
 
 export function wipeSave() {
-  localStorage.removeItem(SAVE_KEY);
+  clearActiveSave();
   G.p = null;
 }
 
