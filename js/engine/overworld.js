@@ -71,26 +71,43 @@ function freeSpot(mapId, x, y) {
   return [x, y];
 }
 
-// ==== NPC đi lại ====
-// Bản đồ lấy từ Tuxemon chỉ cho toạ độ và hướng đứng, không có kịch bản đi lại.
-// Mỗi NPC ở đây tự đi quanh chỗ của mình vài ô rồi quay về, thỉnh thoảng chỉ
-// đứng xoay người — làng xóm nhìn có người sống chứ không phải tượng.
+// ==== NPC ====
+// Bản đồ Tuxemon chỉ cho toạ độ và hướng đứng, không có kịch bản đi lại. Mỗi
+// NPC mang một kiểu cư xử (trường 'ai' do tools/mktmx.py gán theo nghề):
+//   stand  đứng sau quầy, chỉ quay người khi người chơi lại gần
+//   watch  lính gác: đứng một chỗ, đảo mắt nhìn quanh
+//   wander đi lòng vòng quanh chỗ đứng
+//   patrol đi đi lại lại một đoạn thẳng
+// Ai cũng quay mặt về phía người chơi khi đứng sát, và bật dấu "!" một lần khi
+// vừa trông thấy — nhìn có phản ứng chứ không phải tượng đá.
 const NPC_SPEED = 1.8;           // ô mỗi giây, chậm hơn người chơi
-const NPC_RANGE = 2;             // đi xa nhất ngần này ô so với chỗ đứng gốc
+const NPC_RANGE = 3;             // đi xa nhất ngần này ô so với chỗ đứng gốc
+const NOTICE_RANGE = 2;          // thấy người chơi trong ngần này ô thì quay mặt lại
 const DIRS = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];
+const PATROL_DIRS = [[1, 0], [0, 1]];
+
+function huongToi(n, x, y) {
+  const dx = x - n.x, dy = y - n.y;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+  return dy > 0 ? 'down' : 'up';
+}
 
 export function updateNpcs(dt) {
   const map = currentMap();
   const baked = currentBake();
+  const px = Math.floor(player.x), py = Math.floor(player.y);
   for (const n of map.npcs || []) {
-    if (n.fixed) continue;
     if (n.home === undefined) {
       n.home = { x: n.x, y: n.y };
       n.ox = 0; n.oy = 0;
       n.wait = 1 + Math.random() * 4;
       n.moving = false;
+      n.step = n.ai === 'patrol' ? PATROL_DIRS[Math.floor(Math.random() * 2)] : null;
+      n.way = 1;
     }
-    // Đang bước: trượt dần sang ô đích
+    if (n.emote > 0) n.emote -= dt;
+
+    // Trượt dần sang ô đích
     if (n.moving) {
       const step = NPC_SPEED * dt;
       n.ox += Math.sign(n.tx - n.x - n.ox) * Math.min(step, Math.abs(n.tx - n.x - n.ox));
@@ -98,19 +115,54 @@ export function updateNpcs(dt) {
       if (Math.abs(n.tx - n.x - n.ox) < 0.01 && Math.abs(n.ty - n.y - n.oy) < 0.01) {
         n.x = n.tx; n.y = n.ty; n.ox = 0; n.oy = 0;
         n.moving = false;
-        n.wait = 1 + Math.random() * 4;
+        n.wait = 0.6 + Math.random() * 3;
       }
       continue;
     }
+
+    // Người chơi lại gần: quay mặt về phía họ và đứng lại một nhịp
+    const gan = Math.abs(px - n.x) + Math.abs(py - n.y) <= NOTICE_RANGE;
+    if (gan) {
+      n.dir = huongToi(n, px, py);
+      if (!n.seen) { n.seen = true; n.emote = 1.2; }
+      n.wait = Math.max(n.wait, 0.5);
+      continue;
+    }
+    n.seen = false;
+
     n.wait -= dt;
     if (n.wait > 0) continue;
+
+    if (n.ai === 'stand') {
+      n.dir = DIRS[Math.floor(Math.random() * DIRS.length)][0];
+      n.wait = 3 + Math.random() * 5;
+      continue;
+    }
+    if (n.ai === 'watch') {
+      n.dir = DIRS[Math.floor(Math.random() * DIRS.length)][0];
+      n.wait = 1.5 + Math.random() * 2.5;
+      continue;
+    }
+    if (n.ai === 'patrol') {
+      const [sx, sy] = n.step;
+      let tx = n.x + sx * n.way, ty = n.y + sy * n.way;
+      const xa = Math.abs(tx - n.home.x) + Math.abs(ty - n.home.y);
+      if (xa > NPC_RANGE || !npcCanWalk(baked, map, tx, ty, n)) {
+        n.way *= -1;
+        tx = n.x + sx * n.way; ty = n.y + sy * n.way;
+        if (!npcCanWalk(baked, map, tx, ty, n)) { n.wait = 1 + Math.random(); continue; }
+      }
+      n.dir = huongToi(n, tx, ty);
+      n.tx = tx; n.ty = ty; n.moving = true;
+      continue;
+    }
+
+    // wander
     const [dir, dx, dy] = DIRS[Math.floor(Math.random() * DIRS.length)];
     n.dir = dir;
     const tx = n.x + dx, ty = n.y + dy;
-    const xa = Math.abs(tx - n.home.x), ya = Math.abs(ty - n.home.y);
-    const trong = xa <= NPC_RANGE && ya <= NPC_RANGE;
-    // Một phần ba số lần chỉ xoay người cho khỏi đi lại liên tục
-    if (!trong || Math.random() < 0.34 || !npcCanWalk(baked, map, tx, ty, n)) {
+    const trong = Math.abs(tx - n.home.x) <= NPC_RANGE && Math.abs(ty - n.home.y) <= NPC_RANGE;
+    if (!trong || Math.random() < 0.3 || !npcCanWalk(baked, map, tx, ty, n)) {
       n.wait = 1 + Math.random() * 3;
       continue;
     }

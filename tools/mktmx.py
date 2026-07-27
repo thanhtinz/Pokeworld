@@ -114,6 +114,44 @@ NPC_VI = {
 # Nhung thu KHONG phai nguoi (cuc da, qua bong trang tri) — bo qua
 NPC_SKIP_SPRITE = {'boulder', 'tuxeball_green', 'tuxeball_red', 'tuxeball_yellow', 'rock'}
 
+# Cach cu xu tren ban do (js/engine/overworld.js doc truong 'ai'):
+#   stand  dung yen sau quay, chi quay nguoi khi nguoi choi lai gan
+#   watch  linh gac: dung mot cho, dao mat nhin quanh
+#   wander di long vong quanh cho dung
+#   patrol di di lai lai mot doan
+NPC_AI = {
+    'nurse': 'stand', 'shopkeeper': 'stand', 'shopassistant': 'stand', 'clerk': 'stand',
+    'professor': 'stand', 'ceo': 'stand', 'omnichannelallie': 'watch', 'knight': 'watch',
+    'xerogrunt': 'watch', 'grunt': 'watch', 'grunt_f': 'watch', 'boss': 'watch',
+    'postboy': 'patrol', 'sailor': 'patrol', 'miner': 'patrol',
+    'childactor': 'wander', 'kid': 'wander', 'kid2': 'wander', 'girl1': 'wander',
+}
+
+# Dan thuong de thay khi trung nhau: sprite, ten, cau noi
+EXTRA_SPRITES = ['bob', 'homemaker', 'cooldude', 'fashionista', 'heroine', 'lady', 'florist',
+                 'hiker', 'camper', 'camper_f', 'picnicker', 'sailor', 'beachcomber', 'ninja',
+                 'kid', 'kid2', 'childactor', 'girl1', 'disciple', 'rogue', 'scientist', 'chief']
+EXTRA_NAMES = ['Chú Tám', 'Cô Bảy', 'Anh Hùng', 'Chị Mai', 'Ông Sáu', 'Bà Tư', 'Thằng Tí',
+               'Bé Na', 'Chú Ba', 'Cô Lan', 'Anh Dũng', 'Chị Hạnh', 'Ông Chín', 'Bà Năm',
+               'Cậu Khoa', 'Cô Thu', 'Chú Hai', 'Anh Phong', 'Chị Yến', 'Bé Bo']
+EXTRA_LINES = [
+    'Đường số 1 nhiều cỏ cao lắm, đi cẩn thận nhé.',
+    'Tôi nuôi một con Tuxemon từ hồi nó còn bé xíu.',
+    'Trạm hồi sức miễn phí mà nhiều người vẫn không biết đấy.',
+    'Nghe đâu trong hang có con hiếm lắm, tôi chưa dám vào.',
+    'Chợ hôm nay đông ghê, cậu ghé chưa?',
+    'Ngày xưa tôi cũng mơ làm nhà huấn luyện đấy chứ.',
+    'Cậu thấy mấy người mặc đồ đen quanh đây không? Tôi thấy sợ sợ.',
+    'Bắt Tuxemon thì phải đánh cho nó yếu đã rồi mới ném bóng.',
+    'Con nào hợp với mình thì nuôi lâu dài, đừng đổi liên tục.',
+    'Trời đẹp thế này mà ngồi nhà thì phí.',
+    'Ai đi ngang cũng khen thị trấn mình yên bình.',
+    'Tôi già rồi, đi xa không nổi nữa. Cậu đi thay tôi nhé.',
+    'Muốn qua vùng bên kia thì phải có huy hiệu đấy.',
+    'Hồi trẻ tôi từng leo tới đỉnh núi đằng kia.',
+    'Nhớ ghé cửa hàng mua thêm bóng trước khi đi xa.',
+]
+
 _npc_db = {}
 
 
@@ -157,8 +195,37 @@ def build_npc(n):
         name = 'Người Dân'
     if not lines:
         lines = [DEFAULT_LINE.get(sprite, 'Chào cậu! Chúc cậu lên đường may mắn.')]
-    return {'x': n['x'], 'y': n['y'], 'dir': n['dir'],
-            'sprite': sprite, 'name': name, 'lines': lines}
+    return {'x': n['x'], 'y': n['y'], 'dir': n['dir'], 'slug': slug,
+            'sprite': sprite, 'name': name, 'lines': lines,
+            'ai': NPC_AI.get(sprite, 'wander')}
+
+
+def khac_nhau(npcs):
+    """Cung mot ban do ma trung ca sprite lan ten thi doi cho khac di.
+
+    Ban goc dat nhieu NPC cung slug kieu bob/bob2 nen qua ham build_npc deu ra
+    'bob' + 'Nguoi Dan' + cung mot cau thoai — nhin nhu bi nhan ban. Doi theo
+    thu tu on dinh (bam theo slug) de chay lai bao nhieu lan cung ra ket qua do.
+    """
+    da_co = set()
+    for i, n in enumerate(npcs):
+        key = (n['sprite'], n['name'])
+        if key not in da_co:
+            da_co.add(key)
+            continue
+        h = sum(ord(c) for c in n.get('slug', '')) + i
+        for k in range(len(EXTRA_SPRITES)):
+            spr = EXTRA_SPRITES[(h + k) % len(EXTRA_SPRITES)]
+            ten = EXTRA_NAMES[(h + k) % len(EXTRA_NAMES)]
+            if (spr, ten) not in da_co:
+                n['sprite'], n['name'] = spr, ten
+                n['lines'] = [EXTRA_LINES[(h + k) % len(EXTRA_LINES)]]
+                n['ai'] = NPC_AI.get(spr, 'wander')
+                da_co.add((spr, ten))
+                break
+    for n in npcs:
+        n.pop('slug', None)
+    return npcs
 
 
 # Loi mac dinh theo nghe nghiep, de moi kieu nguoi noi mot kieu
@@ -183,6 +250,21 @@ DEFAULT_LINE = {
     'postboy': 'Thư từ khắp vùng đều qua tay tôi đấy.',
     'omnichannelallie': 'Không phận sự thì đứng xa ra.',
 }
+
+
+# Ten cua doi tuong trong TMX la ten SU KIEN (Talk1, Reading2...) chu khong phai
+# chu ghi tren bang. De nguyen thi trong game hien 'Bang ghi: "Talk1"'.
+def ten_bang(raw):
+    t = (raw or '').lower()
+    if 'reading' in t or 'book' in t or 'shelf' in t:
+        return 'Kệ sách'
+    if 'sign' in t or 'talk' in t:
+        return 'Bảng thông báo'
+    if 'poster' in t:
+        return 'Tấm áp phích'
+    if 'tv' in t:
+        return 'Cái TV'
+    return 'Bảng hiệu'
 
 
 def load_tsx(path, cache):
@@ -290,12 +372,12 @@ def parse_map(path, tsx_cache):
                                   'tx': int(m.group(2)), 'ty': int(m.group(3))})
                     break
                 if a.startswith('translated_dialog') or a.startswith('dialog'):
-                    talks.append({'x': ox, 'y': oy, 'name': obj.get('name') or 'Bảng hiệu'})
+                    talks.append({'x': ox, 'y': oy, 'name': ten_bang(obj.get('name'))})
                     break
 
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
             'solid': solid, 'warps': warps, 'talks': talks,
-            'npcs': [n for n in (build_npc(n) for n in npcs.values()) if n]}
+            'npcs': khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])}
 
 
 def decode_layer(data, w, h):

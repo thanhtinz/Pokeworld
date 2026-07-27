@@ -1,10 +1,19 @@
 // TuxeWorld H5 | ui/decor.js | Bảng "Trang trí": ảnh đại diện, khung avatar, bong bóng chat
+//
+// Bố cục theo kiểu bảng chọn ảnh đại diện của game MOBA: cột tab dọc bên trái,
+// lưới ở giữa, khung xem trước + nút "Sử dụng" bên phải. Chọn một ô chỉ là
+// NGẮM, bấm "Sử dụng" mới thật sự mặc.
 import { ensureData, trainerLevel, wearCosmetic } from '../engine/player.js';
 import { AVATAR_FRAMES, CHAT_FRAMES, SKINS, unlocked, requirement, imgOf } from '../data/cosmetics.js';
 import { esc } from '../util.js';
 import { toast } from './kit.js';
-import { openSheet } from './sheet.js';
 import { avatarFrame, chatFrame, skinSrc, faceHtml, upgradeFaces, avatarSkinId } from './look.js';
+
+const TABS = [
+  { id: 'avatar', name: 'Ảnh đại diện', loai: 'ảnh đại diện' },
+  { id: 'avatarFrame', name: 'Khung avatar', loai: 'khung avatar' },
+  { id: 'chatFrame', name: 'Bong bóng chat', loai: 'bong bóng chat' },
+];
 
 function ensureCss() {
   if (document.getElementById('char-css')) return;
@@ -15,93 +24,125 @@ function ensureCss() {
   document.head.appendChild(l);
 }
 
-const TRONG = (kind) => `<p class="empty-note sheet-note">Chưa có ${kind} nào.</p>`;
-
-function cell({ id, name, art, worn, ok, note }) {
-  return `<button type="button" class="fa-cell${worn ? ' worn' : ''}${ok ? '' : ' locked'}"
-      data-id="${esc(id)}" ${ok ? '' : 'disabled'}>
-    ${worn ? '<span class="fa-worn">Đang dùng</span>' : ''}
-    ${art}
-    <b class="fa-name">${esc(name)}</b>
-    ${note ? `<small class="fa-req">${esc(note)}</small>` : ''}
-  </button>`;
-}
-
 export function openDecor(startTab) {
   ensureCss();
   const p = ensureData();
   if (!p) return null;
 
-  // Ảnh đại diện = gương mặt của một bộ skin. Chỉ một bộ thì khỏi bày ô "theo
-  // skin đang mặc" — nó trùng y hệt ô kia.
-  function drawAvatar(box, api) {
+  let tab = TABS.some(t => t.id === startTab) ? startTab : TABS[0].id;
+  let sel = null;                     // món đang ngắm
+
+  const wrap = document.getElementById('modal-wrap');
+  const overlay = document.createElement('div');
+  overlay.className = 'sheet-overlay decor-overlay';
+  overlay.innerHTML = `
+    <div class="decor" role="dialog" aria-label="Trang trí">
+      <div class="decor-head">
+        <b>Trang trí</b>
+        <button type="button" class="sheet-x" aria-label="Đóng">×</button>
+      </div>
+      <div class="decor-body">
+        <div class="decor-rail">
+          ${TABS.map(t => `<button type="button" class="decor-tab" data-tab="${t.id}">${esc(t.name)}</button>`).join('')}
+        </div>
+        <div class="decor-grid-wrap"><div class="decor-grid"></div></div>
+        <div class="decor-side">
+          <div class="decor-prev"></div>
+          <b class="decor-prev-name"></b>
+          <small class="decor-prev-note"></small>
+          <button type="button" class="btn btn-primary decor-use">Sử dụng</button>
+        </div>
+      </div>
+    </div>`;
+
+  const $ = (q) => overlay.querySelector(q);
+  const close = () => { overlay.classList.remove('in'); setTimeout(() => overlay.remove(), 180); };
+
+  // Danh sách món của tab: [id, def, mở khoá chưa]
+  function danhSach() {
     const lv = trainerLevel();
-    const list = Object.entries(SKINS).filter(([, d]) => unlocked(d, p, lv));
-    const cur = p.look.avatar || 'auto';
-    const theo = list.length > 1
-      ? cell({ id: 'auto', name: 'Theo skin đang mặc', worn: cur === 'auto', ok: true, note: '',
-        art: `<span class="fa-art">${faceHtml(skinSrc(p.look.skin), 'fa-face')}</span>` })
-      : '';
-    box.innerHTML = `
-      <div class="fa-grid">
-        ${theo}
-        ${list.map(([id, d]) => cell({
-          id, name: d.name, ok: true, note: '',
-          worn: cur === id || (cur === 'auto' && list.length === 1),
-          art: `<span class="fa-art">${faceHtml(skinSrc(id), 'fa-face')}</span>`,
-        })).join('')}
-      </div>`;
-    wire(box, api, 'avatar');
-    upgradeFaces(box);
+    if (tab === 'avatar') {
+      const skins = Object.entries(SKINS).filter(([, d]) => unlocked(d, p, lv));
+      const list = skins.map(([id, d]) => [id, d, true]);
+      // Ô "theo skin đang mặc" chỉ có nghĩa khi có từ hai bộ trở lên
+      if (skins.length > 1) list.unshift(['auto', { name: 'Theo skin đang mặc' }, true]);
+      return list;
+    }
+    const table = tab === 'avatarFrame' ? AVATAR_FRAMES : CHAT_FRAMES;
+    return Object.entries(table)
+      .filter(([id]) => id !== 'none' || p.look[tab] !== 'none')
+      .map(([id, d]) => [id, d, unlocked(d, p, lv)]);
   }
 
-  function drawFrames(kind, table, tenLoai) {
-    return (box, api) => {
-      const lv = trainerLevel();
-      // Ô "không mặc gì" chỉ có nghĩa khi đang mặc một món — chưa có món nào
-      // thì tab để trống, không bày ô rỗng cho chật chỗ.
-      const items = Object.entries(table).filter(([id]) => id !== 'none' || p.look[kind] !== 'none');
-      box.innerHTML = items.length
-        ? `<div class="fa-grid">${items.map(([id, d]) => {
-            const ok = unlocked(d, p, lv);
-            const worn = p.look[kind] === id;
-            return cell({ id, name: d.name, worn, ok, note: ok ? '' : requirement(d), art: art(kind, id, d) });
-          }).join('')}</div>`
-        : TRONG(tenLoai);
-      wire(box, api, kind);
-      upgradeFaces(box);
-    };
-  }
-
-  function art(kind, id, d) {
-    if (!imgOf(d)) return '<span class="fa-art fa-none">⊘</span>';
-    if (kind === 'chatFrame') {
+  function anh(id, d) {
+    if (tab === 'avatar') {
+      const src = id === 'auto' ? skinSrc(p.look.skin) : skinSrc(id);
+      return faceHtml(src, 'decor-face');
+    }
+    if (!imgOf(d)) return '<span class="decor-none">⊘</span>';
+    if (tab === 'chatFrame') {
       const cf = chatFrame(id);
-      return `<span class="fa-art"><span class="fa-bubble${cf.cls}"${cf.style}>Alo</span></span>`;
+      return `<span class="fa-bubble${cf.cls}"${cf.style}>Alo</span>`;
     }
     const fr = avatarFrame(id);
-    return `<span class="fa-art"><span class="ring-ava-wrap fa-ring${fr.cls}"${fr.style}>
-      ${faceHtml(skinSrc(avatarSkinId()), 'fa-face')}</span></span>`;
+    return `<span class="ring-ava-wrap decor-ring${fr.cls}"${fr.style}>${
+      faceHtml(skinSrc(avatarSkinId()), 'decor-face')}</span>`;
   }
 
-  function wire(box, api, kind) {
-    box.querySelectorAll('.fa-cell:not([disabled])').forEach(b => b.addEventListener('click', () => {
-      const id = b.dataset.id;
-      const table = { avatar: SKINS, avatarFrame: AVATAR_FRAMES, chatFrame: CHAT_FRAMES }[kind];
-      const name = id === 'auto' ? 'theo skin đang mặc' : table[id]?.name;
-      if (wearCosmetic(kind, id)) toast(`Đã đổi sang ${name}.`);
-      api.redraw();
+  function draw() {
+    overlay.querySelectorAll('.decor-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    const list = danhSach();
+    // Chỉ có một bộ skin thì không có ô 'auto', lúc đó "đang dùng" chính là bộ đó
+    let dangMac = p.look[tab];
+    if (!list.some(([id]) => id === dangMac)) {
+      dangMac = tab === 'avatar' ? avatarSkinId() : null;
+    }
+    if (!list.some(([id]) => id === sel)) {
+      sel = list.some(([id]) => id === dangMac) ? dangMac : (list[0]?.[0] ?? null);
+    }
+
+    $('.decor-grid').innerHTML = list.length
+      ? list.map(([id, d, ok]) => `
+        <button type="button" class="decor-cell${id === sel ? ' sel' : ''}${ok ? '' : ' locked'}"
+                data-id="${esc(id)}" ${ok ? '' : 'disabled'}>
+          ${id === dangMac ? '<span class="decor-worn">✓</span>' : ''}
+          ${anh(id, d)}
+        </button>`).join('')
+      : `<p class="empty-note decor-empty">Chưa có ${TABS.find(t => t.id === tab).loai} nào.</p>`;
+
+    const cur = list.find(([id]) => id === sel);
+    const [id, d, ok] = cur || [];
+    $('.decor-prev').innerHTML = cur ? anh(id, d) : '';
+    $('.decor-prev-name').textContent = cur ? d.name : '—';
+    $('.decor-prev-note').textContent = !cur ? ''
+      : id === dangMac ? 'Đang dùng'
+        : ok ? 'Bấm Sử dụng để đổi' : requirement(d);
+    const use = $('.decor-use');
+    use.disabled = !cur || !ok || id === dangMac;
+    use.textContent = cur && id === dangMac ? 'Đang dùng' : 'Sử dụng';
+
+    upgradeFaces(overlay);
+  }
+
+  overlay.addEventListener('click', e => {
+    const t = e.target.closest('.decor-tab');
+    if (t) { tab = t.dataset.tab; sel = null; draw(); return; }
+    const c = e.target.closest('.decor-cell');
+    if (c) { sel = c.dataset.id; draw(); return; }
+    if (e.target.closest('.decor-use')) {
+      const list = danhSach();
+      const cur = list.find(([id]) => id === sel);
+      if (!cur) return;
+      if (wearCosmetic(tab, sel)) toast(`Đã dùng ${cur[1].name}.`);
       document.dispatchEvent(new CustomEvent('look-change'));
-    }));
-  }
-
-  return openSheet({
-    title: 'Trang trí',
-    tab: startTab,
-    tabs: [
-      { id: 'avatar', name: 'Ảnh đại diện', draw: drawAvatar },
-      { id: 'avatarFrame', name: 'Khung avatar', draw: drawFrames('avatarFrame', AVATAR_FRAMES, 'khung avatar') },
-      { id: 'chatFrame', name: 'Bong bóng chat', draw: drawFrames('chatFrame', CHAT_FRAMES, 'bong bóng chat') },
-    ],
+      draw();
+      return;
+    }
+    if (e.target.closest('.sheet-x') || e.target === overlay) close();
   });
+
+  wrap.appendChild(overlay);
+  draw();
+  requestAnimationFrame(() => overlay.classList.add('in'));
+  return { close, redraw: draw };
 }

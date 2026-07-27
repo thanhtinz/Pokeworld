@@ -13,6 +13,15 @@ import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 import { TITLES, SKINS, imgOf } from '../data/cosmetics.js';
 
+// Bản đồ gốc không kèm chữ trên bảng, nên mỗi loại bảng nói một câu cho hợp cảnh
+const BANG_NOI = {
+  'Kệ sách': 'Toàn sách về Tuxemon. Có quyển kể chuyện từ đời trước.',
+  'Bảng thông báo': 'Bảng ghi vài dòng thông báo của thị trấn.',
+  'Tấm áp phích': 'Áp phích quảng cáo một giải đấu Tuxemon.',
+  'Cái TV': 'Trên TV đang chiếu lại một trận đấu Tuxemon.',
+  'Bảng hiệu': 'Bảng hiệu đã cũ, chữ mờ gần hết.',
+};
+
 // Ảnh danh hiệu admin tải lên — tải một lần rồi dùng lại mỗi khung hình
 const titleImgs = new Map();
 function titleImage(src) {
@@ -133,14 +142,33 @@ export function render(el) {
         Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
     };
     for (const n of map.npcs || []) {
-      put(owImage(n.sprite), n.dir || 'down', !!n.moving,
-        (n.x + (n.ox || 0) + 0.5) * size - camX, (n.y + (n.oy || 0) + 1) * size - camY);
+      const nx = (n.x + (n.ox || 0) + 0.5) * size - camX;
+      const ny = (n.y + (n.oy || 0) + 1) * size - camY;
+      put(owImage(n.sprite), n.dir || 'down', !!n.moving, nx, ny);
+      if (n.emote > 0) drawEmote(nx, ny - chH + size * 0.2);
     }
     const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
     const px = player.x * size - camX;
     const py = (player.y + 0.5) * size - camY + bob;
     put(avatarImg(), player.dir, player.moving, px, py);
     drawTitle(px, py - chH + size * 0.34);
+  }
+
+  // Dấu "!" khi NPC vừa trông thấy người chơi
+  function drawEmote(cx, topY) {
+    const w = 14, h = 16;
+    ctx.fillStyle = 'rgba(255,255,255,.92)';
+    ctx.strokeStyle = 'rgba(20,10,40,.9)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(Math.round(cx - w / 2), Math.round(topY - h), w, h, 4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#e3350d';
+    ctx.font = 'bold 12px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('!', Math.round(cx), Math.round(topY - h / 2) + 1);
   }
 
   // Danh hiệu đang mặc, hiện ngay trên đầu nhân vật
@@ -269,7 +297,7 @@ export function render(el) {
       // Nói chuyện thì hiện chân dung: ảnh 2D nếu có, không thì phóng to sprite trên bản đồ
       if (thing.type === 'talk') {
         // Bảng hiệu / bảng thông báo lấy từ sự kiện thoại của bản đồ Tuxemon
-        await playDialog([[{ name: thing.name }, 'Bảng ghi: "' + thing.name + '".']]);
+        await playDialog([[{ name: thing.name }, BANG_NOI[thing.name] || 'Không đọc được gì rõ ràng.']]);
         return;
       }
       // NPC bản đồ mang sẵn vài câu thoại (js/data/maps.js), NPC cũ dùng .text
