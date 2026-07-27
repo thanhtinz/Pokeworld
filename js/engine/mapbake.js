@@ -13,6 +13,9 @@ function hash(x, y) {
 }
 
 const WATERY = new Set(['sand', 'water', 'deep']);
+// Vách hang cũng coi là "nền cát" khi ghép viền: nếu không, nền hang bị viền
+// cỏ xanh của bộ autotile cát chạy dọc theo vách đá.
+const SANDY_EDGE = new Set([...WATERY, 'rockwall']);
 
 export function bake(mapId) {
   if (cache.has(mapId)) return cache.get(mapId);
@@ -30,7 +33,7 @@ export function bake(mapId) {
   const enc = new Uint8Array(n);
 
   const kindAt = (x, y) => (TERRAIN[charAt(map, x, y)] || TERRAIN['.']).kind;
-  const isWatery = (x, y) => WATERY.has(kindAt(x, y));
+  const isWatery = (x, y) => SANDY_EDGE.has(kindAt(x, y));
   const isWater = (x, y) => { const k = kindAt(x, y); return k === 'water' || k === 'deep'; };
   const isDeep = (x, y) => kindAt(x, y) === 'deep';
   const isPath = (x, y) => kindAt(x, y) === 'path';
@@ -45,6 +48,13 @@ export function bake(mapId) {
       if (isRoom) {                 // trong nhà: chỉ cần biết ô nào chắn đường
         ground[i] = -1;
         if (t.solid) solid[i] = 1;
+        continue;
+      }
+
+      // Vách hang: khối đá đặc, không pha nền cỏ
+      if (k === 'rockwall') {
+        ground[i] = DECOR.rockWall;
+        solid[i] = 1;
         continue;
       }
 
@@ -74,7 +84,8 @@ export function bake(mapId) {
       else if (t.decor === 'sign') over[i] = DECOR.sign;
 
       if (t.solid) solid[i] = 1;
-      if (t.enc) enc[i] = 1;
+      // Hang động không có cỏ cao: mọi ô đi được đều là ô gặp Pokémon
+      if (t.enc || (map.encAll && !t.solid)) enc[i] = 1;
     }
   }
 

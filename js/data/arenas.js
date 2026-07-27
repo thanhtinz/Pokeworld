@@ -11,8 +11,15 @@ export const ARENAS = {
   route_1: 'grass',
   route_2: 'tall_grass',
   forest_1: 'forest',
-  cave_1: 'beach',
+  cave_1: 'cave',
   lake_1: 'lake',
+  route_3: 'grass',
+  meadow_1: 'tall_grass',
+  town_2: 'town',
+  pc_town2: 'town',
+  mart_town2: 'town',
+  beach_1: 'beach',
+  cave_2: 'cave',
 };
 
 export const DEFAULT_ARENA = 'grass';

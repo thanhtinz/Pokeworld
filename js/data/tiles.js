@@ -33,6 +33,7 @@ export const DECOR = {
   bush: 111,
   shell: 112,
   sign: 43,
+  rockWall: 84,     // khối đá xám đặc — dùng làm vách hang, không cần autotile
   ball: 45,
   logL: 165,
   logR: 166,

@@ -9,6 +9,7 @@ import {
 import { currentChapter, needIntro, markIntroSeen, emitStory, zoneLockedBy, storyProgress } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { ZONES } from '../data/zones.js';
+import { enterMap } from '../engine/overworld.js';
 import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
 import { SPECIES } from '../data/species.js';
@@ -420,8 +421,9 @@ export function render(el) {
     const i = await choose('Đi đâu?', opts);
     if (i === null) return;
     const zid = opts[i].zid;
-    G.p.zone = zid;
-    save();
+    // Đặt luôn vị trí đi bộ vào bản đồ mới — không thì bấm "Đi bộ" sẽ quay về
+    // đúng chỗ cũ trên bản đồ cũ vì G.p.pos vẫn trỏ tới đó.
+    if (!enterMap(zid)) { G.p.zone = zid; save(); }
     emitQuest('reach_zone', { zone: zid }).forEach(({ quest }) => toast(`Hoàn thành: ${quest.name}`));
     refresh();
   });
