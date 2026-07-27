@@ -1,31 +1,32 @@
-// PokeWorld H5 | ui/serverpick.js | Chọn máy chủ: chơi offline trên máy hoặc kết nối máy chủ online
+// PokeWorld H5 | ui/serverpick.js | Chọn máy chủ: chơi offline hoặc chọn một máy chủ online
+// Danh sách máy chủ nằm ở js/net/servers.js — người chơi chỉ chọn, không tự nhập địa chỉ.
 import { getServerUrl, setServerUrl, setToken } from '../net/config.js';
 import { fetchConfig, register as netRegister, login as netLogin } from '../net/api.js';
 import { activeAccount } from '../engine/accounts.js';
+import { SERVERS, isDevMode, setDevMode, getDevUrl, setDevUrl } from '../net/servers.js';
 import { esc } from '../util.js';
 import { toast } from './kit.js';
 import { show } from '../main.js';
-
-// Máy chủ dựng sẵn — sửa danh sách này khi bạn có VPS
-const SERVERS = [
-  // { id: 'vn1', name: 'Việt Nam 1', url: 'https://api.tenmien.com', region: 'Đông Nam Á' },
-];
 
 const LAST_KEY = 'pw_last_server';
 
 export function render(el) {
   const acc = activeAccount();
   const saved = localStorage.getItem(LAST_KEY) || '';
+  // Máy chủ đã lưu mà nay không còn trong danh sách thì coi như chưa chọn
+  const savedOk = SERVERS.some(s => s.url === saved);
+  let chosen = savedOk ? saved : '';   // '' = chơi offline
+  let dev = isDevMode();
 
   el.innerHTML = `
     <div class="splash server-scr">
       <div class="splash-bg"></div>
       <div class="splash-inner">
-        <h2 class="login-title">Chọn máy chủ</h2>
+        <h2 class="login-title" id="sv-title">Chọn máy chủ</h2>
         <p class="server-hint">Xin chào <b>${esc(acc?.user || 'Trainer')}</b> — chọn nơi bạn muốn chơi</p>
 
         <div class="server-list">
-          <button class="card server-card ${!saved ? 'selected' : ''}" data-url="">
+          <button class="card server-card ${chosen ? '' : 'selected'}" data-url="">
             <span class="sv-dot sv-off"></span>
             <span class="sv-info">
               <b>Chơi Offline</b>
@@ -34,18 +35,22 @@ export function render(el) {
           </button>
 
           ${SERVERS.map(s => `
-            <button class="card server-card" data-url="${esc(s.url)}">
+            <button class="card server-card ${chosen === s.url ? 'selected' : ''}" data-url="${esc(s.url)}">
               <span class="sv-dot" data-ping="${esc(s.url)}"></span>
               <span class="sv-info">
-                <b>${esc(s.name)}</b>
-                <small class="sv-status" data-for="${esc(s.url)}">${esc(s.region)} · đang kiểm tra...</small>
+                <b>${esc(s.name)}${s.note ? ` <em class="sv-note">${esc(s.note)}</em>` : ''}</b>
+                <small class="sv-status" data-for="${esc(s.url)}">${esc(s.region || '')} · đang kiểm tra...</small>
               </span>
             </button>`).join('')}
         </div>
 
-        <div class="card name-card">
-          <label for="sv-custom">Hoặc nhập địa chỉ máy chủ riêng</label>
-          <input id="sv-custom" type="url" placeholder="https://api.tenmien.com" value="${esc(saved)}" autocomplete="off">
+        ${SERVERS.length ? '' : `
+          <p class="server-note">Hiện chưa có máy chủ online nào. Bạn vẫn chơi được toàn bộ
+          cốt truyện ở chế độ Offline; khi máy chủ mở, nó sẽ hiện ngay tại đây.</p>`}
+
+        <div class="card name-card dev-box" id="dev-box" style="${dev ? '' : 'display:none'}">
+          <label for="sv-custom">Chế độ thử máy chủ (dành cho người phát triển)</label>
+          <input id="sv-custom" type="url" placeholder="https://api.tenmien.com" value="${esc(getDevUrl())}" autocomplete="off">
           <button class="btn" id="btn-test">Kiểm tra kết nối</button>
         </div>
 
@@ -53,47 +58,54 @@ export function render(el) {
       </div>
     </div>`;
 
-  let chosen = saved;   // '' = offline
+  const select = (url) => {
+    chosen = url;
+    el.querySelectorAll('.server-card').forEach(c => c.classList.toggle('selected', c.dataset.url === url));
+  };
 
   el.querySelectorAll('.server-card').forEach(card => {
-    card.addEventListener('click', () => {
-      el.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      chosen = card.dataset.url;
-      el.querySelector('#sv-custom').value = chosen;
-    });
+    card.addEventListener('click', () => select(card.dataset.url));
   });
 
-  // Kiểm tra máy chủ dựng sẵn
+  // Kiểm tra tình trạng từng máy chủ trong danh sách
   for (const s of SERVERS) pingServer(el, s.url);
+
+  // Chạm 5 lần vào tiêu đề để bật/tắt chế độ thử máy chủ
+  let taps = 0, tapTimer = null;
+  el.querySelector('#sv-title').addEventListener('click', () => {
+    taps += 1;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => { taps = 0; }, 1200);
+    if (taps < 5) return;
+    taps = 0;
+    dev = !dev;
+    setDevMode(dev);
+    el.querySelector('#dev-box').style.display = dev ? '' : 'none';
+    toast(dev ? 'Đã bật chế độ thử máy chủ' : 'Đã tắt chế độ thử máy chủ');
+  });
 
   el.querySelector('#btn-test').addEventListener('click', async () => {
     const url = el.querySelector('#sv-custom').value.trim();
     if (!url) { toast('Nhập địa chỉ máy chủ đã!'); return; }
-    const prev = getServerUrl();
-    setServerUrl(url);
-    const r = await fetchConfig();
-    setServerUrl(prev);
+    const r = await probe(url);
     if (r.ok) {
+      setDevUrl(url);
+      select(url);
       toast(`Kết nối được: ${r.data.serverName || 'máy chủ'} · ${r.data.online || 0} người online`);
-      chosen = url;
-      el.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
     } else {
       toast('Không kết nối được máy chủ này.');
     }
   });
 
   el.querySelector('#btn-enter').addEventListener('click', async () => {
-    const custom = el.querySelector('#sv-custom').value.trim();
-    const url = custom || chosen;
-    if (!url) {                     // chơi offline
+    if (!chosen) {                    // chơi offline
       setServerUrl(null);
       setToken(null);
       localStorage.setItem(LAST_KEY, '');
       return goNext();
     }
-    setServerUrl(url);
-    localStorage.setItem(LAST_KEY, url);
+    setServerUrl(chosen);
+    localStorage.setItem(LAST_KEY, chosen);
     toast('Đang kết nối máy chủ...');
     const ok = await syncAccount();
     if (!ok) {
@@ -122,14 +134,20 @@ function goNext() {
   show(acc?.charCreated ? 'home' : 'createchar');
 }
 
-// Kiểm tra máy chủ dựng sẵn: hiện trạng thái + số người online
-async function pingServer(el, url) {
-  const dot = el.querySelector(`.sv-dot[data-ping="${CSS.escape(url)}"]`);
-  const status = el.querySelector(`.sv-status[data-for="${CSS.escape(url)}"]`);
+// Hỏi thử một máy chủ mà không làm hỏng lựa chọn hiện tại
+async function probe(url) {
   const prev = getServerUrl();
   setServerUrl(url);
   const r = await fetchConfig();
   setServerUrl(prev);
+  return r;
+}
+
+// Hiện tình trạng + số người online của máy chủ trong danh sách
+async function pingServer(el, url) {
+  const r = await probe(url);
+  const dot = el.querySelector(`.sv-dot[data-ping="${CSS.escape(url)}"]`);
+  const status = el.querySelector(`.sv-status[data-for="${CSS.escape(url)}"]`);
   if (!dot || !status) return;
   if (r.ok) {
     dot.classList.add('sv-on');

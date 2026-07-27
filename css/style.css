@@ -1267,6 +1267,13 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .sv-dot.sv-off { background: var(--muted); }
 .sv-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .sv-info small { color: var(--muted); font-size: .74rem; }
+.sv-note { font-style: normal; font-size: .62rem; color: var(--gold); border: 1px solid var(--gold);
+  border-radius: 6px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+.server-note { color: var(--muted); font-size: .76rem; line-height: 1.6; text-align: left;
+  background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.14);
+  border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; }
+.dev-box { border-color: rgba(240,180,41,.4); }
+.dev-box label { color: var(--gold); }
 
 /* Man tao nhan vat */
 .char-preview { margin: 8px auto 16px; }
