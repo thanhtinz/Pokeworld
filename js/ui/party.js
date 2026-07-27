@@ -6,7 +6,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { NATURE_VI } from '../data/natures.js';
 import { monSprite, esc } from '../util.js';
-import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle } from './kit.js';
+import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle, itemIcon } from './kit.js';
 
 const STAT_VI = { hp: 'HP', atk: 'Tấn công', def: 'Phòng thủ', spa: 'Đặc công', spd: 'Đặc thủ', spe: 'Tốc độ' };
 

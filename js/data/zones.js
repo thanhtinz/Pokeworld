@@ -5,14 +5,14 @@
 // next: các zone đi được từ zone này
 export const ZONES = {
   town_1: {
-    name: 'Thị Trấn Khởi Đầu', kind: 'town', icon: '🏘️',
+    name: 'Thị Trấn Khởi Đầu', kind: 'town', icon: '🏘️', iconSp: null,
     desc: 'Nơi hành trình bắt đầu. Có Trung tâm Pokémon, cửa hàng và Nhà Thi Đấu Đá của Brock.',
     encounters: [],
     trainers: ['gym_brock'],
     next: ['route_1'],
   },
   route_1: {
-    name: 'Đường Số 1', kind: 'route', icon: '🌾',
+    name: 'Đường Số 1', kind: 'route', icon: '🌾', iconSp: 16,
     desc: 'Con đường cỏ dại phía bắc thị trấn, nhiều Pokémon hoang dã cấp thấp.',
     encounters: [
       { sp: 16, w: 30, min: 2, max: 5 },   // Pidgey
@@ -25,7 +25,7 @@ export const ZONES = {
     next: ['town_1', 'forest_1', 'route_2'],
   },
   forest_1: {
-    name: 'Rừng Xanh', kind: 'forest', icon: '🌲',
+    name: 'Rừng Xanh', kind: 'forest', icon: '🌲', iconSp: 10,
     desc: 'Khu rừng rậm rạp đầy côn trùng, nghe đồn ban đêm có Snorlax xuất hiện.',
     encounters: [
       { sp: 10, w: 35, min: 3, max: 6 },   // Caterpie
@@ -39,7 +39,7 @@ export const ZONES = {
     next: ['route_1'],
   },
   route_2: {
-    name: 'Đường Số 2', kind: 'route', icon: '🛤️',
+    name: 'Đường Số 2', kind: 'route', icon: '🛤️', iconSp: 19,
     desc: 'Đường mòn dẫn tới hang núi và hồ nước, Pokémon ở đây mạnh hơn hẳn.',
     encounters: [
       { sp: 16, w: 25, min: 4, max: 8 },   // Pidgey
@@ -52,7 +52,7 @@ export const ZONES = {
     next: ['route_1', 'cave_1', 'lake_1'],
   },
   cave_1: {
-    name: 'Hang Đá', kind: 'cave', icon: '⛰️',
+    name: 'Hang Đá', kind: 'cave', icon: '⛰️', iconSp: 41,
     desc: 'Hang động tối tăm, lãnh địa của Pokémon hệ Đá và bầy Zubat.',
     encounters: [
       { sp: 41, w: 40, min: 6, max: 10 },  // Zubat
@@ -65,7 +65,7 @@ export const ZONES = {
     next: ['route_2'],
   },
   lake_1: {
-    name: 'Hồ Nước Trong', kind: 'lake', icon: '🏞️',
+    name: 'Hồ Nước Trong', kind: 'lake', icon: '🏞️', iconSp: 129,
     desc: 'Hồ nước trong vắt, nơi đặt Nhà Thi Đấu Nước của Thủy. Nghe đồn có rồng ẩn mình dưới đáy hồ.',
     encounters: [
       { sp: 129, w: 45, min: 3, max: 10 }, // Magikarp

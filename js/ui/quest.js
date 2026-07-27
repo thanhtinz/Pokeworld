@@ -2,6 +2,7 @@
 import { G } from '../state.js';
 import { QUESTS } from '../data/quests.js';
 import { esc, fmt } from '../util.js';
+import { itemIcon } from './kit.js';
 
 export function render(el) {
   const active = Object.entries(G.p.quests.active);
@@ -15,7 +16,7 @@ export function render(el) {
   };
 
   el.innerHTML = `
-    <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>Nhiệm vụ</h1></div>
+    <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>${itemIcon('vs_recorder', '📜', 22)} Nhiệm vụ</h1></div>
 
     <h2 class="sec-title">Đang làm</h2>
     ${active.length === 0 ? '<div class="card empty-note">Không có nhiệm vụ nào đang làm.</div>' : ''}
@@ -26,13 +27,13 @@ export function render(el) {
       const cur = Math.min(st.progress || 0, n);
       return `
       <div class="card quest-card">
-        <div class="q-head"><b>${esc(q.name)}</b>${q.daily ? '<span class="daily-tag">🔄 Ngày</span>' : ''}</div>
+        <div class="q-head"><b>${esc(q.name)}</b>${q.daily ? '<span class="daily-pill">DAILY</span>' : ''}</div>
         <p>${esc(q.desc || '')}</p>
         <div class="q-progress">
           <div class="base-bar"><div class="base-fill" style="width:${Math.round(cur / n * 100)}%"></div></div>
           <small>${cur}/${n}</small>
         </div>
-        ${rewardText(q) ? `<small class="q-reward">🎁 ${esc(rewardText(q))}</small>` : ''}
+        ${rewardText(q) ? `<small class="q-reward">${itemIcon('nugget', '🎁', 16)} ${esc(rewardText(q))}</small>` : ''}
       </div>`;
     }).join('')}
 
@@ -43,7 +44,7 @@ export function render(el) {
       if (!q) return '';
       return `
       <div class="card quest-card done">
-        <div class="q-head"><b>✓ ${esc(q.name)}</b>${q.daily ? '<span class="daily-tag">🔄 Ngày</span>' : ''}</div>
+        <div class="q-head"><b>✓ ${esc(q.name)}</b>${q.daily ? '<span class="daily-pill">DAILY</span>' : ''}</div>
         <p>${esc(q.desc || '')}</p>
       </div>`;
     }).join('')}`;
