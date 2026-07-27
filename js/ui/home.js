@@ -45,7 +45,7 @@ export function render(el) {
       <span class="story-badge">📖 ${prog.done}/${prog.total}</span>
       <span class="story-body"><b>${esc(ch.title)}</b><small>${esc(ch.desc)}</small></span>
       ${needIntro() ? '<span class="story-new">▶</span>' : ''}
-    </button>` : (prog.finished ? `<div class="card story-card done">👑 Đã phá đảo cốt truyện — tiếp tục hoàn thành Pokédex!</div>` : '')}
+    </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="👑"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Pokédex!</div>` : '')}
 
     ${isTown ? `
     <div class="town-wrap card">
@@ -98,6 +98,18 @@ export function render(el) {
     d.className = 'float-pop ' + cls;
     d.textContent = text;
     d.style.left = (30 + Math.random() * 40) + '%';
+    popLayer.appendChild(d);
+    setTimeout(() => d.remove(), 1600);
+  }
+
+  // Emote PMD bay lên trong arena (tim khi bắt được, nốt nhạc khi lên cấp...)
+  function popEmote(name) {
+    if (!popLayer) return;
+    const d = document.createElement('img');
+    d.className = 'float-pop pop-emote';
+    d.src = `assets/img/emote_${name}.png`;
+    d.style.left = (38 + Math.random() * 24) + '%';
+    d.onerror = () => d.remove();
     popLayer.appendChild(d);
     setTimeout(() => d.remove(), 1600);
   }
@@ -165,7 +177,7 @@ export function render(el) {
   unsub = onIdle(ev => {
     if (moneyVal) moneyVal.textContent = fmt(G.p.money);
     switch (ev.t) {
-      case 'appear': drawWild(); log(`Một ${displayName(ev.mon)} Lv.${ev.mon.lv} hoang dã xuất hiện!`, 'log-hl'); break;
+      case 'appear': drawWild(); popEmote('alert'); log(`Một ${displayName(ev.mon)} Lv.${ev.mon.lv} hoang dã xuất hiện!`, 'log-hl'); break;
       case 'hit': {
         updateWildHp();
         const spr = wildSlot?.querySelector('.wild-sprite');
@@ -180,7 +192,7 @@ export function render(el) {
         log(`Hạ ${ev.name}! +${fmt(ev.money)}₽`, 'log-money');
         drawMe(); drawWild();
         break;
-      case 'levelup': log(`⬆️ Lên cấp ${ev.lv}!`, 'log-hl'); drawMe(); break;
+      case 'levelup': popEmote('note'); log(`⬆️ Lên cấp ${ev.lv}!`, 'log-hl'); drawMe(); break;
       case 'learn': log(`✨ Học chiêu mới: ${ev.move}!`, 'log-hl'); break;
       case 'evolve': log(`🌟 ${ev.from} tiến hóa thành ${ev.to}!`, 'log-hl'); toast(`🌟 ${ev.from} tiến hóa thành ${ev.to}!`); drawMe(); break;
       case 'faint': log(`💥 ${ev.name} đã gục!`); drawMe(); break;
@@ -188,12 +200,14 @@ export function render(el) {
       case 'wake': log('💖 Đội đã hồi phục, tiếp tục chiến đấu!', 'log-hl'); drawMe(); break;
       case 'catch':
         if (ev.caught) {
+          popEmote('heart');
           log(`🎉 Bắt được ${displayName(ev.mon)}!${ev.dest === 'box' ? ' (chuyển vào Box)' : ''}`, 'log-hl');
           toast(`🎉 Bắt được ${displayName(ev.mon)}!`);
           (ev.doneQ || []).forEach(({ quest }) => toast(`🎉 Hoàn thành: ${quest.name}`));
           if (ev.chDone) chapterDone(ev.chDone);
           drawWild();
         } else {
+          popEmote('question');
           log(`⚪ Bóng lắc ${ev.shakes} lần... nó thoát ra!`);
         }
         break;

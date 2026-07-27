@@ -5,6 +5,7 @@ import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
 import { esc, fmt, todayNum } from '../util.js';
 import { toast, confirmDlg, header } from './kit.js';
+import { storyProgress } from '../engine/story.js';
 import { show, refresh } from '../main.js';
 
 export function render(el) {
@@ -20,7 +21,7 @@ export function render(el) {
     ${header('Menu')}
 
     <div class="card profile-card">
-      <div class="profile-name">🧢 <b>${esc(G.p.name)}</b></div>
+      <div class="profile-name">🧢 <b>${esc(G.p.name)}</b>${storyProgress().finished ? ' <img src="assets/img/crown.png" class="crown-ico" alt="👑" title="Nhà Vô Địch">' : ''}</div>
       <div>💰 ${fmt(G.p.money)}₽</div>
       <div class="badge-row">
         ${G.p.badges.length

@@ -923,3 +923,18 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Icon item dạng sprite */
 .item-ico { display: inline-flex; align-items: center; vertical-align: middle; }
 .item-ico img { image-rendering: pixelated; display: inline-block; }
+
+/* ==== Khung thoai + emote PMD ==== */
+.cutscene-box {
+  background: none;
+  border: 16px solid transparent;
+  border-image: url('../assets/img/dlgbox.png') 22 fill stretch;
+  border-radius: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .55);
+}
+.cutscene-speaker { color: #a3421f; }
+.cutscene-text { color: #3d2c1a; }
+.cutscene-next { color: #8a6a45; }
+
+.pop-emote { width: 30px; image-rendering: pixelated; }
+.crown-ico { height: 20px; display: inline-block; vertical-align: -4px; image-rendering: pixelated; }
