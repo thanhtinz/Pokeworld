@@ -92,9 +92,11 @@ export function render(el, ctx = {}) {
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(mon.hpCur, maxHp(mon))}</div>
       </div>`;
     const img = `
-      <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
-           style="width:min(${monPx(mon)}px, 58vw)"
-           src="${monLocalSrc(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">`;
+      <span class="bt-stage" style="--base:url(${back ? arena.me : arena.foe})">
+        <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
+             style="width:min(${monPx(mon)}px, 58vw)"
+             src="${monLocalSrc(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">
+      </span>`;
     // Bên mình đứng TRÁI DƯỚI, đối thủ đứng PHẢI TRÊN — giống game Tuxemon gốc.
     return back ? img + info : info + img;
   }

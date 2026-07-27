@@ -77,12 +77,6 @@
   image-rendering: pixelated;
   display: block;
 }
-/* Các khung mở khoá được — vẽ hoàn toàn bằng CSS, không tốn ảnh */
-.fr-bronze { border-color: #b06a3b; box-shadow: 0 0 10px -2px #b06a3b; }
-.fr-silver { border-color: #c9cdd6; box-shadow: 0 0 10px -2px #c9cdd6; }
-.fr-gold   { border-color: #f0b429; box-shadow: 0 0 12px -2px #f0b429; }
-.fr-neon   { border-color: #22d3ee; box-shadow: 0 0 14px -1px #22d3ee, inset 0 0 8px -3px #22d3ee; }
-.fr-flame  { border-color: #fa5252; box-shadow: 0 0 14px -1px #fa5252, inset 0 0 8px -3px #ff922b; }
 /* Khung bằng ảnh admin tải lên: ảnh phủ lên trên avatar, hở giữa để thấy mặt.
    Tràn 6px ra ngoài vì khung game thường có phần nhô ra ngoài mép. */
 .fr-img { position: relative; border-color: transparent; }
@@ -298,6 +292,7 @@
   font-size: .42rem;
   line-height: 1.6;
 }
+.fa-none { font-size: 22px; opacity: .5; }
 .fa-art { display: flex; align-items: center; justify-content: center; height: 40px; color: var(--muted); }
 .fa-name {
   font-size: 12px;

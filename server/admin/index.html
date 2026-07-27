@@ -322,7 +322,7 @@ async function disbandGuild(id, name) {
 const KIND_VI = { title:'Danh hiệu', avatarFrame:'Khung avatar', chatFrame:'Khung chat', skin:'Skin' };
 const HOW_VI = { start:'Có sẵn từ đầu', catch:'Bắt đủ N sinh vật', win:'Thắng N trận',
                  badge:'Có N huy hiệu', level:'Trainer Lv.N', manual:'Admin trao tay' };
-let cosRows = [], cosBuiltin = [];
+let cosRows = [];
 
 function howText(c) {
   if (c.how === 'start') return 'Có sẵn từ đầu';
@@ -332,7 +332,6 @@ function howText(c) {
 
 function renderCosmetics(d) {
   cosRows = d.rows || [];
-  cosBuiltin = d.builtin || [];
   $('#view').innerHTML = `
     <div class="card">
       <h3 style="margin-bottom:10px">👗 Thêm / sửa món thời trang</h3>
@@ -351,7 +350,9 @@ function renderCosmetics(d) {
 
     <div class="card">
       <h3 style="margin-bottom:10px">Kho thời trang (${cosRows.length} món)</h3>
-      <p class="muted" style="margin-bottom:10px">Ảnh tải lên sẽ hiện trong game thay cho kiểu vẽ mặc định. Nên dùng PNG nền trong suốt, tối đa 2MB.</p>
+      <p class="muted" style="margin-bottom:10px">Toàn bộ thời trang trong game là ảnh tải lên ở đây — món <b>chưa có ảnh</b> sẽ hiện trơ tên trong game, nhớ tải ảnh cho từng món. PNG nền trong suốt, tối đa 2MB.<br>
+      Gợi ý cỡ ảnh: khung avatar ~100×100, khung chat ~128×48 (kéo giãn 9 phần), danh hiệu ~96×24, skin ~64×64.<br>
+      Riêng <b>skin</b>: ảnh 64×64 chỉ đổi ảnh nhân vật trong giao diện; muốn đổi cả nhân vật đi trên bản đồ thì tải bộ sprite <b>3 cột × 4 hàng</b> (vd 48×128 — hàng xuống/trái/phải/lên).</p>
       <div style="overflow:auto">
       <table>
         <thead><tr><th>Ảnh</th><th>Loại</th><th>Mã</th><th>Tên</th><th>Điều kiện</th><th>Thao tác</th></tr></thead>
@@ -360,7 +361,7 @@ function renderCosmetics(d) {
           <tr>
             <td>${c.img
               ? `<img src="${esc(c.img)}" alt="" style="height:34px;image-rendering:pixelated;background:#0e1018;border-radius:6px">`
-              : '<span class="muted">—</span>'}</td>
+              : '<span class="badge b-ban">THIẾU ẢNH</span>'}</td>
             <td>${KIND_VI[c.kind] || esc(c.kind)}</td>
             <td><code>${esc(c.id)}</code></td>
             <td><b style="color:${esc(c.color||'#fff')}">${esc(c.name)}</b></td>
@@ -377,13 +378,6 @@ function renderCosmetics(d) {
       </div>
     </div>
 
-    <div class="card">
-      <h3 style="margin-bottom:10px">Món trao tay có sẵn trong bản game</h3>
-      <p class="muted">Những món này nằm sẵn trong game, không cần thêm ở đây; sang tab <b>Người chơi</b> bấm 🏷 để trao.</p>
-      <div class="row" style="margin-top:8px">
-        ${cosBuiltin.map(b => `<span class="badge" style="background:#2a2f45">${KIND_VI[b.kind]||b.kind}: ${esc(b.name)} <code>${esc(b.kind)}:${esc(b.id)}</code></span>`).join('') || '<span class="muted">—</span>'}
-      </div>
-    </div>
     <input type="file" id="co-file" accept="image/png,image/jpeg,image/gif,image/webp" class="hide">`;
 
   $('#co-file').addEventListener('change', uploadImage);
@@ -438,10 +432,7 @@ async function openGrant(id, name) {
   try {
     const [cat, mine] = await Promise.all([api('/cosmetics'), api(`/player/${id}/cosmetics`)]);
     const have = new Set(mine.cosmetics || []);
-    const all = [
-      ...(cat.builtin || []).map(b => ({ ...b, builtin: true })),
-      ...(cat.rows || []),
-    ];
+    const all = cat.rows || [];
     $('#grant-box').innerHTML = `
       <div class="card">
         <h3 style="margin-bottom:10px">🏷 Trao thời trang — ${esc(name)}</h3>
@@ -452,13 +443,13 @@ async function openGrant(id, name) {
           return `<tr>
             <td>${KIND_VI[c.kind] || esc(c.kind)}</td>
             <td><b>${esc(c.name)}</b> <code class="muted">${esc(c.id)}</code></td>
-            <td>${c.builtin ? '<b style="color:var(--warn)">Admin trao tay</b>' : howText(c)}</td>
+            <td>${howText(c)}</td>
             <td>${has ? '<span class="badge b-on">ĐÃ TRAO</span>' : '<span class="muted">chưa</span>'}</td>
             <td>${has
               ? `<button class="danger" onclick="doGrant('${id}','${esc(name)}','${key}',false)">Thu hồi</button>`
               : `<button class="ok" onclick="doGrant('${id}','${esc(name)}','${key}',true)">Trao</button>`}</td>
           </tr>`;
-        }).join('') || '<tr><td colspan="5" class="muted">Chưa có món nào để trao.</td></tr>'}
+        }).join('') || '<tr><td colspan="5" class="muted">Chưa có món nào — thêm ở tab Thời trang trước.</td></tr>'}
         </tbody></table>
         <p class="muted" style="margin-top:10px">Người chơi đang online sẽ mở khoá ngay, không cần đăng nhập lại.</p>
       </div>`;

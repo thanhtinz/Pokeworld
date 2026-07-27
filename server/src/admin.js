@@ -7,7 +7,7 @@ import { adminRequired } from './auth.js';
 import { kickUser, onlineCount, emitToUser } from './realtime.js';
 import { guildById, disbandGuildDoc } from './guild.js';
 import {
-  KINDS, HOWS, BUILTIN_MANUAL, listCosmetics, upsertCosmetic, removeCosmetic,
+  KINDS, HOWS, listCosmetics, upsertCosmetic, removeCosmetic,
   saveImage, clearImage, publicCosmetics, grantCosmetic, cosmeticsOf,
 } from './cosmetics.js';
 
@@ -179,7 +179,7 @@ export function adminRouter(io) {
 
   // ==== Thời trang: danh hiệu, khung avatar, khung chat, skin ====
   r.get('/cosmetics', (req, res) => {
-    res.json({ rows: listCosmetics(), kinds: KINDS, hows: HOWS, builtin: BUILTIN_MANUAL });
+    res.json({ rows: listCosmetics(), kinds: KINDS, hows: HOWS });
   });
 
   // Thêm mới hoặc sửa một món (id + kind là khoá)

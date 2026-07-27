@@ -5,14 +5,14 @@ import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing,
 } from '../engine/overworld.js';
-import { owImage, owFrame, owReady, OW_W, OW_H } from '../engine/owsprite.js';
+import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal } from '../engine/pokemon.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
-import { TITLES, imgOf } from '../data/cosmetics.js';
+import { TITLES, SKINS, imgOf } from '../data/cosmetics.js';
 
 // Ảnh danh hiệu admin tải lên — tải một lần rồi dùng lại mỗi khung hình
 const titleImgs = new Map();
@@ -48,7 +48,10 @@ export function render(el) {
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
 
-  const avatarImg = owImage(activeAvatar());
+  // Skin admin tải lên mà đúng khuôn 3x4 thì dùng làm sprite đi bản đồ luôn
+  const skinImg = owImage(imgOf(SKINS[G.p?.look?.skin]));
+  const baseImg = owImage(activeAvatar());
+  const avatarImg = () => (owSheetOk(skinImg) ? skinImg : baseImg);
   function sizeCanvas() {
     const r = canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -137,13 +140,14 @@ export function render(el) {
     const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
     const px = player.x * size - camX;
     const py = (player.y + 0.5) * size - camY + bob;
-    put(avatarImg, player.dir, player.moving, px, py);
+    put(avatarImg(), player.dir, player.moving, px, py);
     drawTitle(px, py - chH + size * 0.34);
   }
 
   // Danh hiệu đang mặc, hiện ngay trên đầu nhân vật
   function drawTitle(cx, topY) {
-    const t = TITLES[G.p?.look?.title];
+    const id = G.p?.look?.title;
+    const t = id && id !== 'none' ? TITLES[id] : null;
     if (!t) return;
     // Danh hiệu có ảnh riêng thì vẽ ảnh, cao 16px cho khớp thẻ chữ
     const src = imgOf(t);

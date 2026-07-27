@@ -33,10 +33,10 @@ import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
 import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/pokemon.js';
-import { activeAvatar } from './engine/accounts.js';
 import { trainerLevel } from './engine/equipment.js';
 import { fmt } from './util.js';
 import { uiIcon } from './ui/icons.js';
+import { avatarSrc } from './ui/look.js';
 
 const SCREENS = {
   home, battle, party, dex, bag, shop, quest, starter, menu, character,
@@ -87,7 +87,7 @@ export function drawTopBar(hide = false) {
   if (hide || !G.p) { bar.hidden = true; return; }
   bar.hidden = false;
   const ava = document.getElementById('tb-ava');
-  const src = `assets/trainers/${activeAvatar()}.png`;
+  const src = avatarSrc();
   if (ava.getAttribute('src') !== src) { ava.src = src; ava.style.visibility = ''; }
   document.getElementById('tb-name').textContent = G.p.name || '';
   document.getElementById('tb-lv').textContent = `Lv.${trainerLevel()}`;

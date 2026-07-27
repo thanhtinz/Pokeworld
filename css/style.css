@@ -1494,19 +1494,32 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 .battle > * { position: relative; z-index: 1; }
 
-/* Be dung: doi thu ben phai o tren, minh ben trai o duoi */
-.bt-enemy {
-  background-image: var(--base-foe);
-  background-repeat: no-repeat;
-  background-position: right 6px bottom 4px;
-  background-size: 52% auto;
+/* Be dung: ve NGAY DUOI sprite chu khong dan vao nen khung.
+   Truoc day be la anh nen cua ca khung con sprite thi to nho theo tung loai,
+   nen con nao cung dung lech ra ngoai be. Gio be la lop ::after cua chinh o
+   chua sprite -> hai cai luon chung mot tam. */
+.bt-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
 }
-.bt-me {
-  background-image: var(--base-me);
-  background-repeat: no-repeat;
-  background-position: left 6px bottom 8px;
-  background-size: 58% auto;
+.bt-stage::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 118%;
+  aspect-ratio: 128 / 34;
+  background: var(--base) center bottom / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  z-index: -1;
+  pointer-events: none;
 }
+.bt-stage .bt-sprite { position: relative; z-index: 1; }
+/* Phong to phai bam goc duoi, khong thi con vat bay len khoi be */
+.bt-sprite.px-icon { transform-origin: bottom center; }
 /* Khung thong tin dam hon mot chut de noi tren nen sang */
 .screen-battle .bt-info { background: rgba(8, 5, 18, .88); }
 .screen-battle .bt-log { background: rgba(8, 5, 18, .86); }
@@ -1749,11 +1762,6 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Danh hiệu bằng ảnh (admin tải lên) — cao bằng đúng dòng chữ nó thay thế */
 img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelated; }
 .chat-title.tp-img { height: 14px; margin-bottom: 2px; }
-/* Dùng chung cho tin nhắn thật và ô xem trước ở trang Thời trang */
-.cf-cloud { background: rgba(200, 220, 255, .12); border: 1px solid rgba(200, 220, 255, .4); border-radius: 14px; padding: 7px 11px; }
-.cf-leaf  { background: rgba(120, 200, 80, .12); border: 1px solid rgba(120, 200, 80, .45); border-radius: 4px 14px 14px 14px; padding: 7px 11px; }
-.cf-ember { background: rgba(240, 128, 48, .14); border: 1px solid rgba(240, 128, 48, .5); border-radius: 14px; padding: 7px 11px; box-shadow: 0 0 10px -3px #f08030; }
-.cf-royal { background: rgba(240, 180, 41, .12); border: 1px solid rgba(240, 180, 41, .55); border-radius: 14px; padding: 7px 11px; box-shadow: 0 0 12px -3px #f0b429, inset 0 0 8px -4px #f0b429; }
 /* Khung chat bằng ảnh: ảnh kéo giãn 9 phần làm nền, chữ nằm trong lề an toàn */
 .cf-img {
   border: 0;

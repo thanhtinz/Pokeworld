@@ -4,7 +4,6 @@
 // không cộng sức mạnh (nhân vật không tham chiến, chỉ Tuxemon đánh nhau).
 // Danh hiệu mặc vào sẽ hiện luôn trên đầu nhân vật khi đi trên bản đồ.
 import { save } from '../state.js';
-import { activeAvatar } from '../engine/accounts.js';
 import {
   ensureData, equip, unequip, upgradeEquip, sellEquip, sellPrice, stoneCount,
   expToNext, MAX_TRAINER_LEVEL,
@@ -14,7 +13,7 @@ import { TITLES } from '../data/cosmetics.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
-import { avatarFrame, titleHtml } from './look.js';
+import { avatarFrame, titleHtml, avatarSrc } from './look.js';
 
 // Nạp CSS riêng của màn này 1 lần
 function ensureCss() {
@@ -75,7 +74,7 @@ export function render(el) {
         <div class="ring-col">${SLOTS.slice(0, 3).map(cell).join('')}</div>
         <div class="ring-mid">
           <span class="ring-ava-wrap${fr.cls}"${fr.style}>
-            <img class="ring-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()">
+            <img class="ring-ava" src="${esc(avatarSrc())}" alt="" onerror="this.remove()">
           </span>
           <b class="ring-name-lbl">${esc(p.name)}</b>
           ${titleHtml(p.look.title)}
@@ -89,7 +88,7 @@ export function render(el) {
 
   // ==== Nút dẫn sang trang Thời trang ====
   function fashionHtml() {
-    const t = TITLES[p.look.title];
+    const t = p.look.title !== 'none' ? TITLES[p.look.title] : null;
     return `
       <button type="button" class="card menu-link fa-link" data-goto="fashion">
         <span class="fa-link-ico">${uiIcon('flag', 22)}</span>

@@ -11,7 +11,8 @@ import { TRAINERS } from '../js/data/trainers.js';
 import { STARTERS } from '../js/data/starters.js';
 import { QUESTS, DAILY_REWARDS } from '../js/data/quests.js';
 import { CHAPTERS } from '../js/data/story.js';
-import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, unlocked, requirement } from '../js/data/cosmetics.js';
+import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, NONE_ID,
+  applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
 import { NATURES, NATURE_LIST } from '../js/data/natures.js';
 import { newTuxemon, stats, maxHp } from '../js/engine/pokemon.js';
@@ -90,12 +91,28 @@ ok('khắc hệ: nước đánh lửa = 2', typeEff('water', ['fire']) === 2);
 ok('khắc hệ: lửa đánh nước = 0.5', typeEff('fire', ['water']) === 0.5);
 ok('khắc hệ: hệ lạ trả về 1', typeEff('khong_co', ['fire']) === 1);
 
-// ==== Thời trang ====
+// ==== Thời trang (toàn bộ là ảnh admin tải lên) ====
 const p0 = { stats: { catches: 0, wins: 0 }, badges: [], granted: [] };
-ok('danh hiệu mặc định mở sẵn', unlocked(TITLES.rookie, p0, 1));
-ok('món trao tay thì khoá cho tới khi được trao',
-  !unlocked(TITLES.founder, p0, 99)
-  && unlocked(TITLES.founder, { ...p0, granted: ['title:founder'] }, 1));
+ok('bốn loại thời trang', COSMETIC_KINDS.length === 4
+  && COSMETIC_KINDS.every(k => k.data[NONE_ID[k.id]]));
+ok('ô "không mặc gì" luôn mở sẵn',
+  COSMETIC_KINDS.every(k => unlocked(k.data[NONE_ID[k.id]], p0, 1)));
+
+// Giả lập máy chủ trả về kho thời trang admin đã tải lên
+applyRemote([
+  { kind: 'title', id: 'tet', name: 'Tết', how: 'manual', img: '/uploads/cosmetics/t.png' },
+  { kind: 'avatarFrame', id: 'vip', name: 'VIP', how: 'level', n: 40, img: '/uploads/cosmetics/v.png' },
+], 'http://may-chu');
+ok('nhận món admin thêm', !!TITLES.tet && !!AVATAR_FRAMES.vip);
+ok('ghép đúng địa chỉ ảnh', imgOf(TITLES.tet) === 'http://may-chu/uploads/cosmetics/t.png');
+ok('món trao tay khoá cho tới khi được trao',
+  !unlocked(TITLES.tet, p0, 99)
+  && unlocked(TITLES.tet, { ...p0, granted: ['title:tet'] }, 1));
+ok('món theo cấp mở đúng mốc',
+  !unlocked(AVATAR_FRAMES.vip, p0, 39) && unlocked(AVATAR_FRAMES.vip, p0, 40));
+applyRemote([], 'http://may-chu');
+ok('admin xoá món thì client gỡ theo, ô "không mặc gì" vẫn còn',
+  !TITLES.tet && !AVATAR_FRAMES.vip && TITLES.none && SKINS.default);
 ok('mọi món thời trang đều có câu điều kiện',
   [...Object.values(TITLES), ...Object.values(AVATAR_FRAMES), ...Object.values(CHAT_FRAMES)]
     .every(d => requirement(d).length > 0));

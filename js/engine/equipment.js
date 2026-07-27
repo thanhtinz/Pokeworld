@@ -2,7 +2,7 @@
 import { G, save, spend, addMoney } from '../state.js';
 import { rng, clamp } from '../util.js';
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, STAT_KEYS, statsOf, maxLevelOf } from '../data/equipment.js';
-import { setGrants } from '../data/cosmetics.js';
+import { setGrants, NONE_ID } from '../data/cosmetics.js';
 
 // Đá cường hóa: KHÔNG nằm trong data/items.js (file đó do màn khác giữ),
 // nên định nghĩa tại đây và lưu số lượng trong G.p.bag.upgrade_stone.
@@ -26,13 +26,12 @@ export function ensureData() {
   if (!p.trainer || typeof p.trainer !== 'object') p.trainer = { level: 1, exp: 0 };
   if (typeof p.trainer.level !== 'number') p.trainer.level = 1;
   if (typeof p.trainer.exp !== 'number') p.trainer.exp = 0;
-  if (!p.look || typeof p.look !== 'object') {
-    p.look = { title: 'rookie', avatarFrame: 'none', chatFrame: 'none' };
-  }
-  for (const [k, v] of Object.entries({ title: 'rookie', avatarFrame: 'none', chatFrame: 'none' })) {
+  // Mặc định là "không mặc gì" — mọi món thời trang đều do admin tải ảnh lên
+  if (!p.look || typeof p.look !== 'object') p.look = {};
+  for (const [k, v] of Object.entries(NONE_ID)) {
     if (typeof p.look[k] !== 'string') p.look[k] = v;
   }
-  // Món thời trang được quản trị viên trao tay (khoá dạng "title:founder")
+  // Món thời trang được quản trị viên trao tay (khoá dạng "title:tet_2026")
   if (!Array.isArray(p.granted)) p.granted = [];
   setGrants(p.granted);
   return p;

@@ -19,15 +19,6 @@ export const KINDS = ['title', 'avatarFrame', 'chatFrame', 'skin'];
 // Cách mở khoá: có sẵn | bắt đủ số | thắng đủ trận | đủ huy hiệu | đủ cấp | admin trao tay
 export const HOWS = ['start', 'catch', 'win', 'badge', 'level', 'manual'];
 
-// Món 'manual' có sẵn trong bản game (js/data/cosmetics.js) — máy chủ không quản
-// lý chúng, chỉ liệt kê ra để admin bấm trao cho nhanh. Thêm món manual mới ở
-// client thì nhớ thêm một dòng ở đây.
-export const BUILTIN_MANUAL = [
-  { kind: 'title', id: 'founder', name: 'Khai Quốc' },
-  { kind: 'title', id: 'champion', name: 'Nhà Vô Địch' },
-  { kind: 'title', id: 'friend', name: 'Bạn Của Nhà Phát Triển' },
-];
-
 const EXT = {
   'image/png': '.png',
   'image/jpeg': '.jpg',

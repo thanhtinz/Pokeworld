@@ -1,20 +1,13 @@
 // TuxeWorld H5 | ui/fashion.js | Trang Thời trang: danh hiệu, khung avatar, khung chat, skin
 //
 // Đồ ở đây KHÔNG cộng chỉ số — mặc vào chỉ để đẹp và để người khác thấy.
-// Danh hiệu mặc vào hiện ngay trên đầu nhân vật khi đi trên bản đồ.
-import { G } from '../state.js';
-import { activeAvatar } from '../engine/accounts.js';
+// Món trong từng tab là ảnh quản trị viên tải lên trong trang /admin.
 import { ensureData, trainerLevel, wearCosmetic } from '../engine/equipment.js';
-import { COSMETIC_KINDS, SKINS, unlocked, requirement, imgOf } from '../data/cosmetics.js';
+import { COSMETIC_KINDS, NONE_ID, unlocked, requirement, imgOf } from '../data/cosmetics.js';
 import { esc } from '../util.js';
 import { toast, header } from './kit.js';
 import { uiIcon } from './icons.js';
-import { avatarFrame, chatFrame, titleHtml } from './look.js';
-
-const TABS = [
-  ...COSMETIC_KINDS.map(k => ({ id: k.id, name: k.name, icon: k.icon, data: k.data })),
-  { id: 'skin', name: 'Skin', icon: 'slot_skin', data: SKINS, soon: true },
-];
+import { avatarFrame, chatFrame, titleHtml, avatarSrc } from './look.js';
 
 function ensureCss() {
   if (document.getElementById('char-css')) return;
@@ -29,19 +22,21 @@ export function render(el, { tab: startTab } = {}) {
   ensureCss();
   const p = ensureData();
   if (!p) return;
-  let tab = TABS.some(t => t.id === startTab) ? startTab : TABS[0].id;
+  let tab = COSMETIC_KINDS.some(t => t.id === startTab) ? startTab : COSMETIC_KINDS[0].id;
 
   function draw() {
-    const cur = TABS.find(t => t.id === tab);
+    const cur = COSMETIC_KINDS.find(t => t.id === tab);
     const lv = trainerLevel();
     const fr = avatarFrame(p.look.avatarFrame);
+    const items = Object.entries(cur.data);
+    const onlyNone = items.length <= 1;
 
     el.innerHTML = `
       ${header('Thời trang', 'character')}
 
       <div class="card fa-preview">
         <span class="ring-ava-wrap${fr.cls}"${fr.style}>
-          <img class="ring-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()">
+          <img class="ring-ava" src="${esc(avatarSrc())}" alt="" onerror="this.remove()">
         </span>
         <b class="ring-name-lbl">${esc(p.name)}</b>
         ${titleHtml(p.look.title)}
@@ -49,7 +44,7 @@ export function render(el, { tab: startTab } = {}) {
       </div>
 
       <div class="tab-row fa-tabs">
-        ${TABS.map(t => `<button type="button" class="tab-btn ${t.id === tab ? 'active' : ''}" data-tab="${t.id}">
+        ${COSMETIC_KINDS.map(t => `<button type="button" class="tab-btn ${t.id === tab ? 'active' : ''}" data-tab="${t.id}">
           ${uiIcon(t.icon, 18)} ${esc(t.name)}
         </button>`).join('')}
       </div>
@@ -57,20 +52,20 @@ export function render(el, { tab: startTab } = {}) {
       <div class="card fa-card">
         <div class="inv-head">
           <b>${esc(cur.name)}</b>
-          <small>${Object.values(cur.data).filter(d => unlocked(d, p, lv)).length}/${Object.keys(cur.data).length} đã mở</small>
+          <small>${items.filter(([, d]) => unlocked(d, p, lv)).length}/${items.length} đã mở</small>
         </div>
-        ${cur.soon
-          ? '<div class="empty-note">Mới có bộ mặc định. Các bộ skin khác sẽ bổ sung sau.</div>'
+        ${onlyNone
+          ? '<div class="empty-note">Chưa có món nào. Quản trị viên tải ảnh lên trong trang /admin là hiện ở đây ngay.</div>'
           : ''}
         <div class="fa-grid">
-          ${Object.entries(cur.data).map(([id, d]) => {
+          ${items.map(([id, d]) => {
             const ok = unlocked(d, p, lv);
             const worn = p.look[tab] === id;
             return `<button type="button" class="fa-cell${worn ? ' worn' : ''}${ok ? '' : ' locked'}"
                     data-id="${esc(id)}" ${ok ? '' : 'disabled'}>
               ${worn ? '<span class="fa-worn">Đang mặc</span>' : ''}
               ${cellArt(tab, id, d)}
-              <b class="fa-name"${d.color ? ` style="color:${d.color}"` : ''}>${esc(d.name)}</b>
+              <b class="fa-name"${d.color && d.img ? ` style="color:${esc(d.color)}"` : ''}>${esc(d.name)}</b>
               <small class="fa-req">${ok ? (worn ? '✓' : 'Bấm để mặc') : requirement(d)}</small>
             </button>`;
           }).join('')}
@@ -83,33 +78,22 @@ export function render(el, { tab: startTab } = {}) {
       b.addEventListener('click', () => wear(b.dataset.id)));
   }
 
-  // Ô xem trước của từng loại. Món nào admin đã tải ảnh lên thì xem trước bằng
-  // đúng ảnh đó, món không có ảnh thì vẫn vẽ bằng CSS như bộ mặc định.
+  // Ô xem trước: có ảnh thì hiện đúng ảnh, ô "không mặc gì" thì hiện dấu gạch
   function cellArt(kind, id, d) {
     const img = imgOf(d);
-    if (img && kind !== 'chatFrame') {
-      return `<span class="fa-art"><img class="fa-img" src="${esc(img)}" alt="" onerror="this.remove()"></span>`;
-    }
-    if (kind === 'avatarFrame') {
-      const cls = d.css ? ` fr-${esc(d.css)}` : '';
-      return `<span class="fa-art"><span class="fa-frame${cls}"></span></span>`;
-    }
+    if (!img) return `<span class="fa-art fa-none">${id === NONE_ID[kind] ? '⊘' : uiIcon('slot_skin', 26)}</span>`;
     if (kind === 'chatFrame') {
-      // Khung chat luôn xem trước bằng bong bóng thật, ảnh chỉ làm nền cho nó
       const cf = chatFrame(id);
       return `<span class="fa-art"><span class="fa-bubble${cf.cls}"${cf.style}>Alo</span></span>`;
     }
-    if (kind === 'title') {
-      return `<span class="fa-art">${titleHtml(id)}</span>`;
-    }
-    return `<span class="fa-art">${uiIcon('slot_skin', 30)}</span>`;
+    if (kind === 'title') return `<span class="fa-art">${titleHtml(id)}</span>`;
+    return `<span class="fa-art"><img class="fa-img" src="${esc(img)}" alt="" onerror="this.remove()"></span>`;
   }
 
   function wear(id) {
-    if (tab === 'skin') { toast('Skin khác sẽ bổ sung sau.'); return; }
     if (wearCosmetic(tab, id)) {
-      const kind = TABS.find(t => t.id === tab);
-      toast(`Đã mặc ${kind.data[id].name}.`);
+      const kind = COSMETIC_KINDS.find(t => t.id === tab);
+      toast(`Đã ${id === NONE_ID[tab] ? 'tháo' : 'mặc'} ${kind.data[id].name}.`);
       draw();
     }
   }

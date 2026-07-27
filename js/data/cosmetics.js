@@ -1,60 +1,41 @@
 // TuxeWorld H5 | data/cosmetics.js | Thời trang: danh hiệu, khung avatar, khung chat, skin
 //
 // Đồ thời trang KHÔNG cộng chỉ số — mặc vào chỉ để đẹp và để người khác thấy.
-// Danh hiệu mặc vào sẽ hiện ngay trên đầu nhân vật khi đi trên bản đồ, hiện
-// cạnh tên trong khung chat và trên thẻ hồ sơ.
+// Danh hiệu mặc vào hiện ngay trên đầu nhân vật khi đi trên bản đồ và cạnh tên
+// trong khung chat.
 //
-// Bộ dưới đây là bộ MẶC ĐỊNH đi kèm game. Admin có thể thêm món mới và tải ảnh
-// riêng cho từng món trong trang /admin; những món đó được ghép đè vào các bảng
-// này khi vào phiên online (xem applyRemote bên dưới) — món nào có ảnh thì giao
-// diện dùng ảnh, không có thì vẫn vẽ bằng CSS như cũ.
+// TOÀN BỘ món ở đây do quản trị viên tải ảnh lên trong trang /admin. Bản game
+// chỉ giữ sẵn ô "không mặc gì" của từng loại để người chơi còn tháo ra được;
+// mọi món khác được nạp về khi vào phiên online (xem applyRemote bên dưới).
 
 // Cách mở khoá: how = 'start' có sẵn | 'badge' đủ huy hiệu | 'catch' bắt đủ số
 //               'win' thắng đủ trận | 'level' đủ cấp huấn luyện viên
 //               'manual' không tự mở được — phải được quản trị viên trao tay
 export const TITLES = {
-  rookie:   { name: 'Tân Binh',        color: '#9aa0c3', how: 'start' },
-  explorer: { name: 'Kẻ Lữ Hành',      color: '#4dabf7', how: 'catch', n: 10 },
-  hunter:   { name: 'Thợ Săn',         color: '#20c997', how: 'catch', n: 40 },
-  scholar:  { name: 'Nhà Nghiên Cứu',  color: '#b197fc', how: 'catch', n: 100 },
-  brawler:  { name: 'Tay Đấm',         color: '#fa5252', how: 'win',   n: 20 },
-  veteran:  { name: 'Lão Làng',        color: '#ff922b', how: 'win',   n: 100 },
-  badged:   { name: 'Chủ Huy Hiệu',    color: '#f0b429', how: 'badge', n: 2 },
-  master:   { name: 'Bậc Thầy',        color: '#ffd43b', how: 'level', n: 30 },
-  // Không có điều kiện nào tự đạt được — quản trị viên trao tay trong trang admin
-  founder:  { name: 'Khai Quốc',       color: '#ffe066', how: 'manual' },
-  champion: { name: 'Nhà Vô Địch',     color: '#ff6b6b', how: 'manual' },
-  friend:   { name: 'Bạn Của Nhà Phát Triển', color: '#66d9e8', how: 'manual' },
+  none: { name: 'Không danh hiệu', color: '#9aa0c3', how: 'start' },
 };
 
-// Khung ảnh đại diện — vẽ bằng CSS nên không tốn ảnh nào
 export const AVATAR_FRAMES = {
-  none:   { name: 'Không khung', css: null,      how: 'start' },
-  bronze: { name: 'Viền Đồng',   css: 'bronze',  how: 'level', n: 5 },
-  silver: { name: 'Viền Bạc',    css: 'silver',  how: 'level', n: 15 },
-  gold:   { name: 'Viền Vàng',   css: 'gold',    how: 'level', n: 25 },
-  neon:   { name: 'Viền Neon',   css: 'neon',    how: 'win',   n: 50 },
-  flame:  { name: 'Viền Lửa',    css: 'flame',   how: 'badge', n: 2 },
+  none: { name: 'Không khung', how: 'start' },
 };
 
 export const CHAT_FRAMES = {
-  none:   { name: 'Bình thường', css: null,     how: 'start' },
-  cloud:  { name: 'Mây Trắng',   css: 'cloud',  how: 'catch', n: 20 },
-  leaf:   { name: 'Lá Xanh',     css: 'leaf',   how: 'catch', n: 60 },
-  ember:  { name: 'Than Hồng',   css: 'ember',  how: 'win',   n: 30 },
-  royal:  { name: 'Hoàng Gia',   css: 'royal',  how: 'badge', n: 2 },
+  none: { name: 'Bình thường', how: 'start' },
 };
 
-// Skin nhân vật — mới có bộ mặc định, các bộ khác bổ sung sau
 export const SKINS = {
   default: { name: 'Trang phục gốc', how: 'start' },
 };
 
 export const COSMETIC_KINDS = [
-  { id: 'title',       name: 'Danh hiệu',    icon: 'flag',   data: TITLES },
+  { id: 'title', name: 'Danh hiệu', icon: 'flag', data: TITLES },
   { id: 'avatarFrame', name: 'Khung avatar', icon: 'person', data: AVATAR_FRAMES },
-  { id: 'chatFrame',   name: 'Khung chat',   icon: 'chat',   data: CHAT_FRAMES },
+  { id: 'chatFrame', name: 'Khung chat', icon: 'chat', data: CHAT_FRAMES },
+  { id: 'skin', name: 'Skin', icon: 'slot_skin', data: SKINS },
 ];
+
+// Ô "không mặc gì" của mỗi loại — không bao giờ bị xoá theo dữ liệu máy chủ
+export const NONE_ID = { title: 'none', avatarFrame: 'none', chatFrame: 'none', skin: 'default' };
 
 const TABLES = { title: TITLES, avatarFrame: AVATAR_FRAMES, chatFrame: CHAT_FRAMES, skin: SKINS };
 
@@ -70,12 +51,12 @@ function stamp() {
 }
 stamp();
 
-// ==== Món admin thêm / ảnh admin tải lên ====
+// ==== Món + ảnh do quản trị viên tải lên ====
 // gốc = địa chỉ máy chủ, vì ảnh nằm trên máy chủ chứ không nằm trong thư mục game
 let assetBase = '';
 const remoteKeys = new Set();
 
-// items = mảng { kind, id, name, color, css, how, n, img } lấy từ GET /api/cosmetics
+// items = mảng { kind, id, name, color, how, n, img } lấy từ GET /api/cosmetics
 export function applyRemote(items, base = '') {
   assetBase = String(base || '').replace(/\/+$/, '');
   // Bỏ các món của lần tải trước không còn nữa (admin đã xoá)
@@ -88,22 +69,17 @@ export function applyRemote(items, base = '') {
   }
   for (const it of items || []) {
     const table = TABLES[it.kind];
-    if (!table || !it.id) continue;
-    const cur = table[it.id];
-    if (cur) {
-      // Món có sẵn trong game: chỉ nhận thêm ảnh, giữ nguyên tên/điều kiện gốc
-      cur.img = it.img || null;
-    } else {
-      table[it.id] = {
-        name: it.name, color: it.color, css: it.css || null,
-        how: it.how, n: it.n || 0, img: it.img || null,
-      };
-      remoteKeys.add(`${it.kind}:${it.id}`);
-    }
+    if (!table || !it.id || it.id === NONE_ID[it.kind]) continue;
+    table[it.id] = {
+      name: it.name, color: it.color || '#ffd43b',
+      how: it.how, n: it.n || 0, img: it.img || null,
+    };
+    remoteKeys.add(`${it.kind}:${it.id}`);
   }
   stamp();
 }
 
+// Đường dẫn ảnh đầy đủ của một món (null = món "không mặc gì")
 export function imgOf(def) {
   if (!def?.img) return null;
   return /^https?:\/\//.test(def.img) ? def.img : assetBase + def.img;

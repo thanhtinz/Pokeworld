@@ -109,10 +109,12 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
-      <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
+      <span class="bt-stage" style="--base:url(${arena.foe})">
+        <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
              src="${monLocalSrc(m)}" onerror="${monFallbackAttr(m)}"
-             data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">`;
+             data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">
+      </span>`;
     upgradeImages($enemy);
   }
 
@@ -123,10 +125,12 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const [cur, need] = expProgress(m);
     const expPct = Math.min(100, Math.round(cur / Math.max(1, need) * 100));
     $me.innerHTML = `
-      <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
+      <span class="bt-stage" style="--base:url(${arena.me})">
+        <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
              src="${monLocalSrc(m, true)}" onerror="${monFallbackAttr(m, true)}"
              data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
+      </span>
       <div class="bt-info">
         <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, mx)}</div>

@@ -11,16 +11,22 @@ const STEP_MS = 150;
 
 const cache = new Map();
 
+// name = tên tệp trong assets/ow, hoặc thẳng một địa chỉ ảnh (skin admin tải lên)
 export function owImage(name) {
   if (!name) return null;
   let img = cache.get(name);
   if (!img) {
     img = new Image();
-    img.src = `assets/ow/${name}.png`;
+    img.src = /^(https?:|\/)/.test(name) ? name : `assets/ow/${name}.png`;
     cache.set(name, img);
   }
   return img;
 }
+
+// Ảnh có đúng tỉ lệ 3 cột x 4 hàng của bộ sprite đi bản đồ không?
+// Skin tải lên mà không đúng khuôn thì vẫn dùng sprite gốc, tránh vẽ ra hình vỡ.
+export const owSheetOk = (img) =>
+  owReady(img) && Math.abs(img.naturalWidth / img.naturalHeight - 3 / 8) < 0.02;
 
 // Ô cần cắt trong ảnh: đứng yên thì luôn khung 0, đang đi thì chạy vòng bước chân
 export function owFrame(dir, moving, timeMs = Date.now()) {
