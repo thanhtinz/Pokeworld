@@ -32,7 +32,7 @@ export function render(el) {
           </button>`).join('')}
         ${party.length === 0 ? '<div class="card party-empty-note">Chưa có Tuxemon nào.</div>' : ''}
       </div>
-      <button class="btn" id="btn-box">${itemIcon('poke_ball', '', 22)} Box (${G.p.box.length})</button>
+      <button class="btn" id="btn-box">${itemIcon('tuxeball', '', 22)} Box (${G.p.box.length})</button>
       <div id="party-detail"></div>`;
 
     el.querySelectorAll('.party-slot').forEach(btn =>

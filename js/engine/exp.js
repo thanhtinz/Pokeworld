@@ -32,7 +32,7 @@ export function gainExp(mon, amount) {
   const spec = SPECIES[mon.sp];
   if (!spec) return [];
   // Lucky Egg x1.5
-  if (mon.held === 'lucky_egg') amount = Math.floor(amount * 1.5);
+  if (mon.held === 'nu_phone') amount = Math.floor(amount * 1.5);
   const newLevels = [];
   if (mon.lv >= CONFIG.MAX_LEVEL) return newLevels;
   mon.exp = (mon.exp || 0) + amount;

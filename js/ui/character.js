@@ -11,7 +11,7 @@ import {
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, maxLevelOf } from '../data/equipment.js';
 import { TITLES } from '../data/cosmetics.js';
 import { esc, fmt } from '../util.js';
-import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
+import { toast, choose, confirmDlg, header } from './kit.js';
 import { uiIcon } from './icons.js';
 import { avatarFrame, titleHtml, avatarSrc } from './look.js';
 
@@ -27,6 +27,7 @@ function ensureCss() {
 
 const rarOf = (id) => RARITY[(EQUIPMENT[id] || {}).rarity] || RARITY.common;
 const slotName = (id) => (SLOTS.find(s => s.id === id) || {}).name || id;
+const slotIcon = (id) => (SLOTS.find(s => s.id === id) || {}).icon || 'bag';
 
 export function render(el) {
   ensureCss();
@@ -60,7 +61,7 @@ export function render(el) {
       const rar = rarOf(eq.id);
       return `<button type="button" class="ring-cell" data-slot="${s.id}" style="--rar:${rar.color}">
         ${eq.level ? `<span class="up-badge">+${eq.level}</span>` : ''}
-        <span class="ring-ico">${itemIcon(def.sprite, '', 28)}</span>
+        <span class="ring-ico">${uiIcon(s.icon, 28)}</span>
         <small class="ring-name" style="color:${rar.color}">${esc(def.name)}</small>
       </button>`;
     };
@@ -109,7 +110,7 @@ export function render(el) {
       return `<button type="button" class="inv-cell" data-uid="${esc(e.uid)}" style="--rar:${rar.color}"
               title="${esc(def.name)}">
         ${e.level ? `<span class="up-badge">+${e.level}</span>` : ''}
-        <span class="inv-ico">${itemIcon(def.sprite, '', 30)}</span>
+        <span class="inv-ico">${uiIcon(slotIcon(def.slot), 30)}</span>
       </button>`;
     }).join('');
     // Kê thêm ô trống cho đủ hàng, lưới không bị hụt một góc

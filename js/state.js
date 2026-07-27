@@ -31,7 +31,7 @@ function defaultPlayer(name) {
     badges: [],
     party: [],
     box: [],
-    bag: { potion: 5, poke_ball: 10 },
+    bag: { potion: 5, tuxeball: 10 },
     dex: { seen: {}, caught: {} },
     quests: { active: {}, done: {} },
     daily: { last: 0, streak: 0 },

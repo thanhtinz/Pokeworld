@@ -46,7 +46,7 @@ export const CHAPTERS = [
       ['rogue', 'Hừm! Chỉ là may mắn thôi! Tớ sẽ luyện tập và phục thù!'],
       ['prof', 'Giỏi lắm! Đây là Tux Ball — hãy bắt thêm đồng đội. Gặp Tuxemon hoang trong bụi cỏ, làm yếu rồi ném bóng!'],
     ],
-    reward: { money: 500, items: [{ id: 'poke_ball', n: 10 }] },
+    reward: { money: 500, items: [{ id: 'tuxeball', n: 10 }] },
     unlock: [],
   },
   {
@@ -101,7 +101,7 @@ export const CHAPTERS = [
       ['rocket', 'Không thể tin được! Đại ca ơi cứu em!!'],
       ['boss', 'Lũ vô dụng... Nhóc con, Thị Trấn Bông sẽ là mỏ vàng của ta. Con Leviadile dưới hồ ở đó sẽ thuộc về Team Xero!'],
     ],
-    reward: { money: 2000, items: [{ id: 'great_ball', n: 5 }] },
+    reward: { money: 2000, items: [{ id: 'tuxeball_lavish', n: 5 }] },
     unlock: ['cotton_town'],
   },
   {
@@ -115,7 +115,7 @@ export const CHAPTERS = [
       ['boss', 'Thua... thua một đứa nhóc?! Team Xero sẽ nhớ mặt mày! RÚT LUI!'],
       ['nurse', 'Bạn đã cứu cả hồ nước! Chủ võ đường Thuỷ ở Thị Trấn Bông muốn gặp người hùng đấy.'],
     ],
-    reward: { money: 3000, items: [{ id: 'ultra_ball', n: 3 }] },
+    reward: { money: 3000, items: [{ id: 'tuxeball_ancient', n: 3 }] },
     unlock: [],
   },
   {
@@ -130,7 +130,7 @@ export const CHAPTERS = [
       ['rogue', 'Thua tâm phục khẩu phục... Cậu xứng đáng là Nhà Vô Địch. Nhưng tớ sẽ không bỏ cuộc đâu!'],
       ['prof', 'Cháu đã đi một hành trình dài... Từ hôm nay, cháu là NHÀ VÔ ĐỊCH của vùng! Hãy tiếp tục hoàn thành Tuxedex nhé!'],
     ],
-    reward: { money: 10000, items: [{ id: 'rare_candy', n: 3 }, { id: 'lucky_egg', n: 1 }] },
+    reward: { money: 10000, items: [{ id: 'lucky_bamboo', n: 3 }, { id: 'nu_phone', n: 1 }] },
     unlock: [],
   },
 ];

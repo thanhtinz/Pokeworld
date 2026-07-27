@@ -11,7 +11,7 @@ import { catchBonus } from './status.js';
 // Trả về { caught, shakes (0..3), crit }
 export function attemptCatch(mon, ballId) {
   const item = ITEMS[ballId];
-  const ballMult = (item && item.ballMult) || 1.0;
+  const ballMult = (item && item.effect && item.effect.rate) || 1.0;
   const spec = SPECIES[mon.sp];
 
   const max = maxHp(mon);

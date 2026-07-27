@@ -12,9 +12,7 @@ import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 const TABS = [
   ['medicine', 'Thuốc'],
   ['ball', 'Bóng'],
-  ['stone', 'Đá tiến hóa'],
-  ['candy', 'Kẹo'],
-  ['berry', 'Quả mọng'],
+  ['stone', 'Đá'],
   ['held', 'Vật cầm'],
 ];
 
@@ -93,7 +91,7 @@ export function render(el) {
       return;
     }
 
-    if (it.kind === 'candy') {
+    if (it.effect?.levelUp) {
       const mon = await pickMon(`Dùng ${it.name} cho ai?`);
       if (!mon) return;
       if (mon.lv >= CONFIG.MAX_LEVEL) { toast('Đã đạt level tối đa!'); return; }

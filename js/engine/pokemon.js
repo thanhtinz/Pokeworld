@@ -55,7 +55,7 @@ export function newTuxemon(spId, level, opts = {}) {
     ability,
     gender,
     shiny: !!shiny,
-    ball: opts.ball || 'poke_ball',
+    ball: opts.ball || 'tuxeball',
     moves: opts.moves || defaultMoves(spId, lv),
     hpCur: 0,
     status: null,

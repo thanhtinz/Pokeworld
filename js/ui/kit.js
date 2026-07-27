@@ -1,6 +1,6 @@
 // TuxeWorld H5 | ui/kit.js | Bộ helper UI dùng chung: toast, modal chọn, thanh HP, badge hệ
 import { esc } from '../util.js';
-import { itemIconPath } from '../data/itemicons.js';
+import { ITEMS, itemIconPath } from '../data/items.js';
 import { TYPE_VI, TYPE_COLORS } from '../data/types.js';
 
 export function toast(msg, ms = 2200) {
@@ -59,8 +59,8 @@ export function hpBar(cur, max) {
 // Icon vật phẩm: ảnh nằm ngay trong dự án nên không cần mạng. Không có ảnh thì bỏ trống.
 // Tham số 2 giữ lại cho tương thích chữ ký cũ (trước đây là emoji) — nay ảnh lỗi thì ẩn hẳn.
 export function itemIcon(itemId, _legacy = '', size = 26) {
+  if (!ITEMS[itemId]) return '';
   const local = itemIconPath(itemId);
-  if (!local) return '';
   return `<span class="item-ico"><img class="px-icon" src="${local}" width="${size}" height="${size}" alt=""
     onerror="this.style.visibility='hidden'"></span>`;
 }

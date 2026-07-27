@@ -3,16 +3,11 @@ import { G, save, spend, addMoney } from '../state.js';
 import { rng, clamp } from '../util.js';
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, STAT_KEYS, statsOf, maxLevelOf } from '../data/equipment.js';
 import { setGrants, NONE_ID } from '../data/cosmetics.js';
+import { ITEMS } from '../data/items.js';
 
-// Đá cường hóa: KHÔNG nằm trong data/items.js (file đó do màn khác giữ),
-// nên định nghĩa tại đây và lưu số lượng trong G.p.bag.upgrade_stone.
-export const STONE_ITEM = {
-  id: 'upgrade_stone',
-  name: 'Upgrade Stone',
-  desc: 'Đá cường hóa trang bị',
-  sprite: 'dome_fossil',
-  price: 1500,
-};
+// Đá cường hoá trang bị — nay là vật phẩm thật của Tuxemon (flintstone),
+// số lượng vẫn lưu trong G.p.bag như mọi vật phẩm khác.
+export const STONE_ITEM = { id: 'flintstone', ...ITEMS.flintstone };
 
 export const MAX_TRAINER_LEVEL = 50;
 

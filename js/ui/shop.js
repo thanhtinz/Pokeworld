@@ -4,7 +4,9 @@ import { ITEMS } from '../data/items.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
-import { EQUIPMENT, RARITY } from '../data/equipment.js';
+import { SLOTS, EQUIPMENT, RARITY } from '../data/equipment.js';
+
+const slotIcon = (id) => (SLOTS.find(s => s.id === id) || {}).icon || 'bag';
 import { shopList, buyEquip, buyStone, stoneCount, trainerLevel, STONE_ITEM } from '../engine/equipment.js';
 
 export function render(el) {
@@ -54,7 +56,7 @@ export function render(el) {
     const list = shopList(trainerLevel());
     return `
       <button class="card item-row" id="btn-buy-stone">
-        ${itemIcon(STONE_ITEM.sprite, '', 28)}
+        ${itemIcon(STONE_ITEM.id, '', 28)}
         <span class="item-mid"><b>${esc(STONE_ITEM.name)}</b><small>${esc(STONE_ITEM.desc)} · đang có ×${stoneCount()}</small></span>
         <span class="item-n">${fmt(STONE_ITEM.price)}₽</span>
       </button>
@@ -63,7 +65,7 @@ export function render(el) {
           const def = EQUIPMENT[id];
           const rar = RARITY[def.rarity] || RARITY.common;
           return `<button class="card item-row gear-row" data-gear="${esc(id)}" style="--rar:${rar.color}">
-            ${itemIcon(def.sprite, '', 28)}
+            ${uiIcon(slotIcon(def.slot), 28)}
             <span class="item-mid">
               <b>${esc(def.name)}</b>
               <small style="color:${rar.color}">${esc(rar.name)} · ${esc(def.desc)}</small>
