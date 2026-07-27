@@ -27,8 +27,10 @@ export function checkEvolution(mon, trigger, arg) {
   return null;
 }
 
-// Thực thi tiến hóa: đổi species, giữ IV/EV/nature/nick, tính lại HP theo tỉ lệ.
-// Ability random lại nếu không thuộc loài mới. Trả về true nếu thành công.
+// Thực thi tiến hoá: đổi loài, giữ nguyên IV/TP/khẩu vị/biệt danh, HP giữ theo
+// tỉ lệ. Tuxemon không có "đặc tính" nên tiến hoá không đổi gì thêm; chỉ số cũng
+// KHÔNG tự vọt lên vì mọi dáng thân đều mạnh ngang nhau — cái được là bộ chiêu
+// mới và (thường) dáng thân khác.
 export function evolve(mon, newDex) {
   const newSpec = SPECIES[newDex];
   if (!newSpec) {
@@ -40,10 +42,5 @@ export function evolve(mon, newDex) {
   mon.sp = newDex;
   const newMax = maxHp(mon);
   mon.hpCur = Math.max(1, Math.floor(newMax * hpFrac));
-  // Ability: nếu ability cũ không thuộc loài mới thì random lại từ loài mới
-  const keep = (newSpec.abilities || []).includes(mon.ability);
-  if (!keep) {
-    mon.ability = rng.pick(newSpec.abilities || []) || mon.ability;
-  }
   return true;
 }

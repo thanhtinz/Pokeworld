@@ -26,11 +26,14 @@ import sys
 import json
 import yaml
 
-STAGE_MULT = {'basic': 1.0, 'standalone': 1.15, 'stage1': 1.2, 'stage2': 1.42}
-EXP_CURVE = {'basic': 'medium_fast', 'standalone': 'medium_fast',
-             'stage1': 'medium_slow', 'stage2': 'slow'}
-# EV thuong: con thien ve chi so nao thi cho EV chi so do
-EV_KEY = {'hp': 'hp', 'melee': 'atk', 'armour': 'def', 'ranged': 'spa', 'speed': 'spe'}
+# Tuxemon KHONG co chi so rieng tung loai: moi con lay 6 chi so cua DANG THAN
+# (shape) roi nhan theo cap. Bang shape nao cung cong lai bang 36 nen khong con
+# nao "manh san" hon con nao — chenh lech den tu cap, IV, TP va bo chieu.
+STAT_KEYS = ['hp', 'armour', 'dodge', 'melee', 'ranged', 'speed']
+
+
+# Chi 5 tam nay moi gay sat thuong (mods/range_map.yaml cua ban goc)
+DAMAGE_RANGES = {'melee', 'touch', 'ranged', 'reach', 'reliable'}
 
 
 def load(path):
@@ -54,19 +57,6 @@ def load_names(root):
                 out[key] = m.group(1)
             key = None
     return out
-
-
-def stats_from_shape(a, stage):
-    """6 chi so cua shape (4-9) -> thang cua game, roi nhan theo bac tien hoa."""
-    k = STAGE_MULT.get(stage, 1.0)
-    return {
-        'hp':  round((a['hp'] * 9 + 10) * k),
-        'atk': round((a['melee'] * 9 + 10) * k),
-        'def': round((a['armour'] * 9 + 10) * k),
-        'spa': round((a['ranged'] * 9 + 10) * k),
-        'spd': round(((a['armour'] + a['dodge']) / 2 * 9 + 10) * k),
-        'spe': round((a['speed'] * 9 + 10) * k),
-    }
 
 
 def js(v):
@@ -226,32 +216,28 @@ def fmtnum(v):
 def write_species(mons, dex, shapes, disp, elements):
     out = ["// PokeWorld H5 | data/species.js | Sinh vật — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
+           '// base = 6 chỉ số của DÁNG THÂN (4-9), giống hệt bản gốc: chỉ số thật',
+           '// tính bằng base * (cấp + 7) + IV + TP. Mọi dáng thân cộng lại đều bằng 36.',
+           '// catchRate 0-100, catchLo/catchHi = khoảng kháng bắt ngẫu nhiên mỗi lần ném.',
            '// height tính bằng mét, weight bằng kg (Tuxemon lưu cm và hg).', '',
            'export const SPECIES = {']
     for m in mons:
         i = dex[m['slug']]
         shape = m.get('shape', 'blob')
         attr = shapes.get(shape) or shapes['blob']
-        st = stats_from_shape(attr, m.get('stage', 'basic'))
-        # EV thưởng: chỉ số cao nhất của dáng thân
-        best = max(EV_KEY, key=lambda k: attr.get(k, 0))
-        ev = {EV_KEY[best]: 1 if m.get('stage') == 'basic' else 2}
         types = m.get('types') or ['normal']
-        base_exp = round(sum(st.values()) / 6 * 1.15)
         out.append('  %d: { name: %s, slug: %s, types: %s,' % (i, js(disp(m['slug'])), js(m['slug']), js(types)))
-        out.append('    base: { hp: %d, atk: %d, def: %d, spa: %d, spd: %d, spe: %d },'
-                   % (st['hp'], st['atk'], st['def'], st['spa'], st['spd'], st['spe']))
-        out.append('    catchRate: %d, expCurve: %s, genderRatio: %s, abilities: [],'
-                   % (max(3, min(255, round(m.get('catch_rate', 100)))),
-                      js(EXP_CURVE.get(m.get('stage', 'basic'), 'medium_fast')),
+        out.append('    base: { %s },' % ', '.join('%s: %d' % (k, attr[k]) for k in STAT_KEYS))
+        out.append('    catchRate: %s, catchLo: %s, catchHi: %s, genderRatio: %s,'
+                   % (fmtnum(round(float(m.get('catch_rate', 100)), 2)),
+                      fmtnum(round(float(m.get('lower_catch_resistance', 1)), 2)),
+                      fmtnum(round(float(m.get('upper_catch_resistance', 1)), 2)),
                       fmtnum(round(float((m.get('gender_weights') or {}).get('male', 0.5)), 3))))
-        ev_txt = '{ ' + ', '.join('%s: %d' % (k, v) for k, v in ev.items()) + ' }'
         # Tuxemon co 13 con "glitched" (ten kieu F7U1T3Ra) — de nguyen thi Tuxedex
         # trang dau toan chu loi nhin nhu hong font, nen danh dau de game an di.
         glitch = ', glitched: true' if m.get('species') == 'glitched' else ''
-        out.append('    evYield: %s, baseExp: %d, height: %s, weight: %s, shape: %s, stage: %s%s },'
-                   % (ev_txt, base_exp,
-                      fmtnum(max(0.1, round((m.get('height') or 100) / 100, 2))),
+        out.append('    height: %s, weight: %s, shape: %s, stage: %s%s },'
+                   % (fmtnum(max(0.1, round((m.get('height') or 100) / 100, 2))),
                       fmtnum(max(0.1, round((m.get('weight') or 100) / 10, 1))),
                       js(shape), js(m.get('stage', 'basic')), glitch))
     out.append('};')
@@ -262,32 +248,36 @@ export const speciesBySlug = (slug) => Object.values(SPECIES).find(s => s.slug =
 
 
 # ==================== Chieu thuc ====================
-# Tuxemon: power ~0.5-2.5 (he so), accuracy 0-1, range melee/ranged/touch/reach/special.
-# Game nay: power 0-150, acc 0-100, category physical/special/status.
-RANGE_CAT = {
-    'melee': 'physical', 'touch': 'physical', 'reach': 'physical',
-    'ranged': 'special', 'special': 'special', 'reliable': 'special',
-}
-
-
+# Giu nguyen so lieu goc cua Tuxemon: power la HE SO (0.4-3.0), accuracy 0-1,
+# range quyet dinh lay chi so nao danh vao chi so nao (xem js/engine/damage.js),
+# recharge la so luot phai cho truoc khi dung lai — Tuxemon KHONG co PP.
+# range 'special' trong du lieu goc khong nam trong bang range_map nen khong gay
+# sat thuong; day la nhung chieu ho tro.
 def write_moves(techs, disp):
     out = ["// PokeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
-           '// power quy từ hệ số của Tuxemon sang thang 0-150; category theo tầm đánh.', '',
+           '// power là HỆ SỐ như bản gốc (0.4-3.0), acc 0-100, recharge = số lượt chờ.',
+           '// range: melee (cận chiến vs giáp) · touch (cận chiến vs né) · ranged',
+           '// (tầm xa vs né) · reach (tầm xa vs giáp) · reliable (theo cấp, không đỡ được).', '',
            'export const MOVES = {']
     for slug in sorted(techs):
         t = techs[slug]
         types = t.get('types') or ['normal']
         rng = t.get('range', 'melee')
         kinds = {e.get('type') for e in (t.get('effects') or []) if isinstance(e, dict)}
-        is_dmg = 'damage' in kinds
-        cat = RANGE_CAT.get(rng, 'physical') if is_dmg else 'status'
-        power = min(150, round(float(t.get('power') or 0) * 50)) if is_dmg else 0
+        is_dmg = 'damage' in kinds and rng in DAMAGE_RANGES
+        heal = float(t.get('healing_power') or 0)
+        cat = 'damage' if is_dmg else ('healing' if heal > 0 else 'status')
+        power = round(float(t.get('power') or 0), 2) if is_dmg else 0
         acc = round(float(t.get('accuracy') if t.get('accuracy') is not None else 1) * 100)
-        pp = max(5, min(40, 40 - power // 6))
-        out.append('  %s: { name: %s, type: %s, category: %s, power: %d, acc: %d, pp: %d, priority: 0 },'
-                   % (js(slug), js(disp(slug)), js(types[0]), js(cat), power, acc, pp))
+        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, potency: %s, heal: %s },'
+                   % (js(slug), js(disp(slug)), js(types), js(rng), js(cat), fmtnum(power), acc,
+                      int(t.get('recharge') or 0), fmtnum(round(float(t.get('potency') or 0), 2)),
+                      fmtnum(round(heal, 2))))
     out.append('};')
+    out.append('')
+    out.append('// Hệ chính của chiêu (giao diện cần một màu để tô)')
+    out.append('export const moveType = (id) => (MOVES[id] && MOVES[id].types[0]) || \'normal\';')
     out.append("\nexport const moveName = (id) => (MOVES[id] && MOVES[id].name) || id;")
     open('js/data/moves.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
 

@@ -1,77 +1,64 @@
-// TuxeWorld H5 | engine/exp.js | Đường cong EXP, lên level, chia EXP
+// TuxeWorld H5 | engine/exp.js | Kinh nghiệm, lên cấp — ĐÚNG THEO TUXEMON
+//
+// Bản gốc (tuxemon/monster/experience.py + mods/config_monster.yaml):
+//   EXP tổng cần để đạt cấp N = hệ_số * N^3, nhóm "default" hệ số 1.0.
+//   Mọi loài trong bản gốc đều dùng nhóm default — không có con nào lên chậm
+//   hay nhanh hơn con nào.
+// Thưởng EXP khi hạ một con (combat/experience_strategies.py):
+//   exp = tổng_exp_của_con_thua / cấp_của_nó  =  cấp^2, chia đều cho những con
+//   có tham chiến.
 import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { LEARNSETS } from '../data/learnsets.js';
-import { maxHp, addFriendship } from './pokemon.js';
+import { maxHp } from './pokemon.js';
 import { monLevelCap, OVER_CAP_EXP } from './player.js';
 
-// Tổng EXP cần để đạt level lv theo từng đường cong (chuẩn Gen)
-const CURVES = {
-  fast: (lv) => Math.floor(4 * lv ** 3 / 5),
-  medium_fast: (lv) => lv ** 3,
-  medium_slow: (lv) => Math.floor(6 * lv ** 3 / 5 - 15 * lv ** 2 + 100 * lv - 140),
-  slow: (lv) => Math.floor(5 * lv ** 3 / 4),
-};
-
-export function expForLevel(curve, lv) {
-  if (lv <= 1) return 0;
-  const fn = CURVES[curve] || CURVES.medium_fast;
-  return Math.max(0, fn(lv));
+export function expForLevel(lv) {
+  const n = Math.max(1, Math.floor(lv));
+  return n <= 1 ? 0 : n ** 3;
 }
 
-// EXP đối thủ cho khi bị hạ (công thức rút gọn Gen 1): baseExp * lv / 9 / số người
-// tham chiến. Mẫu số 9 thay vì 7 và quái hoang chỉ cho 0.85 phần: đánh bụi cỏ
-// là để bắt và kiếm đồ, muốn lên cấp nhanh thì phải đi tìm huấn luyện viên.
+// EXP nhận được khi hạ `defeatedMon`, chia cho số con tham chiến.
+// kind chỉ dùng để nêm nhịp chơi của bản web: đánh huấn luyện viên đáng giá hơn.
 const KIND_MULT = { wild: 0.85, trainer: 1.5 };
 
 export function expYield(defeatedMon, n = 1, kind = 'wild') {
-  const spec = SPECIES[defeatedMon.sp];
-  const base = (spec && spec.baseExp) || 60;
-  const nn = Math.max(1, n);
+  const lv = Math.max(1, defeatedMon.lv || 1);
+  const base = Math.floor(expForLevel(lv) / lv);      // = lv^2
   const mult = KIND_MULT[kind] ?? 1;
-  const amount = Math.floor(base * defeatedMon.lv / 9 / nn * mult);
-  return Math.max(1, amount);
+  return Math.max(1, Math.floor(base * mult / Math.max(1, n)));
 }
 
-// Cộng EXP, xử lý lên nhiều level. Trả về mảng các level mới đạt (rỗng nếu không lên).
+// Cộng EXP, xử lý lên nhiều cấp. Trả về mảng các cấp mới đạt (rỗng nếu không lên).
 export function gainExp(mon, amount) {
-  const spec = SPECIES[mon.sp];
-  if (!spec) return [];
-  // Lucky Egg x1.5
-  if (mon.held === 'nu_phone') amount = Math.floor(amount * 1.5);
+  if (!SPECIES[mon.sp]) return [];
   // Vượt trần cấp thì gần như không lên nữa — muốn nuôi tiếp phải tự lên cấp
   // huấn luyện viên đã (đánh trainer, làm nhiệm vụ, đi hết cốt truyện).
   if (mon.lv >= monLevelCap()) amount = Math.max(1, Math.floor(amount * OVER_CAP_EXP));
   const newLevels = [];
   if (mon.lv >= CONFIG.MAX_LEVEL) return newLevels;
   mon.exp = (mon.exp || 0) + amount;
-  while (mon.lv < CONFIG.MAX_LEVEL && mon.exp >= expForLevel(spec.expCurve, mon.lv + 1)) {
+  while (mon.lv < CONFIG.MAX_LEVEL && mon.exp >= expForLevel(mon.lv + 1)) {
     const oldMax = maxHp(mon);
     mon.lv += 1;
-    // Lên level: HP hiện tại tăng theo phần chênh max HP
+    // Lên cấp: HP hiện tại tăng theo phần chênh HP tối đa
     const newMax = maxHp(mon);
     mon.hpCur = Math.min(newMax, (mon.hpCur || 0) + (newMax - oldMax));
     newLevels.push(mon.lv);
-    addFriendship(mon, 2);
   }
-  if (mon.lv >= CONFIG.MAX_LEVEL) {
-    mon.exp = expForLevel(spec.expCurve, CONFIG.MAX_LEVEL);
-  }
+  if (mon.lv >= CONFIG.MAX_LEVEL) mon.exp = expForLevel(CONFIG.MAX_LEVEL);
   return newLevels;
 }
 
-// Chiêu mới có thể học đúng tại level này
+// Chiêu mới có thể học đúng tại cấp này
 export function movesAtLevel(spId, lv) {
-  const ls = LEARNSETS[spId] || [];
-  const out = ls.filter(([l]) => l === lv).map(([, id]) => id);
-  return out;
+  return (LEARNSETS[spId] || []).filter(([l]) => l === lv).map(([, id]) => id);
 }
 
-// Tiến độ EXP tới level kế: trả về [cur, need] (cho UI vẽ thanh exp)
+// Tiến độ EXP tới cấp kế: trả về [cur, need] (cho giao diện vẽ thanh exp)
 export function expProgress(mon) {
-  const spec = SPECIES[mon.sp];
-  if (!spec || mon.lv >= CONFIG.MAX_LEVEL) return [0, 1];
-  const lo = expForLevel(spec.expCurve, mon.lv);
-  const hi = expForLevel(spec.expCurve, mon.lv + 1);
+  if (!SPECIES[mon.sp] || mon.lv >= CONFIG.MAX_LEVEL) return [0, 1];
+  const lo = expForLevel(mon.lv);
+  const hi = expForLevel(mon.lv + 1);
   return [(mon.exp ?? lo) - lo, hi - lo];
 }

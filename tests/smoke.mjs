@@ -15,10 +15,10 @@ import { CHAPTERS, RIVAL_STARTER } from '../js/data/story.js';
 import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, ALL_KINDS, NONE_ID,
   applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
-import { NATURES, NATURE_LIST } from '../js/data/natures.js';
-import { newTuxemon, stats, maxHp } from '../js/engine/pokemon.js';
-import { expForLevel, gainExp, movesAtLevel } from '../js/engine/exp.js';
-import { calcDamage } from '../js/engine/damage.js';
+import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../js/data/tastes.js';
+import { newTuxemon, stats, maxHp, STAT_KEYS } from '../js/engine/pokemon.js';
+import { expForLevel, expYield, gainExp, movesAtLevel } from '../js/engine/exp.js';
+import { calcDamage, typeMultiplier, RANGE_MAP } from '../js/engine/damage.js';
 import { attemptCatch } from '../js/engine/catchmon.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
@@ -37,7 +37,10 @@ ok('có đủ loài Tuxemon', Object.keys(SPECIES).length >= 300, String(Object.
 ok('có bảng chiêu', Object.keys(MOVES).length >= 100, String(Object.keys(MOVES).length));
 ok('13 hệ đều có tên tiếng Việt + màu',
   TYPES.length === 13 && TYPES.every(t => TYPE_NAMES[t] && TYPE_COLORS[t]));
-ok('25 tính cách', NATURE_LIST.length === 25 && Object.keys(NATURES).length === 25);
+// Khẩu vị thay cho tính cách: 6 vị lạnh (giảm) + 6 vị ấm (tăng), đúng bảng gốc
+ok('12 khẩu vị', COLD_LIST.length === 6 && WARM_LIST.length === 6
+  && Object.values(TASTES_COLD).every(t => t.mult < 1)
+  && Object.values(TASTES_WARM).every(t => t.mult > 1));
 ok('3 starter đều có thật', STARTERS.length === 3 && STARTERS.every(s => SPECIES[s.sp]));
 // Ba con khởi đầu phải khác loài, khác hệ, đều là bậc cơ bản và có đường tiến hoá
 ok('starter không trùng loài và không trùng hệ',
@@ -153,9 +156,25 @@ ok('mọi món thời trang đều có câu điều kiện',
     .every(d => requirement(d).length > 0));
 
 // ==== Engine ====
-const starter = newTuxemon(STARTERS[0].sp, 20, { iv: [31, 31, 31, 31, 31, 31] });
+const starter = newTuxemon(STARTERS[0].sp, 20, { iv: [15, 15, 15, 15, 15, 15] });
 const st = stats(starter);
-ok('starter lv20 có chỉ số hợp lý', st.hp > 30 && st.atk > 10 && st.spe > 5, JSON.stringify(st));
+ok('starter lv20 có đủ 6 chỉ số Tuxemon',
+  STAT_KEYS.every(k => typeof st[k] === 'number' && st[k] > 0), JSON.stringify(st));
+
+// Công thức gốc: chỉ số = dáng_thân * (cấp + 7) + IV (+ TP), rồi nhân khẩu vị
+{
+  const spec = SPECIES[STARTERS[0].sp];
+  const plain = newTuxemon(STARTERS[0].sp, 20, { iv: [0, 0, 0, 0, 0, 0],
+    tasteCold: 'mild', tasteWarm: 'peppy' });   // hai vị này cùng đánh vào speed
+  const p = stats(plain);
+  const khop = STAT_KEYS.filter(k => k !== 'speed')
+    .every(k => p[k] === spec.base[k] * 27);
+  ok('chỉ số = dáng thân * (cấp + 7)', khop, JSON.stringify(p));
+  ok('khẩu vị lạnh/ấm cùng đánh vào một chỉ số thì bù nhau',
+    p.speed === Math.floor(Math.floor(spec.base.speed * 27 * 0.9) * 1.1), String(p.speed));
+  ok('mọi dáng thân cộng lại đều bằng 36 (không con nào mạnh sẵn)',
+    Object.values(SPECIES).every(sp => STAT_KEYS.reduce((n, k) => n + sp.base[k], 0) === 36));
+}
 ok('hpCur = maxHp lúc mới tạo', starter.hpCur === maxHp(starter));
 ok('starter có ít nhất 1 chiêu', (starter.moves || []).length >= 1);
 
@@ -196,7 +215,7 @@ const [evoFrom, evoDef] = Object.entries(EVOLUTIONS)
   .map(([k, v]) => [Number(k), Array.isArray(v) ? v[0] : v])
   .find(([k, v]) => v.method === 'level' && v.level && SPECIES[k] && SPECIES[v.into]);
 const mon = newTuxemon(evoFrom, Math.max(1, evoDef.level - 1));
-gainExp(mon, expForLevel(SPECIES[evoFrom].expCurve, evoDef.level + 1) - mon.exp + 10);
+gainExp(mon, expForLevel(evoDef.level + 1) - mon.exp + 10);
 ok(`lên cấp qua exp (${SPECIES[evoFrom].name} -> Lv.${mon.lv})`, mon.lv >= evoDef.level);
 ok('đủ điều kiện tiến hoá', checkEvolution(mon, 'level') === evoDef.into);
 ok('tiến hoá thành công', evolve(mon, evoDef.into) && mon.sp === evoDef.into);
@@ -209,12 +228,59 @@ for (let i = 0; i < 40 && !caught; i++) caught = attemptCatch(weak, 'ultra_ball'
 ok('bắt được con 1 HP (40 lần thử)', caught);
 
 // Đòn khắc hệ: tìm ngay trong data một cặp chiêu/loài khắc nhau
-const superMove = Object.entries(MOVES).find(([, mv]) => mv.power > 0 && mv.category !== 'status'
-  && Object.values(SPECIES).some(s => typeEff(mv.type, s.types) > 1));
+const superMove = Object.entries(MOVES).find(([, mv]) => mv.power > 0 && mv.category === 'damage'
+  && Object.values(SPECIES).some(s => typeMultiplier(mv.types, s.types) > 1));
 const [mvId, mv] = superMove;
-const victim = Object.entries(SPECIES).find(([, s]) => typeEff(mv.type, s.types) > 1)[0];
+const victim = Object.entries(SPECIES).find(([, s]) => typeMultiplier(mv.types, s.types) > 1)[0];
 const dmg = calcDamage(newTuxemon(STARTERS[0].sp, 20), newTuxemon(Number(victim), 20), mvId, {});
 ok(`đòn khắc hệ ${mvId} có hệ số > 1 (hoặc trượt)`, dmg.missed || dmg.eff > 1, JSON.stringify(dmg));
+
+// ==== Công thức đúng theo bản gốc Tuxemon ====
+{
+  // Sát thương = chỉ_số_ra_đòn * (7 + cấp) * power * khắc_hệ / chỉ_số_đỡ
+  const att = newTuxemon(STARTERS[0].sp, 20, { iv: [0, 0, 0, 0, 0, 0], tasteCold: 'bland', tasteWarm: 'savory' });
+  const def = newTuxemon(STARTERS[2].sp, 20, { iv: [0, 0, 0, 0, 0, 0], tasteCold: 'bland', tasteWarm: 'savory' });
+  // Chọn một chiêu melee 100% trúng để tính tay cho khớp
+  const entry = Object.entries(MOVES).find(([, m]) => m.category === 'damage' && m.range === 'melee' && m.acc === 100);
+  if (entry) {
+    const [id, m] = entry;
+    const sa = stats(att), sd = stats(def);
+    const mult = typeMultiplier(m.types, SPECIES[def.sp].types);
+    const cho = Math.floor(sa.melee * (7 + att.lv) * (m.power * mult) / Math.max(1, sd.armour));
+    const got = calcDamage(att, def, id, {}).dmg;
+    ok(`sát thương khớp công thức gốc (${id})`, got === Math.max(1, cho), `${got} vs ${cho}`);
+  }
+  // Tầm đánh quyết định cặp chỉ số nào được dùng
+  ok('bảng tầm đánh đúng như mods/range_map.yaml',
+    RANGE_MAP.melee[0] === 'melee' && RANGE_MAP.melee[1] === 'armour'
+    && RANGE_MAP.touch[1] === 'dodge' && RANGE_MAP.ranged[0] === 'ranged'
+    && RANGE_MAP.reach[1] === 'armour' && RANGE_MAP.reliable[0] === 'level');
+  // Khắc hệ nhân dồn mọi hệ rồi kẹp trong [0.25, 4]
+  ok('hệ số khắc hệ kẹp trong 0.25 - 4', Object.values(MOVES).every(m => {
+    const v = typeMultiplier(m.types, ['fire', 'water']);
+    return v >= 0.25 && v <= 4;
+  }));
+  // Không còn STAB / chí mạng kiểu Pokémon
+  ok('không có đòn chí mạng', calcDamage(att, def, entry ? entry[0] : 'ram', {}).crit === false);
+}
+
+// EXP: tổng exp để lên cấp N = N^3, hạ một con cấp L cho L^2 (nêm theo loại trận)
+ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) === 8000 && expForLevel(1) === 0);
+{
+  const con = newTuxemon(STARTERS[0].sp, 10);
+  ok('exp thưởng = cấp bình phương (đã nêm theo loại trận)',
+    expYield(con, 1, 'trainer') === Math.floor(100 * 1.5) && expYield(con, 1, 'wild') === Math.floor(100 * 0.85),
+    `${expYield(con, 1, 'trainer')} / ${expYield(con, 1, 'wild')}`);
+}
+
+// Chiêu dùng "recharge" chứ không phải PP
+ok('chiêu nào cũng có số lượt hồi, không có PP',
+  Object.values(MOVES).every(m => typeof m.recharge === 'number' && m.pp === undefined));
+
+// Bắt: thang catch_rate 0-100 + khoảng kháng bắt của từng loài
+ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
+  Object.values(SPECIES).every(s => s.catchRate >= 0 && s.catchRate <= 100
+    && s.catchLo > 0 && s.catchHi >= s.catchLo));
 
 // ==== Trận đấu chạy trọn vẹn ====
 const b = new Battle({

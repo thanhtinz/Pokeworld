@@ -118,10 +118,11 @@ export function render(el, ctx = {}) {
       <div class="move-grid">
         ${m.moves.map((mv, i) => {
           const def = MOVES[mv.id];
-          const dis = busy || waiting || mv.pp <= 0;
+          const dis = busy || waiting || (mv.cd || 0) > 0;
           return `<button type="button" class="btn move-btn" data-mv="${i}" ${dis ? 'disabled' : ''}>
             <span class="mv-name">${esc(def ? def.name : mv.id)}</span>
-            <span class="mv-sub">${def ? typeBadge(def.type) : ''} <small>PP ${mv.pp}/${def ? def.pp : '?'}</small></span>
+            <span class="mv-sub">${def ? typeBadge(def.types[0]) : ''} <small>${
+              (mv.cd || 0) > 0 ? `Chờ ${mv.cd} lượt` : `Hồi ${def ? def.recharge : 0} lượt`}</small></span>
           </button>`;
         }).join('')}
       </div>

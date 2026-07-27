@@ -17,7 +17,7 @@ import { textDelay, sfx, getSetting } from '../engine/settings.js';
 import { SFX } from '../data/sounds.js';
 import { vfxFor } from '../data/vfx.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
-import { uiIcon } from './icons.js';
+import { uiIcon, rangeIcon } from './icons.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
@@ -98,7 +98,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const fx = vfxFor(type);
     const el2 = document.createElement('i');
     el2.className = 'bt-fx';
-    el2.style.cssText = `--fx:url(${fx.src});--fxw:${fx.w}px;--fxh:${fx.h}px;`
+    // Đường dẫn phải là tuyệt đối: url() nằm trong biến CSS được tính lại theo
+    // vị trí của TỆP CSS dùng nó (css/style.css), nên để tương đối là trình
+    // duyệt đi tìm css/assets/vfx/... và không bao giờ thấy hiệu ứng nào.
+    const fxUrl = new URL(fx.src, document.baseURI).href;
+    el2.style.cssText = `--fx:url("${fxUrl}");--fxw:${fx.w}px;--fxh:${fx.h}px;`
       + `--fxn:${fx.frames};width:${fx.w}px;height:${fx.h}px;`;
     stage.appendChild(el2);
     setTimeout(() => el2.remove(), 700);
@@ -192,10 +196,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       <div class="move-grid">
         ${m.moves.map((mv, i) => {
           const def = MOVES[mv.id];
-          const dis = busy || mv.pp <= 0;
+          const dis = busy || (mv.cd || 0) > 0;
           return `<button class="btn move-btn" data-mv="${i}" ${dis ? 'disabled' : ''}>
             <span class="mv-name">${esc(def ? def.name : mv.id)}</span>
-            <span class="mv-sub">${def ? typeBadge(def.type) : ''} <small>PP ${mv.pp}/${def ? def.pp : '?'}</small></span>
+            <span class="mv-sub">${def ? typeBadge(def.types[0]) : ''}${def ? rangeIcon(def.range) : ''} <small>${
+              (mv.cd || 0) > 0 ? `Chờ ${mv.cd} lượt` : `Hồi ${def ? def.recharge : 0} lượt`}</small></span>
           </button>`;
         }).join('')}
         ${m.moves.length === 0 ? '<div class="log-line">Không còn chiêu nào!</div>' : ''}
@@ -460,7 +465,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       const def = MOVES[move];
       const opts = mon.moves.map(mv => ({
         label: MOVES[mv.id] ? MOVES[mv.id].name : mv.id,
-        sub: `PP ${mv.pp}/${MOVES[mv.id] ? MOVES[mv.id].pp : '?'}`,
+        sub: `Hồi ${MOVES[mv.id] ? MOVES[mv.id].recharge : 0} lượt`,
       }));
       opts.push({ label: 'Không học' });
       const idx = await choose(

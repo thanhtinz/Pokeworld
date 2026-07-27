@@ -78,7 +78,7 @@ export async function render(el) {
     await Promise.all([
       import('../data/species.js'), import('../data/moves.js'),
       import('../data/learnsets.js'), import('../data/evolutions.js'),
-      import('../data/types.js'), import('../data/natures.js'),
+      import('../data/types.js'), import('../data/tastes.js'),
     ]);
   }]);
   tasks.push(['Đang tải vật phẩm & khu vực...', async () => {

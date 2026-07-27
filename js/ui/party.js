@@ -7,12 +7,15 @@ import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/pokem
 import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
-import { NATURE_VI } from '../data/natures.js';
+import { tasteText } from '../data/tastes.js';
 import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle, itemIcon } from './kit.js';
+import { rangeIcon } from './icons.js';
 import { openSheet } from './sheet.js';
 
-const STAT_VI = { hp: 'HP', atk: 'Tấn công', def: 'Phòng thủ', spa: 'Đặc công', spd: 'Đặc thủ', spe: 'Tốc độ' };
+// Sáu chỉ số của Tuxemon
+const STAT_VI = { hp: 'HP', armour: 'Giáp', dodge: 'Né tránh', melee: 'Cận chiến',
+  ranged: 'Tầm xa', speed: 'Tốc độ' };
 
 export function render(el) {
   let sel = null; // index mon đang xem chi tiết
@@ -60,26 +63,27 @@ export function render(el) {
           <div>
             <h2>${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</h2>
             <div>${(spec ? spec.types : []).map(typeBadge).join(' ')}</div>
-            <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(NATURE_VI[m.nature] || m.nature)}</small><br>
+            <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(tasteText(m))}</small><br>
             <small>EXP: ${cur}/${need} tới level sau</small>
             ${m.lv >= cap ? `<br><small class="cap-note">Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp</small>` : ''}
           </div>
         </div>
         <table class="stat-table">
-          ${STAT_KEYS.map(k => `<tr><td>${STAT_VI[k]}</td><td><b>${st[k]}</b></td></tr>`).join('')}
+          ${STAT_KEYS.map(k => `<tr><td>${STAT_VI[k]}</td><td><b>${k === 'hp' ? maxHp(m) : st[k]}</b></td></tr>`).join('')}
         </table>
         <details class="ivev">
-          <summary>IV / EV chi tiết</summary>
+          <summary>IV / TP chi tiết</summary>
           <table class="stat-table">
-            <tr><th></th><th>IV</th><th>EV</th></tr>
-            ${STAT_KEYS.map((k, i) => `<tr><td>${STAT_VI[k]}</td><td>${m.iv[i] ?? 0}</td><td>${m.ev[i] ?? 0}</td></tr>`).join('')}
+            <tr><th></th><th>IV</th><th>TP</th></tr>
+            ${STAT_KEYS.map((k, i) => `<tr><td>${STAT_VI[k]}</td><td>${m.iv?.[i] ?? 0}</td><td>${m.tp?.[i] ?? 0}</td></tr>`).join('')}
           </table>
         </details>
         <h3>Chiêu thức</h3>
         <div class="move-list-sm">
           ${m.moves.map(mv => {
             const d = MOVES[mv.id];
-            return `<div class="move-row">${d ? typeBadge(d.type) : ''} ${esc(d ? d.name : mv.id)} <small>PP ${mv.pp}/${d ? d.pp : '?'}</small></div>`;
+            return `<div class="move-row">${d ? typeBadge(d.types[0]) : ''} ${d ? rangeIcon(d.range) : ''}
+              ${esc(d ? d.name : mv.id)} <small>Hồi ${d ? d.recharge : 0} lượt</small></div>`;
           }).join('')}
         </div>
         <div class="detail-btns">

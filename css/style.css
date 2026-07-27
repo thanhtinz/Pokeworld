@@ -1963,3 +1963,12 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 @media (max-width: 360px) {
   .bag-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Icon lấy thẳng từ ảnh giao diện của Tuxemon (assets/ui) */
+.ui-ico.ui-art img { width: 100%; height: 100%; object-fit: contain; }
+.range-ico { image-rendering: pixelated; vertical-align: middle; }
+/* Cỡ phải ghi cứng: mấy khung chứa (thẻ đội hình, khung trận) đặt img rộng
+   72-96px, không chặn thì icon trạng thái bung to hết cỡ. */
+.status-ico { image-rendering: pixelated; vertical-align: middle; width: 14px !important; height: 14px !important; flex: none; }
+.range-ico { height: 12px !important; width: auto !important; }
+.status-tag { display: inline-flex; align-items: center; gap: 4px; }

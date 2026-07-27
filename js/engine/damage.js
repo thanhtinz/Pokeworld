@@ -1,25 +1,55 @@
-// TuxeWorld H5 | engine/damage.js | Công thức damage Gen-style: STAB, crit, khắc hệ
+// TuxeWorld H5 | engine/damage.js | Công thức sát thương ĐÚNG THEO TUXEMON
+//
+// Bản gốc (tuxemon/formula.py — simple_damage_calculate):
+//   sát thương = int(sức đánh * sức chiêu / sức đỡ)
+//   sức đánh = chỉ số ra đòn * (7 + cấp)      (tầm "reliable" thì chỉ (7 + cấp))
+//   sức chiêu = power * hệ số khắc hệ
+//   sức đỡ   = max(1, chỉ số đỡ đòn)
+// Tầm đánh quyết định lấy chỉ số nào (mods/range_map.yaml):
+//   melee    cận chiến  vs giáp
+//   touch    cận chiến  vs né
+//   ranged   tầm xa     vs né
+//   reach    tầm xa     vs giáp
+//   reliable theo cấp   vs 1 (không đỡ được)
+// Tuxemon KHÔNG có STAB, KHÔNG có chí mạng, KHÔNG nhân ngẫu nhiên 85-100%.
 import { rng, clamp } from '../util.js';
-import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { typeEff } from '../data/types.js';
 import { stats } from './pokemon.js';
 
-// Hệ số stage buff/debuff (-6..+6)
+// Hệ số buff/debuff trong trận (-6..+6) — phần này game giữ lại cho dễ chơi
 function stageMult(s) {
   s = clamp(s || 0, -6, 6);
   return s >= 0 ? (2 + s) / 2 : 2 / (2 - s);
 }
 
-// Tính damage 1 đòn. ctx = { attStage, defStage }
-// Trả về: { dmg, crit, eff (multiplier khắc hệ), missed }
+// Bảng tầm đánh: [chỉ số của người ra đòn, chỉ số của người đỡ]
+export const RANGE_MAP = {
+  melee: ['melee', 'armour'],
+  touch: ['melee', 'dodge'],
+  ranged: ['ranged', 'dodge'],
+  reach: ['ranged', 'armour'],
+  reliable: ['level', 'resist'],
+};
+
+const COEFF_DAMAGE = 7;          // hằng số của bản gốc
+const MULT_MIN = 0.25, MULT_MAX = 4;
+
+// Khắc hệ: nhân dồn MỌI hệ của chiêu với MỌI hệ của mục tiêu rồi kẹp [0.25, 4]
+export function typeMultiplier(moveTypes, defTypes) {
+  let m = 1;
+  for (const t of moveTypes || []) m *= typeEff(t, defTypes || []);
+  return Math.min(MULT_MAX, Math.max(MULT_MIN, m));
+}
+
+// Tính sát thương 1 đòn. ctx = { attStage, defStage }
+// Trả về: { dmg, crit, eff (hệ số khắc hệ), missed }
 export function calcDamage(att, def, moveId, ctx = {}) {
   const move = MOVES[moveId];
   if (!move) return { dmg: 0, crit: false, eff: 1, missed: true };
 
-  // Chiêu status không gây damage
-  if (move.category === 'status' || !move.power || move.power <= 0) {
+  if (move.category !== 'damage' || !move.power || move.power <= 0) {
     return { dmg: 0, crit: false, eff: 1, missed: false };
   }
 
@@ -28,50 +58,30 @@ export function calcDamage(att, def, moveId, ctx = {}) {
     return { dmg: 0, crit: false, eff: 1, missed: true };
   }
 
+  const [userKey, targetKey] = RANGE_MAP[move.range] || RANGE_MAP.melee;
   const attStats = stats(att);
   const defStats = stats(def);
 
-  let a, d;
-  if (move.category === 'physical') {
-    a = attStats.atk;
-    d = defStats.def;
-    // Burn giảm nửa Atk vật lý
-    if (att.status === 'brn') a = Math.floor(a / 2);
+  // Sức đánh
+  let strength;
+  if (userKey === 'level') {
+    strength = COEFF_DAMAGE + att.lv;
   } else {
-    a = attStats.spa;
-    d = defStats.spd;
-  }
-  // Áp stage buff/debuff trong trận
-  a = Math.floor(a * stageMult(ctx.attStage));
-  d = Math.floor(d * stageMult(ctx.defStage));
-
-  // Crit 1/24, nhân 1.5 (đơn giản hóa)
-  const crit = rng.roll(CONFIG.CRIT_CHANCE);
-  if (crit) a = Math.floor(a * 1.5);
-
-  // Công thức gốc Gen
-  const base = Math.floor(Math.floor(Math.floor(2 * att.lv / 5 + 2) * move.power * a / Math.max(1, d)) / 50) + 2;
-
-  // STAB
-  const specAtt = SPECIES[att.sp];
-  let stab = 1;
-  for (const t of specAtt.types) {
-    if (t === move.type) { stab = 1.5; break; }
+    let a = attStats[userKey];
+    // Bỏng làm yếu đòn cận chiến (bản gốc giảm qua status, giữ lại cho dễ hiểu)
+    if (att.status === 'brn' && userKey === 'melee') a = Math.floor(a / 2);
+    strength = a * stageMult(ctx.attStage) * (COEFF_DAMAGE + att.lv);
   }
 
-  // Khắc hệ
-  const specDef = SPECIES[def.sp];
-  const eff = typeEff(move.type, specDef.types);
+  // Sức đỡ
+  const resist = targetKey === 'resist'
+    ? 1
+    : Math.max(1, defStats[targetKey] * stageMult(ctx.defStage));
 
-  // Random 85..100%
-  const roll = rng.int(85, 100) / 100;
+  const eff = typeMultiplier(move.types, SPECIES[def.sp]?.types || []);
+  const dmg = Math.floor(strength * (move.power * eff) / resist);
 
-  let dmg = Math.floor(base * stab * eff * roll);
-  if (crit) dmg = Math.floor(dmg * 1.5);
-  if (eff > 0 && dmg < 1) dmg = 1;
-  if (eff === 0) dmg = 0;
-
-  return { dmg, crit, eff, missed: false };
+  return { dmg: Math.max(eff > 0 ? 1 : 0, dmg), crit: false, eff, missed: false };
 }
 
 export function effText(eff) {

@@ -5,7 +5,10 @@ import { EVOLUTIONS } from '../data/evolutions.js';
 import { spriteUrl, upgradeImages, esc } from '../util.js';
 import { typeBadge, header, holoStyle } from './kit.js';
 
-const STAT_ORDER = [['hp', 'HP'], ['atk', 'Tấn công'], ['def', 'Phòng thủ'], ['spa', 'Đặc công'], ['spd', 'Đặc thủ'], ['spe', 'Tốc độ']];
+// Sáu chỉ số của dáng thân (Tuxemon): mọi dáng cộng lại đều bằng 36 nên
+// thanh chỉ số cho biết con này thiên về hướng nào chứ không phải mạnh yếu.
+const STAT_ORDER = [['hp', 'HP'], ['armour', 'Giáp'], ['dodge', 'Né tránh'],
+  ['melee', 'Cận chiến'], ['ranged', 'Tầm xa'], ['speed', 'Tốc độ']];
 
 export function render(el) {
   // Tuxemon có vài con "glitched" (D0Llf1N, F7U1T3Ra...) — tên cố tình viết lỗi,
@@ -72,7 +75,7 @@ export function render(el) {
   function drawDetail(id) {
     const s = SPECIES[id];
     const caughtIt = !!G.p.dex.caught[id];
-    const maxBase = 160;
+    const maxBase = 9;   // chỉ số dáng thân của Tuxemon nằm trong 4..9
     const chain = evoChain(id);
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" id="dex-back">‹</button><h1>#${String(id).padStart(3, '0')} ${esc(s.name)}</h1></div>
@@ -83,7 +86,7 @@ export function render(el) {
         <small class="dex-shape">Dáng thân: ${esc(s.shape || '?')} · Bậc: ${esc(s.stage || '?')}</small>
       </div>
       <div class="card">
-        <h3>Chỉ số gốc</h3>
+        <h3>Chỉ số theo dáng thân</h3>
         ${STAT_ORDER.map(([k, label]) => `
           <div class="base-row">
             <span>${label}</span><b>${s.base[k]}</b>

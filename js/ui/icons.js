@@ -6,7 +6,11 @@
 // ăn theo màu chữ hiện hành và nét luôn sắc ở mọi cỡ.
 //
 // itemIcon() vẫn giữ nguyên cho những chỗ ẢNH CHÍNH LÀ VẬT PHẨM (túi đồ, cửa
-// hàng, ô trang bị) — ở đó dùng sprite thật mới đúng.
+// hàng) — ở đó dùng sprite thật mới đúng.
+//
+// Từ bản này: chức năng nào Tuxemon có sẵn ảnh giao diện (ba lô, nhật ký, nhân
+// vật, cài đặt, đội hình, tầm đánh, trạng thái) thì DÙNG ẢNH CỦA GAME; chỉ chức
+// năng nào bản gốc không có ảnh mới vẽ bằng SVG.
 
 const P = {
   // Bản đồ / đi lại
@@ -46,8 +50,24 @@ const P = {
   flag: '<path d="M6 21V4"/><path d="M6 5h12l-2.5 4L18 13H6"/>',
 };
 
+// Chỗ nào Tuxemon có sẵn ảnh thì DÙNG ẢNH GAME, không có mới vẽ SVG.
+// Ảnh nằm trong assets/ui, do tools/mkui.py chép sang từ gfx/ui của bản gốc.
+const ART = {
+  bag: 'assets/ui/bag.png',        // ba lô
+  book: 'assets/ui/book.png',      // nhật ký -> Tuxedex
+  gear: 'assets/ui/gear.png',      // cài đặt
+  team: 'assets/ui/team.png',      // đội hình
+  // 'person' của bản gốc là bóng người đen thui, đặt lên nền tối của game này
+  // thì chìm nghỉm — chỗ đó vẫn dùng hình vẽ SVG cho rõ.
+};
+
 // size = px, cls thêm class ngoài
 export function uiIcon(name, size = 22, cls = '') {
+  const art = ART[name];
+  if (art) {
+    return `<span class="ui-ico ui-art ${cls}" style="width:${size}px;height:${size}px"
+      ><img src="${art}" width="${size}" height="${size}" alt="" aria-hidden="true"></span>`;
+  }
   const d = P[name];
   if (!d) return '';
   return `<span class="ui-ico ${cls}" style="width:${size}px;height:${size}px">
@@ -55,6 +75,20 @@ export function uiIcon(name, size = 22, cls = '') {
          stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
          aria-hidden="true">${d}</svg>
   </span>`;
+}
+
+// Icon tầm đánh của chiêu (ảnh gốc Tuxemon, rộng gấp ~4 lần chiều cao)
+export function rangeIcon(range, h = 12) {
+  if (!range || !['melee', 'touch', 'ranged', 'reach', 'reliable'].includes(range)) return '';
+  return `<img class="range-ico" src="assets/ui/range/${range}.png" height="${h}" alt="${range}"
+    onerror="this.remove()">`;
+}
+
+// Icon trạng thái (bỏng, độc, ngủ, tê, băng)
+export function statusIcon(st, size = 14) {
+  if (!st) return '';
+  return `<img class="status-ico" src="assets/ui/status/${st}.png" width="${size}" height="${size}"
+    alt="" onerror="this.remove()">`;
 }
 
 export const hasIcon = (name) => !!P[name];

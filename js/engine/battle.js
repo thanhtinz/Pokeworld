@@ -4,17 +4,16 @@ import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
-import { typeEff } from '../data/types.js';
-import { stats, maxHp, isFainted, displayName, addEv, tryLearn } from './pokemon.js';
+import { stats, maxHp, isFainted, displayName, addTp, tryLearn } from './pokemon.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, canAct, endOfTurn, speedMult } from './status.js';
-import { calcDamage, effText } from './damage.js';
+import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch } from './catchmon.js';
 
-// Tên stat tiếng Việt (cho thông báo tăng/giảm chỉ số)
+// Tên chỉ số tiếng Việt (cho thông báo tăng/giảm chỉ số) — 6 chỉ số của Tuxemon
 const STAT_VI = {
-  atk: 'Tấn công', def: 'Phòng thủ', spa: 'Tấn công đặc biệt',
-  spd: 'Phòng thủ đặc biệt', spe: 'Tốc độ',
+  hp: 'HP', armour: 'Giáp', dodge: 'Né', melee: 'Cận chiến',
+  ranged: 'Tầm xa', speed: 'Tốc độ',
 };
 
 const STATUS_APPLIED_VI = {
@@ -25,7 +24,7 @@ const STATUS_APPLIED_VI = {
   frz: (n) => `${n} bị đóng băng!`,
 };
 
-const freshStages = () => ({ atk: 0, def: 0, spa: 0, spd: 0, spe: 0 });
+const freshStages = () => ({ armour: 0, dodge: 0, melee: 0, ranged: 0, speed: 0 });
 
 function moveName(mvId) {
   const mv = MOVES[mvId];
@@ -79,7 +78,7 @@ export class Battle {
       const mon = this.activeMon(sideIdx);
       const mv = mon && mon.moves[action.i];
       if (!mv) return [false, 'Chiêu thức không hợp lệ.'];
-      if ((mv.pp || 0) <= 0) return [false, 'Chiêu này đã hết PP!'];
+      if ((mv.cd || 0) > 0) return [false, `Chiêu này còn chờ ${mv.cd} lượt!`];
     }
     if (action.t === 'switch') {
       const s = this.sides[sideIdx];
@@ -95,10 +94,10 @@ export class Battle {
   aiAction(i) {
     const mon = this.activeMon(i);
     if (!mon) return { t: 'pass' };
-    // Chọn chiêu còn PP; trainer ưu tiên chiêu khắc hệ
+    // Chọn chiêu đã hồi xong; trainer ưu tiên chiêu khắc hệ
     const usable = [];
     for (let idx = 0; idx < mon.moves.length; idx++) {
-      if ((mon.moves[idx].pp || 0) > 0) usable.push(idx);
+      if ((mon.moves[idx].cd || 0) <= 0) usable.push(idx);
     }
     if (usable.length === 0) return { t: 'struggle' };
     if (this.sides[i].kind === 'trainer') {
@@ -107,7 +106,7 @@ export class Battle {
       for (const idx of usable) {
         const mv = MOVES[mon.moves[idx].id];
         if (mv && mv.power) {
-          const eff = typeEff(mv.type, SPECIES[foe.sp].types);
+          const eff = typeMultiplier(mv.types, SPECIES[foe.sp].types);
           if (eff > bestEff) { best = idx; bestEff = eff; }
         }
       }
@@ -145,7 +144,7 @@ export class Battle {
         pri = (mv && mv.priority) || 0;
       }
       const mon = this.activeMon(i);
-      const spe = mon ? stats(mon).spe * speedMult(mon) : 0;
+      const spe = mon ? stats(mon).speed * speedMult(mon) : 0;
       entries.push({ side: i, pri, spe, tie: rng.float() });
     }
     entries.sort((x, y) => {
@@ -176,7 +175,7 @@ export class Battle {
       if (winnerMon && !isFainted(winnerMon)) {
         const amount = expYield(mon, 1, s.kind);
         const levels = gainExp(winnerMon, amount);
-        addEv(winnerMon, SPECIES[mon.sp].evYield);
+        addTp(winnerMon, mon);
         ev.push({ t: 'exp', side: oi, slot: os.active, amount, levels });
         ev.push({ t: 'msg', text: `${displayName(winnerMon)} nhận được ${amount} EXP!` });
         for (const lv of levels) {
@@ -229,25 +228,28 @@ export class Battle {
     let mvId, mv;
     if (moveIdx === 'struggle') {
       mvId = 'struggle';
-      mv = { name: 'Vùng Vẫy', type: 'normal', category: 'physical', power: 50, acc: 100 };
+      mv = { name: 'Vùng Vẫy', types: ['normal'], range: 'melee', category: 'damage', power: 1, acc: 100 };
     } else {
       const slotMv = mon.moves[moveIdx];
       mvId = slotMv.id;
       mv = MOVES[mvId];
-      slotMv.pp = Math.max(0, (slotMv.pp || 0) - 1);
+      // Tuxemon không có PP: đánh xong chiêu phải chờ đủ số lượt "recharge"
+      slotMv.cd = mv?.recharge || 0;
     }
     ev.push({ t: 'msg', text: `${displayName(mon)} dùng ${mv.name || moveName(mvId)}!` });
 
+    // Tầm đánh quyết định chỉ số nào bị buff/debuff ảnh hưởng
+    const [uKey, tKey] = RANGE_MAP[mv.range] || RANGE_MAP.melee;
     const ctx = {
-      attStage: mv.category === 'physical' ? this.sides[i].stages.atk : this.sides[i].stages.spa,
-      defStage: mv.category === 'physical' ? this.sides[oi].stages.def : this.sides[oi].stages.spd,
+      attStage: this.sides[i].stages[uKey] || 0,
+      defStage: this.sides[oi].stages[tKey] || 0,
     };
     let res = calcDamage(mon, foe, mvId, ctx);
     if (moveIdx === 'struggle') {
-      // struggle không có trong bảng moves: tính tay
+      // struggle không nằm trong bảng chiêu: tính tay theo đúng công thức Tuxemon
       const stA = stats(mon), stD = stats(foe);
-      const dmg = Math.floor(Math.floor(Math.floor(2 * mon.lv / 5 + 2) * 50 * stA.atk / Math.max(1, stD.def)) / 50) + 2;
-      res = { dmg, crit: false, eff: 1, missed: false };
+      const dmg = Math.floor(stA.melee * (7 + mon.lv) * 1 / Math.max(1, stD.armour));
+      res = { dmg: Math.max(1, dmg), crit: false, eff: 1, missed: false };
     }
 
     if (res.missed) {
@@ -258,7 +260,7 @@ export class Battle {
     if (res.dmg > 0) {
       foe.hpCur = Math.max(0, foe.hpCur - res.dmg);
       ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: res.dmg,
-                crit: res.crit, eff: res.eff, moveType: mv.type });
+                crit: res.crit, eff: res.eff, moveType: (mv.types || ['normal'])[0] });
       if (res.crit) ev.push({ t: 'msg', text: 'Đòn chí mạng!' });
       const et = effText(res.eff);
       if (et) ev.push({ t: 'msg', text: et });
@@ -338,9 +340,9 @@ export class Battle {
       }
       if (a.t === 'run') {
         // Tỉ lệ chạy theo speed 2 bên
-        const mySpe = stats(mon).spe;
+        const mySpe = stats(mon).speed;
         const foeMon = this.activeMon(oi);
-        const foeSpe = foeMon ? stats(foeMon).spe : 1;
+        const foeSpe = foeMon ? stats(foeMon).speed : 1;
         const chance = clamp(CONFIG.RUN_BASE_CHANCE + (mySpe - foeSpe) / 200, 0.1, 0.95);
         const ok = rng.roll(chance);
         ev.push({ t: 'run', ok, side: i });
@@ -400,6 +402,14 @@ export class Battle {
         if (selfMon && isFainted(selfMon)) { // recoil tự gục
           if (this.handleFaint(i, ev)) this.endBattle(oi, ev);
         }
+      }
+    }
+
+    // Cuối lượt: mọi chiêu đang chờ hồi bớt đi một lượt (Tuxemon dùng recharge
+    // thay cho PP — hết lượt chờ là dùng lại được).
+    for (const side of this.sides) {
+      for (const mon of side.mons) {
+        for (const mv of mon.moves || []) if (mv.cd > 0) mv.cd -= 1;
       }
     }
 

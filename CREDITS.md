@@ -23,10 +23,18 @@ Cụ thể đã lấy:
 | 15 hiệu ứng chiêu thức | `assets/vfx/`, `js/data/vfx.js` |
 | 20 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
 | Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |
+| Icon giao diện: ba lô, nhật ký, đội hình, cài đặt | `assets/ui/` |
+| Icon tầm đánh của chiêu (melee/touch/ranged/reach/reliable) | `assets/ui/range/` |
+| Icon trạng thái (bỏng, độc, ngủ, tê, băng) | `assets/ui/status/` |
+
+Cả **luật chơi** cũng lấy theo bản gốc: công thức sát thương theo tầm đánh,
+chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt, khẩu vị thay cho tính
+cách — xem `js/engine/damage.js`, `js/engine/pokemon.js`, `js/engine/exp.js`,
+`js/engine/catchmon.js`, mỗi tệp có ghi rõ lấy từ đâu bên bản gốc.
 
 Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py`,
-`tools/mksprites.py`, `tools/mkitems.py`, `tools/mkarena.py`, `tools/mksounds.py`
-và `tools/mkvfx.py` sinh ra — chạy lại được bất cứ lúc
+`tools/mksprites.py`, `tools/mkitems.py`, `tools/mkarena.py`, `tools/mksounds.py`,
+`tools/mkvfx.py` và `tools/mkui.py` sinh ra — chạy lại được bất cứ lúc
 nào, không sửa tay.
 
 CC BY-SA yêu cầu: ghi công (chính là trang này) và nếu sửa lại ảnh thì bản sửa

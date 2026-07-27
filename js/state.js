@@ -9,14 +9,19 @@ export const SAVE_VERSION = 1;
 export const CONFIG = {
   MAX_LEVEL: 100,
   SHINY_DENOM: 1024,       // web chơi casual: shiny 1/1024 cho vui hơn bản gốc 1/4096
-  IV_MAX: 31,
-  EV_CAP_STAT: 252,
-  EV_CAP_TOTAL: 510,
+  // CHỖ LỆCH CÓ CHỦ Ý so với bản gốc: công thức sát thương của Tuxemon rất nặng
+  // đòn — hai con cùng cấp thường hạ nhau trong 1-3 lượt, đánh xong chưa kịp
+  // nghĩ gì. Bản web nhân máu tối đa lên ngần này để một trận kéo dài cỡ 6-10
+  // lượt, còn kịp đổi chiêu, dùng thuốc, tính đường bắt. Đặt lại bằng 1 là ra
+  // đúng nhịp bản gốc.
+  HP_SCALE: 3,
+  IV_MAX: 15,             // Tuxemon: iv_range [0, 15]
+  TP_CAP_STAT: 150,       // Tuxemon: max_tps
+  TP_CAP_TOTAL: 300,      // Tuxemon: max_total_tps
   PARTY_MAX: 6,
   BOX_SIZE: 60,
   STARTING_MONEY: 3000,
   MONEY_CAP: 9999999,
-  CRIT_CHANCE: 1 / 24,
   RUN_BASE_CHANCE: 0.6,
 };
 
@@ -60,15 +65,18 @@ export function save() {
   catch (e) { console.warn('save fail', e); }
 }
 
-// Vá Tuxemon trong bản lưu đời cũ: thiếu iv/ev/nature/moves là công thức tính
+// Vá Tuxemon trong bản lưu đời cũ: thiếu iv/tp/chiêu là công thức tính
 // chỉ số ném lỗi ngay, mà lỗi đó rơi đúng vào màn Trang chủ nên vào game là
 // thấy báo lỗi liền.
 function vaMons(list) {
   if (!Array.isArray(list)) return [];
   return list.filter(m => m && m.sp !== undefined).map(m => {
-    if (!Array.isArray(m.iv) || m.iv.length < 6) m.iv = [15, 15, 15, 15, 15, 15];
-    if (!Array.isArray(m.ev) || m.ev.length < 6) m.ev = [0, 0, 0, 0, 0, 0];
-    if (!Array.isArray(m.moves) || !m.moves.length) m.moves = [{ id: 'struggle', pp: 20 }];
+    if (!Array.isArray(m.iv) || m.iv.length < 6) m.iv = [8, 8, 8, 8, 8, 8];
+    m.iv = m.iv.map(v => clamp(Number(v) || 0, 0, CONFIG.IV_MAX));
+    if (!Array.isArray(m.tp) || m.tp.length < 6) m.tp = [0, 0, 0, 0, 0, 0];
+    delete m.ev;                       // EV kiểu Pokémon đã thay bằng TP
+    if (!Array.isArray(m.moves) || !m.moves.length) m.moves = [{ id: 'struggle', cd: 0 }];
+    for (const mv of m.moves) if (typeof mv.cd !== 'number') mv.cd = 0;
     m.lv = clamp(Number(m.lv) || 1, 1, CONFIG.MAX_LEVEL);
     if (typeof m.hpCur !== 'number') m.hpCur = 0;
     if (typeof m.friendship !== 'number') m.friendship = 70;

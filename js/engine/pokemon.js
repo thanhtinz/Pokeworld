@@ -1,20 +1,27 @@
-// TuxeWorld H5 | engine/pokemon.js | Tạo instance Tuxemon: IV, EV, nature, gender, shiny, tính stats
+// TuxeWorld H5 | engine/pokemon.js | Tạo một con Tuxemon: IV, TP, khẩu vị, chỉ số
+//
+// Chỉ số tính ĐÚNG THEO BẢN GỐC (tuxemon/monster/stats.py):
+//   chỉ số = dáng_thân * (cấp + 7) + IV + TP*cấp/100, rồi nhân hệ số khẩu vị.
+// Không có bảng chỉ số riêng cho từng loài: mọi dáng thân cộng lại đều bằng 36,
+// nên tiến hoá KHÔNG tự làm con vật mạnh lên — mạnh lên là nhờ cấp, IV, TP và
+// bộ chiêu mới.
 import { rng, clamp } from '../util.js';
 import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { LEARNSETS } from '../data/learnsets.js';
-import { NATURES, NATURE_LIST } from '../data/natures.js';
+import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../data/tastes.js';
 import { expForLevel } from './exp.js';
 
-// Thứ tự stat trong mảng iv/ev (khớp schema save)
-export const STAT_KEYS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
+// Thứ tự chỉ số trong mảng iv/tp (khớp schema save)
+export const STAT_KEYS = ['hp', 'armour', 'dodge', 'melee', 'ranged', 'speed'];
+export const COEFF_STATS = 7;      // config_monster.coeff_stats của bản gốc
 
 // Loài đỡ đạn cho bản lưu cũ trỏ tới loài không còn tồn tại
-const FALLBACK_SPEC = { name: '???', base: { hp: 50, atk: 50, def: 50, spa: 50, spd: 50, spe: 50 },
-  types: ['normal'], expCurve: 'medium', abilities: [] };
+const FALLBACK_SPEC = { name: '???', types: ['normal'],
+  base: { hp: 6, armour: 6, dodge: 6, melee: 6, ranged: 6, speed: 6 } };
 
-// Tạo 1 instance mới. opts = { iv, nature, gender, shiny, ability, ball, moves }
+// Tạo một con mới. opts = { iv, tasteCold, tasteWarm, gender, shiny, ball, moves }
 export function newTuxemon(spId, level, opts = {}) {
   const spec = SPECIES[spId];
   if (!spec) {
@@ -23,14 +30,16 @@ export function newTuxemon(spId, level, opts = {}) {
   }
   const lv = clamp(level || 5, 1, CONFIG.MAX_LEVEL);
 
-  // IV: 0..31 mỗi stat
+  // IV: 0..15 mỗi chỉ số (bản gốc dùng khoảng này, không phải 0..31)
   let iv = opts.iv;
   if (!iv) {
     iv = [];
     for (let i = 0; i < 6; i++) iv.push(rng.int(0, CONFIG.IV_MAX));
   }
 
-  const nature = opts.nature || rng.pick(NATURE_LIST);
+  // Khẩu vị: một vị lạnh (giảm) + một vị ấm (tăng), thay cho tính cách
+  const tasteCold = opts.tasteCold || rng.pick(COLD_LIST);
+  const tasteWarm = opts.tasteWarm || rng.pick(WARM_LIST);
 
   // Gender theo genderRatio (tỉ lệ đực; -1 = không giới tính)
   let gender = opts.gender;
@@ -46,17 +55,15 @@ export function newTuxemon(spId, level, opts = {}) {
     shiny = rng.roll(1 / CONFIG.SHINY_DENOM);
   }
 
-  const ability = opts.ability || rng.pick(spec.abilities || []) || 'none';
-
   const mon = {
     sp: spId,
     lv,
-    exp: expForLevel(spec.expCurve, lv),
+    exp: expForLevel(lv),
     nick: null,
     iv,
-    ev: [0, 0, 0, 0, 0, 0],
-    nature,
-    ability,
+    tp: [0, 0, 0, 0, 0, 0],      // điểm rèn luyện, cộng dần sau mỗi trận thắng
+    tasteCold,
+    tasteWarm,
     gender,
     shiny: !!shiny,
     ball: opts.ball || 'tuxeball',
@@ -64,7 +71,7 @@ export function newTuxemon(spId, level, opts = {}) {
     hpCur: 0,
     status: null,
     statusTurns: 0,
-    friendship: 70,
+    bond: 25,                     // config_monster.starting_bond
     held: null,
   };
   mon.hpCur = maxHp(mon);
@@ -80,49 +87,42 @@ export function defaultMoves(spId, level) {
   // Lấy 4 chiêu cuối cùng (mới nhất)
   const moves = [];
   const start = Math.max(0, learned.length - 4);
-  for (let i = start; i < learned.length; i++) {
-    const mv = MOVES[learned[i]];
-    moves.push({ id: learned[i], pp: mv ? mv.pp : 10 });
-  }
+  // Tuxemon không có PP: mỗi chiêu có "recharge" — đánh xong phải chờ vài lượt
+  // mới dùng lại được. cd = số lượt còn phải chờ.
+  for (let i = start; i < learned.length; i++) moves.push({ id: learned[i], cd: 0 });
   // Con nào không có bảng học chiêu thì vẫn phải có gì đó để đánh
-  if (moves.length === 0) moves.push({ id: 'struggle', pp: MOVES.struggle ? MOVES.struggle.pp : 20 });
+  if (moves.length === 0) moves.push({ id: 'struggle', cd: 0 });
   return moves;
 }
 
-// Tính 6 stats theo công thức Gen 3+ (IV/EV/nature ±10%)
+// 6 chỉ số theo đúng bản gốc: dáng_thân * (cấp + 7) + IV + TP*cấp/100,
+// rồi nhân hệ số của hai khẩu vị.
 export function stats(mon) {
-  // Bản lưu đời cũ có thể thiếu iv/ev/nature, hoặc giữ một loài nay đã bỏ.
+  // Bản lưu đời cũ có thể thiếu iv/tp/khẩu vị, hoặc giữ một loài nay đã bỏ.
   // Thiếu thì lấy mặc định — ném lỗi ở đây là vỡ nguyên màn hình của người chơi.
   const spec = SPECIES[mon.sp] || FALLBACK_SPEC;
+  const lv = mon.lv || 1;
+  const mult = lv + COEFF_STATS;
+  const cold = TASTES_COLD[mon.tasteCold];
+  const warm = TASTES_WARM[mon.tasteWarm];
   const out = {};
   for (let i = 0; i < STAT_KEYS.length; i++) {
     const key = STAT_KEYS[i];
-    const base = spec.base?.[key] ?? 50;
+    const base = spec.base?.[key] ?? FALLBACK_SPEC.base[key];
     const iv = mon.iv?.[i] || 0;
-    const ev = mon.ev?.[i] || 0;
-    const lv = mon.lv || 1;
-    if (key === 'hp') {
-      if (base === 1) {
-        // Shedinja-style
-        out.hp = 1;
-      } else {
-        out.hp = Math.floor((2 * base + iv + Math.floor(ev / 4)) * lv / 100) + lv + 10;
-      }
-    } else {
-      let val = Math.floor((2 * base + iv + Math.floor(ev / 4)) * lv / 100) + 5;
-      const nat = NATURES[mon.nature];
-      if (nat) {
-        if (nat.up === key && nat.down !== key) val = Math.floor(val * 1.1);
-        else if (nat.down === key && nat.up !== key) val = Math.floor(val * 0.9);
-      }
-      out[key] = val;
-    }
+    const tp = Math.floor((mon.tp?.[i] || 0) * lv / 100);
+    let val = Math.floor(base * mult + iv + tp);
+    if (cold?.stat === key) val = Math.floor(val * cold.mult);
+    if (warm?.stat === key) val = Math.floor(val * warm.mult);
+    out[key] = val;
   }
   return out;
 }
 
+// Máu tối đa = chỉ số hp, nhân hệ số kéo dài trận đấu của bản web (xem
+// CONFIG.HP_SCALE trong state.js).
 export function maxHp(mon) {
-  return stats(mon).hp;
+  return Math.max(1, Math.floor(stats(mon).hp * CONFIG.HP_SCALE));
 }
 
 // Tên hiển thị: nickname > tên loài
@@ -136,34 +136,31 @@ export function heal(mon) {
   mon.hpCur = maxHp(mon);
   mon.status = null;
   mon.statusTurns = 0;
-  for (const mv of mon.moves || []) {
-    const def = MOVES[mv.id];
-    mv.pp = def ? def.pp : mv.pp;
-  }
+  for (const mv of mon.moves || []) mv.cd = 0;
 }
 
 export function isFainted(mon) {
   return (mon.hpCur || 0) <= 0;
 }
 
-// Cộng EV khi hạ đối thủ (tôn trọng cap từng stat và tổng)
-export function addEv(mon, yield_) {
-  if (!yield_) return;
-  let total = 0;
-  for (let i = 0; i < 6; i++) total += mon.ev[i] || 0;
+// Điểm rèn luyện (TP) sau mỗi trận thắng — bản gốc (combat/reward_system.py):
+// chỉ số nào của ĐỐI THỦ cao hơn của mình thì mình được +1 TP đúng chỉ số đó.
+export function addTp(winner, loser) {
+  if (!winner || !loser) return [];
+  if (!Array.isArray(winner.tp)) winner.tp = [0, 0, 0, 0, 0, 0];
+  const w = stats(winner);
+  const l = stats(loser);
+  let total = winner.tp.reduce((n, x) => n + (x || 0), 0);
+  const got = [];
   for (let i = 0; i < STAT_KEYS.length; i++) {
     const key = STAT_KEYS[i];
-    const add = yield_[key];
-    if (add && add > 0) {
-      const roomStat = CONFIG.EV_CAP_STAT - (mon.ev[i] || 0);
-      const roomTotal = CONFIG.EV_CAP_TOTAL - total;
-      const gain = Math.min(add, roomStat, roomTotal);
-      if (gain > 0) {
-        mon.ev[i] = (mon.ev[i] || 0) + gain;
-        total += gain;
-      }
-    }
+    if (l[key] <= w[key]) continue;
+    if ((winner.tp[i] || 0) >= CONFIG.TP_CAP_STAT || total >= CONFIG.TP_CAP_TOTAL) continue;
+    winner.tp[i] = (winner.tp[i] || 0) + 1;
+    total += 1;
+    got.push(key);
   }
+  return got;
 }
 
 // Học chiêu mới khi lên level. Trả về: 'learned' | 'full' (đủ 4, cần thay) | null
@@ -174,7 +171,7 @@ export function tryLearn(mon, moveId) {
   const def = MOVES[moveId];
   if (!def) return null;
   if (mon.moves.length < 4) {
-    mon.moves.push({ id: moveId, pp: def.pp });
+    mon.moves.push({ id: moveId, cd: 0 });
     return 'learned';
   }
   return 'full';
@@ -184,7 +181,7 @@ export function tryLearn(mon, moveId) {
 export function replaceMove(mon, idx, moveId) {
   const def = MOVES[moveId];
   if (!def || !mon.moves[idx]) return false;
-  mon.moves[idx] = { id: moveId, pp: def.pp };
+  mon.moves[idx] = { id: moveId, cd: 0 };
   return true;
 }
 

@@ -131,8 +131,7 @@ export function render(el) {
       const mon = await pickMon(`Dùng ${it.name} cho ai?`);
       if (!mon) return;
       if (mon.lv >= CONFIG.MAX_LEVEL) { toast('Đã đạt level tối đa!'); return; }
-      const spec = SPECIES[mon.sp];
-      const need = expForLevel(spec.expCurve, mon.lv + 1) - (mon.exp || 0);
+      const need = expForLevel(mon.lv + 1) - (mon.exp || 0);
       gainExp(mon, Math.max(1, need));
       removeItem(id, 1);
       toast(`${displayName(mon)} lên Lv.${mon.lv}!`);
