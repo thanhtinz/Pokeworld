@@ -375,9 +375,88 @@ def parse_map(path, tsx_cache):
                     talks.append({'x': ox, 'y': oy, 'name': ten_bang(obj.get('name'))})
                     break
 
+    ds = khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
             'solid': solid, 'warps': warps, 'talks': talks,
-            'npcs': khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])}
+            'npcs': xep_cho(ds, solid, warps, w, h)}
+
+
+def xep_cho(npcs, solid, warps, w, h):
+    """Don lai cho dung cua NPC cho khoi tu mot dong chan loi.
+
+    Ban goc goi create_npc cho CUNG MOT O nhieu lan (moi canh truyen mot phien
+    ban NPC khac nhau) va nguoi choi chi bao gio thay mot trong so do. Minh do
+    het ra ban do cung luc nen thanh dam dong dung chet cho, co khi chan ngay
+    cua ngo. O day: moi o chi mot nguoi, khong ai dung o cho hep (o trong co
+    hai loi ra tro xuong) hay tren cong dich chuyen.
+    """
+    def trong(x, y):
+        return 0 <= x < w and 0 <= y < h and not solid[y * w + x]
+
+    def loi_ra(x, y):
+        return sum(1 for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)) if trong(x + dx, y + dy))
+
+    cong = {(t['x'], t['y']) for t in warps}
+
+    def di_khap(chan):
+        """Loang tu o trong dau tien, tra ve tap o di toi duoc."""
+        bat_dau = next(((x, y) for y in range(h) for x in range(w)
+                        if trong(x, y) and (x, y) not in chan), None)
+        if not bat_dau:
+            return set()
+        tham, hang = {bat_dau}, [bat_dau]
+        while hang:
+            x, y = hang.pop()
+            for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                o = (x + dx, y + dy)
+                if o in tham or o in chan or not trong(*o):
+                    continue
+                tham.add(o)
+                hang.append(o)
+        return tham
+
+    # Ban do khi chua co ai dung: day la chuan de so
+    goc = di_khap(set())
+
+    def chan_duong(chan, o):
+        """Dat nguoi vao o nay co lam mot vung nao do thanh cut khong?"""
+        thu = chan | {o}
+        return len(di_khap(thu)) < len(goc - thu)
+
+    def ke_ben(chan, o):
+        """Dem so nguoi da dung ngay canh o nay."""
+        return sum(1 for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0))
+                   if (o[0] + dx, o[1] + dy) in chan)
+
+    da_co = set()
+    ket = []
+    for n in npcs:
+        x, y = n['x'], n['y']
+        hop = (trong(x, y) and (x, y) not in da_co and (x, y) not in cong
+               and loi_ra(x, y) >= 3 and ke_ben(da_co, (x, y)) == 0
+               and not chan_duong(da_co, (x, y)))
+        if not hop:
+            moi = None
+            for r in range(1, 5):
+                for dx in range(-r, r + 1):
+                    for dy in range(-r, r + 1):
+                        o = (x + dx, y + dy)
+                        if o in da_co or o in cong or not trong(*o) or loi_ra(*o) < 3:
+                            continue
+                        if ke_ben(da_co, o) or chan_duong(da_co, o):
+                            continue
+                        moi = o
+                        break
+                    if moi:
+                        break
+                if moi:
+                    break
+            if not moi:
+                continue          # khong con cho tu te thi thoi, bo con nay
+            n['x'], n['y'] = moi
+        da_co.add((n['x'], n['y']))
+        ket.append(n)
+    return ket
 
 
 def decode_layer(data, w, h):

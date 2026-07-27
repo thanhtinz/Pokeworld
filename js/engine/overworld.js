@@ -170,13 +170,30 @@ export function updateNpcs(dt) {
   }
 }
 
-// NPC không giẫm lên tường, lên cổng dịch chuyển, lên nhau hay lên người chơi
+// NPC không giẫm lên tường, cổng dịch chuyển, người chơi hay NPC khác — và
+// tránh luôn chỗ hẹp (ô chỉ có hai lối ra trở xuống) để không ai đứng chặn cửa
+// ngõ hay lối đi độc đạo.
 function npcCanWalk(baked, map, x, y, self) {
   if (x < 0 || y < 0 || x >= map.w || y >= map.h) return false;
   if (isSolidAt(baked, x, y)) return false;
   if ((map.warps || []).some(w => w.x === x && w.y === y)) return false;
   if (Math.floor(player.x) === x && Math.floor(player.y) === y) return false;
-  return !(map.npcs || []).some(o => o !== self && ((o.x === x && o.y === y) || (o.moving && o.tx === x && o.ty === y)));
+  if (loiRa(baked, map, x, y) <= 2) return false;
+  // Không đứng sát nhau: chừa một ô cho khỏi tụ thành đám
+  return !(map.npcs || []).some(o => o !== self
+    && Math.abs(oX(o) - x) + Math.abs(oY(o) - y) <= 1);
+}
+
+const oX = (n) => (n.moving ? n.tx : n.x);
+const oY = (n) => (n.moving ? n.ty : n.y);
+
+function loiRa(baked, map, x, y) {
+  let n = 0;
+  for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+    const nx = x + dx, ny = y + dy;
+    if (nx >= 0 && ny >= 0 && nx < map.w && ny < map.h && !isSolidAt(baked, nx, ny)) n += 1;
+  }
+  return n;
 }
 
 // NPC cũng chắn đường

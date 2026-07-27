@@ -123,6 +123,26 @@ for (const [id, mp] of Object.entries(MAPS)) {
 }
 ok('mọi điểm vào và cổng dịch chuyển đều nằm trong bản đồ', mapBad.length === 0, mapBad.slice(0, 3).join(' | '));
 
+// NPC không được chồng ô hay đứng dính nhau — dính nhau là thành đám chặn lối
+const npcBad = [];
+for (const [id, mp] of Object.entries(MAPS)) {
+  const o = new Set();
+  for (const n of mp.npcs || []) {
+    const k = `${n.x},${n.y}`;
+    if (o.has(k)) npcBad.push(`${id}: hai người cùng ô ${k}`);
+    o.add(k);
+  }
+  for (const a of mp.npcs || []) {
+    for (const b of mp.npcs || []) {
+      if (a === b) continue;
+      if (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= 1) {
+        npcBad.push(`${id}: ${a.name} dính sát ${b.name}`);
+      }
+    }
+  }
+}
+ok('NPC đứng cách nhau, không tụ thành đám', npcBad.length === 0, npcBad.slice(0, 3).join(' | '));
+
 ok('khắc hệ: nước đánh lửa = 2', typeEff('water', ['fire']) === 2);
 ok('khắc hệ: lửa đánh nước = 0.5', typeEff('fire', ['water']) === 0.5);
 ok('khắc hệ: hệ lạ trả về 1', typeEff('khong_co', ['fire']) === 1);

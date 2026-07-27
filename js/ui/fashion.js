@@ -38,7 +38,6 @@ export function render(el, { tab: startTab } = {}) {
         <span class="ring-ava-wrap fa-body">${bodyHtml(skinSrc(), 'fa-body-img')}</span>
         <b class="ring-name-lbl">${esc(p.name)}</b>
         ${titleHtml(p.look.title)}
-        <small class="char-note-txt">Mặc cho đẹp — không đổi sức mạnh của bạn hay của Tuxemon.</small>
       </div>
 
       <div class="tab-row fa-tabs">
