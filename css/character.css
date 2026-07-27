@@ -288,7 +288,8 @@
   border-radius: 999px;
   background: var(--gold, #f0b429);
   color: #1a0f2e;
-  font-family: var(--pix, monospace);
+  font-family: var(--ui, system-ui);
+  font-weight: 700;
   font-size: .42rem;
   line-height: 1.6;
 }

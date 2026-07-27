@@ -217,11 +217,14 @@ def write_species(mons, dex, shapes, disp, elements):
                       js(EXP_CURVE.get(m.get('stage', 'basic'), 'medium_fast')),
                       fmtnum(round(float((m.get('gender_weights') or {}).get('male', 0.5)), 3))))
         ev_txt = '{ ' + ', '.join('%s: %d' % (k, v) for k, v in ev.items()) + ' }'
-        out.append('    evYield: %s, baseExp: %d, height: %s, weight: %s, shape: %s, stage: %s },'
+        # Tuxemon co 13 con "glitched" (ten kieu F7U1T3Ra) — de nguyen thi Tuxedex
+        # trang dau toan chu loi nhin nhu hong font, nen danh dau de game an di.
+        glitch = ', glitched: true' if m.get('species') == 'glitched' else ''
+        out.append('    evYield: %s, baseExp: %d, height: %s, weight: %s, shape: %s, stage: %s%s },'
                    % (ev_txt, base_exp,
                       fmtnum(max(0.1, round((m.get('height') or 100) / 100, 2))),
                       fmtnum(max(0.1, round((m.get('weight') or 100) / 10, 1))),
-                      js(shape), js(m.get('stage', 'basic'))))
+                      js(shape), js(m.get('stage', 'basic')), glitch))
     out.append('};')
     out.append('''
 export const DEX_MAX = %d;

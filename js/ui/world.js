@@ -272,9 +272,11 @@ export function render(el) {
         await playDialog([[{ name: thing.name }, 'Bảng ghi: "' + thing.name + '".']]);
         return;
       }
-      if (thing.text) {
+      // NPC bản đồ mang sẵn vài câu thoại (js/data/maps.js), NPC cũ dùng .text
+      const say = thing.lines?.length ? thing.lines : (thing.text ? [thing.text] : []);
+      if (say.length) {
         const who = { name: thing.name, img: thing.face || null, ow: thing.face ? null : (thing.sprite || null) };
-        await playDialog([[who, thing.text]]);
+        await playDialog(say.map(t => [who, t]));
       }
       switch (thing.kind) {
         case 'heal':

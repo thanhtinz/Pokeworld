@@ -59,7 +59,7 @@ export function render(el) {
 
       <div class="card set-group">
         <h3>Tài khoản</h3>
-        <button class="btn" id="btn-server">${uiIcon('server', 20)} Đổi máy chủ</button>
+        <button class="btn" id="btn-server">Đổi máy chủ</button>
         <button class="btn" id="btn-reset-set">Khôi phục cài đặt mặc định</button>
         <button class="btn" id="btn-logout">Đăng xuất</button>
         <button class="btn btn-danger" id="btn-wipe">Xóa save chơi lại</button>

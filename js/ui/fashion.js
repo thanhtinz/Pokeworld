@@ -45,7 +45,7 @@ export function render(el, { tab: startTab } = {}) {
 
       <div class="tab-row fa-tabs">
         ${COSMETIC_KINDS.map(t => `<button type="button" class="tab-btn ${t.id === tab ? 'active' : ''}" data-tab="${t.id}">
-          ${uiIcon(t.icon, 18)} ${esc(t.name)}
+          ${esc(t.name)}
         </button>`).join('')}
       </div>
 

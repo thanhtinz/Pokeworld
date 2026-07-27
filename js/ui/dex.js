@@ -2,13 +2,17 @@
 import { G, dexCounts } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
-import { spriteUrl, boxIcon, upgradeImages, esc } from '../util.js';
+import { spriteUrl, upgradeImages, esc } from '../util.js';
 import { typeBadge, header, holoStyle } from './kit.js';
 
 const STAT_ORDER = [['hp', 'HP'], ['atk', 'Tấn công'], ['def', 'Phòng thủ'], ['spa', 'Đặc công'], ['spd', 'Đặc thủ'], ['spe', 'Tốc độ']];
 
 export function render(el) {
-  const dexIds = Object.keys(SPECIES).map(Number).sort((a, b) => a - b);
+  // Tuxemon có vài con "glitched" (D0Llf1N, F7U1T3Ra...) — tên cố tình viết lỗi,
+  // để trong Tuxedex thì trang đầu nhìn như hỏng font nên bỏ hẳn khỏi danh sách.
+  const dexIds = Object.keys(SPECIES).map(Number)
+    .filter(id => !SPECIES[id].glitched)
+    .sort((a, b) => a - b);
   const total = dexIds.length;
 
   function drawList() {
@@ -26,7 +30,7 @@ export function render(el) {
           <button class="holo-card dex-cell ${cls}" data-id="${id}" ${seenIt ? '' : 'disabled'}
                   ${caughtIt ? `style="${holoStyle(s.types)}"` : ''}>
             <span class="lv-chip">#${String(id).padStart(3, '0')}</span>
-            <img class="px-icon dex-ico" src="${boxIcon(id)}" width="76" height="64" alt="" loading="lazy">
+            <img class="px-icon dex-ico" src="${spriteUrl(id)}" width="64" height="64" alt="" loading="lazy">
             <span class="dex-name">${seenIt ? esc(s.name) : '?'}</span>
             ${caughtIt ? '<span class="dex-check" title="Đã bắt"></span>' : ''}
           </button>`;
@@ -73,7 +77,7 @@ export function render(el) {
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" id="dex-back">‹</button><h1>#${String(id).padStart(3, '0')} ${esc(s.name)}</h1></div>
       <div class="card dex-detail">
-        <img src="${boxIcon(id)}" width="120" height="120" alt="${esc(s.name)}" class="dex-big px-icon ${caughtIt ? '' : 'silhouette'}">
+        <img src="${spriteUrl(id)}" width="128" height="128" alt="${esc(s.name)}" class="dex-big px-icon ${caughtIt ? '' : 'silhouette'}">
         <div>${s.types.map(typeBadge).join(' ')}</div>
         <small>Cao ${s.height ?? '?'} m · Nặng ${s.weight ?? '?'} kg</small>
         <small class="dex-shape">Dáng thân: ${esc(s.shape || '?')} · Bậc: ${esc(s.stage || '?')}</small>
@@ -93,7 +97,7 @@ export function render(el) {
           ${chain.map((d, i) => `
             ${i > 0 ? '<span class="evo-arrow"></span>' : ''}
             <span class="evo-node ${G.p.dex.seen[d] ? '' : 'silhouette'}">
-              <img class="px-icon dex-ico" src="${boxIcon(d)}" width="68" height="56" alt="">
+              <img class="px-icon dex-ico" src="${spriteUrl(d)}" width="64" height="64" alt="">
               <small>${G.p.dex.seen[d] ? esc(SPECIES[d] ? SPECIES[d].name : '?') : '?'}</small>
             </span>`).join('')}
         </div>

@@ -81,9 +81,16 @@ def main():
             if f.endswith('.png'):
                 os.remove(os.path.join(d, f))
 
+    # NPC tren ban do dung THANG ten sprite cua Tuxemon (js/data/maps.js do
+    # tools/mktmx.py sinh ra), nen chep them dung nhung ten do — khong phai
+    # khai bao tay, thay ban do la danh sach tu doi theo.
+    jobs = dict(MAP_SPRITE)
+    for slug in map_npc_sprites():
+        jobs.setdefault(slug, slug)
+
     n_ow = n_tr = 0
     missing = []
-    for name, slug in sorted(MAP_SPRITE.items()):
+    for name, slug in sorted(jobs.items()):
         src = os.path.join(ow_src, slug + '.png')
         if os.path.exists(src):
             shutil.copyfile(src, 'assets/ow/%s.png' % name)
@@ -120,6 +127,14 @@ def main():
     check_used()
 
 
+def map_npc_sprites():
+    """Ten sprite ma NPC tren ban do dang dung."""
+    if not os.path.exists('js/data/maps.js'):
+        return set()
+    src = open('js/data/maps.js', encoding='utf-8').read()
+    return set(re.findall(r'"sprite": "(\w+)"', src))
+
+
 def check_used():
     """Doi chieu: moi ten sprite ma du lieu game goi toi deu phai co tep."""
     need = set()
@@ -130,6 +145,7 @@ def check_used():
         need |= set(re.findall(r"sprite: ['\"]([a-z_0-9]+)['\"]", src))
         need |= set(re.findall(r"ow: ['\"]([a-z_0-9]+)['\"]", src))
         need |= set(re.findall(r"img: ['\"]([a-z_0-9]+)['\"]", src))
+    need |= map_npc_sprites()
     have_ow = {f[:-4] for f in os.listdir('assets/ow')}
     have_tr = {f[:-4] for f in os.listdir('assets/trainers')}
     miss_ow = sorted(need - have_ow)

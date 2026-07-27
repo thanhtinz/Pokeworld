@@ -34,7 +34,7 @@ export function render(el) {
           <div class="base-bar"><div class="base-fill" style="width:${Math.round(cur / n * 100)}%"></div></div>
           <small>${cur}/${n}</small>
         </div>
-        ${rewardText(q) ? `<small class="q-reward">${uiIcon('coin', 16)} ${esc(rewardText(q))}</small>` : ''}
+        ${rewardText(q) ? `<small class="q-reward">${esc(rewardText(q))}</small>` : ''}
       </div>`;
     }).join('')}
 

@@ -55,7 +55,7 @@ export const CHART = {
   wood: { cosmic: 1, earth: 2, fire: 0.5, frost: 1, heroic: 1, lightning: 1, metal: 1, normal: 1, shadow: 1, sky: 1, venom: 0.5, water: 2, wood: 0.5 },
 };
 
-// Hệ số khi một chiêu hệ `atk` đánh vào Tuxemon mang các hệ `defTypes`.
+// Hệ số khi một chiêu hệ `atk` đánh vào Pokémon mang các hệ `defTypes`.
 // Nhân dồn từng hệ giống loạt game gốc.
 export function typeEff(atk, defTypes) {
   const row = CHART[atk];

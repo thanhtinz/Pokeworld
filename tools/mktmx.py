@@ -66,6 +66,125 @@ def vi_name(slug):
     return s
 
 
+# ==== NPC ====
+# Tuxemon dat NPC bang "create_npc <slug>,x,y" trong su kien cua ban do; ten
+# sprite tra trong db/npc/*.yaml. Nhung slug khong co trong db (nguoi trong nha
+# dan) thi doan sprite theo tu khoa trong ten.
+NPC_ROLE = [
+    ('wife', 'homemaker', 'Cô Chủ Nhà'),
+    ('husband', 'bob', 'Chú Chủ Nhà'),
+    ('owner', 'shopkeeper', 'Chủ Tiệm'),
+    ('waiter', 'shopassistant', 'Phục Vụ'),
+    ('reader', 'disciple', 'Người Đọc Sách'),
+    ('client', 'cooldude', 'Khách'),
+    ('greeter', 'shopassistant', 'Người Đón Khách'),
+    ('keeper', 'shopkeeper', 'Chủ Tiệm'),
+    ('nurse', 'nurse', 'Y Tá'),
+    ('knight', 'knight', 'Vệ Binh'),
+    ('grunt', 'xerogrunt', 'Người Lạ Mặc Đồ Đen'),
+]
+
+# Ten + loi thoai tieng Viet cho nhung NPC hay gap. Y nghia bam theo loi goc
+# ben Tuxemon, viet lai bang tieng Viet cho khop giong ke ca game.
+NPC_VI = {
+    'kay_wren': ('Giáo Sư', ['Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.',
+                             'Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé.']),
+    'callie_wren': ('Callie', ['Mẹ nói hôm nay cả thị trấn phải ra quảng trường đấy.']),
+    'wife_wren': ('Bà Wren', ['Cháu vừa lỡ mất ông ấy rồi. Chắc ông ấy vào thị trấn.']),
+    'taba_greeter': ('Jaime', ['Chào cậu! Nghe nói cậu vừa nhận Tuxemon, chúc mừng nhé!',
+                               'Muốn đội mạnh lên thì cứ đi bắt thêm bạn đồng hành thôi.']),
+    'tuxemart_keeper': ('Chủ Tiệm Tuxe Mart', ['Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn.']),
+    'tabanurse': ('Y Tá Trạm Hồi Sức', ['Để tôi hồi phục cả đội cho cậu nhé. Xong rồi đấy!']),
+    'happy_guy': ('Anh Vui Tính', ['Tôi mê đặt biệt danh cho Tuxemon lắm. Cậu muốn đặt cho con của cậu không?']),
+    'shady_guy': ('Gã Khả Nghi', ['Này... có rắc rối gì dính tên cậu thì tôi lo được hết.']),
+    'bob': ('Bob', ['Giá mà nhiều người ghé qua chào hỏi như cậu. À mà, xin chào!']),
+    'timmy': ('Timmy', ['Bố tớ làm ở khu thi đấu đấy! Ngầu chứ hả?']),
+    'liela': ('Liela', ['Quấy tôi lúc đang hái quả là phải đấu một trận đó nha!']),
+    'allie': ('Allie', ['Cậu muốn gì? ... Thôi, chỗ này cậu không vào được đâu.']),
+    'aeble': ('Aeble', ['Ta là người đứng đầu Omnichannel. Mọi thứ phát ra ngoài kia đều qua tay ta.']),
+    'misa': ('Misa', ['Ngoài đường số 1 dạo này lắm người lạ, cẩn thận đấy.']),
+    'kyle': ('Kyle', ['Muốn mạnh thì phải đánh nhiều vào, đứng đây nói chuyện hoài sao khá được.']),
+    'christie': ('Christie', ['Bãi biển phía đông đẹp lắm, khi nào rảnh ghé chơi.']),
+    'speck': ('Speck', ['Tôi nhặt vỏ sò suốt ngày, nghề của tôi mà.']),
+    'marissa': ('Marissa', ['Nghe nói Omnichannel sắp thông báo gì đó nữa.']),
+    'grace': ('Grace', ['Xin lỗi vì cảnh vừa rồi, Allie tính khí thất thường lắm.']),
+    'tallon': ('Tallon', ['Đi đâu cũng được, đừng lảng vảng chỗ này là được.']),
+}
+
+# Nhung thu KHONG phai nguoi (cuc da, qua bong trang tri) — bo qua
+NPC_SKIP_SPRITE = {'boulder', 'tuxeball_green', 'tuxeball_red', 'tuxeball_yellow', 'rock'}
+
+_npc_db = {}
+
+
+def load_npc_db(root):
+    """slug -> ten sprite, doc mot lan tu db/npc cua Tuxemon."""
+    if _npc_db:
+        return _npc_db
+    d = os.path.join(root, 'mods/tuxemon/db/npc')
+    if not os.path.isdir(d):
+        return _npc_db
+    for f in os.listdir(d):
+        if not f.endswith('.yaml'):
+            continue
+        txt = open(os.path.join(d, f), encoding='utf-8').read()
+        for blk in re.split(r'\n(?=slug: )', txt):
+            m = re.search(r'^slug: (\S+)', blk, re.M)
+            sp = re.search(r'sprite_name: (\S+)', blk)
+            if m and sp:
+                _npc_db[m.group(1)] = sp.group(1)
+    return _npc_db
+
+
+def build_npc(n):
+    """Bo sung sprite + ten + loi thoai cho mot NPC; tra None neu bo qua."""
+    slug = n['slug']
+    sprite = _npc_db.get(slug)
+    name, lines = NPC_VI.get(slug, (None, None))
+    if not sprite:
+        for key, spr, role in NPC_ROLE:
+            if key in slug:
+                sprite, name = spr, name or role
+                break
+    if not sprite or sprite in NPC_SKIP_SPRITE or slug in NPC_SKIP_SPRITE:
+        return None
+    if not name:
+        for key, spr, role in NPC_ROLE:
+            if key in slug or key in sprite:
+                name = role
+                break
+    if not name:
+        name = 'Người Dân'
+    if not lines:
+        lines = [DEFAULT_LINE.get(sprite, 'Chào cậu! Chúc cậu lên đường may mắn.')]
+    return {'x': n['x'], 'y': n['y'], 'dir': n['dir'],
+            'sprite': sprite, 'name': name, 'lines': lines}
+
+
+# Loi mac dinh theo nghe nghiep, de moi kieu nguoi noi mot kieu
+DEFAULT_LINE = {
+    'nurse': 'Tuxemon mệt thì cứ ghé trạm hồi sức, miễn phí mà.',
+    'knight': 'Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây.',
+    'xerogrunt': 'Nhìn gì? Biến đi chỗ khác.',
+    'shopkeeper': 'Ghé xem hàng đi cậu!',
+    'shopassistant': 'Cần gì cứ hỏi tôi nhé.',
+    'professor': 'Nghiên cứu Tuxemon cả đời vẫn chưa hết chuyện để học.',
+    'childactor': 'Lớn lên tớ cũng sẽ đi bắt Tuxemon!',
+    'girl1': 'Hôm nay trời đẹp ghê.',
+    'homemaker': 'Vào nhà nghỉ chân một lát cũng được mà.',
+    'bob': 'Chào cậu! Thị trấn này yên bình lắm.',
+    'heroine': 'Tôi cũng từng đi khắp nơi như cậu đấy.',
+    'cooldude': 'Yo. Đội của cậu trông cũng được đấy.',
+    'ninja': 'Ai hỏi gì thì bảo là không thấy tôi ở đây.',
+    'ceo': 'Thời gian là tiền bạc, đừng làm phiền lâu.',
+    'fashionista': 'Bộ đồ cậu mặc... cũng tạm được.',
+    'disciple': 'Sách ở đây kể chuyện Tuxemon từ đời xưa lắm.',
+    'beachcomber': 'Nhặt được cái vỏ sò đẹp là ngày đó vui rồi.',
+    'postboy': 'Thư từ khắp vùng đều qua tay tôi đấy.',
+    'omnichannelallie': 'Không phận sự thì đứng xa ra.',
+}
+
+
 def load_tsx(path, cache):
     """Doc mot tileset: tra (anh, so cot, so o)."""
     if path in cache:
@@ -136,6 +255,7 @@ def parse_map(path, tsx_cache):
     # va cham + su kien
     solid = [0] * (w * h)
     warps, talks = [], []
+    npcs = {}
     for og in root.findall('objectgroup'):
         gname = (og.get('name') or '').lower()
         for obj in og.findall('object'):
@@ -152,6 +272,16 @@ def parse_map(path, tsx_cache):
                         solid[j * w + i] = 1
                 continue
 
+            # NPC: Tuxemon dat nguoi bang lenh "create_npc <slug>,<x>,<y>" trong
+            # su kien, huong quay mat nam o "char_face <slug>,<dir>".
+            for a in acts:
+                for slug, nx, ny in re.findall(r'create_npc\s+([a-z0-9_]+)\s*,\s*(\d+)\s*,\s*(\d+)', a):
+                    npcs.setdefault(slug, {'slug': slug, 'x': int(nx), 'y': int(ny), 'dir': 'down'})
+            for a in acts:
+                for slug, d in re.findall(r'char_face\s+([a-z0-9_]+)\s*,\s*(up|down|left|right)', a):
+                    if slug in npcs:
+                        npcs[slug]['dir'] = d
+
             for a in acts:
                 m = re.match(r'transition_teleport\s+player,\s*([^,]+),\s*(\d+),\s*(\d+)', a)
                 if m:
@@ -164,7 +294,8 @@ def parse_map(path, tsx_cache):
                     break
 
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
-            'solid': solid, 'warps': warps, 'talks': talks}
+            'solid': solid, 'warps': warps, 'talks': talks,
+            'npcs': [n for n in (build_npc(n) for n in npcs.values()) if n]}
 
 
 def decode_layer(data, w, h):
@@ -248,6 +379,7 @@ def main():
     if not os.path.isdir(mdir):
         raise SystemExit('Khong thay %s' % mdir)
 
+    load_npc_db(root)
     tsx_cache = {}
     want = pick_maps(mdir)
     names = {s: vi_name(s) for s in want}
@@ -267,6 +399,7 @@ def main():
             'solid': m['solid'],
             'warps': [w for w in m['warps'] if w['to'] in want],
             'talks': m['talks'],
+            'npcs': m['npcs'],
         }
 
     write_js(out_maps, want)
@@ -317,6 +450,7 @@ def write_js(maps, want):
         out.append('    solid: %s,' % js(m['solid']))
         out.append('    warps: %s,' % js(m['warps']))
         out.append('    talks: %s,' % js(m['talks']))
+        out.append('    npcs: %s,' % js(m['npcs']))
         out.append('  },')
     out.append('};')
     out.append('''

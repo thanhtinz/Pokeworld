@@ -182,9 +182,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         ${m.moves.length === 0 ? '<div class="log-line">Không còn chiêu nào!</div>' : ''}
       </div>
       <div class="bt-subrow">
-        <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>${uiIcon('bag', 22)} Túi</button>
-        <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>${uiIcon('swap', 22)} Đổi</button>
-        ${kind === 'wild' ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}>${uiIcon('run', 22)} Chạy</button>` : ''}
+        <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>Túi</button>
+        <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>Đổi</button>
+        ${kind === 'wild' ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}>Chạy</button>` : ''}
       </div>`;
     $act.querySelectorAll('.move-btn').forEach(btn =>
       btn.addEventListener('click', () => playerAct({ t: 'move', i: Number(btn.dataset.mv) })));

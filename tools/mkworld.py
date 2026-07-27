@@ -53,9 +53,13 @@ def read_species():
     for m in re.finditer(r'^  (\d+): \{ name: .*?\n.*?\n.*?\n.*?stage: "(\w+)" \},', src, re.M | re.S):
         pass
     # bac tien hoa doc rieng cho chac
-    for m in re.finditer(r'slug: "([^"]+)".*?stage: "(\w+)" \}', src, re.S):
-        if m.group(1) in out:
+    for m in re.finditer(r'slug: "([^"]+)".*?stage: "(\w+)"', src, re.S):
+        if m.group(1) in out and 'stage' not in out[m.group(1)]:
             out[m.group(1)]['stage'] = m.group(2)
+    # Con "glitched" cua Tuxemon (ten viet loi) khong cho ra ngoai tu nhien
+    for m in re.finditer(r'slug: "([^"]+)"[^\n]*(?:\n[^\n]*){0,3}glitched: true', src):
+        if m.group(1) in out:
+            out[m.group(1)]['glitched'] = True
     return out
 
 
@@ -88,6 +92,8 @@ def main():
         d = load(os.path.join(db, f))
         if not d or d.get('slug') not in sp:
             continue
+        if sp[d['slug']].get('glitched'):
+            continue          # con "glitched" khong ra ngoai tu nhien
         info = sp[d['slug']]
         mons.append({
             'slug': d['slug'], 'id': info['id'], 'name': info['name'],
