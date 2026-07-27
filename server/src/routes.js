@@ -7,8 +7,14 @@ import {
   sendFriendRequest, respondFriendRequest, listFriends, removeFriend,
   proposeMarriage, respondMarriage, divorce, marriageInfo,
 } from './social.js';
+import { guildRouter } from './guild.js';
+import { chatRouter } from './chat.js';
 
 export const router = express.Router();
+
+// ==== Bang hội + tin nhắn ====
+router.use('/guild', guildRouter);
+router.use('/chat', chatRouter);
 
 const byName = (name) => {
   const lower = String(name || '').trim().toLowerCase();

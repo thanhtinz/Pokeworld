@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { getDb, find, filter, remove, markDirty, audit, flush } from './db.js';
 import { adminRequired } from './auth.js';
 import { kickUser, onlineCount } from './realtime.js';
+import { guildById, disbandGuildDoc } from './guild.js';
 
 const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
@@ -37,6 +38,7 @@ export function adminRouter(io) {
       pvpToday: db.pvpHistory.filter(p => p.ts > dayAgo).length,
       banned: db.users.filter(u => u.banned).length,
       marriages: db.marriages.filter(m => !m.pending).length,
+      guilds: db.guilds.length,
       config: db.config,
     });
   });
@@ -116,7 +118,41 @@ export function adminRouter(io) {
     remove('users', x => x.id === u.id);
     remove('friendships', f => f.a === u.id || f.b === u.id);
     remove('marriages', m => m.a === u.id || m.b === u.id);
+    remove('dms', d => d.from === u.id || d.to === u.id);
+    for (const g of [...getDb().guilds]) {
+      if (!g.members.some(m => m.userId === u.id)) continue;
+      if (g.leader === u.id) disbandGuildDoc(g);
+      else { g.members = g.members.filter(m => m.userId !== u.id); markDirty(); }
+    }
     audit(req.admin, 'delete-user', u.username, '');
+    res.json({ ok: true });
+  });
+
+  // ==== Bang hội ====
+  r.get('/guilds', (req, res) => {
+    const q = String(req.query.q || '').toLowerCase();
+    const nameOf = (id) => find('users', u => u.id === id)?.username || '—';
+    const rows = getDb().guilds
+      .filter(g => !q || g.name.toLowerCase().includes(q) || g.tag.toLowerCase().includes(q))
+      .sort((a, b) => b.level - a.level || b.members.length - a.members.length)
+      .slice(0, 200)
+      .map(g => ({
+        id: g.id, name: g.name, tag: g.tag, icon: g.icon, level: g.level, exp: g.exp,
+        members: g.members.length, maxMembers: g.maxMembers, treasury: g.treasury,
+        leader: nameOf(g.leader), createdAt: g.createdAt, joinPolicy: g.joinPolicy,
+        memberList: g.members.map(m => ({
+          userId: m.userId, username: nameOf(m.userId), role: m.role,
+          contribution: m.contribution || 0, joinedAt: m.joinedAt,
+        })),
+      }));
+    res.json({ rows, total: getDb().guilds.length });
+  });
+
+  r.delete('/guild/:id', (req, res) => {
+    const g = guildById(req.params.id);
+    if (!g) return res.status(404).json({ error: 'Không tìm thấy bang hội.' });
+    disbandGuildDoc(g);
+    audit(req.admin, 'disband-guild', g.name, g.tag);
     res.json({ ok: true });
   });
 

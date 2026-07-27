@@ -4,19 +4,32 @@
 import { verifyToken } from './auth.js';
 import { find, insert, markDirty, uid, getDb } from './db.js';
 import { listFriends } from './social.js';
+import {
+  setIo, addOnline, removeOnline, getConn, onlineCount, isOnline, emitToUsers,
+} from './hub.js';
+import { guildOf, memberOf, memberIds, pushGuildChat } from './guild.js';
+import { saveDm, dmPublic, userByName } from './chat.js';
 
-const online = new Map();   // userId -> { socketId, username, avatar }
+const online = {              // proxy nhỏ giữ nguyên cách dùng cũ trong file này
+  get: (id) => getConn(id),
+  delete: (id) => removeOnline(id),
+  get size() { return onlineCount(); },
+};
 const rooms = new Map();    // roomId -> { players:[{id,username,socket}], seed, results:{} }
 const invites = new Map();  // toUserId -> { fromId, fromName, ts }
 const lastChat = new Map(); // userId -> timestamp (chống spam)
+const lastDm = new Map();   // userId -> timestamp (chống spam DM)
+const lastGuildChat = new Map();
 
 const INVITE_TTL = 60000;
 const CHAT_COOLDOWN = 2000;
+const DM_COOLDOWN = 1000;
+const GUILD_CHAT_COOLDOWN = 1000;
 
-export function onlineCount() { return online.size; }
-export function isOnline(userId) { return online.has(userId); }
+export { onlineCount, isOnline };
 
 export function setupRealtime(io) {
+  setIo(io);
   // Xác thực JWT khi bắt tay
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
@@ -31,7 +44,7 @@ export function setupRealtime(io) {
 
   io.on('connection', (socket) => {
     const user = socket.data.user;
-    online.set(user.id, { socketId: socket.id, username: user.username, avatar: user.avatar });
+    addOnline(user.id, { socketId: socket.id, username: user.username, avatar: user.avatar });
     global.__pwOnlineCount = online.size;
     user.lastSeen = Date.now();
     markDirty();
@@ -56,6 +69,43 @@ export function setupRealtime(io) {
       io.emit('chat:msg', {
         username: user.username, avatar: user.avatar, text: clean, ts: now,
       });
+    });
+
+    // ==== Tin nhắn riêng ====
+    socket.on('dm:send', ({ to, text } = {}) => {
+      const now = Date.now();
+      if (now - (lastDm.get(user.id) || 0) < DM_COOLDOWN) {
+        return socket.emit('chat:error', { error: 'Gõ chậm thôi bạn ơi!' });
+      }
+      const clean = String(text || '').trim().slice(0, 300);
+      if (!clean) return;
+      const target = userByName(to);
+      if (!target) return socket.emit('chat:error', { error: 'Không tìm thấy người chơi.' });
+      if (target.id === user.id) return socket.emit('chat:error', { error: 'Không thể nhắn cho chính mình.' });
+      lastDm.set(user.id, now);
+      const doc = saveDm(user.id, target.id, clean);
+      const payload = dmPublic(doc);
+      emitToUsers([target.id], 'dm:msg', payload);
+      socket.emit('dm:msg', { ...payload, echo: true });
+    });
+
+    // ==== Chat bang hội ====
+    socket.on('guild:send', ({ text } = {}) => {
+      const now = Date.now();
+      if (now - (lastGuildChat.get(user.id) || 0) < GUILD_CHAT_COOLDOWN) {
+        return socket.emit('chat:error', { error: 'Gõ chậm thôi bạn ơi!' });
+      }
+      const clean = String(text || '').trim().slice(0, 300);
+      if (!clean) return;
+      const g = guildOf(user.id);
+      if (!g || !memberOf(g, user.id)) {
+        return socket.emit('chat:error', { error: 'Bạn chưa ở trong bang hội nào.' });
+      }
+      lastGuildChat.set(user.id, now);
+      const doc = pushGuildChat(g.id, {
+        from: user.username, avatar: user.avatar, text: clean,
+      });
+      emitToUsers(memberIds(g), 'guild:msg', doc);
     });
 
     // ==== PvP ====

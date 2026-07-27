@@ -12,6 +12,9 @@ const EMPTY = {
   friendships: [],    // {id, a, b, status:'pending'|'accepted', from, createdAt}
   marriages: [],      // {id, a, b, since}
   pvpHistory: [],     // {id, winner, loser, disputed, ts}
+  guilds: [],         // {id, name, tag, desc, icon, leader, members:[], level, exp, treasury, createdAt, announcement, joinPolicy, applicants:[], maxMembers}
+  guildChat: [],      // {id, guildId, from, avatar, text, ts, system}
+  dms: [],            // {id, from, to, text, ts, read}
   auditLog: [],       // {id, ts, admin, action, target, detail}
   config: {},         // MOTD + event multipliers do admin chỉnh
 };

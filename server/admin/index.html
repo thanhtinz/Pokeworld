@@ -74,6 +74,7 @@
     <div class="tabs">
       <div class="tab on" data-tab="dash">Tổng quan</div>
       <div class="tab" data-tab="players">Người chơi</div>
+      <div class="tab" data-tab="guilds">Bang hội</div>
       <div class="tab" data-tab="config">Cấu hình & Sự kiện</div>
       <div class="tab" data-tab="pvp">Lịch sử PvP</div>
       <div class="tab" data-tab="audit">Nhật ký</div>
@@ -143,6 +144,7 @@ async function loadTab() {
   try {
     if (tab === 'dash') return renderDash(await api('/stats'));
     if (tab === 'players') return renderPlayers(await api('/players'));
+    if (tab === 'guilds') return renderGuilds(await api('/guilds'));
     if (tab === 'config') return renderConfig(await api('/stats'));
     if (tab === 'pvp') return renderPvp(await api('/pvp'));
     if (tab === 'audit') return renderAudit(await api('/audit'));

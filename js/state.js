@@ -39,6 +39,9 @@ function defaultPlayer(name) {
     zone: 'town_1',
     starterChosen: false,
     stats: { catches: 0, wins: 0, playSince: Date.now() },
+    equipped: { hat: null, outfit: null, gloves: null, shoes: null, bag: null, charm: null },
+    inventory: [],
+    trainer: { level: 1, exp: 0 },
   };
 }
 

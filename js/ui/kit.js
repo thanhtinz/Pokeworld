@@ -56,11 +56,23 @@ export function hpBar(cur, max) {
   return `<div class="hpbar"><div class="hpbar-fill ${cls}" style="width:${pct}%"></div></div>`;
 }
 
-// Icon item: sprite thật từ PokeAPI, emoji chỉ là fallback khi ảnh lỗi
-export function itemIcon(itemId, emoji = '🎁', size = 26) {
+// Icon item: sprite thật từ PokeAPI. Tham số 2 giữ lại cho tương thích chữ ký cũ
+// (trước đây là emoji fallback) — nay ảnh lỗi thì ẩn hẳn, KHÔNG hiện emoji.
+export function itemIcon(itemId, _legacy = '', size = 26) {
   const url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${String(itemId).replace(/_/g, '-')}.png`;
   return `<span class="item-ico"><img src="${url}" width="${size}" height="${size}" alt=""
-    onerror="this.nextElementSibling.style.display='inline';this.remove()"><i style="display:none">${emoji}</i></span>`;
+    onerror="this.style.visibility='hidden'"></span>`;
+}
+
+// URL artwork Pokémon GO (PokeMiners) — dùng cho Pokédex / thẻ đội hình
+export function artUrl(dex) {
+  return `https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/pokemon_icon_${String(dex).padStart(3, '0')}_00.png`;
+}
+
+// Chèn ảnh asset local, tự ẩn khi lỗi (không bao giờ rơi về emoji)
+export function assetIcon(path, size = 22, alt = '') {
+  return `<span class="asset-ico"><img src="${path}" width="${size}" height="${size}" alt="${esc(alt)}"
+    onerror="this.style.visibility='hidden'"></span>`;
 }
 
 // Inline CSS vars cho card holo: gradient theo hệ của Pokémon (pha tím galaxy trong CSS)
@@ -70,9 +82,12 @@ export function holoStyle(types = []) {
   return `--t1:${c1};--t2:${c2}`;
 }
 
-// Badge hệ (Lửa/Nước...) có màu
+// Badge hệ: icon ảnh 18 hệ + tên tiếng Việt, nền màu hệ nhạt
 export function typeBadge(t) {
-  return `<span class="type-badge" style="background:${TYPE_COLORS[t] || '#888'}">${TYPE_VI[t] || t}</span>`;
+  const c = TYPE_COLORS[t] || '#888';
+  return `<span class="type-badge type-${esc(t)}" style="--tc:${c};background:${c}"
+    ><img class="type-ico" src="assets/types/${esc(t)}.png" width="22" height="22" alt=""
+      onerror="this.style.display='none'"><span class="type-name">${TYPE_VI[t] || t}</span></span>`;
 }
 
 // Header màn hình có nút back tùy chọn (onBack = hàm hoặc null)
