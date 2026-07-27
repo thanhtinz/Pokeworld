@@ -938,3 +938,8 @@ img[src*='sprites'] { image-rendering: pixelated; }
 
 .pop-emote { width: 30px; image-rendering: pixelated; }
 .crown-ico { height: 20px; display: inline-block; vertical-align: -4px; image-rendering: pixelated; }
+
+/* Nav dùng sprite item */
+.nav-ico img { width: 26px; height: 26px; image-rendering: pixelated; display: inline-block; }
+.money-chip .item-ico { margin-right: 2px; }
+.btn .item-ico { vertical-align: -6px; margin-right: 2px; }

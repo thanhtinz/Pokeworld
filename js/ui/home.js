@@ -37,7 +37,7 @@ export function render(el) {
   el.innerHTML = `
     <div class="idle-top">
       <div class="zone-chip">${zone.icon || '📍'} <b>${esc(zone.name)}</b></div>
-      <span class="money-chip">💰 <b id="money-val">${fmt(G.p.money)}</b>₽</span>
+      <span class="money-chip">${itemIcon('nugget', '💰', 18)} <b id="money-val">${fmt(G.p.money)}</b>₽</span>
     </div>
 
     ${ch ? `
@@ -51,8 +51,8 @@ export function render(el) {
     <div class="town-wrap card">
       <p class="town-note">🏘️ Trong thị trấn yên bình không có Pokémon hoang. Hãy ra các tuyến đường để farm!</p>
       <div class="town-btns">
-        <button class="btn" id="btn-center">🏥 Hồi phục đội</button>
-        <button class="btn" id="btn-shop">🛒 Cửa hàng</button>
+        <button class="btn" id="btn-center">${itemIcon('full_restore', '🏥', 22)} Hồi phục đội</button>
+        <button class="btn" id="btn-shop">${itemIcon('coin_case', '🛒', 22)} Cửa hàng</button>
       </div>
     </div>` : `
     <div class="arena" id="arena">
@@ -72,8 +72,8 @@ export function render(el) {
     </div>`}
 
     <div class="idle-controls">
-      <button class="btn" id="btn-travel">🗺️ Di chuyển</button>
-      <button class="btn" id="btn-trainers">⚔️ Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
+      <button class="btn" id="btn-travel">${itemIcon('town_map', '🗺️', 22)} Di chuyển</button>
+      <button class="btn" id="btn-trainers">${itemIcon('vs_seeker', '⚔️', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
     </div>
   `;
 
