@@ -6,6 +6,8 @@ import { esc, fmt, todayNum } from '../util.js';
 import { toast, header } from './kit.js';
 import { uiIcon } from './icons.js';
 import { net } from '../net/session.js';
+import { trainerLevel } from '../engine/player.js';
+import { isUnlocked, featureLevel } from '../engine/unlock.js';
 import { show, refresh } from '../main.js';
 
 // Menu chỉ chứa những trang KHÔNG có sẵn trên thanh dưới và nút chat nổi.
@@ -31,6 +33,7 @@ function badgeCount(kind) {
 
 export function render(el) {
   const claimedToday = G.p.daily.last === todayNum();
+  const lv = trainerLevel();
 
   el.innerHTML = `
     ${header('Menu')}
@@ -40,11 +43,15 @@ export function render(el) {
         // Điểm danh còn nhận được thì chấm sáng nhắc người chơi
         const dot = t.act === 'daily' && !claimedToday;
         const attr = t.act ? `data-act="${t.act}"` : `data-goto="${t.to}"`;
-        return `<button type="button" class="hub-cell${dot ? ' hub-ready' : ''}" ${attr}>
-          ${n ? `<span class="hub-badge">${n > 99 ? '99+' : n}</span>` : ''}
+        // Tính năng chưa tới cấp: vẫn hiện nhưng mờ đi và ghi rõ mở ở cấp nào,
+        // để người chơi thấy trước cái mình sắp có.
+        const locked = t.to && !isUnlocked(t.to, lv);
+        return `<button type="button" class="hub-cell${dot ? ' hub-ready' : ''}${locked ? ' hub-locked' : ''}" ${attr}>
+          ${n && !locked ? `<span class="hub-badge">${n > 99 ? '99+' : n}</span>` : ''}
           ${dot ? '<span class="hub-dot"></span>' : ''}
           <span class="hub-ico">${uiIcon(t.icon, 30)}</span>
           <b class="hub-label">${esc(t.label)}</b>
+          ${locked ? `<small class="hub-lock">Lv.${featureLevel(t.to)}</small>` : ''}
         </button>`;
       }).join('')}
     </div>`;

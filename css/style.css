@@ -106,8 +106,8 @@ html, body {
   width: 34px;
   height: 34px;
   flex: none;
-  object-fit: contain;
-  image-rendering: pixelated;
+  position: relative;
+  padding: 0;
   border-radius: 9px;
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, .3);
@@ -1799,4 +1799,108 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   border: 0;
   padding: 9px 13px;
   border-image: var(--fr) 12 fill / 12px / 0 stretch;
+}
+
+/* ==== Bảng trượt từ đáy màn hình (ui/sheet.js) ==== */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(5, 3, 12, 0);
+  transition: background .18s;
+}
+.sheet-overlay.in { background: rgba(5, 3, 12, .72); }
+.sheet {
+  width: 100%;
+  max-width: 520px;
+  max-height: 82dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 14px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(175deg, #241640, #170d2c);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, .6);
+  transform: translateY(100%);
+  transition: transform .2s ease-out;
+}
+.sheet-overlay.in .sheet { transform: translateY(0); }
+.sheet-grip {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  margin: 4px auto 8px;
+}
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.sheet-head b { font-size: 14px; }
+.sheet-x { font-size: 22px; line-height: 1; color: var(--muted); padding: 0 6px; }
+.sheet-tabs { margin-bottom: 8px; }
+.sheet-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* ==== Ảnh đại diện = gương mặt của skin ====
+   Ảnh đi bản đồ (3 cột x 4 hàng) thì lấy đúng ô trên bên trái — nửa trên ô đó
+   là cái đầu. Ảnh cả người thì phóng vào khoảng đầu cho khỏi ra ảnh tí hon. */
+.ava-face {
+  display: block;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  image-rendering: pixelated;
+}
+/* Ảnh 3x4: ô đầu tiên (đứng yên, nhìn xuống) — trong ô 16x32 thì nhân vật nằm
+   ở nửa dưới, cái đầu rơi vào khoảng (2,10)-(16,24). */
+.ava-face.face-sheet { background-size: 342.9% 914.3%; background-position: 5.9% 8.8%; }
+/* Tranh cả người 64x64 kiểu Tuxemon: đầu ở khoảng (24,4)-(44,24) */
+.ava-face.face-zoom { background-size: 320% 320%; background-position: 54.5% 9%; }
+.ava-face.face-blank { background-image: none !important; }
+
+/* Ảnh đại diện trên thanh trên: ô vuông chứa gương mặt, bấm được */
+#tb-ava .ava-face { width: 100%; height: 100%; border-radius: 8px; }
+#tb-ava:active { transform: scale(.94); }
+/* Khung avatar do admin tải lên: phủ lên trên, hở giữa để thấy mặt */
+#tb-ava.fr-img { border-color: transparent; }
+#tb-ava.fr-img::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  background: var(--fr) center/100% 100% no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+/* Ô mặt trong lưới chọn của bảng Trang trí */
+.fa-face { width: 54px; height: 54px; border-radius: 10px; background-color: rgba(0, 0, 0, .25); }
+.fa-ring { width: 58px; height: 58px; padding: 2px; }
+.fa-ring .fa-face { width: 100%; height: 100%; }
+.sheet-note { margin-top: 10px; }
+
+/* Ô tính năng chưa tới cấp: vẫn thấy được nhưng mờ, có ghi cấp cần */
+.hub-cell.hub-locked { opacity: .45; position: relative; }
+.hub-lock {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  font-size: 10px;
+  color: var(--gold);
+  font-family: var(--pix2);
+}
+
+/* Nhân vật cả người: ảnh 3x4 thì cắt lấy một khung đứng yên nhìn xuống */
+.ava-body {
+  display: block;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  image-rendering: pixelated;
+}
+.ava-body.body-sheet {
+  background-size: 300% 400%;
+  background-position: 0 0;
+  aspect-ratio: 1 / 2;
+  width: auto;
+  margin: 0 auto;
 }

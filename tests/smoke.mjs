@@ -11,7 +11,7 @@ import { TRAINERS } from '../js/data/trainers.js';
 import { STARTERS } from '../js/data/starters.js';
 import { QUESTS, DAILY_REWARDS } from '../js/data/quests.js';
 import { CHAPTERS } from '../js/data/story.js';
-import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, NONE_ID,
+import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, ALL_KINDS, NONE_ID,
   applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
 import { NATURES, NATURE_LIST } from '../js/data/natures.js';
@@ -21,6 +21,9 @@ import { calcDamage } from '../js/engine/damage.js';
 import { attemptCatch } from '../js/engine/catchmon.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
+import { G, newGame } from '../js/state.js';
+import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
+import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 
 let fails = 0;
 const ok = (name, cond, extra = '') => {
@@ -93,10 +96,14 @@ ok('khắc hệ: hệ lạ trả về 1', typeEff('khong_co', ['fire']) === 1);
 
 // ==== Thời trang (toàn bộ là ảnh admin tải lên) ====
 const p0 = { stats: { catches: 0, wins: 0 }, badges: [], granted: [] };
-ok('bốn loại thời trang', COSMETIC_KINDS.length === 4
-  && COSMETIC_KINDS.every(k => k.data[NONE_ID[k.id]]));
+// Trang Thời trang chỉ còn skin + danh hiệu; khung avatar và bong bóng chat
+// nằm trong bảng Trang trí, nhưng cả bốn loại vẫn phải có ô "không mặc gì".
+ok('trang Thời trang có 2 tab', COSMETIC_KINDS.length === 2
+  && COSMETIC_KINDS.every(k => ALL_KINDS.some(a => a.id === k.id)));
+ok('bốn loại thời trang', ALL_KINDS.length === 4
+  && ALL_KINDS.every(k => k.data[NONE_ID[k.id]]));
 ok('ô "không mặc gì" luôn mở sẵn',
-  COSMETIC_KINDS.every(k => unlocked(k.data[NONE_ID[k.id]], p0, 1)));
+  ALL_KINDS.every(k => unlocked(k.data[NONE_ID[k.id]], p0, 1)));
 
 // Giả lập máy chủ trả về kho thời trang admin đã tải lên
 applyRemote([
@@ -123,6 +130,38 @@ const st = stats(starter);
 ok('starter lv20 có chỉ số hợp lý', st.hp > 30 && st.atk > 10 && st.spe > 5, JSON.stringify(st));
 ok('hpCur = maxHp lúc mới tạo', starter.hpCur === maxHp(starter));
 ok('starter có ít nhất 1 chiêu', (starter.moves || []).length >= 1);
+
+// Trần cấp Tuxemon tính theo cấp huấn luyện viên nên phải có người chơi thật
+// mới nuôi lên cao được. Dựng một ván rồi nâng cấp huấn luyện viên lên kịch.
+newGame('Test');
+G.p.trainer = { level: MAX_TRAINER_LEVEL, exp: 0 };
+ok('trần cấp mở hết khi Trainer tối đa', monLevelCap() >= 100, String(monLevelCap()));
+
+// ==== Nhịp chơi: trần cấp + exp theo loại trận ====
+G.p.trainer = { level: 1, exp: 0 };
+ok('trần cấp lúc mới chơi là Lv.10', monLevelCap() === 10, String(monLevelCap()));
+const capMon = newTuxemon(STARTERS[0].sp, 10);
+const truoc = capMon.exp;
+gainExp(capMon, 1000);
+ok('chạm trần thì exp vào nhỏ giọt', capMon.exp - truoc <= 200, String(capMon.exp - truoc));
+const duoiTran = newTuxemon(STARTERS[0].sp, 3);
+const truoc2 = duoiTran.exp;
+gainExp(duoiTran, 1000);
+ok('dưới trần thì exp vào đủ', duoiTran.exp - truoc2 === 1000);
+ok('đánh trainer đáng giá hơn đánh quái hoang',
+  trainerExpFor('trainer', 10) > trainerExpFor('wild', 10) * 2);
+
+// ==== Mở khoá tính năng theo cấp ====
+ok('tính năng ngoài bảng thì luôn mở', isUnlocked('home', 1) && isUnlocked('party', 1));
+ok('tính năng xã hội khoá lúc mới chơi',
+  !isUnlocked('pvp', 1) && !isUnlocked('guild', 1) && !isUnlocked('marriage', 1));
+ok('đủ cấp thì mở', Object.entries(FEATURES).every(([id, f]) => isUnlocked(id, f.lv)));
+ok('mốc mở khoá tăng dần và không trùng',
+  new Set(Object.values(FEATURES).map(f => f.lv)).size === Object.keys(FEATURES).length);
+ok('lên cấp báo đúng thứ vừa mở',
+  unlockedBetween(1, FEATURES.quest.lv).some(f => f.id === 'quest')
+  && !unlockedBetween(1, FEATURES.quest.lv).some(f => f.id === 'marriage'));
+G.p.trainer = { level: MAX_TRAINER_LEVEL, exp: 0 };
 
 // Lấy một loài tiến hoá theo cấp ngay trong bảng để test, không cắm cứng mã loài
 const [evoFrom, evoDef] = Object.entries(EVOLUTIONS)

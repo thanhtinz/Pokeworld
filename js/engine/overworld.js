@@ -7,8 +7,8 @@ import { newTuxemon } from './pokemon.js';
 import { rng } from '../util.js';
 
 const SPEED = 3.6;              // ô mỗi giây
-const ENC_STEP_MIN = 6;         // đi ít nhất ngần này ô cỏ mới có thể gặp
-const ENC_CHANCE = 0.16;        // xác suất mỗi ô cỏ sau khi đủ ngưỡng
+const ENC_STEP_MIN = 8;         // đi ít nhất ngần này ô cỏ mới có thể gặp
+const ENC_CHANCE = 0.12;        // xác suất mỗi ô cỏ sau khi đủ ngưỡng
 
 // Trạng thái người chơi trên bản đồ (đơn vị: ô, có phần lẻ để đi mượt)
 export const START_MAP = Object.keys(MAPS)[0];

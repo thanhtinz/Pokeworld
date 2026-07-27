@@ -3,6 +3,7 @@ import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { LEARNSETS } from '../data/learnsets.js';
 import { maxHp, addFriendship } from './pokemon.js';
+import { monLevelCap, OVER_CAP_EXP } from './player.js';
 
 // Tổng EXP cần để đạt level lv theo từng đường cong (chuẩn Gen)
 const CURVES = {
@@ -18,12 +19,17 @@ export function expForLevel(curve, lv) {
   return Math.max(0, fn(lv));
 }
 
-// EXP đối thủ cho khi bị hạ (công thức rút gọn Gen 1): baseExp * lv / 7 / số người tham chiến
-export function expYield(defeatedMon, n = 1) {
+// EXP đối thủ cho khi bị hạ (công thức rút gọn Gen 1): baseExp * lv / 9 / số người
+// tham chiến. Mẫu số 9 thay vì 7 và quái hoang chỉ cho 0.85 phần: đánh bụi cỏ
+// là để bắt và kiếm đồ, muốn lên cấp nhanh thì phải đi tìm huấn luyện viên.
+const KIND_MULT = { wild: 0.85, trainer: 1.5 };
+
+export function expYield(defeatedMon, n = 1, kind = 'wild') {
   const spec = SPECIES[defeatedMon.sp];
   const base = (spec && spec.baseExp) || 60;
   const nn = Math.max(1, n);
-  const amount = Math.floor(base * defeatedMon.lv / 7 / nn);
+  const mult = KIND_MULT[kind] ?? 1;
+  const amount = Math.floor(base * defeatedMon.lv / 9 / nn * mult);
   return Math.max(1, amount);
 }
 
@@ -33,6 +39,9 @@ export function gainExp(mon, amount) {
   if (!spec) return [];
   // Lucky Egg x1.5
   if (mon.held === 'nu_phone') amount = Math.floor(amount * 1.5);
+  // Vượt trần cấp thì gần như không lên nữa — muốn nuôi tiếp phải tự lên cấp
+  // huấn luyện viên đã (đánh trainer, làm nhiệm vụ, đi hết cốt truyện).
+  if (mon.lv >= monLevelCap()) amount = Math.max(1, Math.floor(amount * OVER_CAP_EXP));
   const newLevels = [];
   if (mon.lv >= CONFIG.MAX_LEVEL) return newLevels;
   mon.exp = (mon.exp || 0) + amount;

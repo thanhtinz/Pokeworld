@@ -3,10 +3,28 @@
 // Trước đây file này còn cả hệ thống trang bị (mặc đồ cộng chỉ số, cường hoá,
 // mua bán). Đã bỏ hẳn: nhân vật không chiến đấu nên đồ cộng chỉ số không có
 // nghĩa, chỉ giữ THỜI TRANG — thứ mặc vào cho đẹp và người khác nhìn thấy.
-import { G, save } from '../state.js';
+import { G, save, CONFIG } from '../state.js';
 import { setGrants, NONE_ID } from '../data/cosmetics.js';
 
 export const MAX_TRAINER_LEVEL = 50;
+
+// Trần cấp cho Tuxemon: cấp huấn luyện viên x2 + 8 (Trainer Lv.1 -> trần Lv.10,
+// Lv.46 trở đi là mở hết tới Lv.100).
+// Không có trần thì chỉ cần cắm mặt vào một bụi cỏ là đội mạnh vượt cả cốt
+// truyện, đánh đâu cũng một chiêu ăn ngay — thắng dễ quá thành ra chán.
+// Đây là trần MỀM: quá trần vẫn lên được nhưng exp chỉ còn một phần nhỏ.
+export const OVER_CAP_EXP = 0.2;
+
+export function monLevelCap() {
+  return Math.min(CONFIG.MAX_LEVEL, trainerLevel() * 2 + 8);
+}
+
+// EXP huấn luyện viên nhận sau mỗi trận. Đánh với người thì đáng giá hơn hẳn
+// đánh quái hoang, để tiến độ đi theo cốt truyện chứ không theo bụi cỏ.
+export function trainerExpFor(kind, enemyLv = 5) {
+  const lv = Math.max(1, enemyLv);
+  return kind === 'trainer' ? 20 + lv * 3 : 5 + lv;
+}
 
 // ==== Bảo đảm dữ liệu save có đủ field (save cũ vẫn chạy được) ====
 export function ensureData() {

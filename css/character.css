@@ -378,3 +378,28 @@
 .inv-cell.blank { border-style: dashed; border-color: var(--line); opacity: .35; }
 .inv-ico { line-height: 0; }
 .inv-ico img { image-rendering: pixelated; }
+
+/* ==== Bảng "Sắp mở khoá" ở màn Nhân vật ==== */
+.unlock-card { display: flex; flex-direction: column; gap: 8px; }
+.unlock-row { display: flex; align-items: center; gap: 10px; }
+.unlock-lv {
+  flex: none;
+  min-width: 42px;
+  text-align: center;
+  padding: 4px 0;
+  border-radius: 8px;
+  background: rgba(240, 180, 41, .14);
+  border: 1px solid var(--line);
+  color: var(--gold);
+  font-family: var(--pix2);
+  font-size: 13px;
+}
+.unlock-mid { display: flex; flex-direction: column; }
+.unlock-mid b { font-size: 12px; }
+.unlock-mid small { color: var(--muted); font-size: 11px; }
+
+/* Xem trước cả bộ đồ ở trang Thời trang: nhân vật đứng nguyên người, không khung */
+.fa-body { width: 96px; height: 96px; }
+.fa-body .ring-ava { width: 92px; height: 92px; }
+.fa-body-img { width: 92px; height: 92px; }
+.fa-body-cell { width: 44px; height: 44px; }

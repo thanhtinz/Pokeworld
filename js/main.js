@@ -34,9 +34,10 @@ import { startSession, onChange, net } from './net/session.js';
 import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/pokemon.js';
 import { trainerLevel } from './engine/player.js';
+import { FEATURES, isUnlocked, lockNote } from './engine/unlock.js';
 import { fmt } from './util.js';
 import { uiIcon } from './ui/icons.js';
-import { avatarSrc } from './ui/look.js';
+import { avatarFaceSrc, avatarFrame, upgradeFaces } from './ui/look.js';
 import { playMusic } from './engine/settings.js';
 
 // Nhạc nền theo màn: mấy màn mở đầu dùng nhạc nhẹ, đánh nhau thì đổi bản khác
@@ -62,6 +63,11 @@ let currentParams = null;
 export function show(name, params = {}) {
   const scr = SCREENS[name];
   if (!scr) { console.warn('screen?', name); return; }
+  // Tính năng mở dần theo cấp huấn luyện viên
+  if (G.p && !isUnlocked(name)) {
+    toast(`${FEATURES[name].name}: ${lockNote(name)}`);
+    return;
+  }
   // Vào màn cần dữ liệu người chơi mà G.p đang trống thì nạp lại bản lưu. Nạp
   // không được thì quay về luồng tạo nhân vật — trước đây rơi vào đây là mọi
   // màn đều báo lỗi, xoá bộ nhớ đệm hay đăng nhập lại cũng y như cũ vì lỗi nằm
@@ -100,7 +106,7 @@ export function show(name, params = {}) {
     b.classList.toggle('active', b.dataset.nav === name));
   // Nút chat nổi: ẩn cùng lúc với nav, và ẩn luôn khi đang ở chính trang chat
   const fab = document.getElementById('chat-fab');
-  if (fab) fab.hidden = nav.hidden || name === 'chat';
+  if (fab) fab.hidden = nav.hidden || name === 'chat' || !isUnlocked('chat');
   // Thanh trên hiện cùng nhịp với thanh dưới
   drawTopBar(nav.hidden);
   playMusic(MUSIC_BY_SCREEN[name] || 'town');
@@ -152,13 +158,31 @@ export function drawTopBar(hide = false) {
   if (!bar) return;
   if (hide || !G.p) { bar.hidden = true; return; }
   bar.hidden = false;
-  const ava = document.getElementById('tb-ava');
-  const src = avatarSrc();
-  if (ava.getAttribute('src') !== src) { ava.src = src; ava.style.visibility = ''; }
+  // Ảnh đại diện hiện GƯƠNG MẶT của skin, bấm vào thì mở bảng Trang trí
+  const face = document.getElementById('tb-face');
+  const src = avatarFaceSrc();
+  if (face.dataset.face !== src) {
+    face.dataset.face = src;
+    face.style.backgroundImage = `url('${src.replace(/['"\\\n]/g, '')}')`;
+    upgradeFaces(bar);
+  }
+  const fr = avatarFrame(G.p.look?.avatarFrame);
+  const wrap = document.getElementById('tb-ava');
+  wrap.className = fr.cls.trim();
+  wrap.style.setProperty('--fr', fr.style ? fr.style.replace(/^ style="--fr:/, '').replace(/"$/, '') : '');
   document.getElementById('tb-name').textContent = G.p.name || '';
   document.getElementById('tb-lv').textContent = `Lv.${trainerLevel()}`;
   document.getElementById('tb-money').textContent = fmt(G.p.money || 0);
 }
+
+// Bấm ảnh đại diện trên thanh trên -> bảng Trang trí (ảnh đại diện / khung
+// avatar / bong bóng chat). Nạp động để trang chính khỏi cõng thêm lúc mở game.
+document.getElementById('tb-ava')?.addEventListener('click', async () => {
+  if (inBattle()) { toast('Đang trong trận đấu!'); return; }
+  (await import('./ui/decor.js')).openDecor();
+});
+// Đổi đồ trong bảng Trang trí thì thanh trên và màn đang mở phải đổi theo
+document.addEventListener('look-change', () => { drawTopBar(document.getElementById('bottom-nav').hidden); });
 
 // Vẽ lại màn hình hiện tại (sau khi state đổi)
 export function refresh() { if (current) show(current, currentParams); }

@@ -23,7 +23,8 @@ import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 import { syncNow } from '../net/session.js';
 import { arenaFor } from '../data/arenas.js';
-import { addTrainerExp } from '../engine/player.js';
+import { addTrainerExp, trainerLevel, trainerExpFor, monLevelCap } from '../engine/player.js';
+import { unlockedBetween } from '../engine/unlock.js';
 import { monPx } from '../engine/battlesize.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
@@ -441,6 +442,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         questToasts(emitQuest('win_battles', {}));
       }
       grantTrainerRewards();
+      capNote();
     } else if (allFainted()) {
       // Thua trận
       G.p.zone = 'taba_town';
@@ -492,10 +494,24 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
 
   // Thắng trận thì huấn luyện viên cũng lên kinh nghiệm, thỉnh thoảng nhặt được
   // vật phẩm rơi ra (trước đây là trang bị — đã bỏ hệ thống đó).
+  // Chạm trần cấp thì nói rõ, không thì người chơi thấy exp vào nhỏ giọt mà
+  // không hiểu vì sao.
+  function capNote() {
+    const cap = monLevelCap();
+    if ((pMon()?.lv || 0) >= cap) log(`Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp.`);
+  }
+
   function grantTrainerRewards() {
     const lv = Math.max(1, eMon()?.lv || 5);
-    const gained = addTrainerExp(12 + lv * 2);
-    if (gained.length) toast(`Trainer lên Lv.${gained[gained.length - 1]}!`);
+    const before = trainerLevel();
+    const gained = addTrainerExp(trainerExpFor(kind, lv));
+    if (gained.length) {
+      const now = gained[gained.length - 1];
+      toast(`Trainer lên Lv.${now}!`);
+      // Lên cấp mà mở được tính năng mới thì phải báo, không thì người chơi
+      // chẳng biết vừa có thêm cái gì.
+      for (const f of unlockedBetween(before, now)) toast(`Mở khoá: ${f.name}! ${f.note}.`, 3200);
+    }
     if (Math.random() < 0.18) {
       const pool = ['tuxeball', 'potion', 'restoration'];
       const id = pool[Math.floor(Math.random() * pool.length)];

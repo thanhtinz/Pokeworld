@@ -1,15 +1,16 @@
 // TuxeWorld H5 | ui/party.js | Đội hình 6 slot + chi tiết + Box
 import { G, save, CONFIG } from '../state.js';
 import { monImg, skinsFor } from '../engine/monskin.js';
-import { wearMonSkin, trainerLevel } from '../engine/player.js';
-import { unlocked, requirement } from '../data/cosmetics.js';
+import { wearMonSkin, trainerLevel, monLevelCap } from '../engine/player.js';
+import { unlocked, requirement, imgOf } from '../data/cosmetics.js';
 import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/pokemon.js';
 import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { NATURE_VI } from '../data/natures.js';
-import { monSprite, monBoxIcon, upgradeImages, esc } from '../util.js';
+import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle, itemIcon } from './kit.js';
+import { openSheet } from './sheet.js';
 
 const STAT_VI = { hp: 'HP', atk: 'Tấn công', def: 'Phòng thủ', spa: 'Đặc công', spd: 'Đặc thủ', spe: 'Tốc độ' };
 
@@ -51,6 +52,7 @@ export function render(el) {
     const spec = SPECIES[m.sp];
     const st = stats(m);
     const [cur, need] = expProgress(m);
+    const cap = monLevelCap();
     box.innerHTML = `
       <div class="card detail-card">
         <div class="detail-top">
@@ -60,6 +62,7 @@ export function render(el) {
             <div>${(spec ? spec.types : []).map(typeBadge).join(' ')}</div>
             <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(NATURE_VI[m.nature] || m.nature)}</small><br>
             <small>EXP: ${cur}/${need} tới level sau</small>
+            ${m.lv >= cap ? `<br><small class="cap-note">Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp</small>` : ''}
           </div>
         </div>
         <table class="stat-table">
@@ -98,27 +101,9 @@ export function render(el) {
       save(); draw();
     });
 
-    // Skin Tuxemon: ảnh do quản trị viên tải lên, mặc theo LOÀI
-    box.querySelector('#d-skin').addEventListener('click', async () => {
-      const list = skinsFor(m.sp);
-      if (!list.length) {
-        toast('Chưa có skin nào cho loài này.');
-        return;
-      }
-      const lv = trainerLevel();
-      const cur = G.p.monSkins?.[m.sp] || '';
-      const opts = [{ label: 'Hình gốc', sub: cur ? '' : 'Đang dùng' }].concat(
-        list.map(([id, d]) => ({
-          label: d.name,
-          sub: unlocked(d, G.p, lv) ? (cur === id ? 'Đang mặc' : 'Bấm để mặc') : requirement(d),
-          disabled: !unlocked(d, G.p, lv),
-        })));
-      const i = await choose(`Skin cho ${displayName(m)}`, opts);
-      if (i === null) return;
-      wearMonSkin(m.sp, i === 0 ? '' : list[i - 1][0]);
-      toast(i === 0 ? 'Đã trả về hình gốc.' : `Đã mặc ${list[i - 1][1].name}.`);
-      draw();
-    });
+    // Skin Tuxemon: ảnh do quản trị viên tải lên, mặc theo LOÀI (mọi con cùng
+    // loài đổi hình theo). Mở bằng bảng trượt để nhìn thấy ảnh trước khi chọn.
+    box.querySelector('#d-skin').addEventListener('click', () => openSkinSheet(m));
 
     box.querySelector('#d-nick').addEventListener('click', () => {
       const v = prompt('Biệt danh mới (để trống = bỏ biệt danh):', m.nick || '');
@@ -136,6 +121,42 @@ export function render(el) {
       G.p.box.push(G.p.party.splice(sel, 1)[0]);
       sel = null;
       save(); toast('Đã gửi vào Box.'); draw();
+    });
+  }
+
+  // Bảng skin của một loài: ô "hình gốc" + từng skin admin tải lên
+  function openSkinSheet(m) {
+    const list = skinsFor(m.sp);
+    if (!list.length) { toast('Chưa có skin nào cho loài này.'); return; }
+    openSheet({
+      title: `Skin cho ${displayName(m)}`,
+      tabs: [{ id: 'skin', name: 'Skin', draw(sbox, api) {
+        const lv = trainerLevel();
+        const cur = G.p.monSkins?.[m.sp] || '';
+        const cell = (id, name, img, worn, ok, note) => `
+          <button type="button" class="fa-cell${worn ? ' worn' : ''}${ok ? '' : ' locked'}"
+                  data-id="${esc(id)}" ${ok ? '' : 'disabled'}>
+            ${worn ? '<span class="fa-worn">Đang mặc</span>' : ''}
+            <span class="fa-art"><img class="fa-img" src="${esc(img)}" alt="" onerror="this.remove()"></span>
+            <b class="fa-name">${esc(name)}</b>
+            <small class="fa-req">${esc(note)}</small>
+          </button>`;
+        sbox.innerHTML = `<div class="fa-grid">
+          ${cell('', 'Hình gốc', monPath(m.sp), !cur, true, cur ? 'Bấm để dùng' : '✓')}
+          ${list.map(([id, d]) => {
+            const ok = unlocked(d, G.p, lv);
+            return cell(id, d.name, imgOf(d) || monPath(m.sp), cur === id, ok,
+              ok ? (cur === id ? '✓' : 'Bấm để mặc') : requirement(d));
+          }).join('')}
+        </div>`;
+        sbox.querySelectorAll('.fa-cell:not([disabled])').forEach(b => b.addEventListener('click', () => {
+          const id = b.dataset.id;
+          wearMonSkin(m.sp, id);
+          toast(id ? `Đã mặc ${list.find(([x]) => x === id)[1].name}.` : 'Đã trả về hình gốc.');
+          api.redraw();
+          draw();
+        }));
+      } }],
     });
   }
 

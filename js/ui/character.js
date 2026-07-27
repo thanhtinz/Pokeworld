@@ -5,11 +5,12 @@
 import { G } from '../state.js';
 import { ensureData, trainerLevel, expToNext, MAX_TRAINER_LEVEL } from '../engine/player.js';
 import { TITLES } from '../data/cosmetics.js';
+import { upcoming } from '../engine/unlock.js';
 import { SPECIES } from '../data/species.js';
 import { esc, fmt } from '../util.js';
 import { header } from './kit.js';
 import { uiIcon } from './icons.js';
-import { avatarFrame, titleHtml, avatarSrc } from './look.js';
+import { avatarFrame, titleHtml, myFaceHtml, upgradeFaces } from './look.js';
 
 function ensureCss() {
   if (document.getElementById('char-css')) return;
@@ -37,14 +38,14 @@ export function render(el) {
   const caught = Object.keys(G.p.dex?.caught || {}).length;
   const seen = Object.keys(G.p.dex?.seen || {}).length;
   const skins = Object.keys(p.monSkins || {}).length;
+  const next = upcoming(lv);
 
   el.innerHTML = `
     ${header('Nhân vật')}
 
     <div class="card char-card">
-      <span class="ring-ava-wrap${fr.cls}"${fr.style}>
-        <img class="ring-ava" src="${esc(avatarSrc())}" alt="" onerror="this.remove()">
-      </span>
+      <!-- Khung avatar bao quanh GƯƠNG MẶT, đúng như trên thanh trên cùng -->
+      <span class="ring-ava-wrap${fr.cls}"${fr.style}>${myFaceHtml('ring-ava')}</span>
       <b class="ring-name-lbl">${esc(p.name)}</b>
       ${titleHtml(p.look.title)}
       <div class="char-lv">Trainer Lv.${lv}${maxed ? ' (MAX)' : ''}</div>
@@ -59,11 +60,28 @@ export function render(el) {
       <div><b>${fmt(G.p.badges?.length || 0)}</b><small>Huy hiệu</small></div>
     </div>
 
+    ${next.length ? `<div class="card unlock-card">
+      <div class="inv-head"><b>Sắp mở khoá</b><small>Lên cấp Trainer để mở</small></div>
+      ${next.map(f => `<div class="unlock-row">
+        <span class="unlock-lv">Lv.${f.lv}</span>
+        <span class="unlock-mid"><b>${esc(f.name)}</b><small>${esc(f.note)}</small></span>
+      </div>`).join('')}
+    </div>` : ''}
+
     <button type="button" class="card menu-link fa-link" data-goto="fashion">
       <span class="fa-link-ico">${uiIcon('flag', 22)}</span>
       <span class="fa-link-mid">
         <b>Thời trang</b>
-        <small>${t ? `${esc(t.name)} · ` : ''}Khung avatar · Khung chat · Skin</small>
+        <small>${t ? `${esc(t.name)} · ` : ''}Skin nhân vật · Danh hiệu</small>
+      </span>
+      <span class="fa-link-go">›</span>
+    </button>
+
+    <button type="button" class="card menu-link fa-link" id="btn-decor">
+      <span class="fa-link-ico">${uiIcon('person', 22)}</span>
+      <span class="fa-link-mid">
+        <b>Trang trí</b>
+        <small>Ảnh đại diện · Khung avatar · Bong bóng chat</small>
       </span>
       <span class="fa-link-go">›</span>
     </button>
@@ -72,8 +90,12 @@ export function render(el) {
       <span class="fa-link-ico">${uiIcon('team', 22)}</span>
       <span class="fa-link-mid">
         <b>Skin Tuxemon</b>
-        <small>${skins ? `Đang mặc cho ${skins} loài` : 'Chọn trong màn Đội hình'}</small>
+        <small>${skins ? `Đang mặc cho ${skins} loài` : 'Bấm một con trong Đội hình rồi chọn Skin'}</small>
       </span>
       <span class="fa-link-go">›</span>
     </button>`;
+
+  el.querySelector('#btn-decor').addEventListener('click', async () =>
+    (await import('./decor.js')).openDecor());
+  upgradeFaces(el);
 }

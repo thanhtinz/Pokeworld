@@ -174,7 +174,7 @@ export class Battle {
     if (os.kind === 'player' && (s.kind === 'wild' || s.kind === 'trainer')) {
       const winnerMon = this.activeMon(oi);
       if (winnerMon && !isFainted(winnerMon)) {
-        const amount = expYield(mon, 1);
+        const amount = expYield(mon, 1, s.kind);
         const levels = gainExp(winnerMon, amount);
         addEv(winnerMon, SPECIES[mon.sp].evYield);
         ev.push({ t: 'exp', side: oi, slot: os.active, amount, levels });

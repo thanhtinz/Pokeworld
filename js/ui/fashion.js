@@ -1,13 +1,15 @@
-// TuxeWorld H5 | ui/fashion.js | Trang Thời trang: danh hiệu, khung avatar, khung chat, skin
+// TuxeWorld H5 | ui/fashion.js | Trang Thời trang: skin nhân vật + danh hiệu
 //
 // Đồ ở đây KHÔNG cộng chỉ số — mặc vào chỉ để đẹp và để người khác thấy.
 // Món trong từng tab là ảnh quản trị viên tải lên trong trang /admin.
+// Khung avatar và bong bóng chat KHÔNG nằm ở đây: bấm ảnh đại diện trên thanh
+// trên cùng sẽ mở bảng Trang trí gọn hơn cho ba thứ đó.
 import { ensureData, trainerLevel, wearCosmetic } from '../engine/player.js';
 import { COSMETIC_KINDS, NONE_ID, unlocked, requirement, imgOf } from '../data/cosmetics.js';
 import { esc } from '../util.js';
 import { toast, header } from './kit.js';
 import { uiIcon } from './icons.js';
-import { avatarFrame, chatFrame, titleHtml, avatarSrc } from './look.js';
+import { titleHtml, skinSrc, bodyHtml, upgradeFaces } from './look.js';
 
 function ensureCss() {
   if (document.getElementById('char-css')) return;
@@ -27,7 +29,6 @@ export function render(el, { tab: startTab } = {}) {
   function draw() {
     const cur = COSMETIC_KINDS.find(t => t.id === tab);
     const lv = trainerLevel();
-    const fr = avatarFrame(p.look.avatarFrame);
     const items = Object.entries(cur.data);
     const onlyNone = items.length <= 1;
 
@@ -35,12 +36,11 @@ export function render(el, { tab: startTab } = {}) {
       ${header('Thời trang', 'character')}
 
       <div class="card fa-preview">
-        <span class="ring-ava-wrap${fr.cls}"${fr.style}>
-          <img class="ring-ava" src="${esc(avatarSrc())}" alt="" onerror="this.remove()">
-        </span>
+        <span class="ring-ava-wrap fa-body">${bodyHtml(skinSrc(), 'fa-body-img')}</span>
         <b class="ring-name-lbl">${esc(p.name)}</b>
         ${titleHtml(p.look.title)}
         <small class="char-note-txt">Mặc cho đẹp — không đổi sức mạnh của bạn hay của Tuxemon.</small>
+        <button type="button" class="btn btn-sm" id="btn-decor">Trang trí ảnh đại diện ›</button>
       </div>
 
       <div class="tab-row fa-tabs">
@@ -72,6 +72,9 @@ export function render(el, { tab: startTab } = {}) {
         </div>
       </div>`;
 
+    upgradeFaces(el);
+    el.querySelector('#btn-decor').addEventListener('click', async () =>
+      (await import('./decor.js')).openDecor());
     el.querySelectorAll('.tab-btn').forEach(b =>
       b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
     el.querySelectorAll('.fa-cell:not([disabled])').forEach(b =>
@@ -82,11 +85,9 @@ export function render(el, { tab: startTab } = {}) {
   function cellArt(kind, id, d) {
     const img = imgOf(d);
     if (!img) return `<span class="fa-art fa-none">${id === NONE_ID[kind] ? '⊘' : uiIcon('slot_skin', 26)}</span>`;
-    if (kind === 'chatFrame') {
-      const cf = chatFrame(id);
-      return `<span class="fa-art"><span class="fa-bubble${cf.cls}"${cf.style}>Alo</span></span>`;
-    }
     if (kind === 'title') return `<span class="fa-art">${titleHtml(id)}</span>`;
+    // Skin là ảnh đi bản đồ 3x4 -> chỉ bày một khung cho gọn
+    if (kind === 'skin') return `<span class="fa-art">${bodyHtml(img, 'fa-body-cell')}</span>`;
     return `<span class="fa-art"><img class="fa-img" src="${esc(img)}" alt="" onerror="this.remove()"></span>`;
   }
 
@@ -94,6 +95,7 @@ export function render(el, { tab: startTab } = {}) {
     if (wearCosmetic(tab, id)) {
       const kind = COSMETIC_KINDS.find(t => t.id === tab);
       toast(`Đã ${id === NONE_ID[tab] ? 'tháo' : 'mặc'} ${kind.data[id].name}.`);
+      document.dispatchEvent(new CustomEvent('look-change'));
       draw();
     }
   }

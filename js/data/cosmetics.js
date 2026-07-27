@@ -31,15 +31,25 @@ export const SKINS = {
 // đó của mình đổi hình trong trận đấu và trong đội hình.
 export const MON_SKINS = {};
 
+// Trang Thời trang chỉ còn bộ dạng nhân vật; khung avatar và bong bóng chat
+// chuyển sang bảng Trang trí mở từ ảnh đại diện trên thanh trên.
 export const COSMETIC_KINDS = [
+  { id: 'skin', name: 'Skin nhân vật', icon: 'slot_skin', data: SKINS },
   { id: 'title', name: 'Danh hiệu', icon: 'flag', data: TITLES },
-  { id: 'avatarFrame', name: 'Khung avatar', icon: 'person', data: AVATAR_FRAMES },
-  { id: 'chatFrame', name: 'Khung chat', icon: 'chat', data: CHAT_FRAMES },
-  { id: 'skin', name: 'Skin', icon: 'slot_skin', data: SKINS },
 ];
 
-// Ô "không mặc gì" của mỗi loại — không bao giờ bị xoá theo dữ liệu máy chủ
-export const NONE_ID = { title: 'none', avatarFrame: 'none', chatFrame: 'none', skin: 'default' };
+// Mọi loại thời trang (kể cả loại không nằm trong trang Thời trang)
+export const ALL_KINDS = [
+  { id: 'skin', name: 'Skin nhân vật', data: SKINS },
+  { id: 'title', name: 'Danh hiệu', data: TITLES },
+  { id: 'avatarFrame', name: 'Khung avatar', data: AVATAR_FRAMES },
+  { id: 'chatFrame', name: 'Bong bóng chat', data: CHAT_FRAMES },
+];
+
+// Ô "không mặc gì" của mỗi loại — không bao giờ bị xoá theo dữ liệu máy chủ.
+// avatar không phải món riêng: nó là gương mặt của một bộ skin, 'auto' nghĩa
+// là đi theo bộ đang mặc.
+export const NONE_ID = { title: 'none', avatarFrame: 'none', chatFrame: 'none', skin: 'default', avatar: 'auto' };
 
 const TABLES = {
   title: TITLES, avatarFrame: AVATAR_FRAMES, chatFrame: CHAT_FRAMES,
