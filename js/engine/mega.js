@@ -4,6 +4,7 @@
 // Mega chỉ tồn tại TRONG TRẬN — kết thúc trận luôn trả về dạng gốc, nên save không bao giờ
 // chứa số hiệu 10xxx (server chỉ chấp nhận 1..151).
 import { SPECIES } from '../data/species.js';
+import { ITEMS } from '../data/items.js';
 import { MEGA_FORMS, MEGA_STONES, MEGA_BY_SPECIES, KEY_STONE } from '../data/mega.js';
 import { G } from '../state.js';
 
@@ -11,6 +12,27 @@ import { G } from '../state.js';
 for (const [id, form] of Object.entries(MEGA_FORMS)) {
   if (!SPECIES[id]) SPECIES[id] = { ...form };
 }
+
+// Nạp Key Stone + các viên đá Mega vào bảng vật phẩm, để cửa hàng bán được
+// và túi đồ gắn được cho Pokémon cầm. Không làm bước này thì cả hệ thống
+// Mega có viết xong cũng không ai chạm tới được.
+if (!ITEMS[KEY_STONE.id]) {
+  ITEMS[KEY_STONE.id] = {
+    name: KEY_STONE.name, desc: KEY_STONE.desc, kind: 'key',
+    price: 20000, sell: 0,
+  };
+}
+for (const [id, stone] of Object.entries(MEGA_STONES)) {
+  if (ITEMS[id]) continue;
+  ITEMS[id] = {
+    name: stone.name,
+    desc: `Cho ${SPECIES[stone.forSpecies]?.name || 'loài tương ứng'} Mega Evolution khi đang cầm.`,
+    kind: 'held', price: stone.price ?? 15000, sell: Math.floor((stone.price ?? 15000) / 2),
+  };
+}
+
+// Mã các vật phẩm thuộc hệ Mega — cửa hàng gom riêng một mục cho dễ tìm
+export const MEGA_ITEM_IDS = [KEY_STONE.id, ...Object.keys(MEGA_STONES)];
 
 export { MEGA_STONES, MEGA_BY_SPECIES, KEY_STONE };
 

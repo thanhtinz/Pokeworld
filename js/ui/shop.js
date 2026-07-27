@@ -3,20 +3,24 @@ import { G, spend, addMoney, addItem, removeItem } from '../state.js';
 import { ITEMS } from '../data/items.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, itemIcon } from './kit.js';
+import { MEGA_ITEM_IDS } from '../engine/mega.js';
 
 export function render(el) {
   let tab = 'buy';
 
   function draw() {
-    const buyIds = Object.keys(ITEMS).filter(id => ITEMS[id].price > 0 && ITEMS[id].kind !== 'held');
+    const megaSet = new Set(MEGA_ITEM_IDS);
+    const buyIds = Object.keys(ITEMS).filter(id =>
+      ITEMS[id].price > 0 && ITEMS[id].kind !== 'held' && !megaSet.has(id));
     const sellIds = Object.keys(G.p.bag).filter(id => G.p.bag[id] > 0 && ITEMS[id] && ITEMS[id].sell > 0);
-    const ids = tab === 'buy' ? buyIds : sellIds;
+    const ids = tab === 'buy' ? buyIds : tab === 'mega' ? MEGA_ITEM_IDS : sellIds;
 
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>Cửa hàng</h1></div>
       <div class="card shop-money">${itemIcon('nugget', '', 20)} <b id="shop-balance">${fmt(G.p.money)}</b>₽</div>
       <div class="tab-row">
         <button class="tab-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
+        <button class="tab-btn ${tab === 'mega' ? 'active' : ''}" data-tab="mega">Đá Mega</button>
         <button class="tab-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>
       </div>
       <div class="item-list">
@@ -26,18 +30,20 @@ export function render(el) {
           <button class="card item-row" data-id="${esc(id)}">
             ${itemIcon(id)}
             <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
-            <span class="item-n">${tab === 'buy'
-              ? `${fmt(it.price)}₽`
-              : `×${G.p.bag[id]} · ${fmt(it.sell)}₽`}</span>
+            <span class="item-n">${tab === 'sell'
+              ? `×${G.p.bag[id]} · ${fmt(it.sell)}₽`
+              : `${fmt(it.price)}₽${G.p.bag[id] ? ` <small>(có ${G.p.bag[id]})</small>` : ''}`}</span>
           </button>`;
         }).join('')}
-        ${ids.length === 0 ? `<div class="card empty-note">${tab === 'buy' ? 'Chưa có hàng.' : 'Không có gì để bán.'}</div>` : ''}
+        ${tab === 'mega' ? `<div class="card empty-note">Cần Key Stone, rồi cho Pokémon cầm đúng viên đá của loài đó ở màn Túi.
+          Vào trận sẽ hiện nút MEGA EVOLUTION.</div>` : ''}
+        ${ids.length === 0 ? `<div class="card empty-note">${tab === 'sell' ? 'Không có gì để bán.' : 'Chưa có hàng.'}</div>` : ''}
       </div>`;
 
     el.querySelectorAll('.tab-btn').forEach(b =>
       b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
     el.querySelectorAll('.item-row').forEach(b =>
-      b.addEventListener('click', () => (tab === 'buy' ? buy(b.dataset.id) : sell(b.dataset.id))));
+      b.addEventListener('click', () => (tab === 'sell' ? sell(b.dataset.id) : buy(b.dataset.id))));
   }
 
   async function buy(id) {

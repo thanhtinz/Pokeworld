@@ -18,6 +18,9 @@ import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 import { syncNow } from '../net/session.js';
 import { arenaFor } from '../data/arenas.js';
+import { canMegaEvolve, megaEvolve, revertAll } from '../engine/mega.js';
+import { addTrainerExp, randomDrop, grantEquip } from '../engine/equipment.js';
+import { EQUIPMENT, RARITY } from '../data/equipment.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
 async function storyDone(ch) {
@@ -168,6 +171,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         }).join('')}
         ${m.moves.length === 0 ? '<div class="log-line">Không còn chiêu nào!</div>' : ''}
       </div>
+      ${megaReady() ? `<button class="btn btn-mega" id="bt-mega" ${busy ? 'disabled' : ''}>
+        ${itemIcon('key_stone', '', 22)} MEGA EVOLUTION</button>` : ''}
       <div class="bt-subrow">
         <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>${itemIcon('berry_pouch', '', 22)} Túi</button>
         <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>${itemIcon('poke_ball', '', 22)} Đổi</button>
@@ -179,6 +184,30 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     $act.querySelector('#bt-switch').addEventListener('click', openSwitch);
     const run = $act.querySelector('#bt-run');
     if (run) run.addEventListener('click', () => playerAct({ t: 'run' }));
+    const mg = $act.querySelector('#bt-mega');
+    if (mg) mg.addEventListener('click', doMega);
+  }
+
+  // ==== Mega Evolution ====
+  // Điều kiện: có Key Stone, Pokémon đang cầm đúng viên đá Mega của loài mình,
+  // và mỗi trận chỉ được Mega một lần.
+  let megaUsed = false;
+  function megaReady() {
+    return !megaUsed && !!canMegaEvolve(pMon(), { usedThisBattle: megaUsed });
+  }
+  async function doMega() {
+    if (busy || ended) return;
+    const m = pMon();
+    const r = megaEvolve(m, maxHp);
+    if (!r.ok) { toast(r.error || 'Chưa Mega được.'); return; }
+    megaUsed = true;
+    busy = true;
+    log(`${displayName(m)} phản ứng với Key Stone... MEGA EVOLUTION!`);
+    const spr = $me.querySelector('.bt-sprite');
+    if (spr) spr.classList.add('mega-flash');
+    await sleep(700);
+    busy = false;          // phải mở khoá TRƯỚC khi vẽ lại, không thì nút chiêu kẹt disabled
+    updateAll();
   }
 
   function updateAll() { renderEnemy(); renderMe(); renderActions(); }
@@ -401,6 +430,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         G.p.stats.wins++;
         questToasts(emitQuest('win_battles', {}));
       }
+      grantTrainerRewards();
     } else if (allFainted()) {
       // Thua trận
       G.p.zone = 'town_1';
@@ -442,12 +472,29 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       }
     }
 
+    revertAll(G.p.party, maxHp);   // hết trận là về dạng thường, save không giữ dạng Mega
     save();
     syncNow();          // đẩy kết quả lên máy chủ ngay cho bảng xếp hạng khỏi trễ
     updateBars();
     $act.innerHTML = `<button class="btn btn-primary btn-big" id="bt-cont">Tiếp tục</button>`;
     // Đánh xong thì quay lại đúng nơi vừa rời đi (bản đồ hoặc màn chính)
     $act.querySelector('#bt-cont').addEventListener('click', () => show(from));
+  }
+
+  // Thắng trận thì nhà huấn luyện cũng lên kinh nghiệm và có thể nhặt được trang bị
+  function grantTrainerRewards() {
+    const lv = eMon()?.lv || 5;
+    const exp = kind === 'trainer' ? 12 + lv * 3 : 4 + lv;
+    const levels = addTrainerExp(exp);   // trả về MẢNG các cấp vừa lên
+    if (levels.length) toast(`Nhà huấn luyện lên cấp ${levels[levels.length - 1]}!`);
+    // randomDrop chỉ CHỌN món, phải grantEquip mới thực sự vào túi
+    const dropId = randomDrop(lv);
+    if (dropId && grantEquip(dropId)) {
+      const def = EQUIPMENT[dropId];
+      const r = def ? RARITY[def.rarity] : null;
+      log(`Nhặt được trang bị: ${def ? def.name : dropId}${r ? ` (${r.name})` : ''}!`);
+      toast(`Nhặt được ${def ? def.name : dropId}!`);
+    }
   }
 
   // ==== Mở màn ====

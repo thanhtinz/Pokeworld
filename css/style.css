@@ -1387,7 +1387,6 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 
 /* ==== Man Cong dong: chat / xep hang / bang hoi / ban be ==== */
-.tab-row { display: flex; gap: 6px; margin: 10px 0; }
 .tab-btn { flex: 1; padding: 9px 4px; border-radius: 10px; font-size: .78rem;
   background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: var(--muted); }
 .tab-btn.on { background: rgba(150,120,230,.22); border-color: var(--gold); color: #fff; }
@@ -1471,3 +1470,34 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .dex-print { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .dex-print img { image-rendering: pixelated; filter: invert(1); opacity: .85; }
 .dex-print small { color: var(--muted); font-size: .74rem; }
+
+/* Nut MEGA EVOLUTION + chop sang luc bien hinh */
+.btn-mega {
+  background: linear-gradient(135deg, #7048e8, #d64ea8);
+  border-color: #f0b429; color: #fff; font-weight: 700; letter-spacing: .06em;
+  box-shadow: 0 0 16px rgba(214, 78, 168, .45);
+}
+.mega-flash { animation: mega-flash .7s ease-out; }
+@keyframes mega-flash {
+  0%   { filter: brightness(1); }
+  35%  { filter: brightness(4) saturate(0); }
+  70%  { filter: brightness(3) saturate(2); }
+  100% { filter: brightness(1); }
+}
+
+/* ==== Khoang cach nut tren dien thoai ====
+   Nut xep doc trong cung mot the truoc day dinh sat nhau (do 0px tren may
+   360px). Cho moi cap nut lien nhau mot khoang, va noi rong khe giua cac
+   the tab len cho du vung cham. */
+.card > .btn + .btn,
+.card > .btn + .menu-row,
+.card > .menu-row + .menu-row { margin-top: 10px; }
+.card > .btn + small,
+.card > small + .btn { margin-top: 8px; }
+.tab-row { gap: 10px; margin-bottom: 12px; }
+.chan-row { gap: 10px; margin-bottom: 10px; }
+.chan-row .chip { min-height: 38px; display: inline-flex; align-items: center; }
+.item-list { gap: 10px; }
+.guild-row + .guild-row, .rank-row + .rank-row { margin-top: 2px; }
+.guild-row .btn-mini + .btn-mini { margin-left: 8px; }
+.modal-opts .btn + .btn { margin-top: 10px; }
