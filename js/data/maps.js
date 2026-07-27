@@ -58,9 +58,9 @@ export const MAPS = {
       { x: 16, y: 6, to: 'mart_town', tx: 3, ty: 7 },
     ],
     npcs: [
-      { x: 15, y: 16, kind: 'talk', sprite: 'juan', name: 'Professor Oak', text: 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!' },
-      { x: 3, y: 16, kind: 'talk', sprite: 'roxanne', name: 'Daisy', text: 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.' },
-      { x: 19, y: 8, kind: 'talk', sprite: 'liza', name: 'Boy', text: 'Poké Mart mới nhập Poké Ball đó!' },
+      { x: 15, y: 16, kind: 'talk', sprite: 'juan', name: 'Professor Oak', text: 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!', face: 'oak' },
+      { x: 3, y: 16, kind: 'talk', sprite: 'roxanne', name: 'Daisy', text: 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.', face: 'lass' },
+      { x: 19, y: 8, kind: 'talk', sprite: 'liza', name: 'Boy', text: 'Poké Mart mới nhập Poké Ball đó!', face: 'youngster' },
     ],
   },
   route_1: {
@@ -95,8 +95,8 @@ export const MAPS = {
       { x: 0, y: 10, to: 'forest_1', tx: 21, ty: 9 },
     ],
     npcs: [
-      { x: 12, y: 7, kind: 'trainer', sprite: 'tate', name: 'Youngster Joey', text: 'Pokémon của tớ mạnh lắm đấy!', trainerId: 'youngster_joey' },
-      { x: 8, y: 14, kind: 'trainer', sprite: 'flannery', name: 'Lass Nina', text: 'Dễ thương nhưng không hiền đâu nhé!', trainerId: 'lass_nina' },
+      { x: 12, y: 7, kind: 'trainer', sprite: 'tate', name: 'Youngster Joey', text: 'Pokémon của tớ mạnh lắm đấy!', face: 'youngster', trainerId: 'youngster_joey' },
+      { x: 8, y: 14, kind: 'trainer', sprite: 'flannery', name: 'Lass Nina', text: 'Dễ thương nhưng không hiền đâu nhé!', face: 'lass', trainerId: 'lass_nina' },
     ],
   },
   route_2: {
@@ -131,8 +131,8 @@ export const MAPS = {
       { x: 18, y: 19, to: 'lake_1', tx: 11, ty: 1 },
     ],
     npcs: [
-      { x: 14, y: 10, kind: 'trainer', sprite: 'sidney', name: 'Camper Ethan', text: 'Đường này ta canh giữ!', trainerId: 'camper_ethan' },
-      { x: 3, y: 16, kind: 'talk', sprite: 'phoebe', name: 'Bug Catcher', text: 'Trong rừng phía tây nhiều bọ lắm!' },
+      { x: 14, y: 10, kind: 'trainer', sprite: 'sidney', name: 'Camper Ethan', text: 'Đường này ta canh giữ!', face: 'camper_e', trainerId: 'camper_ethan' },
+      { x: 3, y: 16, kind: 'talk', sprite: 'phoebe', name: 'Bug Catcher', text: 'Trong rừng phía tây nhiều bọ lắm!', face: 'bug_catcher' },
     ],
   },
   forest_1: {
@@ -166,8 +166,8 @@ export const MAPS = {
       { x: 23, y: 10, to: 'route_1', tx: 1, ty: 10 },
     ],
     npcs: [
-      { x: 9, y: 16, kind: 'trainer', sprite: 'brawly', name: 'Bug Catcher Rick', text: 'Bọ là nhất!', trainerId: 'bug_catcher_rick' },
-      { x: 10, y: 4, kind: 'talk', sprite: 'steven', name: 'Rocket Grunt', text: 'Cút khỏi đây, nhóc!' },
+      { x: 9, y: 16, kind: 'trainer', sprite: 'brawly', name: 'Bug Catcher Rick', text: 'Bọ là nhất!', face: 'bug_catcher_e', trainerId: 'bug_catcher_rick' },
+      { x: 10, y: 4, kind: 'talk', sprite: 'steven', name: 'Rocket Grunt', text: 'Cút khỏi đây, nhóc!', face: 'rocket_m' },
     ],
   },
   cave_1: {
@@ -200,8 +200,8 @@ export const MAPS = {
       { x: 0, y: 9, to: 'route_2', tx: 22, ty: 7 },
     ],
     npcs: [
-      { x: 17, y: 14, kind: 'trainer', sprite: 'wallace', name: 'Rocket Duo', text: 'Bọn ta đang bận đào đá quý!', trainerId: 'rocket_2' },
-      { x: 12, y: 11, kind: 'talk', sprite: 'wattson', name: 'Hiker', text: 'Lối mòn này gió lớn, cẩn thận đấy!' },
+      { x: 17, y: 14, kind: 'trainer', sprite: 'wallace', name: 'Rocket Duo', text: 'Bọn ta đang bận đào đá quý!', face: 'rocket_f', trainerId: 'rocket_2' },
+      { x: 12, y: 11, kind: 'talk', sprite: 'wattson', name: 'Hiker', text: 'Lối mòn này gió lớn, cẩn thận đấy!', face: 'hiker' },
     ],
   },
   lake_1: {
@@ -238,7 +238,7 @@ export const MAPS = {
       { x: 16, y: 16, to: 'pc_lake', tx: 6, ty: 8 },
     ],
     npcs: [
-      { x: 20, y: 8, kind: 'talk', sprite: 'winona', name: 'Swimmer', text: 'Nghe nói có Gyarados khổng lồ dưới hồ này...' },
+      { x: 20, y: 8, kind: 'talk', sprite: 'winona', name: 'Swimmer', text: 'Nghe nói có Gyarados khổng lồ dưới hồ này...', face: 'swimmer_f' },
     ],
   },
   pc_town: {
@@ -262,7 +262,7 @@ export const MAPS = {
       { x: 7, y: 8, to: 'town_1', tx: 5, ty: 7 },
     ],
     spots: [
-      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.' },
+      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy' },
       { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Pokémon. Mở hộp chứa nhé?' },
     ],
     npcs: [
@@ -289,7 +289,7 @@ export const MAPS = {
       { x: 4, y: 7, to: 'town_1', tx: 16, ty: 7 },
     ],
     spots: [
-      { x: 2, y: 3, kind: 'shop', name: 'Poké Mart', text: 'Chào mừng! Bạn cần mua gì nào?' },
+      { x: 2, y: 3, kind: 'shop', name: 'Poké Mart', text: 'Chào mừng! Bạn cần mua gì nào?', sprite: 'mart_clerk' },
     ],
     npcs: [
       { x: 1, y: 2, kind: 'deco', sprite: 'mart_clerk', name: 'Clerk', text: '' },
@@ -316,7 +316,7 @@ export const MAPS = {
       { x: 7, y: 8, to: 'lake_1', tx: 16, ty: 17 },
     ],
     spots: [
-      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.' },
+      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy' },
       { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Pokémon. Mở hộp chứa nhé?' },
     ],
     npcs: [

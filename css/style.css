@@ -1380,3 +1380,13 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .px-icon { image-rendering: pixelated; object-fit: contain; }
 /* Anh hop Pokemon (pokesprite) von 68x56 va co nhieu khoang trong — phong to cho can doi */
 .dex-ico { transform: scale(1.25); transform-origin: center; }
+
+/* Chan dung lay tu sprite ban do: cat dung o "dung nhin xuong" (cot 0, hang 0)
+   trong luoi 3 cot x 4 hang cua assets/ow/*.png */
+.cutscene-face.ow-face {
+  background-repeat: no-repeat;
+  background-size: 288px 512px;   /* 3 o x 96px, 4 o x 128px */
+  background-position: 0 0;
+  width: 96px; height: 128px;
+  top: -116px;
+}

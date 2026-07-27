@@ -222,7 +222,11 @@ export function render(el) {
     if (!thing) return;
     busy = true;
     try {
-      if (thing.text) await playDialog([['sys', `${thing.name}: "${thing.text}"`]]);
+      // Nói chuyện thì hiện chân dung: ảnh 2D nếu có, không thì phóng to sprite trên bản đồ
+      if (thing.text) {
+        const who = { name: thing.name, img: thing.face || null, ow: thing.face ? null : (thing.sprite || null) };
+        await playDialog([[who, thing.text]]);
+      }
       switch (thing.kind) {
         case 'heal':
           G.p.party.forEach(m => heal(m));

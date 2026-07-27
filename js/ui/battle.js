@@ -449,6 +449,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
   updateAll();
   if (kind === 'trainer' && trainer) {
     log(`${trainer.name} muốn thách đấu!`);
+    // Lời khiêu chiến kèm ảnh 2D của huấn luyện viên
+    if (trainer.intro) {
+      playDialog([[{ name: trainer.name, img: trainer.sprite }, trainer.intro]]);
+    }
   } else {
     const m = eMon();
     log(`Một ${displayName(m)} hoang dã${m.shiny ? ' (Shiny)' : ''} xuất hiện!`);

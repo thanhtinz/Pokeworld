@@ -29,6 +29,16 @@ def rows(g):
 
 MAPS = {}
 
+# Sprite tren ban do -> anh 2D trong assets/trainers/ (hien khi noi chuyen).
+# Ai khong co anh 2D thi de trong, luc do hop thoai phong to sprite ban do len.
+FACE = {
+    'juan': 'oak', 'roxanne': 'lass', 'liza': 'youngster', 'tate': 'youngster',
+    'flannery': 'lass', 'sidney': 'camper_e', 'phoebe': 'bug_catcher',
+    'brawly': 'bug_catcher_e', 'steven': 'rocket_m', 'wallace': 'rocket_f',
+    'wattson': 'hiker', 'winona': 'swimmer_f',
+}
+
+
 # ---------------- 1. Thi tran khoi dau ----------------
 g = blank(); border(g)
 rect(g, 3, 7, 18, 1, '-')        # duong ngang truoc Trung tam & Mart
@@ -198,8 +208,8 @@ def pokecenter(mid, name, back, bx, by):
         image='assets/interiors/pokecenter.png',
         warps=[(6, 8, back, bx, by), (7, 8, back, bx, by)],
         npcs=[(6, 2, 'deco', 'nurse_joy', 'Nurse Joy', '')],
-        spots=[(6, 3, 'heal', 'Nurse Joy', 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.'),
-               (9, 3, 'pc', 'PC', 'Máy gửi Pokémon. Mở hộp chứa nhé?')],
+        spots=[(6, 3, 'heal', 'Nurse Joy', 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', 'nurse_joy'),
+               (9, 3, 'pc', 'PC', 'Máy gửi Pokémon. Mở hộp chứa nhé?', None)],
     )
 
 def martmap(mid, name, back, bx, by):
@@ -208,7 +218,7 @@ def martmap(mid, name, back, bx, by):
         image='assets/interiors/mart.png',
         warps=[(3, 7, back, bx, by), (4, 7, back, bx, by)],
         npcs=[(1, 2, 'deco', 'mart_clerk', 'Clerk', '')],
-        spots=[(2, 3, 'shop', 'Poké Mart', 'Chào mừng! Bạn cần mua gì nào?')],
+        spots=[(2, 3, 'shop', 'Poké Mart', 'Chào mừng! Bạn cần mua gì nào?', 'mart_clerk')],
     )
 
 pokecenter('pc_town', 'Trung Tâm Pokémon', 'town_1', 5, 7)
@@ -312,14 +322,16 @@ for mid, m in MAPS.items():
     if m.get('spots'):
         out.append("    spots: [")
         for sp in m['spots']:
-            out.append("      { x: %d, y: %d, kind: %s, name: %s, text: %s },"
-                       % (sp[0], sp[1], js_str(sp[2]), js_str(sp[3]), js_str(sp[4])))
+            spr = (", sprite: %s" % js_str(sp[5])) if len(sp) > 5 and sp[5] else ""
+            out.append("      { x: %d, y: %d, kind: %s, name: %s, text: %s%s },"
+                       % (sp[0], sp[1], js_str(sp[2]), js_str(sp[3]), js_str(sp[4]), spr))
         out.append("    ],")
     out.append("    npcs: [")
     for n in m['npcs']:
         tid = (", trainerId: %s" % js_str(n[6])) if len(n) > 6 else ""
-        out.append("      { x: %d, y: %d, kind: %s, sprite: %s, name: %s, text: %s%s },"
-                   % (n[0], n[1], js_str(n[2]), js_str(n[3]), js_str(n[4]), js_str(n[5]), tid))
+        fc = (", face: %s" % js_str(FACE[n[3]])) if FACE.get(n[3]) else ""
+        out.append("      { x: %d, y: %d, kind: %s, sprite: %s, name: %s, text: %s%s%s },"
+                   % (n[0], n[1], js_str(n[2]), js_str(n[3]), js_str(n[4]), js_str(n[5]), fc, tid))
     out.append("    ],")
     out.append("  },")
 out.append("};")
