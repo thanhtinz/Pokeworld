@@ -236,6 +236,180 @@ try {
   const pvpLog = await api('/api/admin/pvp', { token: admToken });
   ok('lịch sử PvP được lưu', pvpLog.data.rows.length === 1);
 
+  // ==== Bang hội ====
+  // AshK vừa bị trừ tiền còn 999999₽; nạp lại mốc tiền cố định để kiểm tra trừ phí chính xác
+  await api('/api/save', { method: 'PUT', token: tokenA, body: { name: 'AshK', money: 200000, party: [{ sp: 25, lv: 50, iv: [31, 31, 31, 31, 31, 31], ev: [0, 0, 0, 0, 0, 0], moves: [{ id: 'thunderbolt', pp: 15 }], hpCur: 100, exp: 0 }], box: [], bag: {}, badges: [], dex: { seen: { 25: true }, caught: { 25: true } } } });
+
+  const gCreate = await api('/api/guild/create', { method: 'POST', body: { name: 'Doi Sam Set', tag: 'zap', desc: 'Bang hoi test', icon: 3 }, token: tokenA });
+  ok('tạo bang hội', gCreate.status === 200 && gCreate.data.guild?.tag === 'ZAP', JSON.stringify(gCreate.data));
+  const guildId = gCreate.data.guild?.id;
+
+  const afterCreate = await api('/api/me', { token: tokenA });
+  ok('trừ 10000₽ phí lập bang hội', afterCreate.data.save.money === 190000, String(afterCreate.data.save.money));
+
+  const dupTag = await api('/api/guild/create', { method: 'POST', body: { name: 'Bang Khac', tag: 'ZAP' }, token: tokenB });
+  ok('chặn tag trùng', dupTag.status === 400, JSON.stringify(dupTag.data));
+
+  const twice = await api('/api/guild/create', { method: 'POST', body: { name: 'Bang Thu Hai', tag: 'TWO' }, token: tokenA });
+  ok('chặn tạo guild thứ 2', twice.status === 400);
+
+  const badTag = await api('/api/guild/create', { method: 'POST', body: { name: 'Bang Loi', tag: 'X' }, token: tokenB });
+  ok('chặn tag sai định dạng', badTag.status === 400);
+
+  const gList = await api('/api/guild/list?q=zap', { token: tokenB });
+  ok('tìm bang hội trong danh sách', gList.data.rows.length === 1 && gList.data.rows[0].tag === 'ZAP');
+
+  const gPub = await api(`/api/guild/${guildId}`, { token: tokenB });
+  ok('xem thông tin công khai bang hội', gPub.data.guild?.name === 'Doi Sam Set' && gPub.data.guild.leader === 'AshK');
+
+  // Chuyển sang chế độ duyệt đơn
+  const setApproval = await api('/api/guild/settings', { method: 'PUT', body: { joinPolicy: 'approval', announcement: 'Chao mung' }, token: tokenA });
+  ok('đổi chế độ gia nhập sang duyệt đơn', setApproval.status === 200 && setApproval.data.guild.joinPolicy === 'approval');
+
+  const applyB = await api(`/api/guild/${guildId}/join`, { method: 'POST', token: tokenB });
+  ok('nộp đơn xin vào bang hội', applyB.status === 200 && applyB.data.pending === true, JSON.stringify(applyB.data));
+
+  const mineWithApp = await api('/api/guild/mine', { token: tokenA });
+  ok('leader thấy đơn xin vào', mineWithApp.data.guild.applicants.length === 1 && mineWithApp.data.guild.applicants[0].username === 'MistyW');
+
+  const mistyId = mineWithApp.data.guild.applicants[0].userId;
+  const approve = await api(`/api/guild/${guildId}/applicant/${mistyId}`, { method: 'POST', body: { accept: true }, token: tokenA });
+  ok('leader duyệt đơn', approve.status === 200 && approve.data.result.accepted);
+
+  const mine2 = await api('/api/guild/mine', { token: tokenA });
+  ok('số thành viên tăng lên 2', mine2.data.guild.memberList.length === 2, JSON.stringify(mine2.data.guild.memberList));
+  ok('thành viên mới có vai trò member', mine2.data.guild.memberList.find(m => m.username === 'MistyW')?.role === 'member');
+
+  const mineB = await api('/api/guild/mine', { token: tokenB });
+  ok('thành viên xem được bang hội của mình', mineB.data.guild?.tag === 'ZAP' && mineB.data.role === 'member');
+  ok('bonus guild theo cấp', Math.abs(mineB.data.bonus.expMult - 1.02) < 1e-9, JSON.stringify(mineB.data.bonus));
+
+  // Góp quỹ: 30000₽ -> 300 exp -> lên cấp 2 (cần 1000 exp/cấp thì chưa lên), thử mốc lớn hơn
+  const don1 = await api('/api/guild/donate', { method: 'POST', body: { amount: 30000 }, token: tokenA });
+  ok('góp quỹ thành công', don1.status === 200 && don1.data.treasury === 30000, JSON.stringify(don1.data));
+  ok('trừ tiền người góp', don1.data.money === 160000);
+  ok('cộng cống hiến', don1.data.contribution === 30000);
+  ok('cộng exp guild (1 exp/100₽)', don1.data.exp === 300 && don1.data.level === 1, JSON.stringify(don1.data));
+
+  const tooMuch = await api('/api/guild/donate', { method: 'POST', body: { amount: 999999 }, token: tokenA });
+  ok('chặn góp quá số tiền đang có', tooMuch.status === 400);
+
+  const don2 = await api('/api/guild/donate', { method: 'POST', body: { amount: 70000 }, token: tokenA });
+  ok('guild lên cấp khi đủ exp', don2.data.level === 2 && don2.data.exp === 0, JSON.stringify(don2.data));
+
+  const mine3 = await api('/api/guild/mine', { token: tokenA });
+  ok('maxMembers tăng theo cấp', mine3.data.guild.maxMembers === 24, String(mine3.data.guild.maxMembers));
+  ok('bonus tăng theo cấp', Math.abs(mine3.data.bonus.expMult - 1.04) < 1e-9);
+
+  // ==== Chat bang hội qua socket ====
+  const gMsgA = waitFor(sockA, 'guild:msg');
+  const gMsgB = waitFor(sockB, 'guild:msg');
+  sockB.emit('guild:send', { text: 'Chao ca bang!' });
+  const [gA, gB] = [await gMsgA, await gMsgB];
+  ok('cả 2 thành viên nhận chat bang hội', gA?.text === 'Chao ca bang!' && gB?.text === 'Chao ca bang!' && gA.from === 'MistyW');
+
+  const gHist = await api('/api/guild/chat?limit=50', { token: tokenA });
+  ok('lịch sử chat bang hội có tin vừa gửi', gHist.data.rows.some(r => r.text === 'Chao ca bang!'));
+  ok('chat bang hội có tin hệ thống khi thành viên vào', gHist.data.rows.some(r => r.system));
+
+  // Người ngoài guild
+  const r3 = await api('/api/auth/register', { method: 'POST', body: { username: 'BrockH', password: 'secret4', avatar: 'red' } });
+  ok('đăng ký user 3', r3.status === 200);
+  const tokenC = r3.data.token;
+  const sockC = ioClient(BASE, { auth: { token: tokenC }, transports: ['websocket'] });
+  await waitFor(sockC, 'welcome');
+
+  const outErr = waitFor(sockC, 'chat:error', 2000);
+  sockC.emit('guild:send', { text: 'Toi khong o bang nao' });
+  ok('người ngoài guild không chat được', !!(await outErr));
+
+  const outHist = await api('/api/guild/chat', { token: tokenC });
+  ok('người ngoài guild không xem được lịch sử', outHist.status === 400);
+
+  // ==== Chức vụ / đuổi / rời ====
+  const promo = await api(`/api/guild/promote/${mistyId}`, { method: 'POST', body: { role: 'officer' }, token: tokenA });
+  ok('leader thăng chức officer', promo.status === 200 && promo.data.result.role === 'officer');
+
+  const promoByMember = await api(`/api/guild/promote/${mistyId}`, { method: 'POST', body: { role: 'member' }, token: tokenB });
+  ok('không phải leader thì không đổi chức vụ được', promoByMember.status === 400);
+
+  // BrockH vào guild (mở lại chế độ open), rồi bị officer đuổi
+  await api('/api/guild/settings', { method: 'PUT', body: { joinPolicy: 'open' }, token: tokenA });
+  const joinC = await api(`/api/guild/${guildId}/join`, { method: 'POST', token: tokenC });
+  ok('vào thẳng guild khi joinPolicy = open', joinC.status === 200 && joinC.data.pending === false);
+
+  const brockId = (await api('/api/guild/mine', { token: tokenA })).data.guild.memberList.find(m => m.username === 'BrockH')?.userId;
+  const kickLeader = await api(`/api/guild/kick/${(await api('/api/guild/mine', { token: tokenA })).data.guild.memberList.find(m => m.role === 'leader').userId}`, { method: 'POST', token: tokenB });
+  ok('officer không đuổi được leader', kickLeader.status === 400);
+
+  const kickC = await api(`/api/guild/kick/${brockId}`, { method: 'POST', token: tokenB });
+  ok('officer đuổi được thành viên thường', kickC.status === 200);
+
+  const mine4 = await api('/api/guild/mine', { token: tokenA });
+  ok('guild còn 2 thành viên sau khi đuổi', mine4.data.guild.memberList.length === 2);
+
+  const leaderLeave = await api('/api/guild/leave', { method: 'POST', token: tokenA });
+  ok('leader chưa chuyển quyền thì không rời được', leaderLeave.status === 400);
+
+  const leaveB = await api('/api/guild/leave', { method: 'POST', token: tokenB });
+  ok('thành viên rời bang hội', leaveB.status === 200 && leaveB.data.result.left);
+
+  const mineBAfter = await api('/api/guild/mine', { token: tokenB });
+  ok('người đã rời không còn bang hội', mineBAfter.data.guild === null);
+
+  // ==== Tin nhắn riêng (DM) ====
+  const dmIn = waitFor(sockB, 'dm:msg');
+  sockA.emit('dm:send', { to: 'MistyW', text: 'Chao ban nhe!' });
+  const dmMsg = await dmIn;
+  ok('người nhận nhận được DM', dmMsg?.text === 'Chao ban nhe!' && dmMsg.from === 'AshK', JSON.stringify(dmMsg));
+
+  await sleep(1100);
+  const dmIn2 = waitFor(sockA, 'dm:msg');
+  sockB.emit('dm:send', { to: 'AshK', text: 'Chao lai ban!' });
+  ok('gửi DM chiều ngược lại', (await dmIn2)?.text === 'Chao lai ban!');
+
+  const dmListA = await api('/api/chat/dm', { token: tokenA });
+  ok('danh sách hội thoại có MistyW', dmListA.data.rows.length === 1 && dmListA.data.rows[0].username === 'MistyW', JSON.stringify(dmListA.data.rows));
+  ok('đếm tin chưa đọc', dmListA.data.rows[0].unread === 1, String(dmListA.data.rows[0].unread));
+  ok('tin cuối đúng nội dung', dmListA.data.rows[0].last.text === 'Chao lai ban!');
+
+  const dmHistA = await api('/api/chat/dm/MistyW?limit=50', { token: tokenA });
+  ok('lịch sử DM đủ 2 tin', dmHistA.data.rows.length === 2 && dmHistA.data.rows[0].text === 'Chao ban nhe!');
+
+  const dmListA2 = await api('/api/chat/dm', { token: tokenA });
+  ok('mở hội thoại thì hết tin chưa đọc', dmListA2.data.rows[0].unread === 0);
+
+  await sleep(1100);
+  const dmSpam = waitFor(sockA, 'chat:error', 2000);
+  sockA.emit('dm:send', { to: 'MistyW', text: 'spam 1' });
+  sockA.emit('dm:send', { to: 'MistyW', text: 'spam 2' });
+  ok('chống spam DM (1 tin/giây)', !!(await dmSpam));
+
+  await sleep(1100);
+  const dmNoUser = waitFor(sockA, 'chat:error', 2000);
+  sockA.emit('dm:send', { to: 'KhongTonTai', text: 'hello' });
+  ok('DM tới người không tồn tại bị chặn', !!(await dmNoUser));
+
+  // ==== Admin: bang hội ====
+  const admGuilds = await api('/api/admin/guilds', { token: admToken });
+  ok('admin xem danh sách bang hội', admGuilds.data.rows.length === 1 && admGuilds.data.rows[0].tag === 'ZAP', JSON.stringify(admGuilds.data.rows));
+  ok('admin thấy quỹ và hội trưởng', admGuilds.data.rows[0].treasury === 100000 && admGuilds.data.rows[0].leader === 'AshK');
+  ok('admin thấy danh sách thành viên', admGuilds.data.rows[0].memberList.length === 1);
+
+  const admStats2 = await api('/api/admin/stats', { token: admToken });
+  ok('thống kê admin đếm bang hội', admStats2.data.guilds === 1);
+
+  const disband = await api(`/api/admin/guild/${guildId}`, { method: 'DELETE', token: admToken });
+  ok('admin giải tán bang hội', disband.status === 200);
+
+  const admGuilds2 = await api('/api/admin/guilds', { token: admToken });
+  ok('bang hội đã bị xóa', admGuilds2.data.rows.length === 0);
+
+  const mineAfterDisband = await api('/api/guild/mine', { token: tokenA });
+  ok('leader không còn bang hội sau khi giải tán', mineAfterDisband.data.guild === null);
+
+  sockC.close();
+
   // ==== Lưu xuống đĩa ====
   await api('/api/admin/flush', { method: 'POST', token: admToken });
   ok('DB ghi ra file', fs.existsSync(path.join(DATA_DIR, 'db.json')));

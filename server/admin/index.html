@@ -161,6 +161,7 @@ function renderDash(s) {
       <div class="stat"><b>${fmt(s.newToday)}</b><span>Đăng ký mới 24h</span></div>
       <div class="stat"><b>${fmt(s.pvpToday)}</b><span>Trận PvP 24h</span></div>
       <div class="stat"><b>${fmt(s.marriages)}</b><span>Cặp đôi</span></div>
+      <div class="stat"><b>${fmt(s.guilds)}</b><span>Bang hội</span></div>
       <div class="stat"><b style="color:var(--accent)">${fmt(s.banned)}</b><span>Bị khóa</span></div>
     </div>
     <div class="card">
@@ -249,6 +250,68 @@ async function delPlayer(id, name) {
   if (!confirm('Chắc chắn chứ?')) return;
   await api(`/player/${id}`, { method: 'DELETE' });
   toast('Đã xóa'); loadTab();
+}
+
+let guildRows = [];
+const ROLE_VI = { leader: 'Hội trưởng', officer: 'Phó hội', member: 'Thành viên' };
+function renderGuilds(d) {
+  guildRows = d.rows || [];
+  $('#view').innerHTML = `
+    <div class="card">
+      <div class="row" style="margin-bottom:12px">
+        <input id="gq" placeholder="Tìm theo tên hoặc tag..." style="flex:1" oninput="searchGuilds()">
+        <span class="muted">Tổng: ${fmt(d.total)}</span>
+      </div>
+      <div style="overflow:auto">
+      <table>
+        <thead><tr><th>Tên</th><th>Tag</th><th>Cấp</th><th>Thành viên</th><th>Quỹ</th><th>Hội trưởng</th><th>Lập ngày</th><th>Thao tác</th></tr></thead>
+        <tbody>
+          ${guildRows.map((g, i) => `
+          <tr>
+            <td><b>${esc(g.name)}</b><br><span class="muted" style="font-size:11px">icon ${g.icon}</span></td>
+            <td>[${esc(g.tag)}]</td>
+            <td>${g.level}</td>
+            <td>${g.members}/${g.maxMembers}</td>
+            <td>${fmt(g.treasury)}₽</td>
+            <td>${esc(g.leader)}</td>
+            <td class="muted" style="font-size:12px">${dt(g.createdAt)}</td>
+            <td class="row">
+              <button onclick="showGuildMembers(${i})">Thành viên</button>
+              <button class="danger" onclick="disbandGuild('${g.id}','${esc(g.name)}')">Giải tán</button>
+            </td>
+          </tr>`).join('') || '<tr><td colspan="8" class="muted">Chưa có bang hội nào</td></tr>'}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div id="gmembers"></div>`;
+}
+let guildSearchTimer;
+function searchGuilds() {
+  clearTimeout(guildSearchTimer);
+  guildSearchTimer = setTimeout(async () => {
+    const q = $('#gq').value;
+    const d = await api('/guilds?q=' + encodeURIComponent(q));
+    renderGuilds(d);
+    $('#gq').value = q; $('#gq').focus();
+  }, 300);
+}
+function showGuildMembers(i) {
+  const g = guildRows[i];
+  if (!g) return;
+  $('#gmembers').innerHTML = `
+    <div class="card">
+      <h3 style="margin-bottom:10px">Thành viên — ${esc(g.name)} [${esc(g.tag)}]</h3>
+      <table><thead><tr><th>Tên</th><th>Chức vụ</th><th>Cống hiến</th><th>Gia nhập</th></tr></thead><tbody>
+      ${g.memberList.map(m => `<tr><td><b>${esc(m.username)}</b></td><td>${ROLE_VI[m.role] || esc(m.role)}</td>
+        <td>${fmt(m.contribution)}₽</td><td class="muted" style="font-size:12px">${dt(m.joinedAt)}</td></tr>`).join('')}
+      </tbody></table>
+    </div>`;
+}
+async function disbandGuild(id, name) {
+  if (!confirm(`Giải tán bang hội ${name}? Không thể hoàn tác!`)) return;
+  await api('/guild/' + id, { method: 'DELETE' });
+  toast('Đã giải tán bang hội'); loadTab();
 }
 
 function renderConfig(s) {

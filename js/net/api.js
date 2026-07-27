@@ -55,6 +55,25 @@ export const proposeMarriage = (username) => call('/marriage/propose', { method:
 export const respondMarriage = (accept) => call('/marriage/respond', { method: 'POST', body: { accept } });
 export const divorce = () => call('/marriage', { method: 'DELETE' });
 
+// ==== Bang hội ====
+export const createGuild = (name, tag, desc, icon) => call('/guild/create', { method: 'POST', body: { name, tag, desc, icon } });
+export const listGuilds = (q = '') => call(`/guild/list?q=${encodeURIComponent(q)}`);
+export const myGuild = () => call('/guild/mine');
+export const guildInfo = (id) => call(`/guild/${encodeURIComponent(id)}`);
+export const joinGuild = (id) => call(`/guild/${encodeURIComponent(id)}/join`, { method: 'POST' });
+export const respondApplicant = (id, userId, accept) => call(`/guild/${encodeURIComponent(id)}/applicant/${encodeURIComponent(userId)}`, { method: 'POST', body: { accept } });
+export const leaveGuild = () => call('/guild/leave', { method: 'POST' });
+export const kickMember = (userId) => call(`/guild/kick/${encodeURIComponent(userId)}`, { method: 'POST' });
+export const promoteMember = (userId, role) => call(`/guild/promote/${encodeURIComponent(userId)}`, { method: 'POST', body: { role } });
+export const donateGuild = (amount) => call('/guild/donate', { method: 'POST', body: { amount } });
+export const updateGuildSettings = (settings) => call('/guild/settings', { method: 'PUT', body: settings });
+export const disbandGuild = () => call('/guild/disband', { method: 'POST' });
+
+// ==== Tin nhắn ====
+export const fetchDmList = () => call('/chat/dm');
+export const fetchDmHistory = (username, limit = 50) => call(`/chat/dm/${encodeURIComponent(username)}?limit=${limit}`);
+export const fetchGuildChat = (limit = 50) => call(`/guild/chat?limit=${limit}`);
+
 // Tự đồng bộ save lên máy chủ (gọi định kỳ, im lặng khi lỗi mạng)
 let syncTimer = null;
 export function startAutoSync(getSave, ms = 30000) {

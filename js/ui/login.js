@@ -31,11 +31,11 @@ function drawList(el, accounts) {
               <b>${esc(a.user)}</b>
               <small>${a.save ? `Lv cao nhất ${Math.max(1, ...(a.save.party || []).map(m => m.lv || 1))} · ${(a.save.badges || []).length} huy hiệu` : 'Chưa bắt đầu'}</small>
             </span>
-            ${a.hasPass ? '<span class="login-lock">🔒</span>' : ''}
+            ${a.hasPass ? '<span class="login-lock">Có mật khẩu</span>' : ''}
           </button>`).join('')}
       </div>
 
-      <button class="btn btn-primary btn-big" id="btn-register">＋ Tạo tài khoản mới</button>
+      <button class="btn btn-primary btn-big" id="btn-register">Tạo tài khoản mới</button>
     </div>`;
 
   el.querySelectorAll('.login-acc').forEach(btn => {
@@ -72,7 +72,7 @@ function drawLogin(el, acc) {
       <div class="card name-card">
         <label for="login-pass">Mật khẩu</label>
         <input id="login-pass" type="password" placeholder="Nhập mật khẩu" autocomplete="current-password">
-        <button class="btn btn-primary" id="btn-login">Đăng nhập ▸</button>
+        <button class="btn btn-primary" id="btn-login">Đăng nhập</button>
         <button class="btn" id="btn-back-list">‹ Chọn tài khoản khác</button>
       </div>
     </div>`;
@@ -114,7 +114,7 @@ function drawRegister(el) {
         <input id="reg-pass" type="password" autocomplete="new-password" placeholder="Mật khẩu">
         <label for="reg-pass2">Nhập lại mật khẩu</label>
         <input id="reg-pass2" type="password" autocomplete="new-password" placeholder="Nhập lại">
-        <button class="btn btn-primary" id="btn-do-register">Tạo & vào game ▸</button>
+        <button class="btn btn-primary" id="btn-do-register">Tạo tài khoản & vào game</button>
         <button class="btn" id="btn-back-list">‹ Quay lại</button>
       </div>
       <p class="login-note">Tài khoản lưu trên thiết bị này. Đừng quên mật khẩu — không có cách khôi phục!</p>

@@ -10,12 +10,12 @@ import { esc } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 
 const TABS = [
-  ['medicine', '💊 Thuốc'],
-  ['ball', '⚪ Bóng'],
-  ['stone', '💎 Đá'],
-  ['candy', '🍬 Kẹo'],
-  ['berry', '🍓 Quả'],
-  ['held', '🎗️ Cầm'],
+  ['medicine', 'Thuốc'],
+  ['ball', 'Bóng'],
+  ['stone', 'Đá tiến hóa'],
+  ['candy', 'Kẹo'],
+  ['berry', 'Quả mọng'],
+  ['held', 'Vật cầm'],
 ];
 
 export function render(el) {
@@ -38,7 +38,7 @@ export function render(el) {
           const it = ITEMS[id];
           return `
           <button class="card item-row" data-id="${esc(id)}">
-            ${itemIcon(id, it.icon || '🎁')}
+            ${itemIcon(id)}
             <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
             <span class="item-n">×${G.p.bag[id]}</span>
           </button>`;
@@ -88,7 +88,7 @@ export function render(el) {
       evolve(mon, dex);
       markCaught(mon.sp);
       removeItem(id, 1);
-      toast(`🎉 Tiến hóa thành ${SPECIES[mon.sp] ? SPECIES[mon.sp].name : '?'}!`);
+      toast(`Tiến hóa thành ${SPECIES[mon.sp] ? SPECIES[mon.sp].name : '?'}!`);
       save(); draw();
       return;
     }
@@ -121,7 +121,7 @@ export function render(el) {
         if (await confirmDlg(`${displayName(mon)} muốn tiến hóa thành ${to ? to.name : '?'}!`, 'Tiến hóa!')) {
           evolve(mon, dex);
           markCaught(mon.sp);
-          toast(`🎉 Tiến hóa thành ${SPECIES[mon.sp] ? SPECIES[mon.sp].name : '?'}!`);
+          toast(`Tiến hóa thành ${SPECIES[mon.sp] ? SPECIES[mon.sp].name : '?'}!`);
         }
       }
       save(); draw();

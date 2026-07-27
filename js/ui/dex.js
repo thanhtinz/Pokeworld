@@ -28,7 +28,7 @@ export function render(el) {
             <span class="lv-chip">#${String(id).padStart(3, '0')}</span>
             <img src="${spriteUrl(id)}" width="56" height="56" alt="" loading="lazy">
             <span class="dex-name">${seenIt ? esc(s.name) : '?'}</span>
-            ${caughtIt ? '<span class="dex-check">✓</span>' : ''}
+            ${caughtIt ? '<span class="dex-check" title="Đã bắt"></span>' : ''}
           </button>`;
         }).join('')}
       </div>`;
@@ -92,7 +92,7 @@ export function render(el) {
         <h3>Tiến hóa</h3>
         <div class="evo-chain">
           ${chain.map((d, i) => `
-            ${i > 0 ? '<span class="evo-arrow">→</span>' : ''}
+            ${i > 0 ? '<span class="evo-arrow"></span>' : ''}
             <span class="evo-node ${G.p.dex.seen[d] ? '' : 'silhouette'}">
               <img src="${spriteUrl(d)}" width="56" height="56" alt="">
               <small>${G.p.dex.seen[d] ? esc(SPECIES[d] ? SPECIES[d].name : '?') : '?'}</small>

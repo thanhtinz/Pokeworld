@@ -25,7 +25,7 @@ export function render(el) {
       <div class="card name-card" id="name-card">
         <label for="trainer-name">Tên nhà huấn luyện</label>
         <input id="trainer-name" type="text" maxlength="12" placeholder="Nhập tên (tối đa 12 ký tự)" autocomplete="off">
-        <button class="btn btn-primary" id="btn-name">Bắt đầu ▸</button>
+        <button class="btn btn-primary" id="btn-name">Bắt đầu</button>
       </div>`}
 
       <div class="starter-pick ${hasPlayer ? '' : 'hidden'}" id="starter-pick">

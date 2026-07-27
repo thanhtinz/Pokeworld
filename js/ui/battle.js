@@ -12,7 +12,7 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
 import { monSprite, animSprite, esc, sleep, fmt } from '../util.js';
-import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag } from './kit.js';
+import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
@@ -21,7 +21,7 @@ import { show } from '../main.js';
 async function storyDone(ch) {
   if (!ch) return;
   if (ch.outro?.length) await playDialog(ch.outro);
-  toast(`🏆 ${ch.title} hoàn thành!`);
+  toast(`${ch.title} hoàn thành!`);
 }
 
 export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {}) {
@@ -93,10 +93,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     const m = eMon();
     if (!m) { $enemy.innerHTML = ''; return; }
     const balls = kind === 'trainer'
-      ? `<span class="tr-balls">${b.sides[1].mons.map(x => isFainted(x) ? '○' : '●').join('')}</span>` : '';
+      ? `<span class="tr-balls">${b.sides[1].mons.map(x => `<i class="tr-ball${isFainted(x) ? ' ko' : ''}"></i>`).join('')}</span>` : '';
     $enemy.innerHTML = `
       <div class="bt-info">
-        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' ✨' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
+        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
@@ -114,7 +114,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
       <img class="bt-sprite bt-sprite-me ${isFainted(m) ? 'faint' : ''}" src="${animSprite(m, true)}"
            onerror="this.onerror=null;this.src='${monSprite(m, true)}'" alt="${esc(displayName(m))}">
       <div class="bt-info">
-        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' ✨' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
+        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, mx)}</div>
         <div class="bt-hpnum"><span class="hp-txt">${m.hpCur}/${mx}</span></div>
         <div class="bt-row"><span class="bt-lab">EXP</span><div class="expbar"><div class="expbar-fill" style="width:${expPct}%"></div></div></div>
@@ -163,9 +163,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
         ${m.moves.length === 0 ? '<div class="log-line">Không còn chiêu nào!</div>' : ''}
       </div>
       <div class="bt-subrow">
-        <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>🎒 Túi</button>
-        <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>🔄 Đổi</button>
-        ${kind === 'wild' ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}>🏃 Chạy</button>` : ''}
+        <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>${itemIcon('berry_pouch', '', 22)} Túi</button>
+        <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>${itemIcon('poke_ball', '', 22)} Đổi</button>
+        ${kind === 'wild' ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}>${itemIcon('escape_rope', '', 22)} Chạy</button>` : ''}
       </div>`;
     $act.querySelectorAll('.move-btn').forEach(btn =>
       btn.addEventListener('click', () => playerAct({ t: 'move', i: Number(btn.dataset.mv) })));
@@ -185,9 +185,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
       return it && (it.kind === 'ball' || it.kind === 'medicine') && G.p.bag[id] > 0;
     });
     if (!ids.length) { toast('Không có vật phẩm dùng được trong trận!'); return; }
-    const i = await choose('🎒 Túi đồ', ids.map(id => {
+    const i = await choose('Túi đồ', ids.map(id => {
       const it = ITEMS[id];
-      return { label: `${it.icon || '🎁'} ${it.name} ×${G.p.bag[id]}`, sub: it.desc || '' };
+      return { html: `${itemIcon(id, '', 22)} ${esc(it.name)} ×${G.p.bag[id]}`, label: `${it.name} ×${G.p.bag[id]}`, sub: it.desc || '' };
     }));
     if (i === null || busy || ended) return;
     const id = ids[i];
@@ -205,7 +205,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
   async function openSwitch() {
     if (busy || ended) return;
     const act = pIdx();
-    const i = await choose('🔄 Đổi Pokémon', G.p.party.map((m, idx) => ({
+    const i = await choose('Đổi Pokémon', G.p.party.map((m, idx) => ({
       label: `${displayName(m)} Lv.${m.lv}`,
       sub: `HP ${m.hpCur}/${maxHp(m)}${idx === act ? ' · đang ra trận' : ''}`,
       disabled: isFainted(m) || idx === act,
@@ -317,7 +317,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     if (spr) spr.classList.add('hidden');
     const ball = document.createElement('div');
     ball.className = 'ball-anim';
-    ball.textContent = '⚪';
+    ball.textContent = '';
     $enemy.appendChild(ball);
     await sleep(350);
     const shakes = ev.shakes ?? 0;
@@ -327,8 +327,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     }
     if (ev.caught) {
       caught = true;
-      ball.textContent = '🔴';
-      log(ev.crit ? '✨ Bắt được! (Bắt chí mạng!)' : '✨ Bắt được!');
+      ball.classList.add('caught');
+      log(ev.crit ? 'Bắt được! (Bắt chí mạng!)' : 'Bắt được!');
       await sleep(750);
     } else {
       ball.remove();
@@ -339,7 +339,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
   }
 
   function questToasts(list) {
-    for (const { quest } of list || []) toast(`🎉 Hoàn thành: ${quest.name}`);
+    for (const { quest } of list || []) toast(`Hoàn thành: ${quest.name}`);
   }
 
   // ==== Kết thúc trận ====
@@ -379,7 +379,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
           if (trainer.kind === 'gym' && trainer.badge) {
             if (!G.p.badges.includes(trainer.badge)) {
               G.p.badges.push(trainer.badge);
-              toast(`🏅 Nhận huy hiệu ${trainer.badgeName || ''}!`);
+              toast(`Nhận huy hiệu ${trainer.badgeName || ''}!`);
               questToasts(emitQuest('earn_badge', { id: trainer.badge }));
               await storyDone(emitStory('earn_badge', { id: trainer.badge }));
             }
@@ -402,7 +402,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
       const lost = Math.floor(G.p.money * 0.05);
       G.p.money -= lost;
       log('Cả đội đã gục hết...');
-      toast(`😵 Bạn tỉnh dậy ở thị trấn. Mất ${fmt(lost)}₽ viện phí.`);
+      toast(`Bạn tỉnh dậy ở thị trấn. Mất ${fmt(lost)}₽ viện phí.`);
     }
 
     // Hỏi thay chiêu khi đã đủ 4 chiêu
@@ -432,13 +432,13 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
       if (ok) {
         evolve(m, dex);
         markCaught(m.sp);
-        toast(`🎉 Tiến hóa thành ${SPECIES[m.sp] ? SPECIES[m.sp].name : '?'}!`);
+        toast(`Tiến hóa thành ${SPECIES[m.sp] ? SPECIES[m.sp].name : '?'}!`);
       }
     }
 
     save();
     updateBars();
-    $act.innerHTML = `<button class="btn btn-primary btn-big" id="bt-cont">Tiếp tục ▸</button>`;
+    $act.innerHTML = `<button class="btn btn-primary btn-big" id="bt-cont">Tiếp tục</button>`;
     $act.querySelector('#bt-cont').addEventListener('click', () => show('home'));
   }
 
@@ -448,6 +448,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null } = {
     log(`${trainer.name} muốn thách đấu!`);
   } else {
     const m = eMon();
-    log(`Một ${displayName(m)} hoang dã${m.shiny ? ' ✨' : ''} xuất hiện!`);
+    log(`Một ${displayName(m)} hoang dã${m.shiny ? ' (Shiny)' : ''} xuất hiện!`);
   }
 }

@@ -17,7 +17,7 @@ export function playDialog(lines) {
         <div class="cutscene-box">
           <div class="cutscene-speaker"></div>
           <div class="cutscene-text"></div>
-          <div class="cutscene-next">▼ chạm để tiếp tục</div>
+          <div class="cutscene-next">chạm để tiếp tục</div>
         </div>
       </div>`;
     wrap.appendChild(overlay);

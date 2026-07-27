@@ -983,3 +983,165 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .cutscene-wrap .cutscene-box { max-width: none; width: 100%; }
 .tr-face { width: 34px; height: 34px; image-rendering: pixelated; vertical-align: middle; }
 .profile-ava { width: 40px; height: 40px; image-rendering: pixelated; vertical-align: middle; }
+
+/* ==== KHONG EMOJI: icon anh that + fix khoang cach nut mobile ==== */
+
+/* Badge he: icon anh 18 he + ten tieng Viet */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px 2px 3px;
+  line-height: 1;
+}
+.type-badge .type-ico {
+  width: 22px; height: 22px;
+  image-rendering: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .45));
+}
+.type-badge .type-name { white-space: nowrap; }
+
+/* Icon asset local dung chung */
+.asset-ico { display: inline-flex; align-items: center; vertical-align: middle; }
+.asset-ico img { image-rendering: pixelated; display: inline-block; }
+
+/* Icon zone + artwork Pokemon tren the */
+.zone-ico { display: inline-flex; align-items: center; vertical-align: -5px; }
+.zone-ico img { display: inline-block; object-fit: contain; }
+.mon-art { image-rendering: auto; object-fit: contain; }
+
+/* Nut "Menu" o thanh nav: 3 gach ke bang CSS, khong dung emoji */
+.nav-burger {
+  position: relative;
+  display: block;
+  width: 20px; height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.nav-burger::before, .nav-burger::after {
+  content: '';
+  position: absolute; left: 0;
+  width: 20px; height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.nav-burger::before { top: -6px; }
+.nav-burger::after { top: 6px; }
+
+/* Icon trong nut: khong lam vo can le chu */
+.btn .item-ico img, .btn .asset-ico img { vertical-align: middle; }
+.btn .item-ico, .btn .asset-ico { margin-right: 4px; vertical-align: -6px; }
+.modal-opt .item-ico, .modal-opt .zone-ico, .modal-opt .asset-ico { margin-right: 6px; }
+
+/* Nhan chu thay cho emoji */
+.shiny-tag, .won-pill, .done-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-family: var(--pix);
+  font-size: .48rem;
+  letter-spacing: .5px;
+  vertical-align: middle;
+}
+.shiny-tag { background: rgba(240, 180, 41, .2); color: var(--gold); border: 1px solid rgba(240, 180, 41, .5); }
+.won-pill { background: rgba(81, 207, 102, .18); color: #b2f2bb; border: 1px solid rgba(81, 207, 102, .5); }
+.done-pill { background: rgba(81, 207, 102, .18); color: #b2f2bb; border: 1px solid rgba(81, 207, 102, .5); margin-left: 6px; }
+.login-lock { color: var(--muted); font-size: .68rem; white-space: nowrap; }
+
+/* Dau tick "da bat" trong Pokedex: ve bang CSS thay ky tu */
+.dex-check {
+  width: 12px; height: 12px;
+  text-indent: -999px; overflow: hidden;
+}
+.dex-check::after {
+  content: '';
+  position: absolute; top: 0; left: 2px;
+  width: 5px; height: 10px;
+  border: solid #b2f2bb;
+  border-width: 0 2px 2px 0;
+  transform: rotate(42deg);
+  filter: drop-shadow(0 0 4px rgba(81, 207, 102, .8));
+}
+
+/* Mui ten chuoi tien hoa: ve bang CSS */
+.evo-arrow {
+  display: inline-block;
+  width: 14px; height: 14px;
+  position: relative;
+}
+.evo-arrow::after {
+  content: '';
+  position: absolute; top: 3px; left: 2px;
+  width: 7px; height: 7px;
+  border: solid var(--muted);
+  border-width: 2px 2px 0 0;
+  transform: rotate(45deg);
+}
+
+/* Dau hieu chuong truyen moi: tam giac CSS */
+.story-new {
+  display: inline-block;
+  width: 0; height: 0;
+  border-left: 9px solid var(--gold);
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  animation: pulse 1.2s infinite;
+}
+
+/* Muc ten "cham de tiep tuc": tam giac CSS thay ky tu */
+.cutscene-next::before {
+  content: '';
+  display: inline-block;
+  width: 0; height: 0;
+  margin-right: 6px;
+  border-top: 6px solid currentColor;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  vertical-align: 1px;
+}
+
+/* Bong Poke Ball trong tran: ve bang CSS thay emoji */
+.ball-anim {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ee3f34 0 46%, #1b1b1b 46% 54%, #f5f5f5 54% 100%);
+  box-shadow: inset 0 0 0 2px #1b1b1b, 0 4px 6px rgba(0, 0, 0, .5);
+}
+.ball-anim::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  box-shadow: inset 0 0 0 2px #1b1b1b;
+}
+.ball-anim.caught { background: linear-gradient(180deg, #ffd43b 0 46%, #1b1b1b 46% 54%, #f5f5f5 54% 100%); }
+
+/* Bi Pokemon con lai cua trainer: cham tron CSS thay ky tu */
+.tr-balls { letter-spacing: 0; display: flex; gap: 5px; margin-top: 6px; }
+.tr-ball {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 5px rgba(227, 53, 13, .6);
+}
+.tr-ball.ko { background: transparent; box-shadow: none; border: 1px solid var(--muted); opacity: .6; }
+
+/* ==== Mobile: nut khong dinh nhau, du vung cham 48px ==== */
+.btn { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.btn-mini { min-height: 0; display: inline-flex; }
+.idle-controls { gap: 10px; }
+.town-btns { display: flex; gap: 10px; }
+.town-btns .btn { flex: 1; }
+.detail-btns { display: flex; gap: 10px; }
+.detail-btns .btn { flex: 1; min-height: 48px; }
+.bt-subrow { display: flex; gap: 10px; }
+.bt-subrow .btn { flex: 1; min-height: 46px; }
+.tab-row, .tabs { gap: 10px; }
+.tab-btn { min-height: 40px; display: inline-flex; align-items: center; }
+.char-grid { gap: 14px; }
+.starter-grid { gap: 12px; }
+.modal-opts { display: flex; flex-direction: column; gap: 10px; }
+.menu-link { min-height: 48px; display: flex; align-items: center; gap: 6px; }

@@ -22,11 +22,11 @@ export function render(el) {
     ${header('Menu')}
 
     <div class="card profile-card">
-      <div class="profile-name"><img class="profile-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()"> <b>${esc(G.p.name)}</b>${storyProgress().finished ? ' <img src="assets/img/crown.png" class="crown-ico" alt="👑" title="Nhà Vô Địch">' : ''}</div>
-      <div>${itemIcon('amulet_coin', '💰', 18)} ${fmt(G.p.money)}₽</div>
+      <div class="profile-name"><img class="profile-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()"> <b>${esc(G.p.name)}</b>${storyProgress().finished ? ' <img src="assets/img/crown.png" class="crown-ico" alt="" title="Nhà Vô Địch" onerror="this.style.visibility='hidden'">' : ''}</div>
+      <div>${itemIcon('amulet_coin', '', 18)} ${fmt(G.p.money)}₽</div>
       <div class="badge-row">
         ${G.p.badges.length
-          ? G.p.badges.map(b => `<span class="badge-pill"><img class="badge-crown${b === 'badge_boulder' ? ' badge-gray' : ''}" src="assets/img/crown.png" alt="🏅" onerror="this.outerHTML='🏅'"> ${esc(badgeNames[b] || b)}</span>`).join('')
+          ? G.p.badges.map(b => `<span class="badge-pill"><img class="badge-crown${b === 'badge_boulder' ? ' badge-gray' : ''}" src="assets/img/crown.png" alt="" onerror="this.style.visibility='hidden'"> ${esc(badgeNames[b] || b)}</span>`).join('')
           : '<small>Chưa có huy hiệu nào.</small>'}
       </div>
       <div class="stat-grid">
@@ -38,12 +38,12 @@ export function render(el) {
 
     <div class="card">
       <button class="btn btn-primary" id="btn-daily" ${claimedToday ? 'disabled' : ''}>
-        ${itemIcon('lucky_egg', '🎁', 22)} Điểm danh mỗi ngày ${claimedToday ? '(đã nhận)' : ''}
+        ${itemIcon('lucky_egg', '', 22)} Điểm danh mỗi ngày ${claimedToday ? '(đã nhận)' : ''}
       </button>
       <small class="daily-streak">Chuỗi điểm danh: ${G.p.daily.streak} ngày</small>
     </div>
 
-    <button class="card menu-link" data-goto="quest">${itemIcon('vs_recorder', '📜', 22)} Nhiệm vụ ›</button>
+    <button class="card menu-link" data-goto="quest">${itemIcon('vs_recorder', '', 22)} Nhiệm vụ ›</button>
 
     <div class="card">
       <h3>Cài đặt</h3>
@@ -62,7 +62,7 @@ export function render(el) {
     const parts = [];
     if (r.reward.money) parts.push(`${fmt(r.reward.money)}₽`);
     for (const it of r.reward.items || []) parts.push(`${ITEMS[it.id] ? ITEMS[it.id].name : it.id} ×${it.n}`);
-    toast(`🎁 Ngày ${r.streak}: nhận ${parts.join(' + ') || 'quà'}!`);
+    toast(`Ngày ${r.streak}: nhận ${parts.join(' + ') || 'quà'}!`);
     refresh();
   });
 

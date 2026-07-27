@@ -14,17 +14,17 @@ export function render(el) {
 
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>Cửa hàng</h1></div>
-      <div class="card shop-money">💰 <b id="shop-balance">${fmt(G.p.money)}</b>₽</div>
+      <div class="card shop-money">${itemIcon('nugget', '', 20)} <b id="shop-balance">${fmt(G.p.money)}</b>₽</div>
       <div class="tab-row">
-        <button class="tab-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">🛒 Mua</button>
-        <button class="tab-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">💱 Bán</button>
+        <button class="tab-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
+        <button class="tab-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>
       </div>
       <div class="item-list">
         ${ids.map(id => {
           const it = ITEMS[id];
           return `
           <button class="card item-row" data-id="${esc(id)}">
-            ${itemIcon(id, it.icon || '🎁')}
+            ${itemIcon(id)}
             <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
             <span class="item-n">${tab === 'buy'
               ? `${fmt(it.price)}₽`

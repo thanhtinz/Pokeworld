@@ -9,8 +9,17 @@ import { ZONES } from '../data/zones.js';
 import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
 import { SPECIES } from '../data/species.js';
-import { esc, fmt, monSprite, animSprite } from '../util.js';
-import { toast, choose, hpBar, itemIcon } from './kit.js';
+import { esc, fmt, monSprite, animSprite, spriteUrl } from '../util.js';
+import { toast, choose, hpBar, itemIcon, artUrl } from './kit.js';
+
+// Icon đại diện zone: ưu tiên sprite item, sau đó artwork Pokémon, cuối cùng bỏ trống
+function zoneIcon(z, size = 22) {
+  if (!z) return '';
+  if (z.iconItem) return itemIcon(z.iconItem, '', size);
+  if (z.iconSp) return `<span class="zone-ico"><img src="${artUrl(z.iconSp)}" width="${size}" height="${size}" alt=""
+    onerror="this.onerror=null;this.src='${spriteUrl(z.iconSp)}'"></span>`;
+  return '';
+}
 import { show, refresh } from '../main.js';
 
 let offlineClaimed = false; // chỉ nhận offline 1 lần mỗi phiên
@@ -23,7 +32,7 @@ async function chapterDone(ch) {
   const parts = [];
   if (ch.reward?.money) parts.push(`${fmt(ch.reward.money)}₽`);
   for (const it of ch.reward?.items || []) parts.push(`${ITEMS[it.id]?.name || it.id} x${it.n}`);
-  toast(`🏆 ${ch.title} hoàn thành!${parts.length ? ' Nhận: ' + parts.join(', ') : ''}`);
+  toast(`${ch.title} hoàn thành!${parts.length ? ' Nhận: ' + parts.join(', ') : ''}`);
   refresh();
 }
 
@@ -36,23 +45,23 @@ export function render(el) {
 
   el.innerHTML = `
     <div class="idle-top">
-      <div class="zone-chip">${zone.icon || '📍'} <b>${esc(zone.name)}</b></div>
-      <span class="money-chip">${itemIcon('nugget', '💰', 18)} <b id="money-val">${fmt(G.p.money)}</b>₽</span>
+      <div class="zone-chip">${zoneIcon(zone, 22)} <b>${esc(zone.name)}</b></div>
+      <span class="money-chip">${itemIcon('nugget', '', 18)} <b id="money-val">${fmt(G.p.money)}</b>₽</span>
     </div>
 
     ${ch ? `
     <button class="card story-card" id="btn-story">
-      <span class="story-badge">📖 ${prog.done}/${prog.total}</span>
+      <span class="story-badge">${itemIcon('fame_checker', '', 18)} ${prog.done}/${prog.total}</span>
       <span class="story-body"><b>${esc(ch.title)}</b><small>${esc(ch.desc)}</small></span>
-      ${needIntro() ? '<span class="story-new">▶</span>' : ''}
-    </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="👑"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Pokédex!</div>` : '')}
+      ${needIntro() ? '<span class="story-new" title="Mới"></span>' : ''}
+    </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="" onerror="this.style.visibility='hidden'"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Pokédex!</div>` : '')}
 
     ${isTown ? `
     <div class="town-wrap card">
-      <p class="town-note">🏘️ Trong thị trấn yên bình không có Pokémon hoang. Hãy ra các tuyến đường để farm!</p>
+      <p class="town-note">Trong thị trấn yên bình không có Pokémon hoang. Hãy ra các tuyến đường để farm!</p>
       <div class="town-btns">
-        <button class="btn" id="btn-center">${itemIcon('full_restore', '🏥', 22)} Hồi phục đội</button>
-        <button class="btn" id="btn-shop">${itemIcon('coin_case', '🛒', 22)} Cửa hàng</button>
+        <button class="btn" id="btn-center">${itemIcon('full_restore', '', 22)} Hồi phục đội</button>
+        <button class="btn" id="btn-shop">${itemIcon('coin_case', '', 22)} Cửa hàng</button>
       </div>
     </div>` : `
     <div class="arena" id="arena">
@@ -67,13 +76,13 @@ export function render(el) {
     <div class="idle-log" id="idle-log"></div>
 
     <div class="idle-controls">
-      <button class="btn btn-primary" id="btn-ball">${itemIcon('poke_ball', '⚪', 22)} Ném bóng</button>
-      <button class="btn" id="btn-heal-item">${itemIcon('potion', '🧪', 22)} Hồi máu</button>
+      <button class="btn btn-primary" id="btn-ball">${itemIcon('poke_ball', '', 22)} Ném bóng</button>
+      <button class="btn" id="btn-heal-item">${itemIcon('potion', '', 22)} Hồi máu</button>
     </div>`}
 
     <div class="idle-controls">
-      <button class="btn" id="btn-travel">${itemIcon('bicycle', '🗺️', 22)} Di chuyển</button>
-      <button class="btn" id="btn-trainers">${itemIcon('vs_seeker', '⚔️', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
+      <button class="btn" id="btn-travel">${itemIcon('bicycle', '', 22)} Di chuyển</button>
+      <button class="btn" id="btn-trainers">${itemIcon('vs_seeker', '', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
     </div>
   `;
 
@@ -136,7 +145,7 @@ export function render(el) {
     if (!mePanel) return;
     const m = activeMon();
     if (!m) {
-      mePanel.innerHTML = `<div class="me-rest">😴 Cả đội đang nghỉ hồi sức...</div>`;
+      mePanel.innerHTML = `<div class="me-rest">Cả đội đang nghỉ hồi sức...</div>`;
       return;
     }
     const mx = maxHp(m);
@@ -168,7 +177,7 @@ export function render(el) {
     offlineClaimed = true;
     const off = claimOffline();
     if (off) {
-      toast(`⏰ Vắng mặt ${off.min} phút: +${fmt(off.money)}₽, +${fmt(off.exp)} EXP${off.levels.length ? `, lên Lv.${off.levels[off.levels.length - 1]}` : ''}!`, 4200);
+      toast(`Vắng mặt ${off.min} phút: +${fmt(off.money)}₽, +${fmt(off.exp)} EXP${off.levels.length ? `, lên Lv.${off.levels[off.levels.length - 1]}` : ''}!`, 4200);
     }
   }
 
@@ -192,23 +201,23 @@ export function render(el) {
         log(`Hạ ${ev.name}! +${fmt(ev.money)}₽`, 'log-money');
         drawMe(); drawWild();
         break;
-      case 'levelup': popEmote('note'); log(`⬆️ Lên cấp ${ev.lv}!`, 'log-hl'); drawMe(); break;
-      case 'learn': log(`✨ Học chiêu mới: ${ev.move}!`, 'log-hl'); break;
-      case 'evolve': log(`🌟 ${ev.from} tiến hóa thành ${ev.to}!`, 'log-hl'); toast(`🌟 ${ev.from} tiến hóa thành ${ev.to}!`); drawMe(); break;
-      case 'faint': log(`💥 ${ev.name} đã gục!`); drawMe(); break;
-      case 'rest': log('😴 Cả đội gục — nghỉ hồi sức 12 giây...'); drawMe(); break;
-      case 'wake': log('💖 Đội đã hồi phục, tiếp tục chiến đấu!', 'log-hl'); drawMe(); break;
+      case 'levelup': popEmote('note'); log(`Lên cấp ${ev.lv}!`, 'log-hl'); drawMe(); break;
+      case 'learn': log(`Học chiêu mới: ${ev.move}!`, 'log-hl'); break;
+      case 'evolve': log(`${ev.from} tiến hóa thành ${ev.to}!`, 'log-hl'); toast(`${ev.from} tiến hóa thành ${ev.to}!`); drawMe(); break;
+      case 'faint': log(`${ev.name} đã gục!`); drawMe(); break;
+      case 'rest': log('Cả đội gục — nghỉ hồi sức 12 giây...'); drawMe(); break;
+      case 'wake': log('Đội đã hồi phục, tiếp tục chiến đấu!', 'log-hl'); drawMe(); break;
       case 'catch':
         if (ev.caught) {
           popEmote('heart');
-          log(`🎉 Bắt được ${displayName(ev.mon)}!${ev.dest === 'box' ? ' (chuyển vào Box)' : ''}`, 'log-hl');
-          toast(`🎉 Bắt được ${displayName(ev.mon)}!`);
-          (ev.doneQ || []).forEach(({ quest }) => toast(`🎉 Hoàn thành: ${quest.name}`));
+          log(`Bắt được ${displayName(ev.mon)}!${ev.dest === 'box' ? ' (chuyển vào Box)' : ''}`, 'log-hl');
+          toast(`Bắt được ${displayName(ev.mon)}!`);
+          (ev.doneQ || []).forEach(({ quest }) => toast(`Hoàn thành: ${quest.name}`));
           if (ev.chDone) chapterDone(ev.chDone);
           drawWild();
         } else {
           popEmote('question');
-          log(`⚪ Bóng lắc ${ev.shakes} lần... nó thoát ra!`);
+          log(`Bóng lắc ${ev.shakes} lần... nó thoát ra!`);
         }
         break;
     }
@@ -244,7 +253,7 @@ export function render(el) {
     const balls = Object.entries(G.p.bag).filter(([id]) => ITEMS[id]?.kind === 'ball');
     if (!balls.length) { toast('Hết bóng! Mua thêm ở cửa hàng thị trấn.'); return; }
     const i = await choose('Chọn bóng', balls.map(([id, n]) => ({
-      html: `${itemIcon(id, ITEMS[id].icon || '⚪')} ${ITEMS[id].name} x${n}`,
+      html: `${itemIcon(id, '', 26)} ${ITEMS[id].name} x${n}`,
       label: `${ITEMS[id].name} x${n}`,
       sub: `x${(ITEMS[id].ballMult || 1).toFixed(1)} tỉ lệ bắt`,
     })));
@@ -265,7 +274,7 @@ export function render(el) {
     const m = activeMon();
     if (!m) { toast('Không có Pokémon nào cần hồi!'); return; }
     const i = await choose(`Dùng thuốc cho ${displayName(m)}`, meds.map(([id, n]) => ({
-      html: `${itemIcon(id, ITEMS[id].icon || '🧪')} ${ITEMS[id].name} x${n}`,
+      html: `${itemIcon(id, '', 26)} ${ITEMS[id].name} x${n}`,
       label: `${ITEMS[id].name} x${n}`, sub: ITEMS[id].desc,
     })));
     if (i === null) return;
@@ -277,7 +286,7 @@ export function render(el) {
     if (G.p.bag[itemId] <= 0) delete G.p.bag[itemId];
     save();
     drawMe();
-    toast(`💊 Đã hồi máu cho ${displayName(m)}!`);
+    toast(`Đã hồi máu cho ${displayName(m)}!`);
   });
 
   // ==== Thị trấn ====
@@ -285,7 +294,7 @@ export function render(el) {
   if (btnCenter) btnCenter.addEventListener('click', () => {
     G.p.party.forEach(m => heal(m));
     save();
-    toast('💖 Cả đội đã hồi phục hoàn toàn!');
+    toast('Cả đội đã hồi phục hoàn toàn!');
   });
   const btnShop = el.querySelector('#btn-shop');
   if (btnShop) btnShop.addEventListener('click', () => { stopIdle(); show('shop'); });
@@ -296,8 +305,9 @@ export function render(el) {
       const z = ZONES[zid];
       const lock = zoneLockedBy(zid);
       return {
-        label: `${z.icon || '📍'} ${z.name}`,
-        sub: lock ? `🔒 Cần hoàn thành ${lock.title}` : z.desc,
+        html: `${zoneIcon(z, 24)} ${esc(z.name)}`,
+        label: z.name,
+        sub: lock ? `Cần hoàn thành ${lock.title}` : z.desc,
         disabled: !!lock,
         zid,
       };
@@ -308,7 +318,7 @@ export function render(el) {
     const zid = opts[i].zid;
     G.p.zone = zid;
     save();
-    emitQuest('reach_zone', { zone: zid }).forEach(({ quest }) => toast(`🎉 Hoàn thành: ${quest.name}`));
+    emitQuest('reach_zone', { zone: zid }).forEach(({ quest }) => toast(`Hoàn thành: ${quest.name}`));
     refresh();
   });
 
@@ -329,9 +339,9 @@ export function render(el) {
       const story = t.story && !won;
       const face = t.sprite ? `<img class="tr-face" src="assets/trainers/${t.sprite}.png" alt="" onerror="this.remove()"> ` : '';
       return {
-        html: `${face}${t.name}${won ? ' ✓' : ''}`,
-        label: `${t.name}${won ? ' ✓' : ''}`,
-        sub: t.kind === 'gym' ? `Gym — 🏅 ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${fmt(t.rewardMoney)}₽` : ''),
+        html: `${face}${esc(t.name)}${won ? ' <span class="won-pill">ĐÃ THẮNG</span>' : ''}`,
+        label: `${t.name}${won ? ' (đã thắng)' : ''}`,
+        sub: t.kind === 'gym' ? `Gym — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${fmt(t.rewardMoney)}₽` : ''),
         tid,
       };
     });

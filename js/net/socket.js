@@ -43,6 +43,7 @@ export async function connect() {
     for (const ev of [
       'welcome', 'presence:count', 'chat:msg', 'chat:error',
       'friends:presence', 'config:update', 'kicked',
+      'dm:msg', 'guild:msg', 'guild:update',
       'pvp:invited', 'pvp:sent', 'pvp:denied', 'pvp:start',
       'pvp:action', 'pvp:end', 'pvp:error',
     ]) {
@@ -68,6 +69,8 @@ export const isConnected = () => !!socket?.connected;
 
 // ==== Hành động ====
 export const sendChat = (text) => socket?.emit('chat:send', { text });
+export const sendDm = (to, text) => socket?.emit('dm:send', { to, text });
+export const sendGuildChat = (text) => socket?.emit('guild:send', { text });
 export const challengePvp = (username) => socket?.emit('pvp:challenge', { username });
 export const acceptPvp = () => socket?.emit('pvp:accept');
 export const denyPvp = () => socket?.emit('pvp:deny');

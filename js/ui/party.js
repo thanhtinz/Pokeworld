@@ -24,7 +24,7 @@ export function render(el) {
             <span class="lv-chip">Lv.${m.lv}</span>
             <img class="holo-sprite" src="${monSprite(m)}" width="72" height="72" alt="">
             <div class="ps-mid">
-              <span class="holo-name ps-name">${esc(displayName(m))}${m.shiny ? ' ✨' : ''}</span>
+              <span class="holo-name ps-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</span>
               ${statusTag(m.status)}
               ${hpBar(m.hpCur, maxHp(m))}
               <small class="ps-hp">${m.hpCur}/${maxHp(m)}</small>
@@ -32,7 +32,7 @@ export function render(el) {
           </button>`).join('')}
         ${party.length === 0 ? '<div class="card party-empty-note">Chưa có Pokémon nào.</div>' : ''}
       </div>
-      <button class="btn" id="btn-box">📦 Box (${G.p.box.length})</button>
+      <button class="btn" id="btn-box">${itemIcon('poke_ball', '', 22)} Box (${G.p.box.length})</button>
       <div id="party-detail"></div>`;
 
     el.querySelectorAll('.party-slot').forEach(btn =>
@@ -52,9 +52,9 @@ export function render(el) {
         <div class="detail-top">
           <img src="${monSprite(m)}" width="96" height="96" alt="" class="detail-sprite">
           <div>
-            <h2>${esc(displayName(m))}${m.shiny ? ' ✨' : ''}</h2>
+            <h2>${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</h2>
             <div>${(spec ? spec.types : []).map(typeBadge).join(' ')}</div>
-            <small>Lv.${m.lv} · ${m.gender === 'm' ? '♂' : m.gender === 'f' ? '♀' : '—'} · ${esc(NATURE_VI[m.nature] || m.nature)}</small><br>
+            <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(NATURE_VI[m.nature] || m.nature)}</small><br>
             <small>EXP: ${cur}/${need} tới level sau</small>
           </div>
         </div>
@@ -76,9 +76,9 @@ export function render(el) {
           }).join('')}
         </div>
         <div class="detail-btns">
-          <button class="btn" id="d-swap">↕️ Đổi vị trí</button>
-          <button class="btn" id="d-nick">✏️ Biệt danh</button>
-          <button class="btn" id="d-tobox">📦 Gửi vào Box</button>
+          <button class="btn" id="d-swap">Đổi vị trí</button>
+          <button class="btn" id="d-nick">Biệt danh</button>
+          <button class="btn" id="d-tobox">Gửi vào Box</button>
         </div>
       </div>`;
 
@@ -114,8 +114,8 @@ export function render(el) {
 
   async function openBox() {
     if (G.p.box.length === 0) { toast('Box trống!'); return; }
-    const i = await choose(`📦 Box (${G.p.box.length}/${CONFIG.BOX_SIZE})`, G.p.box.map(m => ({
-      label: `${displayName(m)} Lv.${m.lv}${m.shiny ? ' ✨' : ''}`,
+    const i = await choose(`Box (${G.p.box.length}/${CONFIG.BOX_SIZE})`, G.p.box.map(m => ({
+      label: `${displayName(m)} Lv.${m.lv}${m.shiny ? ' (Shiny)' : ''}`,
       sub: `HP ${m.hpCur}/${maxHp(m)}`,
     })));
     if (i === null) return;
