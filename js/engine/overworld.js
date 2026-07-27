@@ -26,8 +26,9 @@ export function enterMap(mapId, tx, ty) {
   if (!map) return false;
   player.mapId = mapId;
   // +0.5 để đứng giữa ô chứ không dính mép
-  player.x = (tx ?? map.spawn.x) + 0.5;
-  player.y = (ty ?? map.spawn.y) + 0.5;
+  const [sx, sy] = freeSpot(mapId, tx ?? map.spawn.x, ty ?? map.spawn.y);
+  player.x = sx + 0.5;
+  player.y = sy + 0.5;
   player.steps = 0;
   // Đồng bộ với hệ thống khu vực cũ (bảng spawn, cốt truyện, huấn luyện viên)
   if (ZONES[mapId]) G.p.zone = mapId;
@@ -40,7 +41,10 @@ export function enterMap(mapId, tx, ty) {
 export function restorePosition() {
   const pos = G.p?.pos;
   // Bản đồ có thể đã đổi từ bản cũ — vị trí lưu cũ có thể rơi vào tường/nhà
-  const stuck = (id, x, y) => isSolidAt(bake(id), Math.floor(x), Math.floor(y));
+  const stuck = (id, x, y) => {
+    const [fx, fy] = freeSpot(id, Math.floor(x), Math.floor(y));
+    return fx !== Math.floor(x) || fy !== Math.floor(y);
+  };
   if (pos && MAPS[pos.map] && !stuck(pos.map, pos.x, pos.y)) {
     player.mapId = pos.map;
     player.x = pos.x;
@@ -53,20 +57,39 @@ export function restorePosition() {
   }
 }
 
+// Ô vào bản đồ mà đang có NPC (hoặc là tường) thì tìm ô trống ngay cạnh.
+// Bản đồ lấy từ Tuxemon nên chỗ xuất hiện đôi khi trùng đúng chỗ một NPC đứng.
+function freeSpot(mapId, x, y) {
+  const map = MAPS[mapId];
+  const baked = bake(mapId);
+  const okAt = (px, py) => px >= 0 && py >= 0 && px < map.w && py < map.h
+    && !isSolidAt(baked, px, py) && !npcAt(map, px, py);
+  if (okAt(x, y)) return [x, y];
+  for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+    if (okAt(x + dx, y + dy)) return [x + dx, y + dy];
+  }
+  return [x, y];
+}
+
 // NPC cũng chắn đường
 function npcAt(map, x, y) {
   return (map.npcs || []).find(n => n.x === x && n.y === y) || null;
 }
 
-// Kiểm tra vị trí đích có đi được không (chừa lề để không kẹt góc)
-function canWalk(baked, map, x, y) {
+// Kiểm tra vị trí đích có đi được không (chừa lề để không kẹt góc).
+// cur = ô người chơi ĐANG đứng. NPC chắn đường, nhưng nếu người chơi lỡ đứng
+// chung ô với NPC (điểm vào bản đồ trùng chỗ NPC đứng) mà vẫn chặn thì mỗi
+// bước nhỏ trong khung hình đều bị từ chối -> đứng chôn chân, không đi đâu được.
+function canWalk(baked, map, x, y, cur) {
   const pad = 0.3;
   const pts = [[x - pad, y - pad], [x + pad, y - pad], [x - pad, y + pad], [x + pad, y + pad]];
   for (const [px, py] of pts) {
     if (px < 0 || py < 0 || px >= map.w || py >= map.h) return false;
     if (isSolidAt(baked, Math.floor(px), Math.floor(py))) return false;
   }
-  return !npcAt(map, Math.floor(x), Math.floor(y));
+  const tx = Math.floor(x), ty = Math.floor(y);
+  if (cur && tx === cur[0] && ty === cur[1]) return true;   // vẫn trong ô của mình
+  return !npcAt(map, tx, ty);
 }
 
 // Cập nhật vị trí theo vector joystick. dt tính bằng giây.
@@ -83,13 +106,14 @@ export function update(dt, vx, vy) {
   player.dir = Math.abs(nx) > Math.abs(ny) ? (nx > 0 ? 'right' : 'left') : (ny > 0 ? 'down' : 'up');
 
   const dist = SPEED * dt;
-  const beforeTile = `${Math.floor(player.x)},${Math.floor(player.y)}`;
+  const cur = [Math.floor(player.x), Math.floor(player.y)];
+  const beforeTile = `${cur[0]},${cur[1]}`;
 
   // Trượt theo từng trục để men tường mượt thay vì dính cứng
   const tryX = player.x + nx * dist;
-  if (canWalk(baked, map, tryX, player.y)) player.x = tryX;
+  if (canWalk(baked, map, tryX, player.y, cur)) player.x = tryX;
   const tryY = player.y + ny * dist;
-  if (canWalk(baked, map, player.x, tryY)) player.y = tryY;
+  if (canWalk(baked, map, player.x, tryY, cur)) player.y = tryY;
 
   const afterTile = `${Math.floor(player.x)},${Math.floor(player.y)}`;
   if (beforeTile === afterTile) return null;   // chưa sang ô mới

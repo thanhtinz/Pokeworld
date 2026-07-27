@@ -7,6 +7,7 @@ import { LEARNSETS } from '../js/data/learnsets.js';
 import { EVOLUTIONS } from '../js/data/evolutions.js';
 import { ITEMS } from '../js/data/items.js';
 import { ZONES } from '../js/data/zones.js';
+import { MAPS } from '../js/data/maps.js';
 import { TRAINERS } from '../js/data/trainers.js';
 import { STARTERS } from '../js/data/starters.js';
 import { QUESTS, DAILY_REWARDS } from '../js/data/quests.js';
@@ -89,6 +90,21 @@ const unreachable = Object.entries(QUESTS)
   .filter(([, q]) => q.goal?.t === 'catch_species' && !wild.has(q.goal.sp))
   .map(([qid]) => qid);
 ok('nhiệm vụ bắt loài nào cũng gặp được loài đó', unreachable.length === 0, unreachable.join(', '));
+
+// ==== Bản đồ đi bộ ====
+const mapBad = [];
+for (const [id, mp] of Object.entries(MAPS)) {
+  if (!mp.spawn || mp.spawn.x < 0 || mp.spawn.y < 0 || mp.spawn.x >= mp.w || mp.spawn.y >= mp.h) {
+    mapBad.push(`${id}: điểm vào ngoài bản đồ`);
+  }
+  for (const w of mp.warps || []) {
+    if (!MAPS[w.to]) mapBad.push(`${id} -> ${w.to} (không có bản đồ)`);
+    else if (w.tx !== undefined && (w.tx < 0 || w.ty < 0 || w.tx >= MAPS[w.to].w || w.ty >= MAPS[w.to].h)) {
+      mapBad.push(`${id} -> ${w.to} rơi ra ngoài bản đồ`);
+    }
+  }
+}
+ok('mọi điểm vào và cổng dịch chuyển đều nằm trong bản đồ', mapBad.length === 0, mapBad.slice(0, 3).join(' | '));
 
 ok('khắc hệ: nước đánh lửa = 2', typeEff('water', ['fire']) === 2);
 ok('khắc hệ: lửa đánh nước = 0.5', typeEff('fire', ['water']) === 0.5);

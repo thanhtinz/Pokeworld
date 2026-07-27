@@ -129,8 +129,37 @@ def main():
     write_learnsets(mons, dex, techs)
     write_evolutions(mons, dex)
     n_img = write_sprites(mons, dex, gfx)
+    n_img += write_type_icons(root)
 
     print('OK: %d sinh vat, %d he, %d chieu thuc, %d anh' % (len(mons), len(elements), len(techs), n_img))
+
+
+# Icon he: ban goc chi 24x24, man hinh dien thoai ngay nay 3 diem anh vat ly cho
+# 1 diem anh CSS nen phong len 4 lan bang NEAREST roi de trinh duyet thu nho lai
+# — sac net o moi co man hinh, thay vi nhoe nhu khi phong tu anh be.
+TYPE_VI_KEYS = {'normal', 'fire', 'water', 'wood', 'earth', 'metal', 'lightning',
+                'frost', 'venom', 'shadow', 'sky', 'cosmic', 'heroic'}
+
+
+def write_type_icons(root):
+    from PIL import Image
+    src = os.path.join(root, 'mods/tuxemon/gfx/ui/icons/element')
+    if not os.path.isdir(src):
+        return 0
+    os.makedirs('assets/types', exist_ok=True)
+    n = 0
+    for f in sorted(os.listdir(src)):
+        if not f.endswith('_type.png'):
+            continue
+        slug = f[:-len('_type.png')]
+        if slug not in TYPE_VI_KEYS:     # he khong dung trong game thi bo qua
+            continue
+        im = Image.open(os.path.join(src, f)).convert('RGBA')
+        k = 4
+        im.resize((im.width * k, im.height * k), Image.NEAREST).save(
+            'assets/types/%s.png' % slug, optimize=True)
+        n += 1
+    return n
 
 
 # ==================== He ====================

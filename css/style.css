@@ -872,7 +872,9 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 .starter-card .portrait {
   border-radius: 10px;
-  image-rendering: auto;
+  /* Sprite Tuxemon chỉ 64x64: phóng to phải theo kiểu điểm ảnh, để trình duyệt
+     tự làm mịn thì ra ảnh nhoè. */
+  image-rendering: pixelated;
   box-shadow: 0 3px 10px rgba(0, 0, 0, .45);
 }
 .home-head {
@@ -983,7 +985,9 @@ img[src*='sprites'] { image-rendering: pixelated; }
 
 /* Icon item dạng sprite */
 .item-ico { display: inline-flex; align-items: center; vertical-align: middle; }
-.item-ico img { image-rendering: pixelated; display: inline-block; }
+/* Icon vật phẩm nay là ảnh 4 lần cỡ thật -> thu nhỏ mượt cho sắc nét ở mọi
+   mật độ điểm ảnh, đừng ép kiểu điểm ảnh vì thu nhỏ kiểu đó sẽ mất nét. */
+.item-ico img { image-rendering: auto; display: inline-block; }
 
 /* ==== Khung thoai + emote PMD ==== */
 .cutscene-box {
@@ -1069,7 +1073,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Icon zone + artwork Pokemon tren the */
 .zone-ico { display: inline-flex; align-items: center; vertical-align: -5px; }
 .zone-ico img { display: inline-block; object-fit: contain; }
-.mon-art { image-rendering: auto; object-fit: contain; }
+.mon-art { image-rendering: pixelated; object-fit: contain; }
 
 /* Nut "Menu" o thanh nav: 3 gach ke bang CSS, khong dung emoji */
 .nav-burger {

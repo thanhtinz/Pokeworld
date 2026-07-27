@@ -17,8 +17,9 @@ Ma vat pham GIU NGUYEN slug cua Tuxemon de sau nay doi chieu cho de.
 """
 import os
 import re
-import shutil
 import sys
+
+from PIL import Image
 
 # Vat pham dua vao game: (slug, nhom, gia, mo ta tieng Viet, so lieu rieng)
 # kind: 'ball' bat | 'medicine' hoi phuc | 'stone' tien hoa | 'held' mang theo
@@ -112,7 +113,12 @@ def main():
             continue
         src = os.path.join(gfx, IMG.get(slug, slug) + '.png')
         if os.path.exists(src):
-            shutil.copyfile(src, 'assets/items/%s.png' % slug)
+            # Icon goc 24x24. Man hinh dien thoai co 3 diem anh vat ly cho 1
+            # diem anh CSS nen phai phong len 4 lan bang NEAREST, khong thi
+            # trinh duyet tu keo gian ra anh nhoe.
+            im = Image.open(src).convert('RGBA')
+            im.resize((im.width * 4, im.height * 4), Image.NEAREST).save(
+                'assets/items/%s.png' % slug, optimize=True)
             n_img += 1
         else:
             missing.append('anh:' + slug)
