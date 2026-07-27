@@ -31,7 +31,7 @@ export function render(el) {
     el.innerHTML = `
       ${header('Túi đồ')}
       <div class="tab-row">
-        ${TABS.map(([k, label]) => `<button class="tab-btn ${tab === k ? 'active' : ''}" data-tab="${k}">${label}</button>`).join('')}
+        ${TABS.map(([k, label]) => `<button type="button" class="tab-btn ${tab === k ? 'active' : ''}" data-tab="${k}">${label}</button>`).join('')}
       </div>
       <div class="item-list">
         ${ids.map(id => {

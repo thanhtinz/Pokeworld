@@ -22,7 +22,7 @@ export function render(el) {
   async function draw() {
     body.innerHTML = `
       <div class="chan-row">
-        ${METRICS.map(([k, n]) => `<button class="chip ${metric === k ? 'on' : ''}" data-m="${k}">${n}</button>`).join('')}
+        ${METRICS.map(([k, n]) => `<button type="button" class="chip ${metric === k ? 'on' : ''}" data-m="${k}">${n}</button>`).join('')}
       </div>
       <div class="card" id="rank-list"><div class="empty-note">Đang tải...</div></div>`;
     body.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => { metric = b.dataset.m; draw(); }));

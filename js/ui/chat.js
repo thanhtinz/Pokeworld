@@ -40,7 +40,7 @@ export function render(el, { to = null } = {}) {
         ${CHANNELS.map(([c, n]) => {
           const u = net.unread[c === 'dm' ? 'dm' : c];
           const label = c === 'dm' && dmWith ? `Riêng · ${esc(dmWith)}` : n;
-          return `<button class="chip ${channel === c ? 'on' : ''}" data-chan="${c}">${label}${
+          return `<button type="button" class="chip ${channel === c ? 'on' : ''}" data-chan="${c}">${label}${
             u && channel !== c ? ` <i class="chip-dot"></i>` : ''}</button>`;
         }).join('')}
       </div>
@@ -65,9 +65,14 @@ export function render(el, { to = null } = {}) {
 
     clearUnread(channel === 'dm' ? 'dm' : channel);
 
+    // Vẽ lại ở nhịp sau: nếu xoá DOM ngay trong handler thì chính cái nút vừa
+    // bấm bị gỡ giữa chừng, trên máy chậm sẽ mất luôn cú chạm.
     body.querySelectorAll('[data-chan]').forEach(b => b.addEventListener('click', () => {
       channel = b.dataset.chan;
-      draw();
+      setTimeout(() => {
+        draw();
+        if (channel === 'guild') loadGuildHistory();
+      }, 0);
     }));
 
     const other = body.querySelector('#dm-other');
@@ -104,5 +109,18 @@ export function render(el, { to = null } = {}) {
     if (log) log.scrollTop = log.scrollHeight;
   }
 
+  // Lịch sử chat bang hội chỉ nằm trên máy chủ, phải xin về một lần khi mở tab
+  let guildLoaded = false;
+  async function loadGuildHistory() {
+    if (guildLoaded || !isOnline()) return;
+    guildLoaded = true;
+    const r = await api.fetchGuildChat(50);
+    if (r.ok && Array.isArray(r.data?.rows)) {
+      net.chat.guild = r.data.rows.map(m => ({ from: m.from, text: m.text, ts: m.ts, system: !!m.system }));
+      draw();
+    }
+  }
+
   draw();
+  if (channel === 'guild') loadGuildHistory();
 }

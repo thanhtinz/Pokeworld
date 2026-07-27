@@ -64,9 +64,9 @@ export function render(el) {
       </div>
 
       <div class="tab-row">
-        <button class="tab-btn ${tab === 'gear' ? 'active' : ''}" data-tab="gear">Trang bị</button>
-        <button class="tab-btn ${tab === 'inv' ? 'active' : ''}" data-tab="inv">Túi (${p.inventory.length})</button>
-        <button class="tab-btn ${tab === 'shop' ? 'active' : ''}" data-tab="shop">Cửa hàng</button>
+        <button type="button" class="tab-btn ${tab === 'gear' ? 'active' : ''}" data-tab="gear">Trang bị</button>
+        <button type="button" class="tab-btn ${tab === 'inv' ? 'active' : ''}" data-tab="inv">Túi (${p.inventory.length})</button>
+        <button type="button" class="tab-btn ${tab === 'shop' ? 'active' : ''}" data-tab="shop">Cửa hàng</button>
       </div>
 
       <div class="char-body">${tab === 'gear' ? gearHtml() : tab === 'inv' ? invHtml() : shopHtml()}</div>`;
