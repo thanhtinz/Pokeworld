@@ -1,7 +1,7 @@
 // PokeWorld H5 | ui/guild.js | Trang bang hội: lập bang, xin vào, quản lý thành viên
 import { G } from '../state.js';
 import { esc, fmt } from '../util.js';
-import { toast, confirmDlg, header } from './kit.js';
+import { toast, choose, confirmDlg, header } from './kit.js';
 import { isOnlineMode } from '../net/config.js';
 import * as api from '../net/api.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
@@ -66,20 +66,27 @@ export function render(el) {
     // guildFull: members là SỐ thành viên, memberList mới là mảng
     const members = g.memberList || [];
     const boss = myRole === 'leader' || myRole === 'officer';
+    const isLeader = myRole === 'leader';
     body.innerHTML = `
       <div class="card guild-head">
         <b>[${esc(g.tag || '')}] ${esc(g.name)}</b>
         <small>${esc(g.desc || '')}</small>
         <small>Cấp ${g.level ?? 1} · Quỹ ${fmt(g.treasury ?? 0)} · ${members.length}/${g.maxMembers ?? '?'} thành viên</small>
+        <small>Hội trưởng: ${esc(g.leader || '?')} · Gia nhập: ${g.joinPolicy === 'open' ? 'tự do' : 'phải duyệt'}</small>
       </div>
+      ${g.announcement ? `<div class="card guild-ann"><b>Thông báo</b><small>${esc(g.announcement)}</small></div>` : ''}
       <button class="card menu-link" id="g-chat">Chat bang hội ›</button>
       <div class="card">
         <b>Thành viên</b>
         ${members.map(m => `
           <div class="guild-row">
             <span>${esc(m.username)} <small>${esc(m.role || 'member')}${m.online ? ' · online' : ''}</small></span>
-            ${boss && m.role !== 'leader'
-              ? `<button class="btn-mini" data-kick="${esc(m.userId)}">Đuổi</button>` : ''}
+            <span class="row-btns">
+              ${isLeader && m.role !== 'leader'
+                ? `<button class="btn-mini" data-role="${esc(m.userId)}" data-cur="${esc(m.role || 'member')}">Chức vụ</button>` : ''}
+              ${boss && m.role !== 'leader'
+                ? `<button class="btn-mini" data-kick="${esc(m.userId)}">Đuổi</button>` : ''}
+            </span>
           </div>`).join('')}
       </div>
       ${(g.applicants || []).length ? `
@@ -94,11 +101,23 @@ export function render(el) {
             </span>
           </div>`).join('')}
       </div>` : ''}
+      ${boss ? `
+      <div class="card">
+        <b>Thiết lập bang (phó hội trở lên)</b>
+        <input id="g-set-desc" type="text" maxlength="80" placeholder="Giới thiệu ngắn" value="${esc(g.desc || '')}">
+        <input id="g-set-ann" type="text" maxlength="120" placeholder="Thông báo cho cả bang" value="${esc(g.announcement || '')}">
+        <label class="g-policy">
+          <input type="checkbox" id="g-set-open" ${g.joinPolicy === 'open' ? 'checked' : ''}>
+          Cho vào tự do (bỏ chọn thì phải duyệt đơn)
+        </label>
+        <button class="btn" id="g-save-set">Lưu thiết lập</button>
+      </div>` : ''}
       <div class="card">
         <label for="g-donate">Góp quỹ bang (tiền trong game — bạn có ${fmt(G.p.money)}₽)</label>
         <input id="g-donate" type="number" min="100" step="100" value="1000">
         <button class="btn" id="g-donate-btn">Góp</button>
         <button class="btn btn-danger" id="g-leave">Rời bang</button>
+        ${isLeader ? '<button class="btn btn-danger" id="g-disband">Giải tán bang</button>' : ''}
       </div>`;
 
     body.querySelector('#g-chat').addEventListener('click', () => show('chat'));
@@ -122,6 +141,43 @@ export function render(el) {
       toast(r.ok ? 'Đã đuổi.' : (r.error || 'Không đuổi được.'));
       if (r.ok) draw();
     }));
+    const saveSet = body.querySelector('#g-save-set');
+    if (saveSet) saveSet.addEventListener('click', async () => {
+      const r = await api.updateGuildSettings({
+        desc: body.querySelector('#g-set-desc').value.trim(),
+        announcement: body.querySelector('#g-set-ann').value.trim(),
+        joinPolicy: body.querySelector('#g-set-open').checked ? 'open' : 'approval',
+      });
+      toast(r.ok ? 'Đã lưu thiết lập bang.' : (r.error || 'Không lưu được.'));
+      if (r.ok) draw();
+    });
+
+    const disband = body.querySelector('#g-disband');
+    if (disband) disband.addEventListener('click', async () => {
+      if (!await confirmDlg(`Giải tán [${g.tag}] ${g.name}? Toàn bộ thành viên sẽ bị đưa ra ngoài.`, 'Giải tán')) return;
+      if (!await confirmDlg('Không thể hoàn tác. Chắc chắn giải tán?', 'Giải tán luôn')) return;
+      const r = await api.disbandGuild();
+      toast(r.ok ? 'Đã giải tán bang hội.' : (r.error || 'Không giải tán được.'));
+      if (r.ok) draw();
+    });
+
+    // Đổi chức vụ: nhường ghế hội trưởng cũng nằm ở đây
+    body.querySelectorAll('[data-role]').forEach(b => b.addEventListener('click', async () => {
+      const cur = b.dataset.cur;
+      const opts = [
+        { label: 'Phó hội', sub: 'Duyệt đơn, đuổi thành viên, sửa thiết lập', disabled: cur === 'officer' },
+        { label: 'Thành viên', sub: 'Quyền cơ bản', disabled: cur === 'member' },
+        { label: 'Nhường ghế hội trưởng', sub: 'Bạn sẽ xuống làm phó hội' },
+      ];
+      const i = await choose('Đổi chức vụ', opts);
+      if (i === null) return;
+      const role = ['officer', 'member', 'leader'][i];
+      if (role === 'leader' && !await confirmDlg('Nhường ghế hội trưởng cho người này?', 'Nhường')) return;
+      const r = await api.promoteMember(b.dataset.role, role);
+      toast(r.ok ? 'Đã đổi chức vụ.' : (r.error || 'Không đổi được.'));
+      if (r.ok) draw();
+    }));
+
     body.querySelectorAll('[data-acc],[data-rej]').forEach(b => b.addEventListener('click', async () => {
       const accept = b.hasAttribute('data-acc');
       const r = await api.respondApplicant(g.id, b.dataset.acc || b.dataset.rej, accept);

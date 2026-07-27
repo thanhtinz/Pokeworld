@@ -22,6 +22,7 @@ const HUB = [
   { to: 'rank',      icon: 'nugget',       label: 'Xếp hạng',    note: 'Top người chơi' },
   { to: 'guild',     icon: 'sacred_ash',   label: 'Bang hội',    note: 'Lập & tham gia' },
   { to: 'friends',   icon: 'poke_flute',   label: 'Bạn bè',      note: 'Kết bạn, thách đấu', badge: 'dm' },
+  { to: 'marriage',  icon: 'lucky_egg',    label: 'Kết hôn',     note: 'Cầu hôn người ấy' },
   { to: 'serverpick', icon: 'card_key',    label: 'Máy chủ',     note: 'Đổi máy chủ' },
 ];
 

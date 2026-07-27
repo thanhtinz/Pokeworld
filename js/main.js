@@ -26,6 +26,7 @@ import * as rank from './ui/rank.js';
 import * as guild from './ui/guild.js';
 import * as friends from './ui/friends.js';
 import * as pvp from './ui/pvp.js';
+import * as marriage from './ui/marriage.js';
 import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
 import { sanitizeSave } from './engine/mega.js';
@@ -34,7 +35,7 @@ import { maxHp } from './engine/pokemon.js';
 
 const SCREENS = {
   home, battle, party, dex, bag, shop, quest, starter, menu, character,
-  chat, rank, guild, friends, pvp,
+  chat, rank, guild, friends, pvp, marriage,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
 

@@ -53,7 +53,20 @@ export function render(el, { to = null } = {}) {
       </div>
       ${channel === 'dm' && !dmWith ? `
         <div class="card">
-          <label for="dm-to">Nhắn riêng cho ai</label>
+          <b>Các cuộc trò chuyện</b>
+          ${dmList === null ? '<div class="empty-note">Đang tải...</div>'
+            : dmList.length ? dmList.map(c => `
+              <button type="button" class="guild-row dm-row" data-dm="${esc(c.username)}">
+                <span class="dm-mid">
+                  <b>${esc(c.username)}${c.online ? ' <i class="dot-on"></i>' : ''}</b>
+                  <small>${c.last?.fromMe ? 'Bạn: ' : ''}${esc((c.last?.text || '').slice(0, 40))}</small>
+                </span>
+                ${c.unread ? `<span class="dm-unread">${c.unread > 99 ? '99+' : c.unread}</span>` : ''}
+              </button>`).join('')
+            : '<div class="empty-note">Chưa nhắn riêng với ai.</div>'}
+        </div>
+        <div class="card">
+          <label for="dm-to">Nhắn cho người mới</label>
           <input id="dm-to" type="text" maxlength="20" placeholder="Tên người chơi" autocomplete="off">
           <button class="btn" id="dm-open">Mở khung chat</button>
         </div>` : `
@@ -72,21 +85,20 @@ export function render(el, { to = null } = {}) {
       setTimeout(() => {
         draw();
         if (channel === 'guild') loadGuildHistory();
+        if (channel === 'dm' && !dmWith) loadDmList();
       }, 0);
     }));
+
+    body.querySelectorAll('.dm-row').forEach(b => b.addEventListener('click', () => openDm(b.dataset.dm)));
 
     const other = body.querySelector('#dm-other');
     if (other) other.addEventListener('click', () => { dmWith = null; draw(); });
 
     const open = body.querySelector('#dm-open');
-    if (open) open.addEventListener('click', async () => {
+    if (open) open.addEventListener('click', () => {
       const v = body.querySelector('#dm-to').value.trim();
       if (!v) { toast('Nhập tên người chơi đã!'); return; }
-      dmWith = v;
-      if (!net.dms.has(v)) net.dms.set(v, []);
-      draw();
-      const r = await api.fetchDmHistory(v);
-      if (r.ok && Array.isArray(r.data?.rows)) { net.dms.set(v, r.data.rows); draw(); }
+      openDm(v);
     });
 
     const input = body.querySelector('#chat-input');
@@ -109,6 +121,24 @@ export function render(el, { to = null } = {}) {
     if (log) log.scrollTop = log.scrollHeight;
   }
 
+  // Mở một khung nhắn riêng và kéo lịch sử từ máy chủ về
+  async function openDm(name) {
+    dmWith = name;
+    if (!net.dms.has(name)) net.dms.set(name, []);
+    draw();
+    const r = await api.fetchDmHistory(name);
+    if (r.ok && Array.isArray(r.data?.rows)) { net.dms.set(name, r.data.rows); draw(); }
+  }
+
+  // Danh sách cuộc trò chuyện riêng nằm trên máy chủ; null = chưa tải xong
+  let dmList = null;
+  async function loadDmList() {
+    if (!isOnline()) { dmList = []; draw(); return; }
+    const r = await api.fetchDmList();
+    dmList = r.ok && Array.isArray(r.data?.rows) ? r.data.rows : [];
+    draw();
+  }
+
   // Lịch sử chat bang hội chỉ nằm trên máy chủ, phải xin về một lần khi mở tab
   let guildLoaded = false;
   async function loadGuildHistory() {
@@ -123,4 +153,5 @@ export function render(el, { to = null } = {}) {
 
   draw();
   if (channel === 'guild') loadGuildHistory();
+  if (channel === 'dm' && !dmWith) loadDmList();
 }
