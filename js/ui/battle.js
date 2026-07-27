@@ -16,6 +16,7 @@ import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
+import { syncNow } from '../net/session.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
 async function storyDone(ch) {
@@ -439,6 +440,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     }
 
     save();
+    syncNow();          // đẩy kết quả lên máy chủ ngay cho bảng xếp hạng khỏi trễ
     updateBars();
     $act.innerHTML = `<button class="btn btn-primary btn-big" id="bt-cont">Tiếp tục</button>`;
     // Đánh xong thì quay lại đúng nơi vừa rời đi (bản đồ hoặc màn chính)

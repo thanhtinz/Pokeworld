@@ -1390,3 +1390,44 @@ img[src*='sprites'] { image-rendering: pixelated; }
   width: 96px; height: 128px;
   top: -116px;
 }
+
+/* ==== Man Cong dong: chat / xep hang / bang hoi / ban be ==== */
+.tab-row { display: flex; gap: 6px; margin: 10px 0; }
+.tab-btn { flex: 1; padding: 9px 4px; border-radius: 10px; font-size: .78rem;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: var(--muted); }
+.tab-btn.on { background: rgba(150,120,230,.22); border-color: var(--gold); color: #fff; }
+.chan-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.chip { padding: 6px 12px; border-radius: 999px; font-size: .74rem; color: var(--muted);
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+.chip.on { background: rgba(240,180,41,.18); border-color: var(--gold); color: #fff; }
+
+.net-status { display: flex; flex-direction: column; gap: 6px; }
+.net-status small { color: var(--muted); font-size: .76rem; }
+.ok-dot::before, .bad-dot::before { content: ''; display: inline-block; width: 8px; height: 8px;
+  border-radius: 50%; margin-right: 7px; vertical-align: middle; }
+.ok-dot::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.bad-dot::before { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+.chat-log { height: 46vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.chat-line { font-size: .82rem; line-height: 1.45; }
+.chat-line b { color: var(--gold); margin-right: 6px; }
+.chat-line.mine b { color: var(--green); }
+.chat-send { display: flex; gap: 8px; margin-top: 8px; }
+.chat-send input { flex: 1; }
+
+.rank-row, .guild-row { display: flex; align-items: center; gap: 10px; padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06); font-size: .84rem; }
+.rank-row:last-child, .guild-row:last-child { border-bottom: 0; }
+.rank-row.mine { color: var(--gold); }
+.rank-no { width: 28px; color: var(--muted); }
+.rank-name { flex: 1; }
+.rank-val { font-variant-numeric: tabular-nums; }
+.guild-row { justify-content: space-between; }
+.guild-row small { color: var(--muted); margin-left: 6px; font-size: .72rem; }
+.guild-head { gap: 4px; display: flex; flex-direction: column; }
+.empty-note { color: var(--muted); font-size: .8rem; text-align: center; padding: 14px 4px; }
+
+/* Cham do bao tin nhan moi tren thanh dieu huong */
+.nav-ico { position: relative; }
+.nav-dot { position: absolute; top: -2px; right: -3px; width: 8px; height: 8px;
+  border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }

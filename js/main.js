@@ -21,10 +21,12 @@ import * as createchar from './ui/createchar.js';
 import * as intro from './ui/intro.js';
 import * as world from './ui/world.js';
 import * as character from './ui/character.js';
+import * as online from './ui/online.js';
 import { activeAccount } from './engine/accounts.js';
+import { startSession, onChange, net } from './net/session.js';
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, online,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
 
@@ -57,6 +59,17 @@ export function show(name, params = {}) {
 export function refresh() { if (current) show(current, currentParams); }
 
 export function inBattle() { return current === 'battle'; }
+
+// Chấm đỏ trên nút Cộng đồng khi có tin nhắn chưa đọc
+onChange(() => {
+  const dot = document.getElementById('nav-dot');
+  if (!dot) return;
+  const n = net.unread.world + net.unread.guild + net.unread.dm;
+  dot.hidden = !(n > 0) || current === 'online';
+});
+
+// Mở phiên online nếu người chơi đã chọn máy chủ (chơi offline thì bỏ qua)
+startSession().catch(e => console.warn('[online]', e));
 
 // Nav dưới + nút back data-goto
 document.getElementById('bottom-nav').addEventListener('click', e => {
