@@ -16,6 +16,7 @@ const EMPTY = {
   guildChat: [],      // {id, guildId, from, avatar, text, ts, system}
   dms: [],            // {id, from, to, text, ts, read}
   auditLog: [],       // {id, ts, admin, action, target, detail}
+  cosmetics: [],      // {id, kind, name, color, css, how, n, img, createdAt} — thời trang admin thêm
   config: {},         // MOTD + event multipliers do admin chỉnh
 };
 

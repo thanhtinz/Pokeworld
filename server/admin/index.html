@@ -75,6 +75,7 @@
       <div class="tab on" data-tab="dash">Tổng quan</div>
       <div class="tab" data-tab="players">Người chơi</div>
       <div class="tab" data-tab="guilds">Bang hội</div>
+      <div class="tab" data-tab="cosmetics">Thời trang</div>
       <div class="tab" data-tab="config">Cấu hình & Sự kiện</div>
       <div class="tab" data-tab="pvp">Lịch sử PvP</div>
       <div class="tab" data-tab="audit">Nhật ký</div>
@@ -145,6 +146,7 @@ async function loadTab() {
     if (tab === 'dash') return renderDash(await api('/stats'));
     if (tab === 'players') return renderPlayers(await api('/players'));
     if (tab === 'guilds') return renderGuilds(await api('/guilds'));
+    if (tab === 'cosmetics') return renderCosmetics(await api('/cosmetics'));
     if (tab === 'config') return renderConfig(await api('/stats'));
     if (tab === 'pvp') return renderPvp(await api('/pvp'));
     if (tab === 'audit') return renderAudit(await api('/audit'));
@@ -202,6 +204,7 @@ function renderPlayers(d) {
                 ${p.warnings?.length ? `<span class="badge" style="background:#4a3a10;color:#f0b429" title="${esc(p.warnings.join('\\n'))}">⚠ ${p.warnings.length}</span>` : ''}</td>
             <td class="row">
               <button onclick="grant('${p.id}','${esc(p.username)}')">🎁</button>
+              <button title="Trao thời trang" onclick="openGrant('${p.id}','${esc(p.username)}')">🏷</button>
               <button onclick="resetPass('${p.id}')">🔑</button>
               ${p.banned
                 ? `<button class="ok" onclick="ban('${p.id}',false)">Mở</button>`
@@ -212,7 +215,8 @@ function renderPlayers(d) {
         </tbody>
       </table>
       </div>
-    </div>`;
+    </div>
+    <div id="grant-box"></div>`;
 }
 let searchTimer;
 function searchPlayers() {
@@ -312,6 +316,159 @@ async function disbandGuild(id, name) {
   if (!confirm(`Giải tán bang hội ${name}? Không thể hoàn tác!`)) return;
   await api('/guild/' + id, { method: 'DELETE' });
   toast('Đã giải tán bang hội'); loadTab();
+}
+
+// ==== Thời trang: danh hiệu / khung avatar / khung chat / skin ====
+const KIND_VI = { title:'Danh hiệu', avatarFrame:'Khung avatar', chatFrame:'Khung chat', skin:'Skin' };
+const HOW_VI = { start:'Có sẵn từ đầu', catch:'Bắt đủ N sinh vật', win:'Thắng N trận',
+                 badge:'Có N huy hiệu', level:'Trainer Lv.N', manual:'Admin trao tay' };
+let cosRows = [], cosBuiltin = [];
+
+function howText(c) {
+  if (c.how === 'start') return 'Có sẵn từ đầu';
+  if (c.how === 'manual') return '<b style="color:var(--warn)">Admin trao tay</b>';
+  return esc((HOW_VI[c.how] || c.how).replace('N', c.n));
+}
+
+function renderCosmetics(d) {
+  cosRows = d.rows || [];
+  cosBuiltin = d.builtin || [];
+  $('#view').innerHTML = `
+    <div class="card">
+      <h3 style="margin-bottom:10px">👗 Thêm / sửa món thời trang</h3>
+      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <label>Loại<select id="co-kind">${(d.kinds||[]).map(k => `<option value="${k}">${KIND_VI[k]||k}</option>`).join('')}</select></label>
+        <label>Mã món (a-z, 0-9, _)<input id="co-id" placeholder="vd: tet_2026"></label>
+        <label>Tên hiển thị<input id="co-name" placeholder="vd: Chúa Tể Mùa Xuân"></label>
+        <label>Màu chữ<input id="co-color" type="color" value="#ffd43b" style="height:38px;padding:2px"></label>
+        <label>Điều kiện nhận<select id="co-how">${(d.hows||[]).map(h => `<option value="${h}"${h==='manual'?' selected':''}>${HOW_VI[h]||h}</option>`).join('')}</select></label>
+        <label>Số N (nếu điều kiện cần)<input id="co-n" type="number" min="0" value="0"></label>
+      </div>
+      <p class="muted" style="margin:10px 0">Chọn <b>Admin trao tay</b> nếu món này không có điều kiện tự đạt — khi đó chỉ admin trao ở tab Người chơi mới có.</p>
+      <button class="primary" onclick="saveCosmetic()">Lưu món</button>
+      <span class="muted" style="margin-left:10px">Lưu lại đúng loại + mã cũ để sửa món đã có.</span>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:10px">Kho thời trang (${cosRows.length} món)</h3>
+      <p class="muted" style="margin-bottom:10px">Ảnh tải lên sẽ hiện trong game thay cho kiểu vẽ mặc định. Nên dùng PNG nền trong suốt, tối đa 2MB.</p>
+      <div style="overflow:auto">
+      <table>
+        <thead><tr><th>Ảnh</th><th>Loại</th><th>Mã</th><th>Tên</th><th>Điều kiện</th><th>Thao tác</th></tr></thead>
+        <tbody>
+        ${cosRows.map((c, i) => `
+          <tr>
+            <td>${c.img
+              ? `<img src="${esc(c.img)}" alt="" style="height:34px;image-rendering:pixelated;background:#0e1018;border-radius:6px">`
+              : '<span class="muted">—</span>'}</td>
+            <td>${KIND_VI[c.kind] || esc(c.kind)}</td>
+            <td><code>${esc(c.id)}</code></td>
+            <td><b style="color:${esc(c.color||'#fff')}">${esc(c.name)}</b></td>
+            <td>${howText(c)}</td>
+            <td class="row">
+              <button onclick="pickImage('${esc(c.kind)}:${esc(c.id)}')">🖼 Ảnh</button>
+              ${c.img ? `<button onclick="dropImage('${esc(c.kind)}:${esc(c.id)}')">Gỡ ảnh</button>` : ''}
+              <button onclick="editCosmetic(${i})">✏️</button>
+              <button class="danger" onclick="delCosmetic('${esc(c.kind)}:${esc(c.id)}','${esc(c.name)}')">🗑</button>
+            </td>
+          </tr>`).join('') || '<tr><td colspan="6" class="muted">Chưa có món nào — thêm ở khung trên.</td></tr>'}
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:10px">Món trao tay có sẵn trong bản game</h3>
+      <p class="muted">Những món này nằm sẵn trong game, không cần thêm ở đây; sang tab <b>Người chơi</b> bấm 🏷 để trao.</p>
+      <div class="row" style="margin-top:8px">
+        ${cosBuiltin.map(b => `<span class="badge" style="background:#2a2f45">${KIND_VI[b.kind]||b.kind}: ${esc(b.name)} <code>${esc(b.kind)}:${esc(b.id)}</code></span>`).join('') || '<span class="muted">—</span>'}
+      </div>
+    </div>
+    <input type="file" id="co-file" accept="image/png,image/jpeg,image/gif,image/webp" class="hide">`;
+
+  $('#co-file').addEventListener('change', uploadImage);
+}
+
+async function saveCosmetic() {
+  const body = {
+    kind: $('#co-kind').value, id: $('#co-id').value, name: $('#co-name').value,
+    color: $('#co-color').value, how: $('#co-how').value, n: $('#co-n').value,
+  };
+  await api('/cosmetics', { method: 'POST', body: JSON.stringify(body) });
+  toast('Đã lưu món thời trang'); loadTab();
+}
+function editCosmetic(i) {
+  const c = cosRows[i];
+  if (!c) return;
+  $('#co-kind').value = c.kind; $('#co-id').value = c.id; $('#co-name').value = c.name;
+  $('#co-color').value = c.color || '#ffd43b'; $('#co-how').value = c.how; $('#co-n').value = c.n || 0;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+async function delCosmetic(key, name) {
+  if (!confirm(`Xóa "${name}"? Người đang mặc sẽ mất món này.`)) return;
+  await api('/cosmetics/' + encodeURIComponent(key), { method: 'DELETE' });
+  toast('Đã xóa'); loadTab();
+}
+
+let uploadKey = '';
+function pickImage(key) { uploadKey = key; $('#co-file').value = ''; $('#co-file').click(); }
+async function uploadImage(e) {
+  const file = e.target.files?.[0];
+  if (!file || !uploadKey) return;
+  if (file.size > 2 * 1024 * 1024) return toast('Ảnh tối đa 2MB');
+  try {
+    // Gửi thẳng tệp trong body, Content-Type là kiểu ảnh — máy chủ đọc bằng express.raw
+    const res = await fetch(`/api/admin/cosmetics/${encodeURIComponent(uploadKey)}/image`, {
+      method: 'POST',
+      headers: { 'Content-Type': file.type, Authorization: 'Bearer ' + token },
+      body: file,
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.error || 'Tải ảnh thất bại');
+    toast('Đã tải ảnh lên'); loadTab();
+  } catch (err) { toast(err.message); }
+}
+async function dropImage(key) {
+  await api(`/cosmetics/${encodeURIComponent(key)}/image`, { method: 'DELETE' });
+  toast('Đã gỡ ảnh'); loadTab();
+}
+
+// ==== Trao thời trang cho một người chơi ====
+async function openGrant(id, name) {
+  try {
+    const [cat, mine] = await Promise.all([api('/cosmetics'), api(`/player/${id}/cosmetics`)]);
+    const have = new Set(mine.cosmetics || []);
+    const all = [
+      ...(cat.builtin || []).map(b => ({ ...b, builtin: true })),
+      ...(cat.rows || []),
+    ];
+    $('#grant-box').innerHTML = `
+      <div class="card">
+        <h3 style="margin-bottom:10px">🏷 Trao thời trang — ${esc(name)}</h3>
+        <table><thead><tr><th>Loại</th><th>Món</th><th>Điều kiện</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+        ${all.map(c => {
+          const key = `${c.kind}:${c.id}`;
+          const has = have.has(key);
+          return `<tr>
+            <td>${KIND_VI[c.kind] || esc(c.kind)}</td>
+            <td><b>${esc(c.name)}</b> <code class="muted">${esc(c.id)}</code></td>
+            <td>${c.builtin ? '<b style="color:var(--warn)">Admin trao tay</b>' : howText(c)}</td>
+            <td>${has ? '<span class="badge b-on">ĐÃ TRAO</span>' : '<span class="muted">chưa</span>'}</td>
+            <td>${has
+              ? `<button class="danger" onclick="doGrant('${id}','${esc(name)}','${key}',false)">Thu hồi</button>`
+              : `<button class="ok" onclick="doGrant('${id}','${esc(name)}','${key}',true)">Trao</button>`}</td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="5" class="muted">Chưa có món nào để trao.</td></tr>'}
+        </tbody></table>
+        <p class="muted" style="margin-top:10px">Người chơi đang online sẽ mở khoá ngay, không cần đăng nhập lại.</p>
+      </div>`;
+    $('#grant-box').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { toast(e.message); }
+}
+async function doGrant(id, name, key, give) {
+  await api(`/player/${id}/cosmetic`, { method: 'POST', body: JSON.stringify({ key, give }) });
+  toast(give ? 'Đã trao' : 'Đã thu hồi');
+  openGrant(id, name);
 }
 
 function renderConfig(s) {

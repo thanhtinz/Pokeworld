@@ -43,6 +43,9 @@ export const fetchLeaderboard = (metric = 'money') => call(`/leaderboard?metric=
 export const fetchPlayer = (username) => call(`/player/${encodeURIComponent(username)}`, { auth: false });
 export const fetchConfig = () => call('/config', { auth: false });
 
+// ==== Thời trang do admin cấu hình (ảnh + món thêm mới) ====
+export const fetchCosmetics = () => call('/cosmetics', { auth: false });
+
 // ==== Bạn bè ====
 export const fetchFriends = () => call('/friends');
 export const requestFriend = (username) => call('/friends/request', { method: 'POST', body: { username } });

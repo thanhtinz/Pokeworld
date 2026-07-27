@@ -83,6 +83,17 @@
 .fr-gold   { border-color: #f0b429; box-shadow: 0 0 12px -2px #f0b429; }
 .fr-neon   { border-color: #22d3ee; box-shadow: 0 0 14px -1px #22d3ee, inset 0 0 8px -3px #22d3ee; }
 .fr-flame  { border-color: #fa5252; box-shadow: 0 0 14px -1px #fa5252, inset 0 0 8px -3px #ff922b; }
+/* Khung bằng ảnh admin tải lên: ảnh phủ lên trên avatar, hở giữa để thấy mặt.
+   Tràn 6px ra ngoài vì khung game thường có phần nhô ra ngoài mép. */
+.fr-img { position: relative; border-color: transparent; }
+.fr-img::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  background: var(--fr) center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
 
 /* Danh hiệu đang mặc */
 .title-pill {
@@ -299,6 +310,13 @@
 .fa-req { color: var(--muted); font-size: 10px; line-height: 1.3; }
 
 /* Xem trước khung avatar: một ô vuông mang đúng viền của khung */
+/* Món có ảnh riêng: xem trước bằng đúng ảnh đó, vừa trong ô 40px */
+.fa-img {
+  max-width: 100%;
+  max-height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
 .fa-frame {
   display: block;
   width: 36px;

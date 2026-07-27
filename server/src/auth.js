@@ -19,6 +19,7 @@ export function publicUser(u) {
     id: u.id, username: u.username, avatar: u.avatar, role: u.role || 'player',
     createdAt: u.createdAt, lastSeen: u.lastSeen,
     stats: u.stats || { pvpWin: 0, pvpLose: 0 },
+    cosmetics: Array.isArray(u.cosmetics) ? u.cosmetics : [],
   };
 }
 

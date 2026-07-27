@@ -12,7 +12,19 @@ import { esc } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
-import { TITLES } from '../data/cosmetics.js';
+import { TITLES, imgOf } from '../data/cosmetics.js';
+
+// Ảnh danh hiệu admin tải lên — tải một lần rồi dùng lại mỗi khung hình
+const titleImgs = new Map();
+function titleImage(src) {
+  let im = titleImgs.get(src);
+  if (!im) {
+    im = new Image();
+    im.src = src;
+    titleImgs.set(src, im);
+  }
+  return im.complete && im.naturalWidth ? im : null;
+}
 
 let raf = null;
 
@@ -133,6 +145,16 @@ export function render(el) {
   function drawTitle(cx, topY) {
     const t = TITLES[G.p?.look?.title];
     if (!t) return;
+    // Danh hiệu có ảnh riêng thì vẽ ảnh, cao 16px cho khớp thẻ chữ
+    const src = imgOf(t);
+    if (src) {
+      const im = titleImage(src);
+      if (!im) return;
+      const h = 16;
+      const w = Math.round(im.naturalWidth * h / im.naturalHeight);
+      ctx.drawImage(im, Math.round(cx - w / 2), Math.round(topY - h - 2), w, h);
+      return;
+    }
     ctx.save();
     ctx.font = '600 11px system-ui, sans-serif';
     ctx.textAlign = 'center';

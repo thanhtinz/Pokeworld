@@ -6,7 +6,7 @@ import * as api from '../net/api.js';
 import * as sock from '../net/socket.js';
 import { net, onChange, isOnline, clearUnread } from '../net/session.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
-import { TITLES } from '../data/cosmetics.js';
+import { chatFrame, titleHtml } from './look.js';
 import { ensureData } from '../engine/equipment.js';
 
 const CHANNELS = [['world', 'Thế giới'], ['guild', 'Bang hội'], ['dm', 'Riêng']];
@@ -52,11 +52,10 @@ export function render(el, { to = null } = {}) {
           const mine = m.from === net.me?.username;
           // Khung chat + danh hiệu mới chỉ áp cho tin của CHÍNH MÌNH: máy chủ
           // chưa gửi kèm trang phục của người khác.
-          const fr = mine && myLook.chatFrame && myLook.chatFrame !== 'none' ? ` cf-${esc(myLook.chatFrame)}` : '';
-          const t = mine ? TITLES[myLook.title] : null;
+          const fr = mine ? chatFrame(myLook.chatFrame) : { cls: '', style: '' };
           return `
-          <div class="chat-line ${mine ? 'mine' : ''}${fr}">
-            ${t ? `<i class="chat-title" style="color:${t.color}">${esc(t.name)}</i>` : ''}
+          <div class="chat-line ${mine ? 'mine' : ''}${fr.cls}"${fr.style}>
+            ${mine ? titleHtml(myLook.title, 'chat-title') : ''}
             <b>${esc(m.from)}</b><span>${esc(m.text || '')}</span>
           </div>`;
         }).join('')

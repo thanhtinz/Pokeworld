@@ -4,8 +4,12 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { getDb, find, filter, remove, markDirty, audit, flush } from './db.js';
 import { adminRequired } from './auth.js';
-import { kickUser, onlineCount } from './realtime.js';
+import { kickUser, onlineCount, emitToUser } from './realtime.js';
 import { guildById, disbandGuildDoc } from './guild.js';
+import {
+  KINDS, HOWS, BUILTIN_MANUAL, listCosmetics, upsertCosmetic, removeCosmetic,
+  saveImage, clearImage, publicCosmetics, grantCosmetic, cosmeticsOf,
+} from './cosmetics.js';
 
 const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
@@ -178,6 +182,65 @@ export function adminRouter(io) {
     io.emit('chat:msg', { username: '📢 HỆ THỐNG', avatar: 'system', text, ts: Date.now(), system: true });
     audit(req.admin, 'broadcast', '-', text);
     res.json({ ok: true });
+  });
+
+  // ==== Thời trang: danh hiệu, khung avatar, khung chat, skin ====
+  r.get('/cosmetics', (req, res) => {
+    res.json({ rows: listCosmetics(), kinds: KINDS, hows: HOWS, builtin: BUILTIN_MANUAL });
+  });
+
+  // Thêm mới hoặc sửa một món (id + kind là khoá)
+  r.post('/cosmetics', (req, res) => {
+    const [doc, err] = upsertCosmetic(req.body || {});
+    if (err) return res.status(400).json({ error: err });
+    audit(req.admin, 'cosmetic-save', `${doc.kind}:${doc.id}`, doc.name);
+    io.emit('cosmetics:update', { items: publicCosmetics() });
+    res.json({ ok: true, item: doc });
+  });
+
+  // Tải ảnh cho một món — nhận thẳng tệp ảnh trong body (không cần multipart)
+  r.post('/cosmetics/:key/image',
+    express.raw({ type: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'], limit: '2mb' }),
+    (req, res) => {
+      const [doc, err] = saveImage(req.params.key, req.body, req.headers['content-type']);
+      if (err) return res.status(400).json({ error: err });
+      audit(req.admin, 'cosmetic-image', req.params.key, doc.img);
+      io.emit('cosmetics:update', { items: publicCosmetics() });
+      res.json({ ok: true, item: doc });
+    });
+
+  r.delete('/cosmetics/:key/image', (req, res) => {
+    if (!clearImage(req.params.key)) return res.status(404).json({ error: 'Không tìm thấy món này.' });
+    audit(req.admin, 'cosmetic-image-clear', req.params.key, '');
+    io.emit('cosmetics:update', { items: publicCosmetics() });
+    res.json({ ok: true });
+  });
+
+  r.delete('/cosmetics/:key', (req, res) => {
+    if (!removeCosmetic(req.params.key)) return res.status(404).json({ error: 'Không tìm thấy món này.' });
+    audit(req.admin, 'cosmetic-delete', req.params.key, '');
+    io.emit('cosmetics:update', { items: publicCosmetics() });
+    res.json({ ok: true });
+  });
+
+  // Trao / thu hồi một món cho người chơi (dùng cho món điều kiện 'manual')
+  r.post('/player/:id/cosmetic', (req, res) => {
+    const u = find('users', x => x.id === req.params.id);
+    if (!u) return res.status(404).json({ error: 'Không tìm thấy.' });
+    const key = String(req.body?.key || '');
+    const give = req.body?.give !== false;
+    const [list, err] = grantCosmetic(u, key, give);
+    if (err) return res.status(400).json({ error: err });
+    audit(req.admin, give ? 'cosmetic-grant' : 'cosmetic-revoke', u.username, key);
+    // Người chơi đang online thì mở khoá ngay, không cần đăng nhập lại
+    emitToUser(io, u.id, 'cosmetics:granted', { cosmetics: list });
+    res.json({ ok: true, cosmetics: list });
+  });
+
+  r.get('/player/:id/cosmetics', (req, res) => {
+    const u = find('users', x => x.id === req.params.id);
+    if (!u) return res.status(404).json({ error: 'Không tìm thấy.' });
+    res.json({ cosmetics: cosmeticsOf(u) });
   });
 
   // Nhật ký thao tác admin

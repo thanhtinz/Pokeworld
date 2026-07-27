@@ -3,11 +3,12 @@
 //
 // Toàn bộ phần này chỉ chạy khi người chơi đã chọn một máy chủ ở màn "Chọn máy chủ".
 // Chơi offline thì mọi hàm ở đây đều im lặng trở về, game vẫn chạy bình thường.
-import { isOnlineMode, getToken } from './config.js';
+import { isOnlineMode, getToken, getServerUrl } from './config.js';
 import * as api from './api.js';
 import * as sock from './socket.js';
-import { G } from '../state.js';
+import { G, save as saveGame } from '../state.js';
 import { getSetting, onSettingChange } from '../engine/settings.js';
+import { applyRemote, setGrants } from '../data/cosmetics.js';
 
 const MAX_LOG = 120;
 
@@ -67,6 +68,25 @@ function wire() {
   sock.on('pvp:start', d => { net.pvp = { with: d.opponent, seed: d.seed, started: true }; changed(); });
   sock.on('pvp:end', () => { net.pvp = null; changed(); });
   sock.on('kicked', d => { net.lastError = d?.reason || 'Bạn bị mời khỏi máy chủ.'; changed(); });
+
+  // Admin sửa kho thời trang / trao món cho mình -> áp dụng ngay, không cần vào lại
+  sock.on('cosmetics:update', d => { applyRemote(d?.items || [], getServerUrl() || ''); changed(); });
+  sock.on('cosmetics:granted', d => { keepGrants(d?.cosmetics || []); changed(); });
+}
+
+// Ghi nhớ danh sách món được trao. Lưu luôn vào bản lưu để lần sau mở game
+// (kể cả khi máy chủ chưa trả lời kịp) danh hiệu đã trao vẫn còn.
+function keepGrants(list) {
+  setGrants(list);
+  if (G.p) { G.p.granted = [...list]; saveGame(); }
+}
+
+// Tải kho thời trang admin cấu hình. Chạy được cả khi chưa đăng nhập.
+export async function loadCosmetics() {
+  if (!isOnlineMode()) return { ok: false, offline: true };
+  const r = await api.fetchCosmetics();
+  if (r.ok) applyRemote(r.data?.items || [], getServerUrl() || '');
+  return r;
 }
 
 // Mở phiên online. Gọi khi vào game; chơi offline thì không làm gì.
@@ -82,7 +102,11 @@ export async function startSession() {
     await api.pushSave(buildSave());
     if (getSetting('autoSync')) api.startAutoSync(() => buildSave(), 30000);
     const me = await api.fetchMe();
-    if (me.ok) net.me = me.data?.user || me.data;
+    if (me.ok) {
+      net.me = me.data?.user || me.data;
+      keepGrants(me.data?.cosmetics || net.me?.cosmetics || []);
+    }
+    await loadCosmetics();
   }
   changed();
   return r;
@@ -102,6 +126,7 @@ function buildSave() {
     name: p.name, money: p.money, badges: p.badges,
     party: p.party, box: p.box, dex: p.dex, inventory: p.inventory,
     equipped: p.equipped, trainer: p.trainer, story: p.story, pos: p.pos,
+    look: p.look,
   };
 }
 

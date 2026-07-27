@@ -94,12 +94,26 @@ Sau đó push lên `main` — mọi người vào web là tự kết nối máy 
 | Mục | Chức năng |
 |---|---|
 | Tổng quan | Số tài khoản, đang online, đăng ký mới, trận PvP, cặp đôi; gửi thông báo toàn server |
-| Người chơi | Tìm kiếm, xem tiền/dex/huy hiệu, tặng tiền & vật phẩm, đặt lại mật khẩu, khóa/mở khóa, xóa tài khoản |
+| Người chơi | Tìm kiếm, xem tiền/dex/huy hiệu, tặng tiền & vật phẩm, **trao thời trang (nút 🏷)**, đặt lại mật khẩu, khóa/mở khóa, xóa tài khoản |
+| Thời trang | Thêm danh hiệu / khung avatar / khung chat / skin, **tải ảnh riêng cho từng món**, đặt điều kiện nhận |
 | Cấu hình | Đổi tên máy chủ, thông báo chào, bật sự kiện x2 EXP / x2 tiền / tăng tỉ lệ shiny — **áp dụng ngay, không cần khởi động lại** |
 | Lịch sử PvP | 100 trận gần nhất, đánh dấu trận có kết quả lệch (nghi gian lận) |
 | Nhật ký | Toàn bộ thao tác của admin |
 
 Tài khoản bị khóa sẽ bị ngắt kết nối ngay lập tức và không đăng nhập lại được.
+
+### Thời trang: ảnh tải lên và danh hiệu trao tay
+
+- Mỗi món có một **điều kiện nhận**: có sẵn từ đầu, bắt đủ N sinh vật, thắng N trận,
+  đủ N huy hiệu, đủ cấp huấn luyện viên — hoặc **“Admin trao tay”** cho món không
+  có điều kiện nào tự đạt được (danh hiệu sự kiện, danh hiệu tặng riêng...).
+- Món trao tay chỉ mở khi admin sang tab **Người chơi** bấm 🏷 rồi bấm **Trao**.
+  Người chơi đang online mở khoá ngay lập tức, không cần đăng nhập lại.
+- Ảnh tải lên (PNG/JPG/GIF/WEBP, tối đa 2MB) lưu ở `DATA_DIR/uploads/cosmetics/`
+  và phục vụ tại `/uploads/cosmetics/...`. Món có ảnh thì trong game hiện đúng ảnh
+  đó (danh hiệu trên đầu nhân vật, khung avatar, khung chat); món không có ảnh vẫn
+  vẽ bằng CSS như bộ mặc định. **Nhớ backup thư mục `data/` cùng với `db.json`.**
+- Xóa một món sẽ xóa luôn tệp ảnh và gỡ món khỏi những người đã được trao.
 
 ## 7. Bảo mật
 
@@ -120,6 +134,7 @@ RAM 512MB là đủ cho vài trăm người chơi (Node.js + dữ liệu JSON tr
 | Save | `PUT /api/save` |
 | Xếp hạng | `GET /api/leaderboard?metric=money\|dex\|badges\|level\|pvp` |
 | Hồ sơ | `GET /api/player/:username`, `GET /api/config` |
+| Thời trang | `GET /api/cosmetics` (kho + ảnh), món được trao nằm trong `GET /api/me` |
 | Bạn bè | `GET /api/friends`, `POST /api/friends/request`, `POST /api/friends/respond`, `DELETE /api/friends/:username` |
 | Kết hôn | `GET /api/marriage`, `POST /api/marriage/propose`, `POST /api/marriage/respond`, `DELETE /api/marriage` |
 | Realtime | Socket.IO: `chat:send`, `pvp:challenge`, `pvp:accept`, `pvp:action`, `pvp:result` |

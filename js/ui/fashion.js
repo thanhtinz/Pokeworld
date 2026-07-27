@@ -5,10 +5,11 @@
 import { G } from '../state.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { ensureData, trainerLevel, wearCosmetic } from '../engine/equipment.js';
-import { COSMETIC_KINDS, SKINS, TITLES, unlocked, requirement } from '../data/cosmetics.js';
+import { COSMETIC_KINDS, SKINS, unlocked, requirement, imgOf } from '../data/cosmetics.js';
 import { esc } from '../util.js';
 import { toast, header } from './kit.js';
 import { uiIcon } from './icons.js';
+import { avatarFrame, chatFrame, titleHtml } from './look.js';
 
 // Bốn tab: ba loại thời trang + skin nhân vật
 const TABS = [
@@ -34,18 +35,17 @@ export function render(el, { tab: startTab } = {}) {
   function draw() {
     const cur = TABS.find(t => t.id === tab);
     const lv = trainerLevel();
-    const title = TITLES[p.look.title];
-    const frame = p.look.avatarFrame && p.look.avatarFrame !== 'none' ? ` fr-${esc(p.look.avatarFrame)}` : '';
+    const fr = avatarFrame(p.look.avatarFrame);
 
     el.innerHTML = `
       ${header('Thời trang', 'character')}
 
       <div class="card fa-preview">
-        <span class="ring-ava-wrap${frame}">
+        <span class="ring-ava-wrap${fr.cls}"${fr.style}>
           <img class="ring-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()">
         </span>
         <b class="ring-name-lbl">${esc(p.name)}</b>
-        ${title ? `<span class="title-pill" style="--tc:${title.color}">${esc(title.name)}</span>` : ''}
+        ${titleHtml(p.look.title)}
         <small class="char-note-txt">Mặc cho đẹp — không đổi sức mạnh của bạn hay của Tuxemon.</small>
       </div>
 
@@ -84,18 +84,24 @@ export function render(el, { tab: startTab } = {}) {
       b.addEventListener('click', () => wear(b.dataset.id)));
   }
 
-  // Ô xem trước của từng loại: khung thì vẽ đúng khung, danh hiệu thì vẽ thẻ
+  // Ô xem trước của từng loại. Món nào admin đã tải ảnh lên thì xem trước bằng
+  // đúng ảnh đó, món không có ảnh thì vẫn vẽ bằng CSS như bộ mặc định.
   function cellArt(kind, id, d) {
+    const img = imgOf(d);
+    if (img && kind !== 'chatFrame') {
+      return `<span class="fa-art"><img class="fa-img" src="${esc(img)}" alt="" onerror="this.remove()"></span>`;
+    }
     if (kind === 'avatarFrame') {
       const cls = d.css ? ` fr-${esc(d.css)}` : '';
       return `<span class="fa-art"><span class="fa-frame${cls}"></span></span>`;
     }
     if (kind === 'chatFrame') {
-      const cls = d.css ? ` cf-${esc(d.css)}` : '';
-      return `<span class="fa-art"><span class="fa-bubble${cls}">Alo</span></span>`;
+      // Khung chat luôn xem trước bằng bong bóng thật, ảnh chỉ làm nền cho nó
+      const cf = chatFrame(id);
+      return `<span class="fa-art"><span class="fa-bubble${cf.cls}"${cf.style}>Alo</span></span>`;
     }
     if (kind === 'title') {
-      return `<span class="fa-art"><span class="title-pill" style="--tc:${d.color}">${esc(d.name)}</span></span>`;
+      return `<span class="fa-art">${titleHtml(id)}</span>`;
     }
     return `<span class="fa-art">${uiIcon('slot_skin', 30)}</span>`;
   }

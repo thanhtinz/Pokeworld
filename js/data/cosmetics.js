@@ -3,9 +3,15 @@
 // Đồ thời trang KHÔNG cộng chỉ số — mặc vào chỉ để đẹp và để người khác thấy.
 // Danh hiệu mặc vào sẽ hiện ngay trên đầu nhân vật khi đi trên bản đồ, hiện
 // cạnh tên trong khung chat và trên thẻ hồ sơ.
+//
+// Bộ dưới đây là bộ MẶC ĐỊNH đi kèm game. Admin có thể thêm món mới và tải ảnh
+// riêng cho từng món trong trang /admin; những món đó được ghép đè vào các bảng
+// này khi vào phiên online (xem applyRemote bên dưới) — món nào có ảnh thì giao
+// diện dùng ảnh, không có thì vẫn vẽ bằng CSS như cũ.
 
 // Cách mở khoá: how = 'start' có sẵn | 'badge' đủ huy hiệu | 'catch' bắt đủ số
 //               'win' thắng đủ trận | 'level' đủ cấp huấn luyện viên
+//               'manual' không tự mở được — phải được quản trị viên trao tay
 export const TITLES = {
   rookie:   { name: 'Tân Binh',        color: '#9aa0c3', how: 'start' },
   explorer: { name: 'Kẻ Lữ Hành',      color: '#4dabf7', how: 'catch', n: 10 },
@@ -15,6 +21,10 @@ export const TITLES = {
   veteran:  { name: 'Lão Làng',        color: '#ff922b', how: 'win',   n: 100 },
   badged:   { name: 'Chủ Huy Hiệu',    color: '#f0b429', how: 'badge', n: 2 },
   master:   { name: 'Bậc Thầy',        color: '#ffd43b', how: 'level', n: 30 },
+  // Không có điều kiện nào tự đạt được — quản trị viên trao tay trong trang admin
+  founder:  { name: 'Khai Quốc',       color: '#ffe066', how: 'manual' },
+  champion: { name: 'Nhà Vô Địch',     color: '#ff6b6b', how: 'manual' },
+  friend:   { name: 'Bạn Của Nhà Phát Triển', color: '#66d9e8', how: 'manual' },
 };
 
 // Khung ảnh đại diện — vẽ bằng CSS nên không tốn ảnh nào
@@ -47,9 +57,77 @@ export const COSMETIC_KINDS = [
   { id: 'chatFrame',   name: 'Khung chat',   icon: 'chat',   data: CHAT_FRAMES },
 ];
 
+const TABLES = { title: TITLES, avatarFrame: AVATAR_FRAMES, chatFrame: CHAT_FRAMES, skin: SKINS };
+
+// Gắn sẵn kind + id vào từng món để chỗ nào cầm def cũng biết nó là món gì.
+function stamp() {
+  for (const [kind, table] of Object.entries(TABLES)) {
+    for (const [id, def] of Object.entries(table)) {
+      def.kind = kind;
+      def.id = id;
+      def.key = `${kind}:${id}`;
+    }
+  }
+}
+stamp();
+
+// ==== Món admin thêm / ảnh admin tải lên ====
+// gốc = địa chỉ máy chủ, vì ảnh nằm trên máy chủ chứ không nằm trong thư mục game
+let assetBase = '';
+const remoteKeys = new Set();
+
+// items = mảng { kind, id, name, color, css, how, n, img } lấy từ GET /api/cosmetics
+export function applyRemote(items, base = '') {
+  assetBase = String(base || '').replace(/\/+$/, '');
+  // Bỏ các món của lần tải trước không còn nữa (admin đã xoá)
+  const keep = new Set((items || []).map(it => `${it.kind}:${it.id}`));
+  for (const key of [...remoteKeys]) {
+    if (keep.has(key)) continue;
+    const [kind, id] = key.split(':');
+    delete TABLES[kind]?.[id];
+    remoteKeys.delete(key);
+  }
+  for (const it of items || []) {
+    const table = TABLES[it.kind];
+    if (!table || !it.id) continue;
+    const cur = table[it.id];
+    if (cur) {
+      // Món có sẵn trong game: chỉ nhận thêm ảnh, giữ nguyên tên/điều kiện gốc
+      cur.img = it.img || null;
+    } else {
+      table[it.id] = {
+        name: it.name, color: it.color, css: it.css || null,
+        how: it.how, n: it.n || 0, img: it.img || null,
+      };
+      remoteKeys.add(`${it.kind}:${it.id}`);
+    }
+  }
+  stamp();
+}
+
+// Đường dẫn ảnh đầy đủ của một món, hoặc null nếu món này vẽ bằng CSS
+export function imgOf(def) {
+  if (!def?.img) return null;
+  return /^https?:\/\//.test(def.img) ? def.img : assetBase + def.img;
+}
+
+// ==== Món được trao tay ====
+// Danh sách khoá "kind:id" máy chủ đã trao cho người chơi này.
+let granted = new Set();
+
+export function setGrants(list) {
+  granted = new Set(Array.isArray(list) ? list : []);
+}
+export const grantList = () => [...granted];
+export const hasGrant = (def) => !!def?.key && granted.has(def.key);
+
 // Đủ điều kiện mở khoá chưa? p = G.p, lv = cấp huấn luyện viên
 export function unlocked(def, p, lv) {
-  if (!def || def.how === 'start') return true;
+  if (!def) return false;
+  // Được trao tay thì mở, bất kể điều kiện gốc là gì
+  if (hasGrant(def) || p?.granted?.includes(def.key)) return true;
+  if (def.how === 'start') return true;
+  if (def.how === 'manual') return false;
   const n = def.n || 0;
   if (def.how === 'catch') return (p?.stats?.catches || 0) >= n;
   if (def.how === 'win') return (p?.stats?.wins || 0) >= n;
@@ -67,6 +145,7 @@ export function requirement(def) {
     win: `Thắng ${n} trận`,
     badge: `Có ${n} huy hiệu`,
     level: `Trainer Lv.${n}`,
+    manual: 'Quản trị viên trao tay',
   }[def.how] || '';
 }
 

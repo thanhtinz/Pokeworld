@@ -9,6 +9,7 @@ import {
 } from './social.js';
 import { guildRouter } from './guild.js';
 import { chatRouter } from './chat.js';
+import { publicCosmetics, cosmeticsOf } from './cosmetics.js';
 
 export const router = express.Router();
 
@@ -36,7 +37,16 @@ router.post('/auth/login', async (req, res) => {
 
 // ==== Hồ sơ + save ====
 router.get('/me', authRequired, (req, res) => {
-  res.json({ user: publicUser(req.user), save: req.user.save || null });
+  res.json({
+    user: publicUser(req.user),
+    save: req.user.save || null,
+    cosmetics: cosmeticsOf(req.user),
+  });
+});
+
+// ==== Thời trang admin cấu hình (ai cũng xem được để hiện trong game) ====
+router.get('/cosmetics', (req, res) => {
+  res.json({ items: publicCosmetics() });
 });
 
 router.put('/save', authRequired, (req, res) => {

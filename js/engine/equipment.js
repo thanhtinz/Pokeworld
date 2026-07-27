@@ -2,6 +2,7 @@
 import { G, save, spend, addMoney } from '../state.js';
 import { rng, clamp } from '../util.js';
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, STAT_KEYS, statsOf, maxLevelOf } from '../data/equipment.js';
+import { setGrants } from '../data/cosmetics.js';
 
 // Đá cường hóa: KHÔNG nằm trong data/items.js (file đó do màn khác giữ),
 // nên định nghĩa tại đây và lưu số lượng trong G.p.bag.upgrade_stone.
@@ -32,6 +33,9 @@ export function ensureData() {
   for (const [k, v] of Object.entries({ title: 'rookie', avatarFrame: 'none', chatFrame: 'none' })) {
     if (typeof p.look[k] !== 'string') p.look[k] = v;
   }
+  // Món thời trang được quản trị viên trao tay (khoá dạng "title:founder")
+  if (!Array.isArray(p.granted)) p.granted = [];
+  setGrants(p.granted);
   return p;
 }
 

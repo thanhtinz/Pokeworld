@@ -14,6 +14,7 @@ import { TITLES } from '../data/cosmetics.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
+import { avatarFrame, titleHtml } from './look.js';
 
 // Nạp CSS riêng của màn này 1 lần
 function ensureCss() {
@@ -68,17 +69,16 @@ export function render(el) {
     const need = expToNext(lv);
     const maxed = lv >= MAX_TRAINER_LEVEL;
     const pct = maxed ? 100 : Math.min(100, Math.round(p.trainer.exp / Math.max(1, need) * 100));
-    const t = TITLES[p.look.title];
-    const frame = p.look.avatarFrame && p.look.avatarFrame !== 'none' ? ` fr-${esc(p.look.avatarFrame)}` : '';
+    const fr = avatarFrame(p.look.avatarFrame);
     return `
       <div class="card gear-ring">
         <div class="ring-col">${SLOTS.slice(0, 3).map(cell).join('')}</div>
         <div class="ring-mid">
-          <span class="ring-ava-wrap${frame}">
+          <span class="ring-ava-wrap${fr.cls}"${fr.style}>
             <img class="ring-ava" src="assets/trainers/${activeAvatar()}.png" alt="" onerror="this.remove()">
           </span>
           <b class="ring-name-lbl">${esc(p.name)}</b>
-          ${t ? `<span class="title-pill" style="--tc:${t.color}">${esc(t.name)}</span>` : ''}
+          ${titleHtml(p.look.title)}
           <div class="char-lv">Trainer Lv.${lv}${maxed ? ' (MAX)' : ''}</div>
           <div class="char-xp"><div class="char-xp-fill" style="width:${pct}%"></div></div>
           <small class="char-xp-num">${maxed ? 'Cấp tối đa' : `${fmt(p.trainer.exp)}/${fmt(need)}`}</small>

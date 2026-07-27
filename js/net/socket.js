@@ -43,6 +43,7 @@ export async function connect() {
     for (const ev of [
       'welcome', 'presence:count', 'chat:msg', 'chat:error',
       'friends:presence', 'config:update', 'kicked',
+      'cosmetics:update', 'cosmetics:granted',
       'dm:msg', 'guild:msg', 'guild:update',
       'pvp:invited', 'pvp:sent', 'pvp:denied', 'pvp:start',
       'pvp:action', 'pvp:end', 'pvp:error',

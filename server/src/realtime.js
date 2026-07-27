@@ -257,6 +257,14 @@ function notifyFriends(io, user, isOnlineNow) {
 }
 
 // Cho admin: đá người chơi ra khỏi server ngay khi bị ban
+// Gửi riêng cho một người chơi đang online (im lặng nếu họ offline)
+export function emitToUser(io, userId, event, payload) {
+  const conn = online.get(userId);
+  if (!conn) return false;
+  io.sockets.sockets.get(conn.socketId)?.emit(event, payload);
+  return true;
+}
+
 export function kickUser(io, userId, reason) {
   const conn = online.get(userId);
   if (!conn) return false;

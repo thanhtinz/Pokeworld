@@ -417,6 +417,70 @@ try {
 
   sockC.close(); sockA2.close(); sockB2.close();
 
+  // ==== Thời trang: kho admin + ảnh + trao tay ====
+  const coBad = await api('/api/admin/cosmetics', { method: 'POST', token: admToken, body: { kind: 'hat', id: 'x', name: 'X' } });
+  ok('từ chối loại thời trang lạ', coBad.status === 400);
+
+  const coNew = await api('/api/admin/cosmetics', {
+    method: 'POST', token: admToken,
+    body: { kind: 'title', id: 'Tết 2026!', name: 'Chúa Tể Mùa Xuân', color: '#ff6b6b', how: 'manual' },
+  });
+  ok('admin thêm danh hiệu', coNew.status === 200);
+  ok('mã món được chuẩn hoá', coNew.data.item?.id === 'tet_2026', coNew.data.item?.id);
+
+  // Ảnh PNG 1x1 gửi thẳng trong body
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64');
+  const upRes = await fetch(`${BASE}/api/admin/cosmetics/title:tet_2026/image`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'image/png', Authorization: 'Bearer ' + admToken },
+    body: png,
+  });
+  const upData = await upRes.json().catch(() => ({}));
+  ok('tải ảnh lên cho món', upRes.ok && !!upData.item?.img, JSON.stringify(upData));
+  ok('ảnh nằm trong thư mục dữ liệu',
+    fs.existsSync(path.join(DATA_DIR, 'uploads', 'cosmetics', path.basename(upData.item?.img || 'x'))));
+
+  const imgGet = await fetch(BASE + (upData.item?.img || '/none'));
+  ok('người chơi tải được ảnh', imgGet.ok && imgGet.headers.get('content-type') === 'image/png');
+
+  const upBad = await fetch(`${BASE}/api/admin/cosmetics/title:tet_2026/image`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain', Authorization: 'Bearer ' + admToken },
+    body: 'khong phai anh',
+  });
+  ok('từ chối tệp không phải ảnh', upBad.status === 400);
+
+  const coPub = await api('/api/cosmetics');
+  ok('danh sách thời trang công khai', coPub.status === 200 && coPub.data.items.some(i => i.id === 'tet_2026'));
+
+  const meBefore = await api('/api/me', { token: tokenA });
+  ok('chưa được trao thì danh sách rỗng', (meBefore.data.cosmetics || []).length === 0);
+
+  const grantBad = await api(`/api/admin/player/${ashId}/cosmetic`, { method: 'POST', token: admToken, body: { key: 'weapon:sword' } });
+  ok('từ chối khoá món không hợp lệ', grantBad.status === 400);
+
+  const grantOk = await api(`/api/admin/player/${ashId}/cosmetic`, { method: 'POST', token: admToken, body: { key: 'title:tet_2026' } });
+  ok('admin trao danh hiệu', grantOk.status === 200 && grantOk.data.cosmetics.includes('title:tet_2026'));
+
+  const grantBuiltin = await api(`/api/admin/player/${ashId}/cosmetic`, { method: 'POST', token: admToken, body: { key: 'title:founder' } });
+  ok('trao được cả món có sẵn trong game', grantBuiltin.data.cosmetics.includes('title:founder'));
+
+  const meGranted = await api('/api/me', { token: tokenA });
+  ok('người chơi thấy món được trao', (meGranted.data.cosmetics || []).length === 2);
+
+  await api(`/api/admin/player/${ashId}/cosmetic`, { method: 'POST', token: admToken, body: { key: 'title:founder', give: false } });
+  const meRevoked = await api('/api/me', { token: tokenA });
+  ok('thu hồi được món đã trao', !(meRevoked.data.cosmetics || []).includes('title:founder'));
+
+  const del = await api('/api/admin/cosmetics/title:tet_2026', { method: 'DELETE', token: admToken });
+  ok('admin xóa món', del.status === 200);
+  const meDeleted = await api('/api/me', { token: tokenA });
+  ok('xóa món thì gỡ khỏi tay người chơi', (meDeleted.data.cosmetics || []).length === 0);
+  ok('xóa món thì xóa luôn tệp ảnh',
+    !fs.existsSync(path.join(DATA_DIR, 'uploads', 'cosmetics', path.basename(upData.item?.img || 'x'))));
+
   // ==== Lưu xuống đĩa ====
   await api('/api/admin/flush', { method: 'POST', token: admToken });
   ok('DB ghi ra file', fs.existsSync(path.join(DATA_DIR, 'db.json')));
