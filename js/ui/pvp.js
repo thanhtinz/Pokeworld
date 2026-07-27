@@ -85,13 +85,16 @@ export function render(el, ctx = {}) {
 
   function panel(mon, whoLabel, back) {
     if (!mon) return '';
-    return `
+    const info = `
       <div class="bt-info">
         <div class="bt-name">${esc(whoLabel)} · ${esc(displayName(mon))} <small>Lv.${mon.lv}</small> ${statusTag(mon.status)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(mon.hpCur, maxHp(mon))}</div>
-      </div>
+      </div>`;
+    const img = `
       <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
            src="${monLocalSrc(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">`;
+    // Bên mình đứng TRÁI DƯỚI, đối thủ đứng PHẢI TRÊN — giống game Pokémon gốc.
+    return back ? img + info : info + img;
   }
 
   function draw() {
