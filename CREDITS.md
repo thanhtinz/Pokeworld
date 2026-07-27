@@ -26,6 +26,9 @@ Cụ thể đã lấy:
 | Icon giao diện: ba lô, nhật ký, đội hình, cài đặt | `assets/ui/` |
 | Icon tầm đánh của chiêu (melee/touch/ranged/reach/reliable) | `assets/ui/range/` |
 | 33 trạng thái + icon (độc, bỏng, mê hoặc, vỏ cứng...) | `js/data/statuses.js`, `assets/ui/status/` |
+| Bảng gặp Tuxemon hoang của từng bản đồ | `js/data/encounters.js` |
+| Giá mua/bán trong cửa hàng | `js/data/items.js` |
+| 6 bản nhạc nền + bản đồ nào chơi bản nào | `assets/music/`, `js/data/maps.js` |
 
 Cả **luật chơi** cũng lấy theo bản gốc: công thức sát thương theo tầm đánh,
 chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt, khẩu vị thay cho tính

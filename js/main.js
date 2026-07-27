@@ -39,6 +39,7 @@ import { fmt } from './util.js';
 import { uiIcon } from './ui/icons.js';
 import { avatarFaceSrc, avatarFrame, upgradeFaces } from './ui/look.js';
 import { playMusic } from './engine/settings.js';
+import { currentMap } from './engine/overworld.js';
 
 // Nhạc nền theo màn: mấy màn mở đầu dùng nhạc nhẹ, đánh nhau thì đổi bản khác
 const MUSIC_BY_SCREEN = {
@@ -104,7 +105,8 @@ export function show(name, params = {}) {
   if (fab) fab.hidden = nav.hidden || name === 'chat' || !isUnlocked('chat');
   // Thanh trên hiện cùng nhịp với thanh dưới
   drawTopBar(nav.hidden);
-  playMusic(MUSIC_BY_SCREEN[name] || 'town');
+  // Màn bản đồ lấy nhạc theo đúng lệnh play_music ghi trong bản đồ gốc
+  playMusic(name === 'world' ? (currentMap().music || 'town') : (MUSIC_BY_SCREEN[name] || 'town'));
   el.scrollTop = 0;
 }
 

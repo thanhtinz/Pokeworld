@@ -2,6 +2,7 @@
 import { MAPS, TILE_SIZE } from '../data/maps.js';
 import { bake, isSolidAt, isEncAt, talkAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
+import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen } from '../state.js';
 import { newTuxemon } from './pokemon.js';
 import { rng } from '../util.js';
@@ -266,11 +267,13 @@ export function update(dt, vx, vy) {
   return null;
 }
 
-// Chọn Tuxemon hoang theo bảng spawn của khu vực
+// Chọn Tuxemon hoang. Ưu tiên bảng gặp lấy thẳng từ bản gốc (js/data/encounters.js
+// sinh theo lệnh random_encounter ghi trong chính bản đồ đó); bản đồ nào bản gốc
+// không khai thì dùng bảng theo địa hình của js/data/zones.js.
 export function rollWild(mapId) {
-  const zone = ZONES[mapId];
-  if (!zone?.encounters?.length) return null;
-  const e = rng.weighted(zone.encounters);
+  const list = ENCOUNTERS[mapId]?.length ? ENCOUNTERS[mapId] : ZONES[mapId]?.encounters;
+  if (!list?.length) return null;
+  const e = rng.weighted(list);
   const mon = newTuxemon(e.sp, rng.int(e.min, e.max));
   if (mon) markSeen(e.sp);
   return mon;

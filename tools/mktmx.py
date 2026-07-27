@@ -336,7 +336,7 @@ def parse_map(path, tsx_cache):
 
     # va cham + su kien
     solid = [0] * (w * h)
-    warps, talks = [], []
+    warps, talks, encs, nhac = [], [], set(), [None]
     npcs = {}
     for og in root.findall('objectgroup'):
         gname = (og.get('name') or '').lower()
@@ -371,13 +371,20 @@ def parse_map(path, tsx_cache):
                                   'to': os.path.splitext(m.group(1).strip())[0],
                                   'tx': int(m.group(2)), 'ty': int(m.group(3))})
                     break
+                m = re.match(r'random_encounter\s+([a-z0-9_]+)', a)
+                if m:
+                    encs.add(m.group(1))
+                m = re.match(r'play_music\s+([a-z0-9_]+)', a)
+                if m and not nhac[0]:
+                    nhac[0] = MUSIC_MAP.get(m.group(1), 'town')
                 if a.startswith('translated_dialog') or a.startswith('dialog'):
                     talks.append({'x': ox, 'y': oy, 'name': ten_bang(obj.get('name'))})
                     break
 
     ds = khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
-            'solid': solid, 'warps': warps, 'talks': talks,
+            'solid': solid, 'warps': warps, 'talks': talks, 'encs': sorted(encs),
+            'music': nhac[0] or 'town',
             'npcs': xep_cho(ds, solid, warps, w, h)}
 
 
@@ -561,13 +568,28 @@ def main():
             'warps': [w for w in m['warps'] if w['to'] in want],
             'talks': m['talks'],
             'npcs': m['npcs'],
+            'encs': m['encs'],
+            'music': m['music'],
         }
 
     write_js(out_maps, want)
+    n = write_encounters(root, out_maps)
+    print('OK: %d bảng gặp Tuxemon hoang' % n)
     print('OK: %d bản đồ' % len(out_maps))
     for k, v in out_maps.items():
         print('  %-22s %dx%d · %d lớp · %d cổng · %d bảng'
               % (k, v['w'], v['h'], len(v['layers']), len(v['warps']), len(v['talks'])))
+
+
+# Ban nhac ban goc goi -> ban nhac game co san (xem tools/mksounds.py)
+MUSIC_MAP = {
+    'music_chibi_ninja': 'field',
+    'music_mystic_island': 'grove',
+    'music_cathedral_theme': 'town',
+    'music_town_theme': 'town',
+    'music_home': 'town',
+    'music_the_wild_places': 'field',
+}
 
 
 def pick_maps(mdir):
@@ -590,6 +612,90 @@ def pick_maps(mdir):
     return order
 
 
+# Bang gap Tuxemon hoang: ban do goc goi 'random_encounter <slug>', bang nam o
+# db/encounter/<slug>.yaml. Truoc day game tu doan theo dia hinh nen ra danh
+# sach khong giong ban goc; nay lay dung bang cua ho.
+def write_encounters(root, maps):
+    enc_dir = os.path.join(root, 'mods/tuxemon/db/encounter')
+    if not os.path.isdir(enc_dir):
+        return 0
+    dex = doc_dex()
+    bang = {}
+    for slug, m in maps.items():
+        rows = []
+        for e in chon_bang(slug, m.get('encs') or []):
+            p = os.path.join(enc_dir, e + '.yaml')
+            if not os.path.exists(p):
+                continue
+            d = doc_yaml(p)
+            for mon in d.get('monsters') or []:
+                mid = dex.get(mon.get('monster'))
+                if not mid:
+                    continue
+                lo, hi = (mon.get('level_range') or [2, 5])[:2]
+                rate = float(mon.get('encounter_rate') or 1)
+                rows.append((mid, rate, int(lo), int(hi)))
+        if rows:
+            # Gop cac dong trung loai: cong ti le, lay khoang cap rong nhat
+            gop = {}
+            for mid, rate, lo, hi in rows:
+                cu = gop.get(mid)
+                gop[mid] = (rate + cu[0], min(lo, cu[1]), max(hi, cu[2])) if cu else (rate, lo, hi)
+            bang[slug] = sorted((mid, r, lo, hi) for mid, (r, lo, hi) in gop.items())
+
+    out = ["// TuxeWorld H5 | data/encounters.js | Bảng gặp Tuxemon hoang — TỰ SINH TỪ tools/mktmx.py",
+           '// Nguồn: db/encounter của Tuxemon, lấy theo đúng lệnh random_encounter ghi',
+           '// trong từng bản đồ. w = trọng số, min/max = khoảng cấp.', '',
+           'export const ENCOUNTERS = {']
+    for slug, rows in bang.items():
+        out.append('  %s: [%s],' % (slug, ', '.join(
+            '{ sp: %d, w: %s, min: %d, max: %d }' % (mid, fmtnum(round(r * 10, 1)), lo, hi)
+            for mid, r, lo, hi in rows)))
+    out.append('};')
+    open('js/data/encounters.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    return len(bang)
+
+
+# Mot ban do co the goi nhieu bang gap: bang chinh, roi bang "hiem"/"moi" chi
+# mo khi cot truyen cho phep. Minh khong mo phong dieu kien do nen chi lay bang
+# CHINH, khong thi ngay thi tran dau game da gap con cap 50.
+def chon_bang(map_slug, encs):
+    if not encs:
+        return []
+    rieng = [e for e in encs if map_slug in e or e in map_slug]
+    if rieng:
+        return rieng[:1]
+    if 'default_encounter' in encs:
+        return ['default_encounter']
+    return encs[:1]
+
+
+def doc_yaml(path):
+    """Doc mot tep yaml don gian (khong keo them thu vien neu khong co)."""
+    try:
+        import yaml
+        with open(path, encoding='utf-8') as f:
+            return yaml.safe_load(f) or {}
+    except ImportError:
+        return {}
+
+
+def doc_dex():
+    """slug -> ma loai, doc thang tu js/data/species.js da sinh truoc do."""
+    out = {}
+    try:
+        src = open('js/data/species.js', encoding='utf-8').read()
+    except OSError:
+        return out
+    for m in re.finditer(r'^  (\d+): \{ name: "[^"]*", slug: "([^"]+)"', src, re.M):
+        out[m.group(2)] = int(m.group(1))
+    return out
+
+
+def fmtnum(v):
+    return ('%g' % v)
+
+
 def write_js(maps, want):
     out = ["// TuxeWorld H5 | data/maps.js | Bản đồ — TỰ SINH TỪ tools/mktmx.py, đừng sửa tay",
            '// Nguồn: bản đồ và tileset của Tuxemon (CC BY-SA 4.0).',
@@ -600,7 +706,8 @@ def write_js(maps, want):
     for slug, m in maps.items():
         spawn = pick_spawn(m)
         out.append('  %s: {' % slug)
-        out.append('    name: %s, w: %d, h: %d, cols: %d,' % (js(m['name']), m['w'], m['h'], m['cols']))
+        out.append('    name: %s, w: %d, h: %d, cols: %d, music: %s,'
+                   % (js(m['name']), m['w'], m['h'], m['cols'], js(m.get('music') or 'town')))
         out.append('    atlas: %s,' % js('assets/maps/%s.png' % slug))
         out.append('    spawn: { x: %d, y: %d },' % spawn)
         out.append('    layers: [')

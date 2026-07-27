@@ -27,6 +27,8 @@ export const SFX = {
 export const MUSIC = {
   title: 'assets/music/title.ogg',
   town: 'assets/music/town.ogg',
+  field: 'assets/music/field.ogg',
+  grove: 'assets/music/grove.ogg',
   battle: 'assets/music/battle.ogg',
   win: 'assets/music/win.ogg',
 };

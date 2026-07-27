@@ -6,6 +6,7 @@ import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal } from '../engine/pokemon.js';
+import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
 import { toast, choose } from './kit.js';
@@ -273,6 +274,7 @@ export function render(el) {
       const ev = update(dt, vec.x + k.x, vec.y + k.y);
       if (ev?.t === 'warp') {
         el.querySelector('#world-zone').textContent = currentMap().name;
+        playMusic(currentMap().music || 'town');
         toast(`Đã tới ${ev.name}`);
       } else if (ev?.t === 'encounter') {
         busy = true;

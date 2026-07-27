@@ -7,7 +7,7 @@ export const TILE_SIZE = 16;
 
 export const MAPS = {
   taba_town: {
-    name: "Thị Trấn Taba", w: 64, h: 60, cols: 32,
+    name: "Thị Trấn Taba", w: 64, h: 60, cols: 32, music: "field",
     atlas: "assets/maps/taba_town.png",
     spawn: { x: 43, y: 46 },
     layers: [
@@ -22,7 +22,7 @@ export const MAPS = {
     npcs: [{"x": 37, "y": 39, "dir": "down", "sprite": "nurse", "name": "Y Tá", "lines": ["Tuxemon mệt thì cứ ghé trạm hồi sức, miễn phí mà."], "ai": "stand"}, {"x": 36, "y": 37, "dir": "down", "sprite": "kid", "name": "Chú Ba", "lines": ["Con nào hợp với mình thì nuôi lâu dài, đừng đổi liên tục."], "ai": "wander"}, {"x": 36, "y": 40, "dir": "left", "sprite": "omnichannelallie", "name": "Allie", "lines": ["Cậu muốn gì? ... Thôi, chỗ này cậu không vào được đâu."], "ai": "watch"}, {"x": 37, "y": 41, "dir": "left", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}, {"x": 38, "y": 37, "dir": "up", "sprite": "disciple", "name": "Chú Tám", "lines": ["Ai đi ngang cũng khen thị trấn mình yên bình."], "ai": "wander"}, {"x": 42, "y": 46, "dir": "up", "sprite": "girl1", "name": "Callie", "lines": ["Mẹ nói hôm nay cả thị trấn phải ra quảng trường đấy."], "ai": "wander"}, {"x": 32, "y": 44, "dir": "up", "sprite": "girl1", "name": "Bà Wren", "lines": ["Cháu vừa lỡ mất ông ấy rồi. Chắc ông ấy vào thị trấn."], "ai": "wander"}, {"x": 22, "y": 24, "dir": "down", "sprite": "xerogrunt", "name": "Người Lạ Mặc Đồ Đen", "lines": ["Nhìn gì? Biến đi chỗ khác."], "ai": "watch"}, {"x": 45, "y": 8, "dir": "down", "sprite": "bob", "name": "Bob", "lines": ["Giá mà nhiều người ghé qua chào hỏi như cậu. À mà, xin chào!"], "ai": "wander"}, {"x": 21, "y": 5, "dir": "left", "sprite": "bob", "name": "Người Dân", "lines": ["Chào cậu! Thị trấn này yên bình lắm."], "ai": "wander"}, {"x": 20, "y": 6, "dir": "left", "sprite": "beachcomber", "name": "Thằng Tí", "lines": ["Tôi già rồi, đi xa không nổi nữa. Cậu đi thay tôi nhé."], "ai": "wander"}, {"x": 20, "y": 8, "dir": "left", "sprite": "kid2", "name": "Cô Lan", "lines": ["Nhớ ghé cửa hàng mua thêm bóng trước khi đi xa."], "ai": "wander"}, {"x": 31, "y": 12, "dir": "down", "sprite": "shopassistant", "name": "Jaime", "lines": ["Chào cậu! Nghe nói cậu vừa nhận Tuxemon, chúc mừng nhé!", "Muốn đội mạnh lên thì cứ đi bắt thêm bạn đồng hành thôi."], "ai": "stand"}, {"x": 37, "y": 36, "dir": "right", "sprite": "postboy", "name": "Người Dân", "lines": ["Thư từ khắp vùng đều qua tay tôi đấy."], "ai": "patrol"}],
   },
   player_house_downstairs: {
-    name: "Player Nhà Downstairs", w: 9, h: 7, cols: 32,
+    name: "Player Nhà Downstairs", w: 9, h: 7, cols: 32, music: "town",
     atlas: "assets/maps/player_house_downstairs.png",
     spawn: { x: 0, y: 2 },
     layers: [
@@ -37,7 +37,7 @@ export const MAPS = {
     npcs: [{"x": 8, "y": 3, "dir": "right", "sprite": "girl1", "name": "Callie", "lines": ["Mẹ nói hôm nay cả thị trấn phải ra quảng trường đấy."], "ai": "wander"}, {"x": 3, "y": 5, "dir": "down", "sprite": "professor", "name": "Giáo Sư", "lines": ["Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.", "Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé."], "ai": "stand"}],
   },
   maple_house: {
-    name: "Maple Nhà", w: 13, h: 11, cols: 32,
+    name: "Maple Nhà", w: 13, h: 11, cols: 32, music: "town",
     atlas: "assets/maps/maple_house.png",
     spawn: { x: 6, y: 9 },
     layers: [
@@ -52,7 +52,7 @@ export const MAPS = {
     npcs: [{"x": 8, "y": 6, "dir": "down", "sprite": "girl1", "name": "Bà Wren", "lines": ["Cháu vừa lỡ mất ông ấy rồi. Chắc ông ấy vào thị trấn."], "ai": "wander"}, {"x": 5, "y": 9, "dir": "down", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}],
   },
   route1: {
-    name: "Đường Số 1", w: 59, h: 42, cols: 32,
+    name: "Đường Số 1", w: 59, h: 42, cols: 32, music: "field",
     atlas: "assets/maps/route1.png",
     spawn: { x: 50, y: 12 },
     layers: [
@@ -67,7 +67,7 @@ export const MAPS = {
     npcs: [{"x": 12, "y": 14, "dir": "down", "sprite": "xerogrunt", "name": "Người Lạ Mặc Đồ Đen", "lines": ["Nhìn gì? Biến đi chỗ khác."], "ai": "watch"}, {"x": 32, "y": 14, "dir": "right", "sprite": "postboy", "name": "Người Dân", "lines": ["Thư từ khắp vùng đều qua tay tôi đấy."], "ai": "patrol"}, {"x": 31, "y": 27, "dir": "up", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}, {"x": 32, "y": 26, "dir": "up", "sprite": "kid", "name": "Chú Ba", "lines": ["Hồi trẻ tôi từng leo tới đỉnh núi đằng kia."], "ai": "wander"}, {"x": 33, "y": 27, "dir": "up", "sprite": "childactor", "name": "Anh Dũng", "lines": ["Đường số 1 nhiều cỏ cao lắm, đi cẩn thận nhé."], "ai": "wander"}, {"x": 34, "y": 28, "dir": "down", "sprite": "disciple", "name": "Ông Chín", "lines": ["Trạm hồi sức miễn phí mà nhiều người vẫn không biết đấy."], "ai": "wander"}, {"x": 31, "y": 24, "dir": "left", "sprite": "heroine", "name": "Liela", "lines": ["Quấy tôi lúc đang hái quả là phải đấu một trận đó nha!"], "ai": "wander"}, {"x": 33, "y": 25, "dir": "left", "sprite": "bob", "name": "Bob", "lines": ["Giá mà nhiều người ghé qua chào hỏi như cậu. À mà, xin chào!"], "ai": "wander"}, {"x": 35, "y": 24, "dir": "left", "sprite": "girl1", "name": "Marissa", "lines": ["Nghe nói Omnichannel sắp thông báo gì đó nữa."], "ai": "wander"}, {"x": 36, "y": 27, "dir": "left", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand"}, {"x": 33, "y": 20, "dir": "up", "sprite": "fashionista", "name": "Misa", "lines": ["Ngoài đường số 1 dạo này lắm người lạ, cẩn thận đấy."], "ai": "wander"}, {"x": 34, "y": 19, "dir": "left", "sprite": "picnicker", "name": "Thằng Tí", "lines": ["Tôi nuôi một con Tuxemon từ hồi nó còn bé xíu."], "ai": "wander"}, {"x": 32, "y": 19, "dir": "down", "sprite": "beachcomber", "name": "Chú Ba", "lines": ["Nghe đâu trong hang có con hiếm lắm, tôi chưa dám vào."], "ai": "wander"}, {"x": 32, "y": 32, "dir": "up", "sprite": "cooldude", "name": "Kyle", "lines": ["Muốn mạnh thì phải đánh nhiều vào, đứng đây nói chuyện hoài sao khá được."], "ai": "wander"}, {"x": 55, "y": 37, "dir": "down", "sprite": "christie", "name": "Christie", "lines": ["Bãi biển phía đông đẹp lắm, khi nào rảnh ghé chơi."], "ai": "wander"}, {"x": 53, "y": 36, "dir": "up", "sprite": "beachcomber", "name": "Speck", "lines": ["Tôi nhặt vỏ sò suốt ngày, nghề của tôi mà."], "ai": "wander"}],
   },
   professor_lab: {
-    name: "Professor Lab", w: 13, h: 18, cols: 32,
+    name: "Professor Lab", w: 13, h: 18, cols: 32, music: "town",
     atlas: "assets/maps/professor_lab.png",
     spawn: { x: 6, y: 16 },
     layers: [
@@ -82,7 +82,7 @@ export const MAPS = {
     npcs: [{"x": 4, "y": 6, "dir": "down", "sprite": "professor", "name": "Giáo Sư", "lines": ["Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.", "Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé."], "ai": "stand"}, {"x": 6, "y": 15, "dir": "right", "sprite": "omnichannelallie", "name": "Allie", "lines": ["Cậu muốn gì? ... Thôi, chỗ này cậu không vào được đâu."], "ai": "watch"}, {"x": 7, "y": 14, "dir": "down", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}, {"x": 7, "y": 16, "dir": "down", "sprite": "childactor", "name": "Chị Yến", "lines": ["Con nào hợp với mình thì nuôi lâu dài, đừng đổi liên tục."], "ai": "wander"}],
   },
   healing_center: {
-    name: "Healing Trung Tâm", w: 13, h: 11, cols: 31,
+    name: "Healing Trung Tâm", w: 13, h: 11, cols: 31, music: "town",
     atlas: "assets/maps/healing_center.png",
     spawn: { x: 6, y: 9 },
     layers: [
@@ -97,7 +97,7 @@ export const MAPS = {
     npcs: [{"x": 11, "y": 8, "dir": "left", "sprite": "ceo", "name": "Anh Vui Tính", "lines": ["Tôi mê đặt biệt danh cho Tuxemon lắm. Cậu muốn đặt cho con của cậu không?"], "ai": "stand"}, {"x": 5, "y": 4, "dir": "down", "sprite": "nurse", "name": "Y Tá Trạm Hồi Sức", "lines": ["Để tôi hồi phục cả đội cho cậu nhé. Xong rồi đấy!"], "ai": "stand"}, {"x": 8, "y": 8, "dir": "right", "sprite": "ninja", "name": "Gã Khả Nghi", "lines": ["Này... có rắc rối gì dính tên cậu thì tôi lo được hết."], "ai": "wander"}],
   },
   tuxe_mart_taba: {
-    name: "Tuxe Mart Taba", w: 13, h: 11, cols: 32,
+    name: "Tuxe Mart Taba", w: 13, h: 11, cols: 32, music: "town",
     atlas: "assets/maps/tuxe_mart_taba.png",
     spawn: { x: 6, y: 9 },
     layers: [
@@ -113,7 +113,7 @@ export const MAPS = {
     npcs: [{"x": 1, "y": 5, "dir": "right", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand"}, {"x": 3, "y": 5, "dir": "down", "sprite": "professor", "name": "Giáo Sư", "lines": ["Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.", "Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé."], "ai": "stand"}],
   },
   taba_house1: {
-    name: "Taba Nhà1", w: 9, h: 7, cols: 26,
+    name: "Taba Nhà1", w: 9, h: 7, cols: 26, music: "town",
     atlas: "assets/maps/taba_house1.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -128,7 +128,7 @@ export const MAPS = {
     npcs: [{"x": 1, "y": 4, "dir": "up", "sprite": "bob", "name": "Chú Chủ Nhà", "lines": ["Chào cậu! Thị trấn này yên bình lắm."], "ai": "wander"}, {"x": 4, "y": 3, "dir": "down", "sprite": "homemaker", "name": "Cô Chủ Nhà", "lines": ["Vào nhà nghỉ chân một lát cũng được mà."], "ai": "wander"}],
   },
   taba_house2: {
-    name: "Taba Nhà2", w: 9, h: 7, cols: 32,
+    name: "Taba Nhà2", w: 9, h: 7, cols: 32, music: "town",
     atlas: "assets/maps/taba_house2.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -143,7 +143,7 @@ export const MAPS = {
     npcs: [{"x": 6, "y": 4, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand"}, {"x": 4, "y": 4, "dir": "left", "sprite": "nurse", "name": "Y Tá", "lines": ["Tuxemon mệt thì cứ ghé trạm hồi sức, miễn phí mà."], "ai": "stand"}, {"x": 5, "y": 2, "dir": "down", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}],
   },
   taba_house3: {
-    name: "Taba Nhà3", w: 12, h: 7, cols: 26,
+    name: "Taba Nhà3", w: 12, h: 7, cols: 26, music: "town",
     atlas: "assets/maps/taba_house3.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -158,7 +158,7 @@ export const MAPS = {
     npcs: [{"x": 10, "y": 3, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand"}, {"x": 0, "y": 5, "dir": "right", "sprite": "nurse", "name": "Y Tá", "lines": ["Tuxemon mệt thì cứ ghé trạm hồi sức, miễn phí mà."], "ai": "stand"}, {"x": 3, "y": 4, "dir": "left", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}, {"x": 0, "y": 3, "dir": "right", "sprite": "girl1", "name": "Bé Bo", "lines": ["Trời đẹp thế này mà ngồi nhà thì phí."], "ai": "wander"}],
   },
   taba_house4: {
-    name: "Taba Nhà4", w: 12, h: 7, cols: 28,
+    name: "Taba Nhà4", w: 12, h: 7, cols: 28, music: "town",
     atlas: "assets/maps/taba_house4.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -173,7 +173,7 @@ export const MAPS = {
     npcs: [{"x": 10, "y": 3, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand"}, {"x": 3, "y": 3, "dir": "down", "sprite": "shopassistant", "name": "Phục Vụ", "lines": ["Cần gì cứ hỏi tôi nhé."], "ai": "stand"}, {"x": 4, "y": 4, "dir": "left", "sprite": "cooldude", "name": "Khách", "lines": ["Yo. Đội của cậu trông cũng được đấy."], "ai": "wander"}, {"x": 0, "y": 4, "dir": "right", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}, {"x": 7, "y": 4, "dir": "up", "sprite": "scientist", "name": "Anh Dũng", "lines": ["Đường số 1 nhiều cỏ cao lắm, đi cẩn thận nhé."], "ai": "wander"}],
   },
   dryadsgrove: {
-    name: "Dryadsgrove", w: 40, h: 20, cols: 32,
+    name: "Dryadsgrove", w: 40, h: 20, cols: 32, music: "grove",
     atlas: "assets/maps/dryadsgrove.png",
     spawn: { x: 0, y: 8 },
     layers: [
@@ -188,7 +188,7 @@ export const MAPS = {
     npcs: [],
   },
   player_house_bedroom: {
-    name: "Player Nhà Bedroom", w: 9, h: 7, cols: 32,
+    name: "Player Nhà Bedroom", w: 9, h: 7, cols: 32, music: "town",
     atlas: "assets/maps/player_house_bedroom.png",
     spawn: { x: 4, y: 3 },
     layers: [
@@ -203,7 +203,7 @@ export const MAPS = {
     npcs: [],
   },
   maple_bedroom: {
-    name: "Maple Bedroom", w: 9, h: 7, cols: 28,
+    name: "Maple Bedroom", w: 9, h: 7, cols: 28, music: "town",
     atlas: "assets/maps/maple_bedroom.png",
     spawn: { x: 4, y: 3 },
     layers: [
@@ -218,7 +218,7 @@ export const MAPS = {
     npcs: [],
   },
   route1_sanglorian: {
-    name: "Đường1 Sanglorian", w: 40, h: 20, cols: 22,
+    name: "Đường1 Sanglorian", w: 40, h: 20, cols: 22, music: "field",
     atlas: "assets/maps/route1_sanglorian.png",
     spawn: { x: 10, y: 1 },
     layers: [
@@ -233,7 +233,7 @@ export const MAPS = {
     npcs: [],
   },
   taba_ba_foyer: {
-    name: "Taba Ba Foyer", w: 5, h: 10, cols: 19,
+    name: "Taba Ba Foyer", w: 5, h: 10, cols: 19, music: "town",
     atlas: "assets/maps/taba_ba_foyer.png",
     spawn: { x: 2, y: 8 },
     layers: [
@@ -248,7 +248,7 @@ export const MAPS = {
     npcs: [{"x": 2, "y": 3, "dir": "left", "sprite": "childactor", "name": "Timmy", "lines": ["Bố tớ làm ở khu thi đấu đấy! Ngầu chứ hả?"], "ai": "wander"}],
   },
   taba_house2_upstairs: {
-    name: "Taba Nhà2 Upstairs", w: 9, h: 7, cols: 12,
+    name: "Taba Nhà2 Upstairs", w: 9, h: 7, cols: 12, music: "town",
     atlas: "assets/maps/taba_house2_upstairs.png",
     spawn: { x: 8, y: 3 },
     layers: [
@@ -263,7 +263,7 @@ export const MAPS = {
     npcs: [{"x": 4, "y": 3, "dir": "down", "sprite": "disciple", "name": "Người Đọc Sách", "lines": ["Sách ở đây kể chuyện Tuxemon từ đời xưa lắm."], "ai": "wander"}, {"x": 8, "y": 3, "dir": "left", "sprite": "fashionista", "name": "Bà Năm", "lines": ["Hồi trẻ tôi từng leo tới đỉnh núi đằng kia."], "ai": "wander"}],
   },
   taba_house3_upstairs: {
-    name: "Taba Nhà3 Upstairs", w: 12, h: 7, cols: 14,
+    name: "Taba Nhà3 Upstairs", w: 12, h: 7, cols: 14, music: "town",
     atlas: "assets/maps/taba_house3_upstairs.png",
     spawn: { x: 7, y: 2 },
     layers: [
@@ -278,7 +278,7 @@ export const MAPS = {
     npcs: [{"x": 3, "y": 4, "dir": "down", "sprite": "cooldude", "name": "Khách", "lines": ["Yo. Đội của cậu trông cũng được đấy."], "ai": "wander"}, {"x": 10, "y": 4, "dir": "down", "sprite": "girl1", "name": "Bé Na", "lines": ["Muốn qua vùng bên kia thì phải có huy hiệu đấy."], "ai": "wander"}],
   },
   cotton_town: {
-    name: "Thị Trấn Bông", w: 40, h: 40, cols: 32,
+    name: "Thị Trấn Bông", w: 40, h: 40, cols: 32, music: "town",
     atlas: "assets/maps/cotton_town.png",
     spawn: { x: 10, y: 38 },
     layers: [
@@ -293,7 +293,7 @@ export const MAPS = {
     npcs: [{"x": 14, "y": 10, "dir": "right", "sprite": "ceo", "name": "Aeble", "lines": ["Ta là người đứng đầu Omnichannel. Mọi thứ phát ra ngoài kia đều qua tay ta."], "ai": "stand"}, {"x": 22, "y": 10, "dir": "up", "sprite": "omnichannelallie", "name": "Allie", "lines": ["Cậu muốn gì? ... Thôi, chỗ này cậu không vào được đâu."], "ai": "watch"}, {"x": 37, "y": 17, "dir": "up", "sprite": "heroine", "name": "Liela", "lines": ["Quấy tôi lúc đang hái quả là phải đấu một trận đó nha!"], "ai": "wander"}, {"x": 1, "y": 28, "dir": "left", "sprite": "heroine", "name": "Grace", "lines": ["Xin lỗi vì cảnh vừa rồi, Allie tính khí thất thường lắm."], "ai": "wander"}, {"x": 1, "y": 30, "dir": "left", "sprite": "ninja", "name": "Tallon", "lines": ["Đi đâu cũng được, đừng lảng vảng chỗ này là được."], "ai": "wander"}],
   },
   leather_town: {
-    name: "Thị Trấn Da", w: 40, h: 40, cols: 32,
+    name: "Thị Trấn Da", w: 40, h: 40, cols: 32, music: "town",
     atlas: "assets/maps/leather_town.png",
     spawn: { x: 39, y: 33 },
     layers: [

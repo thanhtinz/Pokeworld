@@ -45,9 +45,14 @@ SFX = {
 }
 
 # Nhac nen: giu it va nhe
+# Ban goc goi nhac bang lenh play_music trong tung ban do (xem tools/mktmx.py).
+# Chi chep them hai ban nhe nhat trong so do; ban do nao goi ban nhac nang hon
+# thi dung tam 'town' cho khoi phinh dung luong tai ve.
 MUSIC = {
     'title': 'music/JRPG_goodMorning.ogg',
-    'town': 'music/JRPG_royalCourt_loop.ogg',
+    'town': 'music/JRPG_royalCourt_loop.ogg',      # music_cathedral_theme
+    'field': 'music/Chibi Ninja.ogg',              # music_chibi_ninja — thi tran + duong
+    'grove': 'music/JRPG_mysticIsle.ogg',          # music_mystic_island — rung
     'battle': 'music/Enter_the_Emperor.ogg',
     'win': 'music/JRPG_winBattle.ogg',
 }

@@ -8,6 +8,7 @@ import { EVOLUTIONS } from '../js/data/evolutions.js';
 import { ITEMS } from '../js/data/items.js';
 import { ZONES } from '../js/data/zones.js';
 import { MAPS } from '../js/data/maps.js';
+import { ENCOUNTERS } from '../js/data/encounters.js';
 import { TRAINERS } from '../js/data/trainers.js';
 import { STARTERS } from '../js/data/starters.js';
 import { QUESTS, DAILY_REWARDS } from '../js/data/quests.js';
@@ -303,6 +304,27 @@ ok('chiêu nào cũng có số lượt hồi, không có PP',
 ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   Object.values(SPECIES).every(s => s.catchRate >= 0 && s.catchRate <= 100
     && s.catchLo > 0 && s.catchHi >= s.catchLo));
+
+// ==== Bảng gặp Tuxemon hoang lấy từ db/encounter ====
+ok('có bảng gặp lấy từ bản gốc', Object.keys(ENCOUNTERS).length >= 1, String(Object.keys(ENCOUNTERS).length));
+{
+  const bad = [];
+  for (const [id, list] of Object.entries(ENCOUNTERS)) {
+    if (!MAPS[id]) bad.push(`${id}: không có bản đồ này`);
+    for (const e of list) {
+      if (!SPECIES[e.sp]) bad.push(`${id}: loài ${e.sp} không tồn tại`);
+      if (!(e.min >= 1 && e.max >= e.min && e.w > 0)) bad.push(`${id}: khoảng cấp/trọng số sai`);
+    }
+  }
+  ok('bảng gặp trỏ tới loài và bản đồ có thật', bad.length === 0, bad.slice(0, 3).join(' | '));
+  ok('bản đồ đầu game chỉ gặp con cấp thấp',
+    (ENCOUNTERS.route1 || []).every(e => e.max <= 10),
+    JSON.stringify((ENCOUNTERS.route1 || []).map(e => e.max)));
+}
+
+// Mỗi bản đồ mang sẵn tên bản nhạc lấy từ lệnh play_music của bản gốc
+ok('bản đồ nào cũng có nhạc nền hợp lệ',
+  Object.values(MAPS).every(m => ['town', 'field', 'grove'].includes(m.music)));
 
 // ==== Trạng thái lấy từ db/status của bản gốc ====
 ok('có bảng trạng thái Tuxemon', Object.keys(STATUSES).length >= 30, String(Object.keys(STATUSES).length));

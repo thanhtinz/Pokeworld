@@ -86,6 +86,29 @@ def js(v):
     return str(v)
 
 
+# Gia ban goc nam o db/economy (moi cua hang mot tep). Item nao co trong do thi
+# lay dung gia cua ho, con lai giu gia tu dat trong bang ITEMS ben duoi.
+def doc_gia(root):
+    import glob
+    try:
+        import yaml
+    except ImportError:
+        return {}
+    out = {}
+    for f in glob.glob(os.path.join(root, 'mods/tuxemon/db/economy/*.yaml')):
+        with open(f, encoding='utf-8') as fh:
+            d = yaml.safe_load(fh) or {}
+        rows = d if isinstance(d, list) else (d.get('items') or [])
+        for it in rows:
+            if not isinstance(it, dict):
+                continue
+            slug = it.get('slug')
+            if not slug or 'price' not in it:
+                continue
+            out[slug] = (int(it['price']), int(it.get('cost') or round(it['price'] * 0.5)))
+    return out
+
+
 def main():
     if len(sys.argv) < 2:
         raise SystemExit(__doc__)
@@ -104,6 +127,8 @@ def main():
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.', '',
            "// kind: 'ball' bắt | 'medicine' hồi phục | 'stone' tiến hoá | 'held' mang theo",
            'export const ITEMS = {']
+    gia_goc = doc_gia(root)
+    n_gia = 0
     n_img = 0
     missing = []
     for slug, kind, price, desc, extra in ITEMS:
@@ -123,14 +148,18 @@ def main():
         else:
             missing.append('anh:' + slug)
         eff = ', '.join('%s: %s' % (k, js(v)) for k, v in extra.items())
+        mua, ban = gia_goc.get(slug, (price, round(price * 0.5)))
+        if slug in gia_goc:
+            n_gia += 1
         out.append("  %s: { name: %s, desc: %s, kind: %s, price: %d, sell: %d%s }," % (
-            slug, js(VI.get(slug, slug)), js(desc), js(kind), price, round(price * 0.5),
+            slug, js(VI.get(slug, slug)), js(desc), js(kind), mua, ban,
             (', effect: { %s }' % eff) if eff else ''))
     out.append('};')
     out.append('''
 export const itemIconPath = (id) => `assets/items/${id}.png`;
 export const itemsOfKind = (kind) => Object.entries(ITEMS).filter(([, it]) => it.kind === kind);''')
     open('js/data/items.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    print('  (%d món lấy đúng giá trong db/economy của bản gốc)' % n_gia)
     print('OK: %d vật phẩm, %d icon' % (len(ITEMS) - len([m for m in missing if ':' not in m]), n_img))
     if missing:
         print('THIẾU:', ', '.join(missing))
