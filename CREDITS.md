@@ -62,6 +62,22 @@ cho hợp nền tối.
 
 Từ [msikma/pokesprite](https://github.com/msikma/pokesprite).
 
+## Nhân vật người chơi — `assets/char/`
+
+Ghép từ **Mana Seed Character Base — bản demo MIỄN PHÍ 2.0** của
+[Seliel the Shaper](https://seliel-the-shaper.itch.io/character-base).
+File `this is only a demo.txt` trong gói ghi rõ: *"You may use this demo asset
+commercially or non-commercially."*
+
+`tools/mkchars.py` dán ba lớp (thân + quần áo + tóc) của bộ "paper doll" thành
+một ảnh cho mỗi nhân vật, chỉ lấy trang p1 (đứng yên + đi bộ).
+
+**Chỉ dùng bản demo miễn phí.** Các gói TRẢ PHÍ của cùng tác giả (Character
+Base 2.5c đầy đủ, Hairstyle Pack, NPC Pack, các bộ trang phục, các gói combat)
+KHÔNG được chép vào kho này: kho là mã nguồn mở công khai nên thêm vào là phát
+tán lại tài sản trả tiền. Ai mua rồi thì giải nén ở máy mình rồi chạy
+`tools/mkchars.py` trỏ vào thư mục đó.
+
 ## Nguồn khác đã xem qua nhưng chưa dùng
 
 [TeamAquasHideout/Team-Aquas-Asset-Repo](https://github.com/TeamAquasHideout/Team-Aquas-Asset-Repo)

@@ -11,6 +11,7 @@ import { MOVES } from '../data/moves.js';
 import { esc, sleep, rng, monLocalSrc, monSpriteClass, monUpgradeChain, upgradeImages } from '../util.js';
 import { toast, hpBar, typeBadge, statusTag, header } from './kit.js';
 import { arenaFor } from '../data/arenas.js';
+import { monPx } from '../engine/battlesize.js';
 import * as sock from '../net/socket.js';
 import { show } from '../main.js';
 
@@ -92,6 +93,7 @@ export function render(el, ctx = {}) {
       </div>`;
     const img = `
       <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
+           style="width:min(${monPx(mon)}px, 44vw)"
            src="${monLocalSrc(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">`;
     // Bên mình đứng TRÁI DƯỚI, đối thủ đứng PHẢI TRÊN — giống game Pokémon gốc.
     return back ? img + info : info + img;

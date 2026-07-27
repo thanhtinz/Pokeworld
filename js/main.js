@@ -61,6 +61,9 @@ export function show(name, params = {}) {
   nav.hidden = NO_NAV.has(name);
   nav.querySelectorAll('button').forEach(b =>
     b.classList.toggle('active', b.dataset.nav === name));
+  // Nút chat nổi: ẩn cùng lúc với nav, và ẩn luôn khi đang ở chính trang chat
+  const fab = document.getElementById('chat-fab');
+  if (fab) fab.hidden = nav.hidden || name === 'chat';
   el.scrollTop = 0;
 }
 
@@ -69,7 +72,7 @@ export function refresh() { if (current) show(current, currentParams); }
 
 export function inBattle() { return current === 'battle'; }
 
-// Chấm đỏ trên nút Cộng đồng khi có tin nhắn chưa đọc
+// Chấm đỏ trên nút chat nổi khi có tin nhắn chưa đọc
 onChange(() => {
   const dot = document.getElementById('nav-dot');
   if (!dot) return;
@@ -90,6 +93,10 @@ document.getElementById('bottom-nav').addEventListener('click', e => {
   if (!btn) return;
   if (inBattle()) { toast('Đang trong trận đấu!'); return; }
   show(btn.dataset.nav);
+});
+document.getElementById('chat-fab').addEventListener('click', () => {
+  if (inBattle()) { toast('Đang trong trận đấu!'); return; }
+  show('chat');
 });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-goto]');

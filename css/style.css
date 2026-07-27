@@ -528,8 +528,9 @@ img[src*='sprites'] { image-rendering: pixelated; }
   border: 2px solid var(--line);
   border-radius: 12px;
   padding: 10px 12px;
-  flex: 1;
-  max-width: 60%;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 52%;
   box-shadow: 0 4px 14px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .05);
 }
 .bt-name {
@@ -554,8 +555,8 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .bt-hpnum { text-align: right; font-size: .72rem; color: var(--muted); margin-top: 3px; font-family: var(--pix2); font-size: .95rem; line-height: 1; }
 .tr-balls { color: var(--accent); letter-spacing: 3px; font-size: .8rem; display: block; margin-top: 6px; }
 .bt-sprite { image-rendering: pixelated; transition: opacity .6s, transform .6s; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .55)); }
-.bt-sprite-enemy { width: 140px; height: auto; }
-.bt-sprite-me { width: 130px; height: auto; }
+/* Bề rộng do js/engine/battlesize.js đặt inline theo chiều cao thật của loài */
+.bt-sprite-enemy, .bt-sprite-me { width: 130px; height: auto; }
 .bt-sprite.faint { opacity: 0; transform: translateY(24px); }
 .shake { animation: shake .4s; }
 @keyframes shake {
@@ -840,24 +841,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .story-new { color: var(--gold); font-size: 1.1rem; animation: pulse 1.2s infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
 
-.arena {
-  position: relative; min-height: 210px; border-radius: var(--radius);
-  border: 1px solid var(--line); margin-bottom: 10px; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-  background:
-    radial-gradient(ellipse at 70% 20%, rgba(112, 72, 232, .28), transparent 55%),
-    radial-gradient(ellipse at 20% 80%, rgba(59, 91, 219, .22), transparent 50%),
-    linear-gradient(#0b0716, #171032);
-}
-.searching { color: var(--muted); font-family: 'Press Start 2P', monospace; font-size: .65rem; }
-.dots { animation: pulse 1s infinite; }
-.arena-wild { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.wild-info { width: 180px; text-align: center; }
-.wild-name { font-family: 'Press Start 2P', monospace; font-size: .62rem; }
-.wild-lv { color: var(--gold); font-family: 'Press Start 2P', monospace; font-size: .6rem; margin-left: 6px; }
-.wild-info .hpbar { margin-top: 5px; }
-.wild-sprite { width: 120px; height: 120px; object-fit: contain; image-rendering: pixelated; }
-.arena-pop { position: absolute; inset: 0; pointer-events: none; }
+/* .float-pop van dung o man tran dau (battle.js) */
 .float-pop {
   position: absolute; bottom: 30%;
   font-family: 'Press Start 2P', monospace; font-size: .72rem;
@@ -869,25 +853,40 @@ img[src*='sprites'] { image-rendering: pixelated; }
   from { transform: translateY(0); opacity: 1; }
   to { transform: translateY(-70px); opacity: 0; }
 }
-
-.me-panel { display: flex; gap: 12px; align-items: center; }
-.me-sprite { width: 76px; height: 76px; object-fit: contain; image-rendering: pixelated; }
-.me-info { flex: 1; }
-.me-name { font-family: 'Press Start 2P', monospace; font-size: .62rem; margin-bottom: 6px; }
-.me-lv { color: var(--gold); }
-.bar-label { font-size: .7rem; color: var(--muted); margin-bottom: 3px; }
-.me-rest { text-align: center; color: var(--muted); width: 100%; padding: 8px; }
-
-.idle-log {
-  min-height: 76px; max-height: 96px; overflow: hidden;
-  font-size: .78rem; color: var(--muted);
-  padding: 6px 10px; margin-bottom: 10px;
-  background: rgba(8, 6, 18, .55); border-radius: 10px; border: 1px solid var(--line);
-}
 .log-line { opacity: .55; }
 .log-line:first-child { opacity: 1; color: var(--text); }
-.log-hl:first-child { color: var(--gold); }
-.log-money:first-child { color: #ffd43b; }
+
+/* ==== Man chinh: the khu vuc + doi hinh ==== */
+.zone-card { display: flex; flex-direction: column; gap: 8px; }
+.zone-desc { font-size: .84rem; line-height: 1.45; }
+.zone-hint { color: var(--muted); font-size: .74rem; line-height: 1.4; }
+.zone-card .btn-big { margin-top: 2px; }
+
+.team-card { display: flex; flex-direction: column; gap: 8px; }
+.team-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.team-head small { color: var(--muted); font-size: .72rem; }
+.team-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.team-mon {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 4px;
+  background: rgba(0, 0, 0, .22);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  min-width: 0;
+}
+.team-mon.ko { opacity: .45; }
+.team-sprite { width: 46px; height: 46px; object-fit: contain; image-rendering: pixelated; }
+.team-name {
+  font-size: .68rem; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.team-lv { font-family: var(--pix, monospace); font-size: .48rem; color: var(--gold); }
+.team-mon .hpbar { width: 100%; margin-top: 3px; }
+.team-mon .expbar { width: 100%; margin-top: 3px; }
 
 .idle-controls { display: flex; gap: 8px; margin-bottom: 8px; }
 .idle-controls .btn { flex: 1; }
@@ -931,7 +930,6 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .cutscene-text { color: #3d2c1a; }
 .cutscene-next { color: #8a6a45; }
 
-.pop-emote { width: 30px; image-rendering: pixelated; }
 .crown-ico { height: 20px; display: inline-block; vertical-align: -4px; image-rendering: pixelated; }
 
 /* Nav dùng sprite item */
@@ -1141,59 +1139,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .modal-opts { display: flex; flex-direction: column; gap: 10px; }
 .menu-link { min-height: 48px; display: flex; align-items: center; gap: 6px; }
 
-/* ==== VFX trong dau truong idle ==== */
-.fx { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
 
-/* Vet chem cheo qua sprite */
-.fx-slash::before {
-  content: ''; position: absolute; left: 50%; top: 50%;
-  width: 150px; height: 5px; margin: -2px 0 0 -75px;
-  background: linear-gradient(90deg, transparent, #fff, transparent);
-  transform: rotate(-28deg) scaleX(0);
-  animation: slashIn .32s ease-out forwards;
-  filter: drop-shadow(0 0 6px #fff);
-}
-.fx-super::before { background: linear-gradient(90deg, transparent, #ffd43b, #fff, transparent); height: 8px; width: 190px; margin-left: -95px; }
-.fx-weak::before { opacity: .45; width: 110px; margin-left: -55px; height: 3px; }
-@keyframes slashIn {
-  0% { transform: rotate(-28deg) scaleX(0); opacity: 0; }
-  35% { transform: rotate(-28deg) scaleX(1); opacity: 1; }
-  100% { transform: rotate(-28deg) scaleX(1); opacity: 0; }
-}
-
-/* Chop sang toan man khi khac he */
-.fx-flash { background: radial-gradient(circle at 50% 45%, rgba(255,235,150,.5), transparent 62%); animation: fxFade .3s ease-out forwards; }
-/* Chop do khi minh bi danh */
-.fx-hurt { background: radial-gradient(circle at 50% 78%, rgba(227,53,13,.42), transparent 58%); animation: fxFade .36s ease-out forwards; }
-@keyframes fxFade { from { opacity: 1; } to { opacity: 0; } }
-
-/* Vong sang khi quai xuat hien */
-.fx-appear::after {
-  content: ''; position: absolute; left: 50%; top: 46%;
-  width: 40px; height: 40px; margin: -20px 0 0 -20px;
-  border: 3px solid rgba(160,200,255,.85); border-radius: 50%;
-  animation: ringOut .65s ease-out forwards;
-}
-@keyframes ringOut {
-  from { transform: scale(.35); opacity: .95; }
-  to { transform: scale(3.4); opacity: 0; }
-}
-
-/* Sprite lao len danh roi ve cho */
-.lunge { animation: lungeAnim .34s ease-out; }
-@keyframes lungeAnim {
-  0% { transform: translate(0, 0); }
-  45% { transform: translate(14px, -12px) scale(1.06); }
-  100% { transform: translate(0, 0); }
-}
-
-/* So sat thuong bay len */
-.pop-dmg { color: #ff8787; }
-.pop-crit { color: #ffd43b; font-size: .95rem; text-shadow: 0 0 8px rgba(255,212,59,.6); }
-
-@media (prefers-reduced-motion: reduce) {
-  .fx, .lunge { animation: none !important; display: none; }
-}
 
 /* ==================== LUONG MO DAU ==================== */
 /* Khung chung cho splash / loading / auth / server / create */
@@ -1426,6 +1372,31 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .nav-dot { position: absolute; top: -2px; right: -3px; width: 8px; height: 8px;
   border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
 
+/* ==== Nút chat nổi ở góc phải, ngay trên thanh điều hướng ==== */
+#chat-fab {
+  position: fixed;
+  right: max(14px, calc(50% - 214px));
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 21;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(18, 10, 36, .92);
+  border: 1px solid rgba(140, 110, 220, .5);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .08);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: transform .15s, box-shadow .2s;
+}
+#chat-fab[hidden] { display: none; }
+#chat-fab:active { transform: scale(.92); }
+#chat-fab img { width: 28px; height: 28px; image-rendering: pixelated; }
+/* Chấm đỏ nằm ở góc nút, không lọt ra ngoài */
+#chat-fab .nav-dot { top: 6px; right: 7px; width: 10px; height: 10px; }
+
 /* Anh hop Pokemon lam sprite tran danh (khi chua tai duoc anh dong): phong to cho can
    voi ben kia, vi anh hop von be va co nhieu khoang trong */
 .bt-sprite.px-icon { transform: scale(1.45); }
@@ -1570,7 +1541,16 @@ img[src*='sprites'] { image-rendering: pixelated; }
   image-rendering: pixelated;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .55));
   transform-origin: bottom center;
+  flex: none;
 }
+/* Nhân vật người chơi cắt ra từ bảng sprite: là span có ảnh nền, không phải <img> */
+.char-frame {
+  display: inline-block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  flex: none;
+}
+.bt-fighter-me { filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .55)); }
 .bt-duo-foe .bt-fighter { transform: scaleX(-1); }
 @keyframes tf-hit {
   0%, 100% { transform: translateY(0) scale(1); }

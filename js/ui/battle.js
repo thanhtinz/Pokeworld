@@ -24,6 +24,8 @@ import {
   playerFighter, npcFighter, applySkill, canUse, skillById, TRAINER_SKILLS, ENERGY_MAX,
 } from '../engine/trainerfight.js';
 import { activeAvatar } from '../engine/accounts.js';
+import { monPx, TRAINER_SIZE } from '../engine/battlesize.js';
+import { charBodyHtml } from '../data/chars.js';
 import { EQUIPMENT, RARITY } from '../data/equipment.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
@@ -120,7 +122,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       </div>
       <span class="bt-duo bt-duo-foe">
         ${fighterImg(b.sides[1].fighter)}
-        <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}" src="${monLocalSrc(m)}" onerror="${monFallbackAttr(m)}"
+        <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
+             style="width:min(${monPx(m)}px, 44vw)"
+             src="${monLocalSrc(m)}" onerror="${monFallbackAttr(m)}"
              data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">
       </span>`;
     upgradeImages($enemy);
@@ -134,9 +138,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const expPct = Math.min(100, Math.round(cur / Math.max(1, need) * 100));
     $me.innerHTML = `
       <span class="bt-duo bt-duo-me">
-        <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}" src="${monLocalSrc(m, true)}" onerror="${monFallbackAttr(m, true)}"
+        <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
+             style="width:min(${monPx(m)}px, 44vw)"
+             src="${monLocalSrc(m, true)}" onerror="${monFallbackAttr(m, true)}"
              data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
-        ${fighterImg(me)}
+        ${fighterImg(me, true)}
       </span>
       <div class="bt-info">
         <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
@@ -233,8 +239,12 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
 
   // ==== Nhân vật đánh cùng Pokémon ====
   // Ảnh nhân vật đứng sát Pokémon của mình cho thấy hai bên cùng ra trận.
-  function fighterImg(f) {
+  function fighterImg(f, self = false) {
     if (!f || !f.avatar) return '';
+    if (self) {
+      // Nhân vật người chơi: cắt khung đứng yên trong bộ sprite Mana Seed
+      return charBodyHtml(f.avatar, { dir: 'right', height: TRAINER_SIZE, cls: 'bt-fighter bt-fighter-me' });
+    }
     return `<img class="bt-fighter" src="assets/trainers/${f.avatar}.png" alt="" onerror="this.remove()">`;
   }
 

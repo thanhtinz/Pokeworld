@@ -10,26 +10,21 @@ import { storyProgress } from '../engine/story.js';
 import { net } from '../net/session.js';
 import { show, refresh } from '../main.js';
 
-// Bảng menu: mỗi ô là một trang riêng. Thêm trang mới thì thêm một dòng ở đây.
+// Bảng menu chỉ chứa những trang KHÔNG có sẵn trên thanh dưới và nút chat nổi.
+// Bản đồ / Đội / Túi / Nhân vật / Pokédex đã có nút riêng nên không lặp lại ở đây.
 const HUB = [
-  { to: 'character', icon: 'silph_scope',  label: 'Nhân vật',    note: 'Trang bị & chỉ số' },
-  { to: 'party',     icon: 'exp_share',    label: 'Đội hình',    note: 'Sắp xếp Pokémon' },
-  { to: 'dex',       icon: 'town_map',     label: 'Pokédex',     note: 'Đã gặp & đã bắt' },
-  { to: 'bag',       icon: 'berry_pouch',  label: 'Túi',         note: 'Thuốc, bóng, đá' },
-  { to: 'shop',      icon: 'coin_case',    label: 'Cửa hàng',    note: 'Mua vật phẩm' },
-  { to: 'quest',     icon: 'vs_recorder',  label: 'Nhiệm vụ',    note: 'Hằng ngày & cốt truyện' },
-  { to: 'chat',      icon: 'vs_seeker',    label: 'Trò chuyện',  note: 'Thế giới & bang', badge: 'chat' },
-  { to: 'rank',      icon: 'nugget',       label: 'Xếp hạng',    note: 'Top người chơi' },
-  { to: 'guild',     icon: 'sacred_ash',   label: 'Bang hội',    note: 'Lập & tham gia' },
-  { to: 'friends',   icon: 'poke_flute',   label: 'Bạn bè',      note: 'Kết bạn, thách đấu', badge: 'dm' },
-  { to: 'marriage',  icon: 'lucky_egg',    label: 'Kết hôn',     note: 'Cầu hôn người ấy' },
-  { to: 'serverpick', icon: 'card_key',    label: 'Máy chủ',     note: 'Đổi máy chủ' },
+  { to: 'quest',      icon: 'vs_recorder', label: 'Nhiệm vụ',   note: 'Hằng ngày & cốt truyện' },
+  { to: 'shop',       icon: 'coin_case',   label: 'Cửa hàng',   note: 'Mua vật phẩm' },
+  { to: 'rank',       icon: 'nugget',      label: 'Xếp hạng',   note: 'Top người chơi' },
+  { to: 'guild',      icon: 'sacred_ash',  label: 'Bang hội',   note: 'Lập & tham gia' },
+  { to: 'friends',    icon: 'poke_flute',  label: 'Bạn bè',     note: 'Kết bạn, thách đấu', badge: 'dm' },
+  { to: 'marriage',   icon: 'lucky_egg',   label: 'Kết hôn',    note: 'Cầu hôn người ấy' },
+  { to: 'serverpick', icon: 'card_key',    label: 'Máy chủ',    note: 'Đổi máy chủ' },
 ];
 
 // Số thông báo chưa đọc hiện trên góc ô
 function badgeCount(kind) {
   if (!net.connected) return 0;
-  if (kind === 'chat') return (net.unread.world || 0) + (net.unread.guild || 0);
   if (kind === 'dm') return net.unread.dm || 0;
   return 0;
 }

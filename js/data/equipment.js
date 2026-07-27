@@ -28,7 +28,7 @@ export const STAT_NAMES = {
   atkBonus:   'Tấn công',
   defBonus:   'Phòng thủ',
   hpBonus:    'HP tối đa',
-  idleSpeed:  'Tốc độ nhàn rỗi',
+  idleSpeed:  'Tốc độ đi bộ',
 };
 
 // 24 món: 6 slot × 4 độ hiếm. reqLevel 1 / 5 / 12 / 20 theo độ hiếm.
