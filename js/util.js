@@ -103,21 +103,48 @@ export function upgradeImages(root) {
   }
 }
 
-// Ảnh động Gen 5 để sẵn trong dự án — chỉ có mặt trước, không shiny, dex 1..386.
-// Có thì dùng luôn khỏi phải chờ CDN; thiếu thì trả null để rơi về ảnh trên mạng.
+// Ảnh động Gen 5 để sẵn trong dự án, dex 1..386.
+// Có đủ 4 kiểu: mặt trước / mặt sau / shiny trước / shiny sau.
+// Mặt sau quan trọng — Pokémon của mình phải quay LƯNG về phía người chơi.
 const ANIM_LOCAL_MAX = 386;
-const ANIM_LOCAL_MISSING = new Set([297]);
+// Vài con thiếu ở một số thư mục (nguồn không có sẵn)
+const ANIM_MISSING = {
+  front: new Set([297]),
+  back: new Set(),
+  'shiny-front': new Set(),
+  'shiny-back': new Set(),
+};
+const ANIM_DIR = { front: '', back: 'back/', 'shiny-front': 'shiny/', 'shiny-back': 'back/shiny/' };
+
 export function animLocal(dexId, back = false, shiny = false) {
-  if (back || shiny) return null;
   const id = Number(dexId);
-  if (!(id >= 1 && id <= ANIM_LOCAL_MAX) || ANIM_LOCAL_MISSING.has(id)) return null;
-  return `assets/anim/${id}.gif`;
+  if (!(id >= 1 && id <= ANIM_LOCAL_MAX)) return null;
+  const kind = shiny ? (back ? 'shiny-back' : 'shiny-front') : (back ? 'back' : 'front');
+  if (ANIM_MISSING[kind].has(id)) return null;
+  return `assets/anim/${ANIM_DIR[kind]}${id}.gif`;
 }
 
-// Danh sách ảnh nên thử theo thứ tự cho một Pokémon (dùng với data-up)
+// Ảnh hiện NGAY, lấy trong dự án: ưu tiên ảnh động đúng hướng (trước/sau),
+// không có thì tạm dùng ảnh hộp. Nhờ vậy Pokémon của mình không bị loé một
+// nhịp quay mặt về phía người chơi trước khi ảnh lưng kịp tải.
+export const monLocalSrc = (mon, back = false) =>
+  animLocal(mon.sp, back, mon.shiny) || monBoxIcon(mon);
+
+// Lưới an toàn cho ảnh cục bộ: nếu tệp chưa có (hoặc tải hỏng) thì tự chuyển
+// sang ảnh trên mạng rồi cuối cùng là ảnh hộp — không bao giờ để vỡ ảnh.
+export const monFallbackAttr = (mon, back = false) =>
+  fallbackAttr(animSprite(mon, back), monSprite(mon, back), monBoxIcon(mon));
+
+// Ảnh hộp vốn nhỏ và nhiều khoảng trống nên cần phóng to; ảnh động thì không.
+export const monSpriteClass = (mon, back = false) =>
+  (animLocal(mon.sp, back, mon.shiny) ? '' : 'px-icon');
+
+// Ảnh trên mạng để nâng cấp dần (dùng với data-up). Nếu ảnh cục bộ đã đúng
+// hướng rồi thì không cần đổi nữa.
 export const monUpgradeChain = (mon, back = false) =>
-  [animLocal(mon.sp, back, mon.shiny), animSprite(mon, back), monSprite(mon, back)]
-    .filter(Boolean).join('|');
+  (animLocal(mon.sp, back, mon.shiny)
+    ? []
+    : [animSprite(mon, back), monSprite(mon, back)]).join('|');
 
 // Đường dẫn tuyệt đối tính từ trang. Cần khi nhét ảnh vào biến CSS: URL tương đối
 // trong biến CSS được tính theo vị trí file .css chứ không phải theo trang.

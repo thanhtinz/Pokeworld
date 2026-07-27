@@ -12,7 +12,7 @@ import { ZONES } from '../data/zones.js';
 import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
 import { SPECIES } from '../data/species.js';
-import { esc, fmt, spriteUrl, boxIcon, monBoxIcon, monUpgradeChain, upgradeImages } from '../util.js';
+import { esc, fmt, spriteUrl, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages } from '../util.js';
 import { toast, choose, hpBar, itemIcon, artUrl } from './kit.js';
 
 // Icon đại diện zone: ưu tiên sprite item, sau đó artwork Pokémon, cuối cùng bỏ trống
@@ -188,7 +188,7 @@ export function render(el) {
         <span class="wild-lv">Lv.${w.lv}</span>
         ${hpBar(w.hpCur, mx)}
       </div>
-      <img class="wild-sprite px-icon" src="${monBoxIcon(w)}" alt=""
+      <img class="wild-sprite ${monSpriteClass(w)}" src="${monLocalSrc(w)}" alt="" onerror="${monFallbackAttr(w)}"
            data-up="${monUpgradeChain(w)}">`;
     upgradeImages(wildSlot);
   }
@@ -203,7 +203,7 @@ export function render(el) {
     const mx = maxHp(m);
     const [cur, need] = expProgress(m);
     mePanel.innerHTML = `
-      <img class="me-sprite px-icon" src="${monBoxIcon(m)}" alt=""
+      <img class="me-sprite ${monSpriteClass(m, true)}" src="${monLocalSrc(m, true)}" alt="" onerror="${monFallbackAttr(m, true)}"
            data-up="${monUpgradeChain(m, true)}">
       <div class="me-info">
         <div class="me-name">${esc(displayName(m))} <b class="me-lv">Lv.${m.lv}</b></div>

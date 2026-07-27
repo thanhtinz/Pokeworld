@@ -11,7 +11,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
-import { monBoxIcon, monUpgradeChain, upgradeImages, esc, sleep, fmt } from '../util.js';
+import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
@@ -104,7 +104,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
-      <img class="bt-sprite bt-sprite-enemy px-icon ${isFainted(m) ? 'faint' : ''}" src="${monBoxIcon(m)}"
+      <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}" src="${monLocalSrc(m)}" onerror="${monFallbackAttr(m)}"
            data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">`;
     upgradeImages($enemy);
   }
@@ -116,7 +116,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const [cur, need] = expProgress(m);
     const expPct = Math.min(100, Math.round(cur / Math.max(1, need) * 100));
     $me.innerHTML = `
-      <img class="bt-sprite bt-sprite-me px-icon ${isFainted(m) ? 'faint' : ''}" src="${monBoxIcon(m)}"
+      <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}" src="${monLocalSrc(m, true)}" onerror="${monFallbackAttr(m, true)}"
            data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
       <div class="bt-info">
         <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
