@@ -29,6 +29,9 @@ const LOCAL_ASSETS = [
 // Sprite khởi đầu + vài loài hay gặp ở khu vực đầu
 const PRELOAD_DEX = [1, 4, 7, 25, 16, 19, 10, 129];
 
+// Ảnh động để sẵn trong dự án — nạp trước vài con hay gặp nhất
+const LOCAL_ANIM = [1, 4, 7, 25, 16, 19].map(d => `assets/anim/${d}.gif`);
+
 function loadImage(src, timeoutMs = 2500) {
   return new Promise(resolve => {
     const img = new Image();
@@ -89,7 +92,7 @@ export async function render(el) {
   }]);
   // Ảnh tải SONG SONG (mạng chậm/chặn cũng không treo màn hình)
   const images = [
-    ...LOCAL_ASSETS,
+    ...LOCAL_ASSETS, ...LOCAL_ANIM,
     ...PRELOAD_DEX.flatMap(dex => [spriteUrl(dex), animSpriteUrl(dex)]),
   ];
   tasks.push(['Đang tải hình ảnh...', async (bump) => {

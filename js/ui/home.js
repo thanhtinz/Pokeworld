@@ -12,7 +12,7 @@ import { ZONES } from '../data/zones.js';
 import { TRAINERS } from '../data/trainers.js';
 import { ITEMS } from '../data/items.js';
 import { SPECIES } from '../data/species.js';
-import { esc, fmt, monSprite, animSprite, spriteUrl, boxIcon, monBoxIcon, upgradeImages } from '../util.js';
+import { esc, fmt, spriteUrl, boxIcon, monBoxIcon, monUpgradeChain, upgradeImages } from '../util.js';
 import { toast, choose, hpBar, itemIcon, artUrl } from './kit.js';
 
 // Icon đại diện zone: ưu tiên sprite item, sau đó artwork Pokémon, cuối cùng bỏ trống
@@ -189,7 +189,7 @@ export function render(el) {
         ${hpBar(w.hpCur, mx)}
       </div>
       <img class="wild-sprite px-icon" src="${monBoxIcon(w)}" alt=""
-           data-up="${animSprite(w)}|${monSprite(w)}">`;
+           data-up="${monUpgradeChain(w)}">`;
     upgradeImages(wildSlot);
   }
 
@@ -204,7 +204,7 @@ export function render(el) {
     const [cur, need] = expProgress(m);
     mePanel.innerHTML = `
       <img class="me-sprite px-icon" src="${monBoxIcon(m)}" alt=""
-           data-up="${animSprite(m, true)}|${monSprite(m, true)}">
+           data-up="${monUpgradeChain(m, true)}">
       <div class="me-info">
         <div class="me-name">${esc(displayName(m))} <b class="me-lv">Lv.${m.lv}</b></div>
         <div class="bar-label">HP ${m.hpCur}/${mx}</div>

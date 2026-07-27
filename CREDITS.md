@@ -32,6 +32,13 @@ Từ [dorianleveque/Pokemap](https://github.com/dorianleveque/Pokemap).
 Cắt từ sheet "Pokémon Centre & Mart" (Pokémon Emerald) trên The Spriters
 Resource. Người rip: Nintendofreak106.
 
+## Ảnh động Pokémon — `assets/anim/`
+
+385 ảnh động Gen 5 (Black/White) cho Pokédex 1–386, người dùng cung cấp qua
+gói Eagle. Nguồn ghi trong gói: [veekun.com/dex/downloads](https://veekun.com/dex/downloads).
+Chỉ có mặt trước, không có mặt sau và không có bản shiny — hai loại đó vẫn
+lấy từ CDN khi có mạng. Thiếu #297 (Hariyama).
+
 ## Ảnh Pokémon và vật phẩm — `assets/pokesprite/`
 
 Từ [msikma/pokesprite](https://github.com/msikma/pokesprite).

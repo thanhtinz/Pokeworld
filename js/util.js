@@ -102,3 +102,19 @@ export function upgradeImages(root) {
     })(0);
   }
 }
+
+// Ảnh động Gen 5 để sẵn trong dự án — chỉ có mặt trước, không shiny, dex 1..386.
+// Có thì dùng luôn khỏi phải chờ CDN; thiếu thì trả null để rơi về ảnh trên mạng.
+const ANIM_LOCAL_MAX = 386;
+const ANIM_LOCAL_MISSING = new Set([297]);
+export function animLocal(dexId, back = false, shiny = false) {
+  if (back || shiny) return null;
+  const id = Number(dexId);
+  if (!(id >= 1 && id <= ANIM_LOCAL_MAX) || ANIM_LOCAL_MISSING.has(id)) return null;
+  return `assets/anim/${id}.gif`;
+}
+
+// Danh sách ảnh nên thử theo thứ tự cho một Pokémon (dùng với data-up)
+export const monUpgradeChain = (mon, back = false) =>
+  [animLocal(mon.sp, back, mon.shiny), animSprite(mon, back), monSprite(mon, back)]
+    .filter(Boolean).join('|');

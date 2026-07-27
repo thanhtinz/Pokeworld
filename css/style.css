@@ -1431,3 +1431,8 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .nav-ico { position: relative; }
 .nav-dot { position: absolute; top: -2px; right: -3px; width: 8px; height: 8px;
   border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+/* Anh hop Pokemon lam sprite tran danh (khi chua tai duoc anh dong): phong to cho can
+   voi ben kia, vi anh hop von be va co nhieu khoang trong */
+.bt-sprite.px-icon { transform: scale(1.45); }
+.bt-sprite.px-icon.faint { transform: scale(1.45) translateY(24px); }
