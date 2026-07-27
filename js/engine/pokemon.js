@@ -10,6 +10,10 @@ import { expForLevel } from './exp.js';
 // Thứ tự stat trong mảng iv/ev (khớp schema save)
 export const STAT_KEYS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
+// Loài đỡ đạn cho bản lưu cũ trỏ tới loài không còn tồn tại
+const FALLBACK_SPEC = { name: '???', base: { hp: 50, atk: 50, def: 50, spa: 50, spd: 50, spe: 50 },
+  types: ['normal'], expCurve: 'medium', abilities: [] };
+
 // Tạo 1 instance mới. opts = { iv, nature, gender, shiny, ability, ball, moves }
 export function newTuxemon(spId, level, opts = {}) {
   const spec = SPECIES[spId];
@@ -87,16 +91,18 @@ export function defaultMoves(spId, level) {
 
 // Tính 6 stats theo công thức Gen 3+ (IV/EV/nature ±10%)
 export function stats(mon) {
-  const spec = SPECIES[mon.sp];
+  // Bản lưu đời cũ có thể thiếu iv/ev/nature, hoặc giữ một loài nay đã bỏ.
+  // Thiếu thì lấy mặc định — ném lỗi ở đây là vỡ nguyên màn hình của người chơi.
+  const spec = SPECIES[mon.sp] || FALLBACK_SPEC;
   const out = {};
   for (let i = 0; i < STAT_KEYS.length; i++) {
     const key = STAT_KEYS[i];
-    const base = spec.base[key];
-    const iv = mon.iv[i] || 0;
-    const ev = mon.ev[i] || 0;
-    const lv = mon.lv;
+    const base = spec.base?.[key] ?? 50;
+    const iv = mon.iv?.[i] || 0;
+    const ev = mon.ev?.[i] || 0;
+    const lv = mon.lv || 1;
     if (key === 'hp') {
-      if (spec.base.hp === 1) {
+      if (base === 1) {
         // Shedinja-style
         out.hp = 1;
       } else {

@@ -3,6 +3,7 @@ import { listAccounts, register, login, deleteAccount } from '../engine/accounts
 import { esc } from '../util.js';
 import { toast, confirmDlg } from './kit.js';
 import { show } from '../main.js';
+import { reloadForAccount } from '../state.js';
 
 export function render(el) {
   drawHome(el);
@@ -61,7 +62,7 @@ function drawAccountList(el, accounts) {
       const acc = accounts.find(a => a.id === btn.dataset.id);
       if (!acc) return;
       if (acc.hasPass) drawPassword(el, acc);
-      else login(acc.id, '').then(([ok]) => { if (ok) show('serverpick'); });
+      else login(acc.id, '').then(([ok]) => { if (ok) { reloadForAccount(); show('serverpick'); } });
     });
     let timer = null;
     btn.addEventListener('touchstart', () => { timer = setTimeout(() => askDelete(el, btn.dataset.id), 900); }, { passive: true });
@@ -98,6 +99,7 @@ function drawPassword(el, acc) {
   const go = async () => {
     const [ok, err] = await login(acc.id, input.value);
     if (!ok) { toast(err); input.value = ''; input.focus(); return; }
+    reloadForAccount();
     show('serverpick');
   };
   el.querySelector('#btn-login').addEventListener('click', go);
@@ -136,6 +138,7 @@ function drawRegister(el) {
     const [ok, err] = await register(user, p1, 'red');
     if (!ok) { toast(err); return; }
     toast('Tạo tài khoản thành công!');
+    reloadForAccount();
     show('serverpick');
   });
   el.querySelector('#btn-back').addEventListener('click', () => drawHome(el));

@@ -7,6 +7,7 @@ import { SERVERS, isDevMode, setDevMode, getDevUrl, setDevUrl } from '../net/ser
 import { esc } from '../util.js';
 import { toast } from './kit.js';
 import { show } from '../main.js';
+import { G, load } from '../state.js';
 
 const LAST_KEY = 'pw_last_server';
 
@@ -130,8 +131,11 @@ async function syncAccount() {
 
 function goNext() {
   const acc = activeAccount();
-  // Đã tạo nhân vật rồi thì vào thẳng game
-  show(acc?.charCreated ? 'home' : 'createchar');
+  // Đã tạo nhân vật rồi thì vào thẳng game — nhưng phải NẠP ĐƯỢC bản lưu đã.
+  // Tài khoản đánh dấu "đã tạo nhân vật" mà bản lưu mất (xoá dở, hết dung lượng)
+  // thì vào thẳng home sẽ vỡ mọi màn; cho tạo lại nhân vật vẫn hơn.
+  const ready = acc?.charCreated && (G.p || load());
+  show(ready ? 'home' : 'createchar');
 }
 
 // Hỏi thử một máy chủ mà không làm hỏng lựa chọn hiện tại

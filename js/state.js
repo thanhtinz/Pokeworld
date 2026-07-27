@@ -60,6 +60,22 @@ export function save() {
   catch (e) { console.warn('save fail', e); }
 }
 
+// Vá Tuxemon trong bản lưu đời cũ: thiếu iv/ev/nature/moves là công thức tính
+// chỉ số ném lỗi ngay, mà lỗi đó rơi đúng vào màn Trang chủ nên vào game là
+// thấy báo lỗi liền.
+function vaMons(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter(m => m && m.sp !== undefined).map(m => {
+    if (!Array.isArray(m.iv) || m.iv.length < 6) m.iv = [15, 15, 15, 15, 15, 15];
+    if (!Array.isArray(m.ev) || m.ev.length < 6) m.ev = [0, 0, 0, 0, 0, 0];
+    if (!Array.isArray(m.moves) || !m.moves.length) m.moves = [{ id: 'struggle', pp: 20 }];
+    m.lv = clamp(Number(m.lv) || 1, 1, CONFIG.MAX_LEVEL);
+    if (typeof m.hpCur !== 'number') m.hpCur = 0;
+    if (typeof m.friendship !== 'number') m.friendship = 70;
+    return m;
+  });
+}
+
 export function load() {
   const data = loadActiveSave();
   if (!data) return false;
@@ -68,12 +84,23 @@ export function load() {
     const def = defaultPlayer(data.name);
     for (const k of Object.keys(def)) if (data[k] === undefined) data[k] = def[k];
     data.v = SAVE_VERSION;
+    data.party = vaMons(data.party);
+    data.box = vaMons(data.box);
     G.p = data;
     return true;
   } catch (e) {
     console.warn('save hong', e);
     return false;
   }
+}
+
+// Đổi tài khoản (đăng nhập / đăng ký) -> vứt dữ liệu tài khoản cũ đang giữ trong
+// bộ nhớ rồi nạp bản lưu của tài khoản mới. Thiếu bước này thì đăng nhập tài khoản
+// khác trong cùng một lượt mở trang sẽ chơi bằng dữ liệu của tài khoản trước, hoặc
+// tệ hơn: G.p vẫn là null và mọi màn hình đều báo lỗi.
+export function reloadForAccount() {
+  G.p = null;
+  return load();
 }
 
 export function wipeSave() {

@@ -62,6 +62,15 @@ let currentParams = null;
 export function show(name, params = {}) {
   const scr = SCREENS[name];
   if (!scr) { console.warn('screen?', name); return; }
+  // Vào màn cần dữ liệu người chơi mà G.p đang trống thì nạp lại bản lưu. Nạp
+  // không được thì quay về luồng tạo nhân vật — trước đây rơi vào đây là mọi
+  // màn đều báo lỗi, xoá bộ nhớ đệm hay đăng nhập lại cũng y như cũ vì lỗi nằm
+  // ở chỗ không có dữ liệu chứ không phải ở bộ nhớ đệm.
+  if (CAN_DU_LIEU.has(name) && !G.p && !load()) {
+    console.warn('vào', name, 'khi chưa có dữ liệu người chơi');
+    name = activeAccount() ? 'createchar' : 'splash';
+    return show(name);
+  }
   current = name;
   currentParams = params;
   const el = document.getElementById('screen');
@@ -100,6 +109,11 @@ export function show(name, params = {}) {
 
 // Mấy màn này tự chuyển tiếp ngay (không kịp vẽ gì) nên trắng là bình thường
 const KHONG_CAN_NOI_DUNG = new Set(['starter']);
+
+// Màn nào bắt buộc phải có G.p mới vẽ được. Luồng mở đầu (splash, auth, chọn
+// máy chủ, tạo nhân vật) thì không cần.
+const CAN_DU_LIEU = new Set(Object.keys(SCREENS).filter(
+  n => !['splash', 'loading', 'auth', 'login', 'serverpick', 'createchar'].includes(n)));
 
 // Màn hình báo lỗi + nút xoá bộ nhớ đệm rồi tải lại
 function showCrash(el, name, err) {

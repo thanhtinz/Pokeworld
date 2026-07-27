@@ -1,6 +1,6 @@
 // TuxeWorld H5 | ui/createchar.js | Tạo nhân vật: chọn giới tính + đặt tên nhà huấn luyện
 import { activeAccount, setAvatar, setCharCreated } from '../engine/accounts.js';
-import { G, newGame, save } from '../state.js';
+import { G, newGame, save, hasSave } from '../state.js';
 import { esc } from '../util.js';
 import { toast } from './kit.js';
 import { show } from '../main.js';
@@ -54,7 +54,9 @@ export function render(el) {
     if (name.length < 2) { toast('Tên nhân vật tối thiểu 2 ký tự!'); return; }
     setAvatar(avatar);
     setCharCreated(true);
-    if (!G.p) newGame(name);
+    // Không còn bản lưu của tài khoản này -> dựng ván mới, tuyệt đối không
+    // xài lại G.p còn sót của tài khoản vừa đăng xuất.
+    if (!G.p || !hasSave()) newGame(name);
     G.p.name = name;
     save();
     show('intro');
