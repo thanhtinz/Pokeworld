@@ -118,3 +118,8 @@ export function animLocal(dexId, back = false, shiny = false) {
 export const monUpgradeChain = (mon, back = false) =>
   [animLocal(mon.sp, back, mon.shiny), animSprite(mon, back), monSprite(mon, back)]
     .filter(Boolean).join('|');
+
+// Đường dẫn tuyệt đối tính từ trang. Cần khi nhét ảnh vào biến CSS: URL tương đối
+// trong biến CSS được tính theo vị trí file .css chứ không phải theo trang.
+export const absUrl = (path) =>
+  (typeof document === 'undefined' ? path : new URL(path, document.baseURI).href);

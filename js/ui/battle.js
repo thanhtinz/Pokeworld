@@ -17,6 +17,7 @@ import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 import { syncNow } from '../net/session.js';
+import { arenaFor } from '../data/arenas.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
 async function storyDone(ch) {
@@ -56,8 +57,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
   const eMon = () => b.sides[1].mons[eIdx()];
 
   // ==== Khung DOM ====
+  // Nền trận đấu đổi theo khu vực đang đứng
+  const arena = arenaFor(G.p.zone);
   el.innerHTML = `
-    <div class="battle">
+    <div class="battle" style="--arena-bg:url(${arena.bg});--base-foe:url(${arena.foe});--base-me:url(${arena.me})">
       <div class="bt-enemy" id="bt-enemy"></div>
       <div class="bt-log" id="bt-log"></div>
       <div class="bt-me" id="bt-me"></div>

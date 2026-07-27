@@ -90,13 +90,8 @@ html, body {
   z-index: 1;
 }
 .screen-battle, .screen-starter { padding-bottom: 14px !important; }
-/* Battle: nebula đậm hơn */
-.screen-battle {
-  background:
-    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(112, 72, 232, .3), transparent 70%),
-    radial-gradient(ellipse 65% 35% at 15% 60%, rgba(38, 100, 190, .22), transparent 65%),
-    radial-gradient(ellipse 70% 40% at 90% 85%, rgba(150, 50, 190, .2), transparent 65%);
-}
+/* Man battle: nen do chinh .battle lo (anh dau truong theo khu vuc) */
+.screen-battle { background: #0b0716; }
 
 /* ==== Bottom nav: dock nổi ==== */
 #bottom-nav {
@@ -1436,3 +1431,38 @@ img[src*='sprites'] { image-rendering: pixelated; }
    voi ben kia, vi anh hop von be va co nhieu khoang trong */
 .bt-sprite.px-icon { transform: scale(1.45); }
 .bt-sprite.px-icon.faint { transform: scale(1.45) translateY(24px); }
+
+/* ==== Nen tran dau kieu Pokemon: troi + dat + hai cai be dung ==== */
+.battle {
+  position: relative;
+  background-image: var(--arena-bg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  border-radius: 14px;
+  overflow: hidden;
+}
+/* Phu mot lop toi rat nhe cho chu de doc, khong lam mat mau nen */
+.battle::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(6,4,14,.18), rgba(6,4,14,.05) 30%, rgba(6,4,14,.28));
+}
+.battle > * { position: relative; z-index: 1; }
+
+/* Be dung: doi thu ben phai o tren, minh ben trai o duoi */
+.bt-enemy {
+  background-image: var(--base-foe);
+  background-repeat: no-repeat;
+  background-position: right 6px bottom 4px;
+  background-size: 52% auto;
+}
+.bt-me {
+  background-image: var(--base-me);
+  background-repeat: no-repeat;
+  background-position: left 6px bottom 8px;
+  background-size: 58% auto;
+}
+/* Khung thong tin dam hon mot chut de noi tren nen sang */
+.screen-battle .bt-info { background: rgba(8, 5, 18, .88); }
+.screen-battle .bt-log { background: rgba(8, 5, 18, .86); }

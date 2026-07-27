@@ -16,6 +16,12 @@ Ngoại lệ giữ nguyên bản FireRed/LeafGreen: `oak.png` (PokéRogue không
 Giáo sư Oak) và `red.png` / `leaf.png` — hai ảnh này là nhân vật người chơi
 tên Red và Leaf, hiện ở màn tạo nhân vật nên giữ đúng bản gốc.
 
+## Nền trận đấu — `assets/arena/`
+
+Từ [pagefaultgames/pokerogue-assets](https://github.com/pagefaultgames/pokerogue-assets)
+(`images/arenas`). Mỗi khu vực gồm nền trời-đất và hai cái bệ đứng, được cắt
+sát viền để đặt vào bố cục dọc của game.
+
 ## Sprite nhân vật trên bản đồ — `assets/ow/`
 
 Cắt từ các sheet Pokémon Emerald trên [The Spriters Resource](https://www.spriters-resource.com/),

@@ -44,6 +44,16 @@ export function render(el) {
     </div>
 
     <button class="card menu-link" data-goto="quest">${itemIcon('vs_recorder', '', 22)} Nhiệm vụ ›</button>
+    <button class="card menu-link" data-goto="character">${itemIcon('amulet_coin', '', 22)} Nhân vật & Trang bị ›</button>
+
+    <div class="card">
+      <h3>Nhiều người chơi</h3>
+      <button class="btn menu-row" data-goto="chat">${itemIcon('vs_seeker', '', 22)} Trò chuyện</button>
+      <button class="btn menu-row" data-goto="rank">${itemIcon('fame_checker', '', 22)} Bảng xếp hạng</button>
+      <button class="btn menu-row" data-goto="guild">${itemIcon('coin_case', '', 22)} Bang hội</button>
+      <button class="btn menu-row" data-goto="friends">${itemIcon('poke_flute', '', 22)} Bạn bè</button>
+      <button class="btn menu-row" data-goto="serverpick">${itemIcon('town_map', '', 22)} Đổi máy chủ</button>
+    </div>
 
     <div class="card">
       <h3>Cài đặt</h3>
@@ -55,6 +65,9 @@ export function render(el) {
       <b>PokeWorld H5 v1.0</b>
       <small>Fan game phi lợi nhuận, chơi vui trên trình duyệt. Pokémon © Nintendo / Game Freak. Sprite: PokeAPI.</small>
     </div>`;
+
+  el.querySelectorAll('[data-goto]').forEach(b =>
+    b.addEventListener('click', () => show(b.dataset.goto)));
 
   el.querySelector('#btn-daily').addEventListener('click', () => {
     const r = claimDaily(DAILY_REWARDS);

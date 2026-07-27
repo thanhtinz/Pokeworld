@@ -21,12 +21,16 @@ import * as createchar from './ui/createchar.js';
 import * as intro from './ui/intro.js';
 import * as world from './ui/world.js';
 import * as character from './ui/character.js';
-import * as online from './ui/online.js';
+import * as chat from './ui/chat.js';
+import * as rank from './ui/rank.js';
+import * as guild from './ui/guild.js';
+import * as friends from './ui/friends.js';
 import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, online,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character,
+  chat, rank, guild, friends,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
 
@@ -65,7 +69,7 @@ onChange(() => {
   const dot = document.getElementById('nav-dot');
   if (!dot) return;
   const n = net.unread.world + net.unread.guild + net.unread.dm;
-  dot.hidden = !(n > 0) || current === 'online';
+  dot.hidden = !(n > 0) || current === 'chat';
 });
 
 // Mở phiên online nếu người chơi đã chọn máy chủ (chơi offline thì bỏ qua)
