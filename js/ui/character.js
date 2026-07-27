@@ -1,11 +1,14 @@
-// PokeWorld H5 | ui/character.js | Màn Nhân Vật: trang bị 6 ô, cường hóa, túi trang bị, cửa hàng trang bị
+// PokeWorld H5 | ui/character.js | Màn Nhân Vật: 6 ô trang bị, cường hóa, túi, cửa hàng
+//
+// Trang bị ở đây là ĐỒ TRANG TRÍ: mặc cho nhân vật đẹp, không cộng sức mạnh và
+// không tham gia chiến đấu (nhân vật không đánh nhau, chỉ Pokémon đánh).
 import { save } from '../state.js';
 import { activeAvatar } from '../engine/accounts.js';
 import {
-  ensureData, totalStats, equip, unequip, upgradeEquip, sellEquip,
+  ensureData, equip, unequip, upgradeEquip, sellEquip,
   sellPrice, buyEquip, buyStone, shopList, stoneCount, expToNext, MAX_TRAINER_LEVEL, STONE_ITEM,
 } from '../engine/equipment.js';
-import { SLOTS, RARITY, EQUIPMENT, UPGRADE, STAT_KEYS, STAT_NAMES, statsOf, maxLevelOf } from '../data/equipment.js';
+import { SLOTS, RARITY, EQUIPMENT, UPGRADE, maxLevelOf } from '../data/equipment.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 
@@ -22,38 +25,6 @@ function ensureCss() {
 const rarOf = (id) => RARITY[(EQUIPMENT[id] || {}).rarity] || RARITY.common;
 const slotName = (id) => (SLOTS.find(s => s.id === id) || {}).name || id;
 
-// Mốc 100% của mỗi thanh chỉ số = tổng món tốt nhất mỗi ô, cường hóa tối đa.
-// Tính một lần lúc nạp module để thanh luôn so với cùng một chuẩn.
-const STAT_MAX = (() => {
-  const out = {};
-  for (const k of STAT_KEYS) {
-    let sum = 0;
-    for (const s of SLOTS) {
-      let best = 0;
-      for (const [id, def] of Object.entries(EQUIPMENT)) {
-        if (def.slot !== s.id) continue;
-        best = Math.max(best, statsOf(id, maxLevelOf(id))[k] || 0);
-      }
-      sum += best;
-    }
-    out[k] = Math.max(1, Math.round(sum));
-  }
-  return out;
-})();
-
-// Màu riêng cho từng thanh để nhìn phát biết ngay là chỉ số nào
-const STAT_COLOR = {
-  expBonus: '#7048e8', moneyBonus: '#f0b429', catchBonus: '#20c997', shinyBonus: '#f783ac',
-  atkBonus: '#fa5252', defBonus: '#4dabf7', hpBonus: '#51cf66', idleSpeed: '#ff922b',
-};
-
-// Mô tả stat dạng "EXP nhận được +8%"
-function statLines(st) {
-  return Object.entries(st)
-    .filter(([, v]) => v)
-    .map(([k, v]) => `${STAT_NAMES[k] || k} +${v}%`);
-}
-
 export function render(el) {
   ensureCss();
   const p = ensureData();
@@ -65,8 +36,6 @@ export function render(el) {
       ${header('Nhân vật')}
 
       ${gearRingHtml()}
-
-      ${statBarsHtml()}
 
       <div class="tab-row">
         <button type="button" class="tab-btn ${tab === 'inv' ? 'active' : ''}" data-tab="inv">Kho trang bị (${p.inventory.length})</button>
@@ -125,29 +94,6 @@ export function render(el) {
       </div>`;
   }
 
-  // ==== Thanh chỉ số: so với mức tối đa lý thuyết của bộ trang bị tốt nhất ====
-  function statBarsHtml() {
-    const ts = totalStats();
-    const rows = STAT_KEYS.map(k => {
-      const v = ts[k] || 0;
-      // v > 0 luôn hiện ít nhất một vạch mỏng, không thì nhìn y hệt số 0
-      const pct = v ? Math.max(4, Math.min(100, Math.round(v / STAT_MAX[k] * 100))) : 0;
-      return `
-        <div class="stat-row">
-          <span class="stat-lab">${esc(STAT_NAMES[k] || k)}</span>
-          <span class="stat-track"><i style="width:${pct}%;background:${STAT_COLOR[k]}"></i></span>
-          <span class="stat-val" style="color:${v ? STAT_COLOR[k] : 'var(--muted)'}">+${v}%</span>
-        </div>`;
-    }).join('');
-    const any = STAT_KEYS.some(k => ts[k]);
-    return `
-      <div class="card char-stats">
-        <h3>Chỉ số nhân vật</h3>
-        <div class="stat-bars">${rows}</div>
-        ${any ? '' : '<small class="empty-note">Chưa mặc trang bị nào — mặc đồ vào để kéo các thanh này lên.</small>'}
-      </div>`;
-  }
-
   // ==== Túi trang bị ====
   function invHtml() {
     if (!p.inventory.length) {
@@ -187,7 +133,7 @@ export function render(el) {
             ${itemIcon(def.sprite, '', 28)}
             <span class="item-mid">
               <b>${esc(def.name)}</b>
-              <small style="color:${rar.color}">${esc(rar.name)} · ${esc(slotName(def.slot))} · ${esc(statLines(statsOf(id, 0)).join(', '))}</small>
+              <small style="color:${rar.color}">${esc(rar.name)} · ${esc(slotName(def.slot))} · Lv.${def.reqLevel}</small>
             </span>
             <span class="item-n">${fmt(def.price)}₽</span>
           </button>`;
@@ -201,9 +147,7 @@ export function render(el) {
   async function showDetail(id, level) {
     const def = EQUIPMENT[id];
     const rar = rarOf(id);
-    const cur = statLines(statsOf(id, level));
-    const opts = cur.map(l => ({ label: l }));
-    opts.push({ label: def.desc });
+    const opts = [{ label: def.desc }, { label: `Ô ${slotName(def.slot)} · mặc cho đẹp, không đổi sức mạnh` }];
     await choose(`${def.name} · ${rar.name} +${level}/${maxLevelOf(id)}`, opts);
   }
 
@@ -248,14 +192,10 @@ export function render(el) {
     const money = UPGRADE.costMoney(lv);
     const stones = UPGRADE.costStone(lv);
     const rate = Math.round(UPGRADE.successRate(lv) * 100);
-    const before = statLines(statsOf(eq.id, lv));
-    const after = statLines(statsOf(eq.id, lv + 1));
     const i = await choose(`Cường hóa ${def.name}: +${lv} → +${lv + 1}`, [
       { label: `Cường hóa (${rate}% thành công)`,
         sub: `${fmt(money)}₽ · ${stones} đá (đang có ${stoneCount()})`,
         disabled: p.money < money || stoneCount() < stones },
-      { label: `Hiện tại: ${before.join(', ')}` , disabled: true },
-      { label: `Sau khi lên: ${after.join(', ')}`, disabled: true },
       { label: UPGRADE.failNote, disabled: true },
     ]);
     if (i !== 0) return;
@@ -307,7 +247,7 @@ export function render(el) {
   async function onBuy(id) {
     const def = EQUIPMENT[id];
     const i = await choose(`Mua ${def.name}?`, [
-      { label: `Mua · ${fmt(def.price)}₽`, sub: statLines(statsOf(id, 0)).join(', '), disabled: p.money < def.price },
+      { label: `Mua · ${fmt(def.price)}₽`, sub: esc(def.desc), disabled: p.money < def.price },
       { label: 'Xem chi tiết' },
     ]);
     if (i === 0) {

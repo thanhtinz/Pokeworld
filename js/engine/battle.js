@@ -10,7 +10,6 @@ import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, canAct, endOfTurn, speedMult } from './status.js';
 import { calcDamage, effText } from './damage.js';
 import { attemptCatch } from './catchmon.js';
-import { assistDamage, addEnergy } from './trainerfight.js';
 
 // Tên stat tiếng Việt (cho thông báo tăng/giảm chỉ số)
 const STAT_VI = {
@@ -48,7 +47,6 @@ export class Battle {
         mons: s.mons,
         id: s.id,
         kind: s.kind || 'player',
-        fighter: s.fighter || null,   // nhân vật đứng cạnh Pokémon; null = không ai đánh cùng
         active: null,
         stages: freshStages(), // stage của con đang ra sân
         mustSwitch: false,
@@ -315,28 +313,6 @@ export class Battle {
     }
   }
 
-  // Nhân vật đứng cạnh Pokémon tự ra một đòn nhỏ mỗi lượt và tích năng lượng.
-  // Bên nào không có `fighter` thì bỏ qua — Pokémon hoang dã và PvP không đổi gì.
-  doAssists(ev) {
-    for (let i = 0; i < this.sides.length; i++) {
-      const f = this.sides[i].fighter;
-      if (!f) continue;
-      addEnergy(f);
-      const mon = this.activeMon(i);
-      const oi = 1 - i;
-      const foe = this.activeMon(oi);
-      // Pokémon của mình gục thì nhân vật lo đỡ nó, không đánh nữa
-      if (!mon || isFainted(mon) || !foe || isFainted(foe)) continue;
-      const dmg = assistDamage(f, foe);
-      foe.hpCur = Math.max(0, foe.hpCur - dmg);
-      ev.push({ t: 'assist', side: oi, dmg });
-      ev.push({ t: 'msg', text: `${f.name} yểm trợ ${displayName(mon)}, gây ${dmg} sát thương!` });
-      if (isFainted(foe)) {
-        if (this.handleFaint(oi, ev)) { this.endBattle(i, ev); return; }
-      }
-    }
-  }
-
   // Resolve 1 lượt đầy đủ. Trả về { events, over, winner }
   resolve() {
     const ev = [];
@@ -427,9 +403,6 @@ export class Battle {
         }
       }
     }
-
-    // Cuối lượt: nhân vật hai bên yểm trợ Pokémon của mình
-    if (!this.over) this.doAssists(ev);
 
     // Cuối lượt: damage trạng thái
     if (!this.over) {

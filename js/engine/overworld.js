@@ -1,5 +1,4 @@
 // PokeWorld H5 | engine/overworld.js | Di chuyển trên bản đồ: va chạm, cổng dịch chuyển, gặp Pokémon
-import { bonusMult } from './equipment.js';
 import { MAPS, TILE_SIZE, mapWidth, mapHeight } from '../data/maps.js';
 import { bake, isSolidAt, isEncAt, doorAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
@@ -7,7 +6,7 @@ import { G, save, markSeen } from '../state.js';
 import { newPokemon } from './pokemon.js';
 import { rng } from '../util.js';
 
-const SPEED = 3.6;              // ô mỗi giây (giày cộng thêm qua bonusMult)
+const SPEED = 3.6;              // ô mỗi giây
 const ENC_STEP_MIN = 6;         // đi ít nhất ngần này ô cỏ mới có thể gặp
 const ENC_CHANCE = 0.16;        // xác suất mỗi ô cỏ sau khi đủ ngưỡng
 
@@ -82,8 +81,7 @@ export function update(dt, vx, vy) {
   player.moving = true;
   player.dir = Math.abs(nx) > Math.abs(ny) ? (nx > 0 ? 'right' : 'left') : (ny > 0 ? 'down' : 'up');
 
-  // Giày cộng % 'Tốc độ di chuyển' — chặn ở 1.8x cho khỏi lướt qua cả ô
-  const dist = SPEED * Math.min(1.8, bonusMult('idleSpeed')) * dt;
+  const dist = SPEED * dt;
   const beforeTile = `${Math.floor(player.x)},${Math.floor(player.y)}`;
 
   // Trượt theo từng trục để men tường mượt thay vì dính cứng

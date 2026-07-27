@@ -20,11 +20,7 @@ import { syncNow } from '../net/session.js';
 import { arenaFor } from '../data/arenas.js';
 import { canMegaEvolve, megaEvolve, revertAll } from '../engine/mega.js';
 import { addTrainerExp, randomDrop, grantEquip } from '../engine/equipment.js';
-import {
-  playerFighter, npcFighter, applySkill, canUse, skillById, TRAINER_SKILLS, ENERGY_MAX,
-} from '../engine/trainerfight.js';
-import { activeAvatar } from '../engine/accounts.js';
-import { monPx, TRAINER_SIZE } from '../engine/battlesize.js';
+import { monPx } from '../engine/battlesize.js';
 import { EQUIPMENT, RARITY } from '../data/equipment.js';
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
@@ -47,18 +43,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       Array.isArray(e) ? newPokemon(e[0], e[1]) : newPokemon(e.sp, e.lv, e.opts || {}));
     enemySide = { mons: mons.filter(Boolean), kind: 'trainer' };
     for (const m of enemySide.mons) markSeen(m.sp);
-    // Đối thủ cũng đứng cạnh Pokémon của họ, cấp lấy theo con mạnh nhất trong đội
-    const topLv = Math.max(...enemySide.mons.map(m => m.lv), 1);
-    enemySide.fighter = npcFighter(trainer.name, trainer.sprite, topLv);
   } else {
     if (!enemy) { show(from); return; }
     enemySide = { mons: [enemy], kind: 'wild' };
   }
-  const me = playerFighter(G.p.name, activeAvatar());
-  const b = new Battle({
-    kind,
-    sides: [{ mons: G.p.party, kind: 'player', fighter: me }, enemySide],
-  });
+  const b = new Battle({ kind, sides: [{ mons: G.p.party, kind: 'player' }, enemySide] });
 
   // ==== State cục bộ ====
   let busy = false;        // đang phát events -> khóa nút
@@ -119,13 +108,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
-      <span class="bt-duo bt-duo-foe">
-        ${fighterImg(b.sides[1].fighter)}
-        <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
+      <img class="bt-sprite bt-sprite-enemy ${monSpriteClass(m)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
              src="${monLocalSrc(m)}" onerror="${monFallbackAttr(m)}"
-             data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">
-      </span>`;
+             data-up="${monUpgradeChain(m)}" alt="${esc(displayName(m))}">`;
     upgradeImages($enemy);
   }
 
@@ -136,13 +122,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const [cur, need] = expProgress(m);
     const expPct = Math.min(100, Math.round(cur / Math.max(1, need) * 100));
     $me.innerHTML = `
-      <span class="bt-duo bt-duo-me">
-        <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
+      <img class="bt-sprite bt-sprite-me ${monSpriteClass(m, true)} ${isFainted(m) ? 'faint' : ''}"
              style="width:min(${monPx(m)}px, 58vw)"
              src="${monLocalSrc(m, true)}" onerror="${monFallbackAttr(m, true)}"
              data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
-        ${fighterImg(me, true)}
-      </span>
       <div class="bt-info">
         <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, mx)}</div>
@@ -195,7 +178,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       </div>
       ${megaReady() ? `<button class="btn btn-mega" id="bt-mega" ${busy ? 'disabled' : ''}>
         ${itemIcon('key_stone', '', 22)} MEGA EVOLUTION</button>` : ''}
-      ${fighterBarHtml()}
       <div class="bt-subrow">
         <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>${itemIcon('berry_pouch', '', 22)} Túi</button>
         <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>${itemIcon('poke_ball', '', 22)} Đổi</button>
@@ -209,8 +191,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     if (run) run.addEventListener('click', () => playerAct({ t: 'run' }));
     const mg = $act.querySelector('#bt-mega');
     if (mg) mg.addEventListener('click', doMega);
-    $act.querySelectorAll('.tf-skill').forEach(btn =>
-      btn.addEventListener('click', () => useSkill(btn.dataset.skill)));
   }
 
   // ==== Mega Evolution ====
@@ -235,61 +215,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     updateAll();
   }
 
-
-  // ==== Nhân vật đánh cùng Pokémon ====
-  // Ảnh nhân vật đứng sát Pokémon của mình cho thấy hai bên cùng ra trận.
-  function fighterImg(f, self = false) {
-    if (!f || !f.avatar) return '';
-    // Nhân vật mình vẽ to hơn (cao hơn Pokémon chưa tiến hoá), đối thủ nhỏ hơn một bậc
-    const cls = self ? 'bt-fighter bt-fighter-me' : 'bt-fighter';
-    const size = self ? ` style="width:${TRAINER_SIZE}"` : '';
-    return `<img class="${cls}" src="assets/trainers/${f.avatar}.png"${size} alt="" onerror="this.remove()">`;
-  }
-
-  // Hàng kỹ năng của nhân vật: thanh năng lượng + các nút đã mở khoá
-  function fighterBarHtml() {
-    if (!me.skills.length) {
-      return `<div class="tf-bar"><span class="tf-lab">${esc(me.name)}</span>
-        <span class="tf-track"><i style="width:${Math.round(me.energy / ENERGY_MAX * 100)}%"></i></span>
-        <small class="tf-hint">Lên Trainer Lv.${TRAINER_SKILLS[0].reqLevel} để mở kỹ năng</small></div>`;
-    }
-    const btns = me.skills.map(id => {
-      const sk = skillById(id);
-      const [ok] = canUse(me, id);
-      return `<button type="button" class="btn tf-skill" data-skill="${id}" ${busy || !ok ? 'disabled' : ''}>
-        <span class="tf-sk-name">${esc(sk.name)}</span><small>${sk.cost} NL</small>
-      </button>`;
-    }).join('');
-    return `
-      <div class="tf-bar">
-        <span class="tf-lab">${esc(me.name)}</span>
-        <span class="tf-track"><i style="width:${Math.round(me.energy / ENERGY_MAX * 100)}%"></i></span>
-        <span class="tf-num">${me.energy}/${ENERGY_MAX}</span>
-      </div>
-      <div class="tf-skills">${btns}</div>`;
-  }
-
-  // Dùng kỹ năng KHÔNG tốn lượt của Pokémon — nhân vật hành động song song
-  async function useSkill(id) {
-    if (busy || ended) return;
-    const r = applySkill(me, id, {
-      mon: pMon(), foe: eMon(), stages: b.sides[0].stages,
-    });
-    if (!r.ok) { toast(r.error || 'Chưa dùng được.'); return; }
-    busy = true;
-    renderActions();
-    await playEvents(r.events);
-    // Đòn hợp kích có thể hạ gục đối thủ ngay
-    const foe = eMon();
-    if (foe && isFainted(foe)) {
-      const evs = [];
-      if (b.handleFaint(1, evs)) b.endBattle(0, evs);
-      await playEvents(evs);
-      if (b.over) { await endBattle(b.winner); return; }
-    }
-    busy = false;
-    updateAll();
-  }
 
   function updateAll() { renderEnemy(); renderMe(); renderActions(); }
 
@@ -393,18 +318,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           updateBars();
           await sleep(380);
           break;
-        case 'assist': {
-          // Nhân vật ra đòn: nháy ảnh nhân vật phía tấn công, rung Pokémon bị đánh
-          const hitPanel = ev.side === 0 ? $me : $enemy;
-          const srcPanel = ev.side === 0 ? $enemy : $me;
-          const who = srcPanel.querySelector('.bt-fighter');
-          if (who) { who.classList.remove('tf-hit'); void who.offsetWidth; who.classList.add('tf-hit'); }
-          const spr = hitPanel.querySelector('.bt-sprite');
-          if (spr) { spr.classList.remove('shake'); void spr.offsetWidth; spr.classList.add('shake'); }
-          updateBars();
-          await sleep(430);
-          break;
-        }
         case 'faint': {
           const spr = ev.side === 0 ? $me.querySelector('.bt-sprite') : $enemy.querySelector('.bt-sprite');
           if (spr) spr.classList.add('faint');
