@@ -28,6 +28,7 @@ import * as friends from './ui/friends.js';
 import * as pvp from './ui/pvp.js';
 import * as marriage from './ui/marriage.js';
 import * as settings from './ui/settings.js';
+import * as fashion from './ui/fashion.js';
 import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
 import { wirePvpInvites } from './net/pvpinvite.js';
@@ -39,7 +40,7 @@ import { uiIcon } from './ui/icons.js';
 
 const SCREENS = {
   home, battle, party, dex, bag, shop, quest, starter, menu, character,
-  chat, rank, guild, friends, pvp, marriage, settings,
+  chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
 

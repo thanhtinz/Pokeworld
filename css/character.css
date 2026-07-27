@@ -229,35 +229,94 @@
 .char-note-txt { color: var(--muted); font-size: 11px; line-height: 1.45; }
 .gear-ring { padding: 14px 10px 12px; }
 
-/* ==== Thời trang ==== */
-.cos-card { display: flex; flex-direction: column; gap: 10px; }
-.cos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.cos-cell {
+/* ==== Nút dẫn sang trang Thời trang ==== */
+/* Chiều cao chẵn để thẻ Kho bên dưới không rơi vào nửa pixel */
+.fa-link { display: flex; align-items: center; gap: 11px; text-align: left; height: 62px; }
+.fa-link-ico { color: var(--gold, #f0b429); line-height: 0; flex: none; }
+.fa-link-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fa-link-mid b { font-size: 13px; }
+.fa-link-mid small {
+  color: var(--muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fa-link-go { color: var(--muted); font-size: 20px; line-height: 1; flex: none; }
+
+/* ==== Trang Thời trang ==== */
+.fa-preview { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.fa-preview .char-note-txt { margin-top: 4px; }
+.fa-tabs { overflow-x: auto; }
+.fa-tabs .tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.fa-card { display: flex; flex-direction: column; gap: 10px; }
+.fa-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.fa-cell {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 10px 5px 9px;
-  height: 96px;
   justify-content: center;
+  gap: 5px;
+  height: 116px;
+  padding: 10px 8px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, .22);
+  background: rgba(0, 0, 0, .24);
   border: 1px solid var(--line);
   text-align: center;
-  min-width: 0;
 }
-.cos-cell:active { transform: scale(.97); }
-.cos-ico { color: var(--muted); line-height: 0; }
-.cos-kind { font-size: 10px; color: var(--muted); }
-.cos-cur {
-  font-size: 11px;
-  line-height: 1.3;
+.fa-cell:active { transform: scale(.97); }
+.fa-cell.worn { border-color: var(--gold, #f0b429); box-shadow: 0 0 12px -4px var(--gold, #f0b429); }
+.fa-cell.locked { opacity: .5; }
+.fa-worn {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--gold, #f0b429);
+  color: #1a0f2e;
+  font-family: var(--pix, monospace);
+  font-size: .42rem;
+  line-height: 1.6;
+}
+.fa-art { display: flex; align-items: center; justify-content: center; height: 40px; color: var(--muted); }
+.fa-name {
+  font-size: 12px;
+  line-height: 1.25;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.cos-n { font-family: var(--pix, monospace); font-size: .42rem; color: var(--muted); line-height: 1.6; }
+.fa-req { color: var(--muted); font-size: 10px; line-height: 1.3; }
+
+/* Xem trước khung avatar: một ô vuông mang đúng viền của khung */
+.fa-frame {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  background: rgba(112, 72, 232, .18);
+}
+/* Xem trước khung chat: bong bóng nhỏ mang đúng kiểu khung */
+.fa-bubble {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, .3);
+  font-size: 11px;
+  color: var(--text);
+}
 
 /* ==== Kho trang bị dạng ô ==== */
 .inv-grid {

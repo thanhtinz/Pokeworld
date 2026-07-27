@@ -7,10 +7,10 @@ import { save } from '../state.js';
 import { activeAvatar } from '../engine/accounts.js';
 import {
   ensureData, equip, unequip, upgradeEquip, sellEquip, sellPrice, stoneCount,
-  expToNext, MAX_TRAINER_LEVEL, trainerLevel, wearCosmetic,
+  expToNext, MAX_TRAINER_LEVEL,
 } from '../engine/equipment.js';
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, maxLevelOf } from '../data/equipment.js';
-import { COSMETIC_KINDS, TITLES, unlocked, requirement } from '../data/cosmetics.js';
+import { TITLES } from '../data/cosmetics.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
@@ -42,8 +42,6 @@ export function render(el) {
 
     el.querySelectorAll('.ring-cell').forEach(b =>
       b.addEventListener('click', () => onSlot(b.dataset.slot)));
-    el.querySelectorAll('.cos-cell').forEach(b =>
-      b.addEventListener('click', () => onCosmetic(b.dataset.kind)));
     el.querySelectorAll('.inv-cell:not(.blank)').forEach(b =>
       b.addEventListener('click', () => onInv(b.dataset.uid)));
   }
@@ -89,25 +87,18 @@ export function render(el) {
       </div>`;
   }
 
-  // ==== Thời trang: danh hiệu, khung avatar, khung chat ====
+  // ==== Nút dẫn sang trang Thời trang ====
   function fashionHtml() {
-    const lv = trainerLevel();
+    const t = TITLES[p.look.title];
     return `
-      <div class="card cos-card">
-        <div class="inv-head"><b>Thời trang</b><small>Mặc cho đẹp, không đổi sức mạnh</small></div>
-        <div class="cos-grid">
-          ${COSMETIC_KINDS.map(k => {
-            const cur = k.data[p.look[k.id]] || Object.values(k.data)[0];
-            const n = Object.values(k.data).filter(d => unlocked(d, p, lv)).length;
-            return `<button type="button" class="cos-cell" data-kind="${k.id}">
-              <span class="cos-ico">${uiIcon(k.icon, 22)}</span>
-              <small class="cos-kind">${esc(k.name)}</small>
-              <b class="cos-cur"${k.id === 'title' && cur.color ? ` style="color:${cur.color}"` : ''}>${esc(cur.name)}</b>
-              <small class="cos-n">${n}/${Object.keys(k.data).length} đã mở</small>
-            </button>`;
-          }).join('')}
-        </div>
-      </div>`;
+      <button type="button" class="card menu-link fa-link" data-goto="fashion">
+        <span class="fa-link-ico">${uiIcon('flag', 22)}</span>
+        <span class="fa-link-mid">
+          <b>Thời trang</b>
+          <small>Danh hiệu${t ? ` · ${esc(t.name)}` : ''} · Khung avatar · Khung chat · Skin</small>
+        </span>
+        <span class="fa-link-go">›</span>
+      </button>`;
   }
 
   // ==== Kho trang bị: lưới ô, bấm vào mới hiện thông tin ====
@@ -226,29 +217,6 @@ export function render(el) {
     const r = equip(uid);
     toast(r.ok ? 'Đã mặc!' : (r.error || 'Không mặc được.'));
     if (r.ok) { save(); draw(); }
-  }
-
-  // ==== Bấm vào ô thời trang ====
-  async function onCosmetic(kindId) {
-    const kind = COSMETIC_KINDS.find(k => k.id === kindId);
-    if (!kind) return;
-    const lv = trainerLevel();
-    const ids = Object.keys(kind.data);
-    const i = await choose(kind.name, ids.map(id => {
-      const d = kind.data[id];
-      const ok = unlocked(d, p, lv);
-      const worn = p.look[kindId] === id;
-      return {
-        label: `${d.name}${worn ? ' (đang mặc)' : ''}`,
-        sub: ok ? (worn ? 'Đang mặc' : 'Bấm để mặc') : `Khoá · ${requirement(d)}`,
-        disabled: !ok || worn,
-      };
-    }));
-    if (i === null) return;
-    if (wearCosmetic(kindId, ids[i])) {
-      toast(`Đã mặc ${kind.data[ids[i]].name}.`);
-      draw();
-    }
   }
 
   draw();
