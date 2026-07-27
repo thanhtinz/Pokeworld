@@ -1,4 +1,8 @@
-// TuxeWorld H5 | ui/bag.js | Túi đồ: tab theo loại, dùng item ngoài trận
+// TuxeWorld H5 | ui/bag.js | Túi đồ: lưới ô vật phẩm, dùng item ngoài trận
+//
+// Không còn tab: mọi thứ trong túi bày hết ra thành lưới ô, chia nhóm bằng
+// dòng tiêu đề nhỏ. Bấm một ô thì mở bảng trượt xem mô tả rồi mới dùng —
+// đỡ lỡ tay dùng nhầm thuốc quý.
 import { G, save, removeItem, addItem, markCaught, CONFIG } from '../state.js';
 import { maxHp, displayName, isFainted, tryLearn, replaceMove } from '../engine/pokemon.js';
 import { gainExp, expForLevel, movesAtLevel } from '../engine/exp.js';
@@ -8,46 +12,78 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { esc } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
+import { openSheet } from './sheet.js';
 
-const TABS = [
+// Thứ tự nhóm hiện trong túi
+const NHOM = [
   ['medicine', 'Thuốc'],
   ['ball', 'Bóng'],
-  ['stone', 'Đá'],
+  ['stone', 'Đá tiến hoá'],
   ['held', 'Vật cầm'],
 ];
 
-export function render(el) {
-  let tab = 'medicine';
+// Câu ghi dưới tên trong bảng chi tiết: dùng được ở đâu
+const CACH_DUNG = {
+  ball: 'Chỉ ném được trong trận với Tuxemon hoang.',
+  stone: 'Dùng cho một Tuxemon để tiến hoá.',
+  held: 'Cho một Tuxemon cầm theo.',
+  medicine: 'Dùng cho một Tuxemon trong đội.',
+};
 
-  function itemsOfTab(kind) {
+export function render(el) {
+  function itemsOfKind(kind) {
     return Object.keys(G.p.bag)
       .filter(id => G.p.bag[id] > 0 && ITEMS[id] && ITEMS[id].kind === kind);
   }
 
   function draw() {
-    const ids = itemsOfTab(tab);
+    const nhom = NHOM.map(([k, label]) => [label, itemsOfKind(k)]).filter(([, ids]) => ids.length);
+    const tong = nhom.reduce((n, [, ids]) => n + ids.length, 0);
     el.innerHTML = `
       ${header('Túi đồ')}
-      <div class="tab-row">
-        ${TABS.map(([k, label]) => `<button type="button" class="tab-btn ${tab === k ? 'active' : ''}" data-tab="${k}">${label}</button>`).join('')}
-      </div>
-      <div class="item-list">
-        ${ids.map(id => {
-          const it = ITEMS[id];
-          return `
-          <button class="card item-row" data-id="${esc(id)}">
-            ${itemIcon(id)}
-            <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
-            <span class="item-n">×${G.p.bag[id]}</span>
-          </button>`;
-        }).join('')}
-        ${ids.length === 0 ? '<div class="card empty-note">Không có vật phẩm loại này.</div>' : ''}
-      </div>`;
+      ${nhom.map(([label, ids]) => `
+        <div class="card bag-group">
+          <div class="bag-head"><b>${esc(label)}</b><small>${ids.length} loại</small></div>
+          <div class="bag-grid">
+            ${ids.map(id => {
+              const it = ITEMS[id];
+              return `<button type="button" class="bag-cell" data-id="${esc(id)}" title="${esc(it.name)}">
+                <span class="bag-n">×${G.p.bag[id]}</span>
+                <span class="bag-art">${itemIcon(id, '', 40)}</span>
+                <b class="bag-name">${esc(it.name)}</b>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>`).join('')}
+      ${tong === 0 ? '<div class="card empty-note">Túi đang trống. Mua thêm ở Cửa hàng nhé!</div>' : ''}`;
 
-    el.querySelectorAll('.tab-btn').forEach(b =>
-      b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
-    el.querySelectorAll('.item-row').forEach(b =>
-      b.addEventListener('click', () => useItem(b.dataset.id)));
+    el.querySelectorAll('.bag-cell').forEach(b =>
+      b.addEventListener('click', () => openItem(b.dataset.id)));
+  }
+
+  // Bảng chi tiết một vật phẩm: ảnh to, mô tả, rồi mới tới nút dùng
+  function openItem(id) {
+    const it = ITEMS[id];
+    if (!it) return;
+    openSheet({
+      title: it.name,
+      tabs: [{ id: 'ct', name: it.name, draw(box, api) {
+        box.innerHTML = `
+          <div class="bag-detail">
+            <span class="bag-detail-art">${itemIcon(id, '', 64)}</span>
+            <div class="bag-detail-mid">
+              <b>${esc(it.name)} <span class="item-n">×${G.p.bag[id]}</span></b>
+              <small>${esc(it.desc || '')}</small>
+              <small class="bag-how">${esc(CACH_DUNG[it.kind] || '')}</small>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="bag-use">${it.kind === 'held' ? 'Cho cầm' : 'Dùng'}</button>`;
+        box.querySelector('#bag-use').addEventListener('click', async () => {
+          api.close();
+          await useItem(id);
+        });
+      } }],
+    });
   }
 
   async function pickMon(title) {
