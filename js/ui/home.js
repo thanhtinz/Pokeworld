@@ -92,6 +92,7 @@ export function render(el) {
     </div>`}
 
     <div class="idle-controls">
+      <button class="btn" id="btn-world">${itemIcon('town_map', '', 22)} Đi bộ</button>
       <button class="btn" id="btn-travel">${itemIcon('bicycle', '', 22)} Di chuyển</button>
       <button class="btn" id="btn-trainers">${itemIcon('vs_seeker', '', 22)} Trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
     </div>
@@ -394,6 +395,10 @@ export function render(el) {
   });
   const btnShop = el.querySelector('#btn-shop');
   if (btnShop) btnShop.addEventListener('click', () => { stopIdle(); show('shop'); });
+
+  // ==== Mở bản đồ đi bộ (joystick) ====
+  const btnWorld = el.querySelector('#btn-world');
+  if (btnWorld) btnWorld.addEventListener('click', () => { stopIdle(); show('world'); });
 
   // ==== Di chuyển (kèm khóa cốt truyện) ====
   el.querySelector('#btn-travel').addEventListener('click', async () => {

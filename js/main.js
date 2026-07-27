@@ -19,16 +19,17 @@ import * as auth from './ui/auth.js';
 import * as serverpick from './ui/serverpick.js';
 import * as createchar from './ui/createchar.js';
 import * as intro from './ui/intro.js';
+import * as world from './ui/world.js';
 import * as character from './ui/character.js';
 import { activeAccount } from './engine/accounts.js';
 
 const SCREENS = {
   home, battle, party, dex, bag, shop, quest, starter, menu, character,
-  login: loginScr, splash, loading, auth, serverpick, createchar, intro,
+  login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
 
 // Các màn thuộc luồng mở đầu -> ẩn thanh điều hướng dưới
-const NO_NAV = new Set(['splash', 'loading', 'auth', 'serverpick', 'createchar', 'intro', 'starter', 'battle', 'login']);
+const NO_NAV = new Set(['splash', 'loading', 'auth', 'serverpick', 'createchar', 'intro', 'starter', 'battle', 'login', 'world']);
 
 let current = null;
 let currentParams = null;
@@ -40,6 +41,7 @@ export function show(name, params = {}) {
   current = name;
   currentParams = params;
   const el = document.getElementById('screen');
+  el.dispatchEvent(new CustomEvent('screen-leave'));
   el.className = `screen screen-${name}`;
   el.innerHTML = '';
   scr.render(el, params);
