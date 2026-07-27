@@ -1,14 +1,31 @@
 // PokeWorld H5 | util.js | Tiện ích chung: RNG, clamp, sprite, escape HTML
 
+// Nguồn số ngẫu nhiên. Bình thường dùng Math.random, nhưng khi đấu PvP thì
+// gieo hạt để HAI MÁY tính ra y hệt nhau — không có bước này thì mỗi bên thấy
+// một kết quả khác nhau và máy chủ sẽ ghi trận là "tranh chấp".
+let _seeded = null;
+function _next() {
+  if (!_seeded) return Math.random();
+  // mulberry32: nhỏ, nhanh, cùng hạt luôn ra cùng dãy
+  _seeded = (_seeded + 0x6D2B79F5) | 0;
+  let t = _seeded;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
 export const rng = {
-  int(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); },
-  float() { return Math.random(); },
-  roll(p) { return Math.random() < p; },
-  pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; },
+  seed(n) { _seeded = (Number(n) | 0) || 1; },
+  unseed() { _seeded = null; },
+  isSeeded() { return _seeded !== null; },
+  int(a, b) { return a + Math.floor(_next() * (b - a + 1)); },
+  float() { return _next(); },
+  roll(p) { return _next() < p; },
+  pick(arr) { return arr[Math.floor(_next() * arr.length)]; },
   // list phần tử có trường w (trọng số) -> trả về phần tử được chọn
   weighted(list) {
     const total = list.reduce((s, e) => s + (e.w || 1), 0);
-    let roll = Math.random() * total;
+    let roll = _next() * total;
     for (const e of list) { roll -= (e.w || 1); if (roll <= 0) return e; }
     return list[list.length - 1];
   },

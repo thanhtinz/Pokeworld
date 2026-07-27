@@ -25,19 +25,21 @@ import * as chat from './ui/chat.js';
 import * as rank from './ui/rank.js';
 import * as guild from './ui/guild.js';
 import * as friends from './ui/friends.js';
+import * as pvp from './ui/pvp.js';
 import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
 import { sanitizeSave } from './engine/mega.js';
+import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/pokemon.js';
 
 const SCREENS = {
   home, battle, party, dex, bag, shop, quest, starter, menu, character,
-  chat, rank, guild, friends,
+  chat, rank, guild, friends, pvp,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
 
 // Các màn thuộc luồng mở đầu -> ẩn thanh điều hướng dưới
-const NO_NAV = new Set(['splash', 'loading', 'auth', 'serverpick', 'createchar', 'intro', 'starter', 'battle', 'login', 'world']);
+const NO_NAV = new Set(['splash', 'loading', 'auth', 'serverpick', 'createchar', 'intro', 'starter', 'battle', 'login', 'world', 'pvp']);
 
 let current = null;
 let currentParams = null;
@@ -78,6 +80,7 @@ onChange(() => {
 // Thoát game giữa lúc đang Mega thì save còn dạng 10xxx — dọn lại cho sạch
 if (G.p) sanitizeSave(G.p, maxHp);
 
+wirePvpInvites();
 startSession().catch(e => console.warn('[online]', e));
 
 // Nav dưới + nút back data-goto

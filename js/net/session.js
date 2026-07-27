@@ -76,6 +76,9 @@ export async function startSession() {
   net.connected = !!r.ok;
   if (!r.ok) net.lastError = r.error;
   else {
+    // Đẩy bản lưu NGAY khi vào phiên. Không làm bước này thì trong 30 giây đầu
+    // máy chủ chưa có dữ liệu người chơi, lập bang hội sẽ báo "chưa có dữ liệu game".
+    await api.pushSave(buildSave());
     api.startAutoSync(() => buildSave(), 30000);
     const me = await api.fetchMe();
     if (me.ok) net.me = me.data?.user || me.data;
@@ -110,5 +113,7 @@ export async function syncNow() {
 export const isOnline = () => isOnlineMode() && net.connected;
 
 export function clearUnread(kind) {
-  if (kind in net.unread) { net.unread[kind] = 0; changed(); }
+  // Chỉ báo thay đổi khi thật sự có thay đổi. Báo vô điều kiện sẽ thành vòng lặp
+  // vô hạn: màn chat vẽ lại -> xoá đánh dấu -> báo đổi -> vẽ lại -> ... treo trang.
+  if (net.unread[kind] > 0) { net.unread[kind] = 0; changed(); }
 }
