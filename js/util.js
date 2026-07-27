@@ -103,25 +103,27 @@ export function upgradeImages(root) {
   }
 }
 
-// Ảnh động Gen 5 để sẵn trong dự án, dex 1..386.
-// Có đủ 4 kiểu: mặt trước / mặt sau / shiny trước / shiny sau.
-// Mặt sau quan trọng — Pokémon của mình phải quay LƯNG về phía người chơi.
-const ANIM_LOCAL_MAX = 386;
-// Vài con thiếu ở một số thư mục (nguồn không có sẵn)
-const ANIM_MISSING = {
-  front: new Set([297]),
-  back: new Set(),
-  'shiny-front': new Set(),
-  'shiny-back': new Set(),
-};
-const ANIM_DIR = { front: '', back: 'back/', 'shiny-front': 'shiny/', 'shiny-back': 'back/shiny/' };
+// Ảnh Gen 5 để sẵn trong dự án.
+//   Thường : ảnh ĐỘNG, dex 1..386 — assets/anim/{,back/}{id}.gif
+//   Shiny  : ảnh TĨNH, dex 1..649 — assets/sprites/{shiny,back/shiny}/{id}.png
+// Ảnh động shiny nặng thêm ~26 MB nên dùng ảnh tĩnh cho đủ dùng; màu và
+// hướng vẫn đúng, và khi có mạng vẫn tự nâng lên ảnh động của CDN.
+// Mặt sau là phần quan trọng: Pokémon của mình phải quay LƯNG về người chơi.
+const ANIM_MAX = 386;
+const STATIC_MAX = 649;
+const ANIM_MISSING = { front: new Set([297]), back: new Set() };
 
 export function animLocal(dexId, back = false, shiny = false) {
   const id = Number(dexId);
-  if (!(id >= 1 && id <= ANIM_LOCAL_MAX)) return null;
-  const kind = shiny ? (back ? 'shiny-back' : 'shiny-front') : (back ? 'back' : 'front');
+  if (!(id >= 1)) return null;
+  if (shiny) {
+    if (id > STATIC_MAX) return null;
+    return `assets/sprites/${back ? 'back/shiny' : 'shiny'}/${id}.png`;
+  }
+  if (id > ANIM_MAX) return null;
+  const kind = back ? 'back' : 'front';
   if (ANIM_MISSING[kind].has(id)) return null;
-  return `assets/anim/${ANIM_DIR[kind]}${id}.gif`;
+  return `assets/anim/${back ? 'back/' : ''}${id}.gif`;
 }
 
 // Ảnh hiện NGAY, lấy trong dự án: ưu tiên ảnh động đúng hướng (trước/sau),

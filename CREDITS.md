@@ -38,12 +38,19 @@ Từ [dorianleveque/Pokemap](https://github.com/dorianleveque/Pokemap).
 Cắt từ sheet "Pokémon Centre & Mart" (Pokémon Emerald) trên The Spriters
 Resource. Người rip: Nintendofreak106.
 
-## Ảnh động Pokémon — `assets/anim/`
+## Ảnh Pokémon trong trận — `assets/anim/` và `assets/sprites/`
 
-385 ảnh động Gen 5 (Black/White) cho Pokédex 1–386, người dùng cung cấp qua
-gói Eagle. Nguồn ghi trong gói: [veekun.com/dex/downloads](https://veekun.com/dex/downloads).
-Chỉ có mặt trước, không có mặt sau và không có bản shiny — hai loại đó vẫn
-lấy từ CDN khi có mạng. Thiếu #297 (Hariyama).
+Đều là sprite Gen 5 (Black/White), nguồn gốc
+[veekun.com/dex/downloads](https://veekun.com/dex/downloads).
+
+- `assets/anim/` — ảnh ĐỘNG, dex 1–386, mặt trước và mặt sau. Mặt trước do
+  người dùng gửi qua gói Eagle; mặt sau lấy từ
+  [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (cùng bộ ảnh, vì
+  veekun.com bị chặn từ môi trường dựng dự án). Thiếu #297 ở mặt trước.
+- `assets/sprites/shiny/` và `assets/sprites/back/shiny/` — ảnh TĨNH shiny,
+  dex 1–649, cắt từ gói `generation5.tar.gz` của veekun do người dùng gửi.
+  Dùng ảnh tĩnh cho shiny vì bản động nặng thêm khoảng 26 MB; màu và hướng
+  vẫn đúng, có mạng thì tự nâng lên ảnh động của CDN.
 
 ## Ảnh Pokémon và vật phẩm — `assets/pokesprite/`
 
