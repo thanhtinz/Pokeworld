@@ -33,9 +33,10 @@ MAPS = {}
 # Ai khong co anh 2D thi de trong, luc do hop thoai phong to sprite ban do len.
 FACE = {
     'juan': 'oak', 'roxanne': 'lass', 'liza': 'youngster', 'tate': 'youngster',
-    'flannery': 'lass', 'sidney': 'camper_e', 'phoebe': 'bug_catcher',
-    'brawly': 'bug_catcher_e', 'steven': 'rocket_m', 'wallace': 'rocket_f',
+    'flannery': 'lass', 'sidney': 'camper_f', 'phoebe': 'school_kid',
+    'brawly': 'bug_catcher', 'steven': 'rocket_m', 'wallace': 'rocket_f',
     'wattson': 'hiker', 'winona': 'swimmer_f',
+    'nurse_joy': 'nurse', 'mart_clerk': 'clerk',
 }
 
 
@@ -323,8 +324,9 @@ for mid, m in MAPS.items():
         out.append("    spots: [")
         for sp in m['spots']:
             spr = (", sprite: %s" % js_str(sp[5])) if len(sp) > 5 and sp[5] else ""
-            out.append("      { x: %d, y: %d, kind: %s, name: %s, text: %s%s },"
-                       % (sp[0], sp[1], js_str(sp[2]), js_str(sp[3]), js_str(sp[4]), spr))
+            fc = (", face: %s" % js_str(FACE[sp[5]])) if len(sp) > 5 and FACE.get(sp[5]) else ""
+            out.append("      { x: %d, y: %d, kind: %s, name: %s, text: %s%s%s },"
+                       % (sp[0], sp[1], js_str(sp[2]), js_str(sp[3]), js_str(sp[4]), spr, fc))
         out.append("    ],")
     out.append("    npcs: [")
     for n in m['npcs']:

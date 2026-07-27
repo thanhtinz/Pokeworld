@@ -93,7 +93,7 @@ export const TRAINERS = {
 
   // ---- Gym Leader 3..8 (Brock & Misty đã có ở trên) ----
   gym_surge: {
-    sprite: 'cooltrainer_m', name: 'Lt. Surge', kind: 'gym', zone: 'city_thunder',
+    sprite: 'lt_surge', name: 'Lt. Surge', kind: 'gym', zone: 'city_thunder',
     badge: 'badge_thunder', badgeName: 'Huy Hiệu Sấm Sét',
     party: [{ sp: 100, lv: 22 }, { sp: 25, lv: 22 }, { sp: 26, lv: 24 }],
     rewardMoney: 2600, rewardItem: { id: 'thunder_stone', n: 1 },
@@ -101,7 +101,7 @@ export const TRAINERS = {
     lose: 'Ha ha ha! Gan dạ đấy nhóc! Cầm lấy Huy Hiệu Sấm Sét — cháu đã kiếm được nó.',
   },
   gym_erika: {
-    sprite: 'lass', name: 'Erika', kind: 'gym', zone: 'city_rainbow',
+    sprite: 'erika', name: 'Erika', kind: 'gym', zone: 'city_rainbow',
     badge: 'badge_rainbow', badgeName: 'Huy Hiệu Cầu Vồng',
     party: [{ sp: 114, lv: 27 }, { sp: 70, lv: 27 }, { sp: 45, lv: 29 }],
     rewardMoney: 3200, rewardItem: { id: 'leaf_stone', n: 1 },
@@ -109,7 +109,7 @@ export const TRAINERS = {
     lose: 'Tôi đã thua... nhưng thật vui. Huy Hiệu Cầu Vồng xin trao lại cho bạn.',
   },
   gym_koga: {
-    sprite: 'rocket_m', name: 'Koga', kind: 'gym', zone: 'city_fuchsia', // sprite tạm: rocket_m (ninja áo đen)
+    sprite: 'koga', name: 'Koga', kind: 'gym', zone: 'city_fuchsia', // sprite tạm: rocket_m (ninja áo đen)
     badge: 'badge_soul', badgeName: 'Huy Hiệu Linh Hồn',
     party: [{ sp: 109, lv: 31 }, { sp: 89, lv: 31 }, { sp: 49, lv: 32 }, { sp: 110, lv: 33 }],
     rewardMoney: 3800, rewardItem: { id: 'full_heal', n: 3 },
@@ -117,7 +117,7 @@ export const TRAINERS = {
     lose: 'Ngươi đã nhìn thấu màn sương... Nhận lấy Huy Hiệu Linh Hồn, nhà huấn luyện trẻ.',
   },
   gym_sabrina: {
-    sprite: 'channeler', name: 'Sabrina', kind: 'gym', zone: 'city_saffron', // sprite tạm: channeler
+    sprite: 'sabrina', name: 'Sabrina', kind: 'gym', zone: 'city_saffron', // sprite tạm: channeler
     badge: 'badge_marsh', badgeName: 'Huy Hiệu Đầm Lầy',
     party: [{ sp: 64, lv: 35 }, { sp: 122, lv: 35 }, { sp: 49, lv: 36 }, { sp: 65, lv: 37 }],
     rewardMoney: 4400, rewardItem: { id: 'hyper_potion', n: 3 },
@@ -125,7 +125,7 @@ export const TRAINERS = {
     lose: 'Tương lai... đã đổi. Lần đầu tiên ta vui vì mình đoán sai. Huy Hiệu Đầm Lầy là của cháu.',
   },
   gym_blaine: {
-    sprite: 'camper', name: 'Blaine', kind: 'gym', zone: 'island_cinnabar', // sprite tạm: camper
+    sprite: 'blaine', name: 'Blaine', kind: 'gym', zone: 'island_cinnabar', // sprite tạm: camper
     badge: 'badge_volcano', badgeName: 'Huy Hiệu Núi Lửa',
     party: [{ sp: 58, lv: 39 }, { sp: 77, lv: 39 }, { sp: 78, lv: 40 }, { sp: 59, lv: 41 }],
     rewardMoney: 5000, rewardItem: { id: 'fire_stone', n: 1 },
@@ -143,28 +143,28 @@ export const TRAINERS = {
 
   // ---- Elite Four & Champion ----
   elite_lorelei: {
-    sprite: 'swimmer_f', name: 'Lorelei', kind: 'gym', zone: 'league_1', story: true,
+    sprite: 'lorelei', name: 'Lorelei', kind: 'gym', zone: 'league_1', story: true,
     party: [{ sp: 87, lv: 48 }, { sp: 91, lv: 49 }, { sp: 124, lv: 49 }, { sp: 80, lv: 50 }, { sp: 131, lv: 51 }],
     rewardMoney: 7000, rewardItem: { id: 'hyper_potion', n: 3 },
     intro: 'Ta là Lorelei của Bộ Tứ Elite. Băng giá không chỉ làm chậm Pokémon — nó làm chậm cả suy nghĩ của ngươi.',
     lose: 'Ngươi giữ được cái đầu lạnh hơn cả ta. Đi tiếp đi, phòng kế tiếp đang chờ.',
   },
   elite_bruno: {
-    sprite: 'cooltrainer_m', name: 'Bruno', kind: 'gym', zone: 'league_1', story: true,
+    sprite: 'bruno', name: 'Bruno', kind: 'gym', zone: 'league_1', story: true,
     party: [{ sp: 95, lv: 50 }, { sp: 107, lv: 51 }, { sp: 106, lv: 51 }, { sp: 95, lv: 52 }, { sp: 68, lv: 53 }],
     rewardMoney: 7500, rewardItem: { id: 'max_potion', n: 2 },
     intro: 'HỰC! Ta là Bruno. Ta và Pokémon rèn luyện cùng nhau mỗi ngày. Cơ bắp không biết nói dối!',
     lose: 'Sao lại thế... Ta còn phải rèn nhiều hơn nữa. Đi đi, đừng để Agatha phải đợi.',
   },
   elite_agatha: {
-    sprite: 'channeler', name: 'Agatha', kind: 'gym', zone: 'league_1', story: true,
+    sprite: 'agatha', name: 'Agatha', kind: 'gym', zone: 'league_1', story: true,
     party: [{ sp: 93, lv: 52 }, { sp: 42, lv: 52 }, { sp: 24, lv: 53 }, { sp: 110, lv: 54 }, { sp: 94, lv: 55 }],
     rewardMoney: 8000, rewardItem: { id: 'revive', n: 3 },
     intro: 'Oak cứ khen ngươi mãi. Hồi trẻ hắn cũng là một tay đấu ra trò... trước khi hắn đổi bóng ma lấy sách vở.',
     lose: 'Hừ! Bà già này thua rồi. Nhưng nói cho Oak biết: ta vẫn chưa hết thời đâu!',
   },
   elite_lance: {
-    sprite: 'red', name: 'Lance', kind: 'gym', zone: 'league_1', story: true, // sprite tạm: red (áo choàng đỏ)
+    sprite: 'lance', name: 'Lance', kind: 'gym', zone: 'league_1', story: true, // sprite tạm: red (áo choàng đỏ)
     party: [{ sp: 130, lv: 55 }, { sp: 148, lv: 56 }, { sp: 148, lv: 56 }, { sp: 142, lv: 57 }, { sp: 149, lv: 58 }],
     rewardMoney: 9000, rewardItem: { id: 'max_potion', n: 3 },
     intro: 'Ta là Lance, kẻ thuần rồng. Không ai vượt qua ta mà chưa hiểu thế nào là sức mạnh tuyệt đối.',
@@ -196,14 +196,14 @@ export const TRAINERS = {
 
   // ---- Team Rocket mở rộng ----
   rocket_admin_1: {
-    sprite: 'rocket_f', name: 'Rocket Admin Ariana', kind: 'rocket', zone: 'tower_radio', story: true,
+    sprite: 'ariana', name: 'Rocket Admin Ariana', kind: 'rocket', zone: 'tower_radio', story: true,
     party: [{ sp: 42, lv: 28 }, { sp: 20, lv: 28 }, { sp: 97, lv: 30 }],
     rewardMoney: 4000, rewardItem: { id: 'great_ball', n: 5 },
     intro: 'Sóng phát thanh này sẽ khiến mọi Pokémon trong vùng phát điên và nghe lệnh chúng ta. Đừng xen vào!',
     lose: 'Cái tháp... hỏng rồi! Boss sẽ không tha cho tôi đâu...',
   },
   rocket_admin_2: {
-    sprite: 'rocket_m', name: 'Rocket Admin Archer', kind: 'rocket', zone: 'city_saffron', story: true,
+    sprite: 'archer', name: 'Rocket Admin Archer', kind: 'rocket', zone: 'city_saffron', story: true,
     party: [{ sp: 110, lv: 34 }, { sp: 24, lv: 34 }, { sp: 115, lv: 35 }, { sp: 97, lv: 36 }],
     rewardMoney: 5200, rewardItem: { id: 'ultra_ball', n: 3 },
     intro: 'Tòa nhà Silph là của Team Rocket rồi. Chỉ cần bản thiết kế đó, cả Kanto sẽ quỳ gối!',
@@ -233,7 +233,7 @@ export const TRAINERS = {
     lose: 'Bạn khỏe thật! Cho mình nghỉ chút nha.',
   },
   camper_route3: {
-    sprite: 'camper_e', name: 'Camper Liam', kind: 'trainer', zone: 'route_3',
+    sprite: 'camper_f', name: 'Camper Liam', kind: 'trainer', zone: 'route_3',
     party: [{ sp: 56, lv: 19 }, { sp: 21, lv: 19 }, { sp: 27, lv: 20 }],
     rewardMoney: 750,
     intro: 'Cắm trại ba đêm rồi, tay mình ngứa đánh nhau quá!',
@@ -289,7 +289,7 @@ export const TRAINERS = {
     lose: 'Cuối cùng cũng gặp được... cảm ơn trận đấu này!',
   },
   channeler_unknown: {
-    sprite: 'psychic_f', name: 'Researcher Mio', kind: 'trainer', zone: 'cave_unknown',
+    sprite: 'scientist', name: 'Researcher Mio', kind: 'trainer', zone: 'cave_unknown',
     party: [{ sp: 65, lv: 55 }, { sp: 94, lv: 56 }, { sp: 122, lv: 56 }],
     rewardMoney: 5000, rewardItem: { id: 'ultra_ball', n: 5 },
     intro: 'Hang này vặn xoắn cả tâm trí. Nếu bạn không đủ mạnh, hãy quay ra ngay.',
