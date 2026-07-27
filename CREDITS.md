@@ -18,6 +18,7 @@ Cụ thể đã lấy:
 | 32 sprite nhân vật + NPC đi trên bản đồ | `assets/ow/` |
 | 32 ảnh 2D nhân vật + NPC cho trận đấu và hội thoại | `assets/trainers/` |
 | 20 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
+| Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |
 
 Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py` và
 `tools/mksprites.py` sinh ra — chạy lại được

@@ -92,14 +92,28 @@ def parse_map(path, tsx_cache):
     w = int(root.get('width'))
     h = int(root.get('height'))
 
-    # tileset: firstgid -> thong tin
+    # tileset: firstgid -> thong tin.
+    # Tiled cho phep hai kieu: tro toi tep .tsx rieng, HOAC khai bao thang trong
+    # tep ban do voi the <image> con ben trong. Ban do trong nha cua Tuxemon
+    # dung kieu thu hai, bo qua la ban do trong tron.
+    base_dir = os.path.dirname(path)
     sets = []
     for ts in root.findall('tileset'):
         first = int(ts.get('firstgid'))
         src = ts.get('source')
-        if not src:
-            continue
-        info = load_tsx(os.path.join(os.path.dirname(path), src), tsx_cache)
+        if src:
+            info = load_tsx(os.path.join(base_dir, src), tsx_cache)
+        else:
+            img = ts.find('image')
+            if img is None:
+                continue
+            info = {
+                'img': os.path.normpath(os.path.join(base_dir, img.get('source'))),
+                'cols': int(ts.get('columns') or 0),
+                'count': int(ts.get('tilecount') or 0),
+                'tw': int(ts.get('tilewidth') or TILE),
+                'th': int(ts.get('tileheight') or TILE),
+            }
         if info:
             sets.append((first, info))
     sets.sort(key=lambda x: x[0])
@@ -324,8 +338,14 @@ export const talkAt = (map, x, y) =>
 
 
 def pick_spawn(m):
-    """Cho nguoi choi dung o o di duoc gan giua ban do nhat."""
+    """Cho nguoi choi dung canh cong ra vao. Ban do trong nha ma tha giua thi
+    de roi vao sau quay hang; canh cong moi la cho nguoi ta thuc su buoc vao."""
     w, h = m['w'], m['h']
+    for wp in m['warps']:
+        for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+            x, y = wp['x'] + dx, wp['y'] + dy
+            if 0 <= x < w and 0 <= y < h and not m['solid'][y * w + x]:
+                return (x, y)
     cx, cy = w // 2, h // 2
     best, bd = (1, 1), 10 ** 9
     for y in range(h):
