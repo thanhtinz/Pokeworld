@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/bag.js | Túi đồ: tab theo loại, dùng item ngoài trận
+// TuxeWorld H5 | ui/bag.js | Túi đồ: tab theo loại, dùng item ngoài trận
 import { G, save, removeItem, addItem, markCaught, CONFIG } from '../state.js';
 import { maxHp, displayName, isFainted, tryLearn, replaceMove } from '../engine/pokemon.js';
 import { gainExp, expForLevel, movesAtLevel } from '../engine/exp.js';
@@ -63,7 +63,7 @@ export function render(el) {
   async function useItem(id) {
     const it = ITEMS[id];
     if (!it) return;
-    if (G.p.party.length === 0) { toast('Chưa có Pokémon nào!'); return; }
+    if (G.p.party.length === 0) { toast('Chưa có Tuxemon nào!'); return; }
 
     if (it.kind === 'medicine' || it.kind === 'berry') {
       const mon = await pickMon(`Dùng ${it.name} cho ai?`);
@@ -82,7 +82,7 @@ export function render(el) {
       const mon = await pickMon(`Dùng ${it.name} cho ai?`);
       if (!mon) return;
       const dex = checkEvolution(mon, 'stone', id);
-      if (!dex) { toast('Không có tác dụng với Pokémon này!'); return; }
+      if (!dex) { toast('Không có tác dụng với Tuxemon này!'); return; }
       const to = SPECIES[dex];
       if (!await confirmDlg(`${displayName(mon)} sẽ tiến hóa thành ${to ? to.name : '?'}!`, 'Tiến hóa!')) return;
       evolve(mon, dex);
@@ -143,7 +143,7 @@ export function render(el) {
     }
 
     if (it.kind === 'ball') {
-      toast('Bóng chỉ dùng được trong trận với Pokémon hoang dã!');
+      toast('Bóng chỉ dùng được trong trận với Tuxemon hoang dã!');
     }
   }
 

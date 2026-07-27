@@ -1,4 +1,4 @@
-// PokeWorld H5 | net/session.js | Phiên chơi online: giữ kết nối, tự lưu lên máy chủ,
+// TuxeWorld H5 | net/session.js | Phiên chơi online: giữ kết nối, tự lưu lên máy chủ,
 // và nhớ hộ giao diện những gì máy chủ gửi về (tin nhắn, số người online, lời mời PvP).
 //
 // Toàn bộ phần này chỉ chạy khi người chơi đã chọn một máy chủ ở màn "Chọn máy chủ".

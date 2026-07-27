@@ -1,4 +1,4 @@
-// PokeWorld H5 | net/socket.js | Kết nối realtime: chat thế giới, presence, PvP
+// TuxeWorld H5 | net/socket.js | Kết nối realtime: chat thế giới, presence, PvP
 // Thư viện socket.io-client được nạp động từ chính máy chủ (không cần bundle).
 import { getServerUrl, getToken } from './config.js';
 

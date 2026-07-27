@@ -1,10 +1,10 @@
-// PokeWorld H5 | ui/battle.js | Màn trận đấu: wild / trainer, phát events tuần tự
+// TuxeWorld H5 | ui/battle.js | Màn trận đấu: wild / trainer, phát events tuần tự
 import {
   G, save, addToParty, markSeen, markCaught, allFainted, emitQuest,
   removeItem, addMoney, addItem,
 } from '../state.js';
 import { Battle } from '../engine/battle.js';
-import { newPokemon, displayName, maxHp, isFainted, replaceMove, heal } from '../engine/pokemon.js';
+import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '../engine/pokemon.js';
 import { expProgress } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
 import { SPECIES } from '../data/species.js';
@@ -20,7 +20,6 @@ import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 import { syncNow } from '../net/session.js';
 import { arenaFor } from '../data/arenas.js';
-import { canMegaEvolve, megaEvolve, revertAll } from '../engine/mega.js';
 import { addTrainerExp, randomDrop, grantEquip } from '../engine/equipment.js';
 import { monPx } from '../engine/battlesize.js';
 import { EQUIPMENT, RARITY } from '../data/equipment.js';
@@ -42,7 +41,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     // Rival: đội động khắc hệ với starter người chơi (engine/story.js)
     const party = trainer.kind === 'rival' ? rivalTeam(trainerId) : (trainer.party || []);
     const mons = party.map(e =>
-      Array.isArray(e) ? newPokemon(e[0], e[1]) : newPokemon(e.sp, e.lv, e.opts || {}));
+      Array.isArray(e) ? newTuxemon(e[0], e[1]) : newTuxemon(e.sp, e.lv, e.opts || {}));
     enemySide = { mons: mons.filter(Boolean), kind: 'trainer' };
     for (const m of enemySide.mons) markSeen(m.sp);
   } else {
@@ -178,8 +177,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         }).join('')}
         ${m.moves.length === 0 ? '<div class="log-line">Không còn chiêu nào!</div>' : ''}
       </div>
-      ${megaReady() ? `<button class="btn btn-mega" id="bt-mega" ${busy ? 'disabled' : ''}>
-        ${itemIcon('key_stone', '', 22)} MEGA EVOLUTION</button>` : ''}
       <div class="bt-subrow">
         <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>${uiIcon('bag', 22)} Túi</button>
         <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>${uiIcon('swap', 22)} Đổi</button>
@@ -191,32 +188,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     $act.querySelector('#bt-switch').addEventListener('click', openSwitch);
     const run = $act.querySelector('#bt-run');
     if (run) run.addEventListener('click', () => playerAct({ t: 'run' }));
-    const mg = $act.querySelector('#bt-mega');
-    if (mg) mg.addEventListener('click', doMega);
   }
-
-  // ==== Mega Evolution ====
-  // Điều kiện: có Key Stone, Pokémon đang cầm đúng viên đá Mega của loài mình,
-  // và mỗi trận chỉ được Mega một lần.
-  let megaUsed = false;
-  function megaReady() {
-    return !megaUsed && !!canMegaEvolve(pMon(), { usedThisBattle: megaUsed });
-  }
-  async function doMega() {
-    if (busy || ended) return;
-    const m = pMon();
-    const r = megaEvolve(m, maxHp);
-    if (!r.ok) { toast(r.error || 'Chưa Mega được.'); return; }
-    megaUsed = true;
-    busy = true;
-    log(`${displayName(m)} phản ứng với Key Stone... MEGA EVOLUTION!`);
-    const spr = $me.querySelector('.bt-sprite');
-    if (spr) spr.classList.add('mega-flash');
-    await sleep(700);
-    busy = false;          // phải mở khoá TRƯỚC khi vẽ lại, không thì nút chiêu kẹt disabled
-    updateAll();
-  }
-
 
   function updateAll() { renderEnemy(); renderMe(); renderActions(); }
 
@@ -235,7 +207,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     if (i === null || busy || ended) return;
     const id = ids[i];
     if (ITEMS[id].kind === 'ball') {
-      if (kind !== 'wild') { toast('Không thể bắt Pokémon của trainer khác!'); return; }
+      if (kind !== 'wild') { toast('Không thể bắt Tuxemon của trainer khác!'); return; }
       await playerAct({ t: 'ball', id });
     } else {
       const j = await choose('Dùng cho ai?', G.p.party.map(m =>
@@ -248,7 +220,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
   async function openSwitch() {
     if (busy || ended) return;
     const act = pIdx();
-    const i = await choose('Đổi Pokémon', G.p.party.map((m, idx) => ({
+    const i = await choose('Đổi Tuxemon', G.p.party.map((m, idx) => ({
       label: `${displayName(m)} Lv.${m.lv}`,
       sub: `HP ${m.hpCur}/${maxHp(m)}${idx === act ? ' · đang ra trận' : ''}`,
       disabled: isFainted(m) || idx === act,
@@ -258,7 +230,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
   }
 
   async function forceSwitch() {
-    const i = await choose('Chọn Pokémon ra trận!', G.p.party.map(m => ({
+    const i = await choose('Chọn Tuxemon ra trận!', G.p.party.map(m => ({
       label: `${displayName(m)} Lv.${m.lv}`,
       sub: `HP ${m.hpCur}/${maxHp(m)}`,
       disabled: isFainted(m),
@@ -481,7 +453,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       }
     }
 
-    revertAll(G.p.party, maxHp);   // hết trận là về dạng thường, save không giữ dạng Mega
     save();
     syncNow();          // đẩy kết quả lên máy chủ ngay cho bảng xếp hạng khỏi trễ
     updateBars();

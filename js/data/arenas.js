@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/arenas.js | Nền trận đấu theo khu vực
+// TuxeWorld H5 | data/arenas.js | Nền trận đấu theo khu vực
 // Ảnh lấy từ pokerogue-assets (images/arenas): mỗi bộ gồm nền trời-đất và
 // hai cái bệ đứng — bệ của mình ở dưới trái, bệ của đối thủ ở trên phải.
 import { absUrl } from '../util.js';

@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/guild.js | Trang bang hội: lập bang, xin vào, quản lý thành viên
+// TuxeWorld H5 | ui/guild.js | Trang bang hội: lập bang, xin vào, quản lý thành viên
 import { G } from '../state.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, confirmDlg, header } from './kit.js';

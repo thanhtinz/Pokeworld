@@ -1,7 +1,7 @@
-// PokeWorld H5 | ui/home.js | Màn chính: bảng tóm tắt khu vực + lối đi ra bản đồ
+// TuxeWorld H5 | ui/home.js | Màn chính: bảng tóm tắt khu vực + lối đi ra bản đồ
 //
 // Trước đây màn này là chế độ IDLE tự đánh quái. Từ khi chuyển sang đi bộ trên
-// bản đồ thì gặp Pokémon là do người chơi bước vào bụi cỏ, nên phần tự đánh đã
+// bản đồ thì gặp Tuxemon là do người chơi bước vào bụi cỏ, nên phần tự đánh đã
 // bỏ hẳn. Màn này giờ chỉ còn: đang ở đâu, chương truyện nào, và các nút để đi.
 import { G, save, allFainted, emitQuest } from '../state.js';
 import { heal, displayName, maxHp, isFainted } from '../engine/pokemon.js';
@@ -11,17 +11,16 @@ import { playDialog } from './dialog.js';
 import { ZONES } from '../data/zones.js';
 import { enterMap } from '../engine/overworld.js';
 import { TRAINERS } from '../data/trainers.js';
-import { esc, fmt, spriteUrl, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages } from '../util.js';
-import { toast, choose, hpBar, itemIcon, artUrl } from './kit.js';
+import { esc, fmt, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages } from '../util.js';
+import { toast, choose, hpBar, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { show, refresh } from '../main.js';
 
-// Icon đại diện zone: ưu tiên sprite item, sau đó artwork Pokémon, cuối cùng bỏ trống
+// Icon đại diện zone: ưu tiên sprite item, sau đó artwork Tuxemon, cuối cùng bỏ trống
 function zoneIcon(z, size = 22) {
   if (!z) return '';
   if (z.iconItem) return itemIcon(z.iconItem, '', size);
-  if (z.iconSp) return `<span class="zone-ico"><img class="px-icon" src="${boxIcon(z.iconSp)}" width="${size}" height="${size}" alt=""
-    data-up="${artUrl(z.iconSp)}|${spriteUrl(z.iconSp)}"></span>`;
+  if (z.iconSp) return `<span class="zone-ico"><img class="px-icon" src="${boxIcon(z.iconSp)}" width="${size}" height="${size}" alt=""></span>`;
   return '';
 }
 
@@ -50,7 +49,7 @@ export function render(el) {
   function partyHtml() {
     const team = G.p.party || [];
     if (!team.length) {
-      return '<div class="card empty-note">Chưa có Pokémon nào trong đội.</div>';
+      return '<div class="card empty-note">Chưa có Tuxemon nào trong đội.</div>';
     }
     const hurt = team.filter(m => !isFainted(m) && m.hpCur < maxHp(m)).length;
     const down = team.filter(isFainted).length;
@@ -87,13 +86,13 @@ export function render(el) {
       <span class="story-badge">${itemIcon('fame_checker', '', 18)} ${prog.done}/${prog.total}</span>
       <span class="story-body"><b>${esc(ch.title)}</b><small>${esc(ch.desc)}</small></span>
       ${needIntro() ? '<span class="story-new" title="Mới"></span>' : ''}
-    </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="" onerror="this.style.visibility='hidden'"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Pokédex!</div>` : '')}
+    </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="" onerror="this.style.visibility='hidden'"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Tuxedex!</div>` : '')}
 
     <div class="card zone-card">
       <p class="zone-desc">${esc(zone.desc || '')}</p>
       <small class="zone-hint">${isTown
-        ? 'Thị trấn không có Pokémon hoang. Ra tuyến đường rồi đi vào bụi cỏ cao để gặp Pokémon.'
-        : 'Đi bộ vào bụi cỏ cao trên bản đồ để gặp Pokémon hoang dã.'}</small>
+        ? 'Thị trấn không có Tuxemon hoang. Ra tuyến đường rồi đi vào bụi cỏ cao để gặp Tuxemon.'
+        : 'Đi bộ vào bụi cỏ cao trên bản đồ để gặp Tuxemon hoang dã.'}</small>
       <button class="btn btn-primary btn-big" id="btn-world">${uiIcon('walk', 22)} Đi bộ trên bản đồ</button>
     </div>
 

@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/quest.js | Danh sách nhiệm vụ: đang làm / hoàn thành
+// TuxeWorld H5 | ui/quest.js | Danh sách nhiệm vụ: đang làm / hoàn thành
 import { G } from '../state.js';
 import { QUESTS } from '../data/quests.js';
 import { esc, fmt } from '../util.js';

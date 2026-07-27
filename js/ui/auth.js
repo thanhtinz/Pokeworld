@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/auth.js | Màn đăng ký / đăng nhập (2 nút lớn rồi mới tới biểu mẫu)
+// TuxeWorld H5 | ui/auth.js | Màn đăng ký / đăng nhập (2 nút lớn rồi mới tới biểu mẫu)
 import { listAccounts, register, login, deleteAccount } from '../engine/accounts.js';
 import { esc } from '../util.js';
 import { toast, confirmDlg } from './kit.js';

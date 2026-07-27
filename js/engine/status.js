@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/status.js | Trạng thái Burn/Poison/Sleep/Paralyze/Freeze
+// TuxeWorld H5 | engine/status.js | Trạng thái Burn/Poison/Sleep/Paralyze/Freeze
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { maxHp } from './pokemon.js';

@@ -1,4 +1,4 @@
-// PokeWorld H5 | net/pvpinvite.js | Lời mời PvP hiện được ở bất kỳ màn nào
+// TuxeWorld H5 | net/pvpinvite.js | Lời mời PvP hiện được ở bất kỳ màn nào
 // Đăng ký một lần lúc khởi động: có lời mời thì bật hộp chọn Nhận / Từ chối,
 // bắt đầu trận thì chuyển thẳng sang màn PvP.
 import * as sock from './socket.js';

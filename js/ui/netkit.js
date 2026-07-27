@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/netkit.js | Phần dùng chung cho các trang cần máy chủ
+// TuxeWorld H5 | ui/netkit.js | Phần dùng chung cho các trang cần máy chủ
 import { esc } from '../util.js';
 import { isOnlineMode } from '../net/config.js';
 import { net, onChange, startSession } from '../net/session.js';

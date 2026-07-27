@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/party.js | Đội hình 6 slot + chi tiết + Box
+// TuxeWorld H5 | ui/party.js | Đội hình 6 slot + chi tiết + Box
 import { G, save, CONFIG } from '../state.js';
 import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/pokemon.js';
 import { expProgress } from '../engine/exp.js';
@@ -30,7 +30,7 @@ export function render(el) {
               <small class="ps-hp">${m.hpCur}/${maxHp(m)}</small>
             </div>
           </button>`).join('')}
-        ${party.length === 0 ? '<div class="card party-empty-note">Chưa có Pokémon nào.</div>' : ''}
+        ${party.length === 0 ? '<div class="card party-empty-note">Chưa có Tuxemon nào.</div>' : ''}
       </div>
       <button class="btn" id="btn-box">${itemIcon('poke_ball', '', 22)} Box (${G.p.box.length})</button>
       <div id="party-detail"></div>`;
@@ -103,7 +103,7 @@ export function render(el) {
 
     box.querySelector('#d-tobox').addEventListener('click', async () => {
       const aliveCount = G.p.party.filter(x => !isFainted(x)).length;
-      if (G.p.party.length <= 1) { toast('Không thể gửi Pokémon cuối cùng!'); return; }
+      if (G.p.party.length <= 1) { toast('Không thể gửi Tuxemon cuối cùng!'); return; }
       if (!isFainted(m) && aliveCount <= 1) { toast('Không thể gửi con cuối cùng còn sống!'); return; }
       if (G.p.box.length >= CONFIG.BOX_SIZE) { toast('Box đã đầy!'); return; }
       if (!await confirmDlg(`Gửi ${displayName(m)} vào Box?`)) return;

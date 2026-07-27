@@ -1,11 +1,11 @@
-// PokeWorld H5 | data/maps.js | Bản đồ đi lại được — TỰ SINH TỪ tools/mkmaps.py, đừng sửa tay
-// Ký hiệu ô: . cỏ  , cỏ hoa  " cỏ cao (gặp Pokémon)  - đường đất  s cát
+// TuxeWorld H5 | data/maps.js | Bản đồ đi lại được — TỰ SINH TỪ tools/mkmaps.py, đừng sửa tay
+// Ký hiệu ô: . cỏ  , cỏ hoa  " cỏ cao (gặp Tuxemon)  - đường đất  s cát
 //            ~ nước  W nước sâu  # cây  o đá  B bảng hiệu  R vách hang
 import { BUILDINGS } from './tiles.js';
 
 export const TILE_SIZE = 16;
 
-// Ký tự -> loại địa hình. solid: chắn đường. enc: đi vào có thể gặp Pokémon.
+// Ký tự -> loại địa hình. solid: chắn đường. enc: đi vào có thể gặp Tuxemon.
 export const TERRAIN = {
   '.': { kind: 'grass' },
   ',': { kind: 'grass', decor: 'flower' },
@@ -53,8 +53,8 @@ export const MAPS = {
       '###############--###############',
     ],
     buildings: [
-      { b: 'center', x: 4, y: 4, kind: 'enter', name: 'Pokémon Center', text: 'Cửa tự động mở ra.' },
-      { b: 'mart', x: 12, y: 5, kind: 'enter', name: 'Poké Mart', text: 'Cửa tự động mở ra.' },
+      { b: 'center', x: 4, y: 4, kind: 'enter', name: 'Tuxemon Center', text: 'Cửa tự động mở ra.' },
+      { b: 'mart', x: 12, y: 5, kind: 'enter', name: 'Tux Mart', text: 'Cửa tự động mở ra.' },
       { b: 'house', x: 18, y: 4, kind: 'talk', name: 'Neighbor\'s House', text: 'Cửa khoá rồi.' },
       { b: 'house2', x: 24, y: 4, kind: 'talk', name: 'Old House', text: 'Bên trong tối om.' },
       { b: 'house', x: 3, y: 14, kind: 'home', name: 'Your House', text: 'Nhà của bạn. Ấm áp thật.' },
@@ -69,9 +69,9 @@ export const MAPS = {
       { x: 13, y: 8, to: 'mart_town', tx: 3, ty: 7 },
     ],
     npcs: [
-      { x: 14, y: 20, kind: 'talk', sprite: 'juan', name: 'Professor Oak', text: 'Cỏ cao là nơi Pokémon hoang trú ngụ. Hãy cẩn thận!', face: 'oak' },
+      { x: 14, y: 20, kind: 'talk', sprite: 'juan', name: 'Professor Oak', text: 'Cỏ cao là nơi Tuxemon hoang trú ngụ. Hãy cẩn thận!', face: 'oak' },
       { x: 5, y: 20, kind: 'talk', sprite: 'roxanne', name: 'Daisy', text: 'Anh trai tớ đang ở trong phòng nghiên cứu đấy.', face: 'lass' },
-      { x: 24, y: 10, kind: 'talk', sprite: 'liza', name: 'Boy', text: 'Poké Mart mới nhập Poké Ball đó!', face: 'youngster' },
+      { x: 24, y: 10, kind: 'talk', sprite: 'liza', name: 'Boy', text: 'Tux Mart mới nhập Tux Ball đó!', face: 'youngster' },
       { x: 10, y: 10, kind: 'talk', sprite: 'wattson', name: 'Old Man', text: 'Hồi trẻ ta từng đi hết Hang Đá, sâu bên trong còn một hang nữa đấy!', face: 'hiker' },
       { x: 28, y: 20, kind: 'talk', sprite: 'tate', name: 'Kid', text: 'Phòng Gym hệ Đá khó lắm, cẩn thận nhé!', face: 'youngster' },
     ],
@@ -119,7 +119,7 @@ export const MAPS = {
       { x: 0, y: 12, to: 'forest_1', tx: 33, ty: 14 },
     ],
     npcs: [
-      { x: 17, y: 11, kind: 'trainer', sprite: 'tate', name: 'Youngster Joey', text: 'Pokémon của tớ mạnh lắm đấy!', face: 'youngster', trainerId: 'youngster_minh' },
+      { x: 17, y: 11, kind: 'trainer', sprite: 'tate', name: 'Youngster Joey', text: 'Tuxemon của tớ mạnh lắm đấy!', face: 'youngster', trainerId: 'youngster_minh' },
       { x: 11, y: 20, kind: 'trainer', sprite: 'flannery', name: 'Lass Nina', text: 'Dễ thương nhưng không hiền đâu nhé!', face: 'lass', trainerId: 'lass_lan' },
       { x: 28, y: 12, kind: 'trainer', sprite: 'brawly', name: 'Bug Catcher Rick', text: 'Bọ là nhất!', face: 'bug_catcher', trainerId: 'bugcatcher_tung' },
       { x: 33, y: 21, kind: 'talk', sprite: 'norman', name: 'Hiker', text: 'Đi thẳng xuống nam là tới Đường Số 2.', face: 'gentleman' },
@@ -224,7 +224,7 @@ export const MAPS = {
   },
   cave_1: {
     name: 'Hang Đá',
-    encAll: true,   // hang dong: di o nao cung co the gap Pokemon
+    encAll: true,   // hang dong: di o nao cung co the gap Tuxemon
     spawn: { x: 1, y: 11 },
     rows: [
       'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
@@ -303,7 +303,7 @@ export const MAPS = {
     ],
     buildings: [
       { b: 'gym', x: 8, y: 16, kind: 'gym', name: 'Cerulean Gym', text: 'Phòng Gym hệ Nước. Sẵn sàng chưa?', trainerId: 'gym_thuy' },
-      { b: 'center', x: 21, y: 16, kind: 'enter', name: 'Pokémon Center', text: 'Cửa tự động mở ra.' },
+      { b: 'center', x: 21, y: 16, kind: 'enter', name: 'Tuxemon Center', text: 'Cửa tự động mở ra.' },
       { b: 'house', x: 28, y: 16, kind: 'talk', name: 'Fisherman Hut', text: 'Mùi cá nồng nặc.' },
     ],
     warps: [
@@ -314,7 +314,7 @@ export const MAPS = {
     npcs: [
       { x: 33, y: 12, kind: 'talk', sprite: 'winona', name: 'Swimmer', text: 'Nghe nói có Gyarados khổng lồ dưới hồ này...', face: 'swimmer_f' },
       { x: 6, y: 24, kind: 'trainer', sprite: 'sidney', name: 'Camper Ethan', text: 'Đường này ta canh giữ!', face: 'camper_f', trainerId: 'hiker_dung' },
-      { x: 14, y: 22, kind: 'talk', sprite: 'liza', name: 'Girl', text: 'Trung tâm Pokémon ngay bên phải đó!', face: 'youngster' },
+      { x: 14, y: 22, kind: 'talk', sprite: 'liza', name: 'Girl', text: 'Trung tâm Tuxemon ngay bên phải đó!', face: 'youngster' },
     ],
   },
   route_3: {
@@ -405,7 +405,7 @@ export const MAPS = {
       { x: 18, y: 0, to: 'route_3', tx: 5, ty: 28 },
     ],
     npcs: [
-      { x: 16, y: 14, kind: 'talk', sprite: 'glacia', name: 'Flower Girl', text: 'Hoa ở đây nở quanh năm, Pokémon hệ Cỏ mê lắm!', face: 'beauty' },
+      { x: 16, y: 14, kind: 'talk', sprite: 'glacia', name: 'Flower Girl', text: 'Hoa ở đây nở quanh năm, Tuxemon hệ Cỏ mê lắm!', face: 'beauty' },
       { x: 20, y: 14, kind: 'trainer', sprite: 'flannery', name: 'Picnicker Hazel', text: 'Đi dã ngoại mà gặp đối thủ, vui quá!', face: 'lass', trainerId: 'lass_rainbow' },
       { x: 18, y: 24, kind: 'talk', sprite: 'liza', name: 'Kid', text: 'Tớ thấy một con chim to đùng bay ngang qua đây!', face: 'youngster' },
     ],
@@ -442,8 +442,8 @@ export const MAPS = {
       '###############--#############',
     ],
     buildings: [
-      { b: 'center', x: 6, y: 3, kind: 'enter', name: 'Pokémon Center', text: 'Cửa tự động mở ra.' },
-      { b: 'mart', x: 18, y: 4, kind: 'enter', name: 'Poké Mart', text: 'Cửa tự động mở ra.' },
+      { b: 'center', x: 6, y: 3, kind: 'enter', name: 'Tuxemon Center', text: 'Cửa tự động mở ra.' },
+      { b: 'mart', x: 18, y: 4, kind: 'enter', name: 'Tux Mart', text: 'Cửa tự động mở ra.' },
       { b: 'house', x: 24, y: 3, kind: 'talk', name: 'Miner Home', text: 'Chủ nhà đi làm mỏ rồi.' },
       { b: 'house2', x: 7, y: 13, kind: 'talk', name: 'Village Hall', text: 'Nhà văn hoá của làng.' },
       { b: 'house', x: 20, y: 13, kind: 'talk', name: 'Fisher Home', text: 'Lưới cá phơi trước cửa.' },
@@ -504,12 +504,12 @@ export const MAPS = {
     npcs: [
       { x: 18, y: 8, kind: 'talk', sprite: 'drake', name: 'Old Sailor', text: 'Ta lênh đênh bốn mươi năm, chưa từng thấy sóng dữ như hôm qua.', face: 'sailor' },
       { x: 10, y: 11, kind: 'trainer', sprite: 'winona', name: 'Swimmer Douglas', text: 'Dưới nước tớ là số một!', face: 'swimmer_f', trainerId: 'swimmer_light' },
-      { x: 27, y: 10, kind: 'talk', sprite: 'phoebe', name: 'Kid', text: 'Sò biển ở đây bắt được Pokémon vỏ cứng đó!', face: 'school_kid' },
+      { x: 27, y: 10, kind: 'talk', sprite: 'phoebe', name: 'Kid', text: 'Sò biển ở đây bắt được Tuxemon vỏ cứng đó!', face: 'school_kid' },
     ],
   },
   cave_2: {
     name: 'Hang Sâu Thẳm',
-    encAll: true,   // hang dong: di o nao cung co the gap Pokemon
+    encAll: true,   // hang dong: di o nao cung co the gap Tuxemon
     spawn: { x: 2, y: 13 },
     rows: [
       'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
@@ -553,7 +553,7 @@ export const MAPS = {
     ],
   },
   pc_town: {
-    name: 'Trung Tâm Pokémon',
+    name: 'Trung Tâm Tuxemon',
     image: 'assets/interiors/pokecenter.png',
     spawn: { x: 6, y: 8 },
     rows: [
@@ -570,8 +570,8 @@ export const MAPS = {
     buildings: [
     ],
     spots: [
-      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy', face: 'nurse' },
-      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Pokémon. Mở hộp chứa nhé?' },
+      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Tuxemon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy', face: 'nurse' },
+      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Tuxemon. Mở hộp chứa nhé?' },
     ],
     warps: [
       { x: 6, y: 8, to: 'town_1', tx: 6, ty: 9 },
@@ -582,7 +582,7 @@ export const MAPS = {
     ],
   },
   mart_town: {
-    name: 'Poké Mart',
+    name: 'Tux Mart',
     image: 'assets/interiors/mart.png',
     spawn: { x: 3, y: 7 },
     rows: [
@@ -598,7 +598,7 @@ export const MAPS = {
     buildings: [
     ],
     spots: [
-      { x: 2, y: 3, kind: 'shop', name: 'Poké Mart', text: 'Chào mừng! Bạn cần mua gì nào?', sprite: 'mart_clerk', face: 'clerk' },
+      { x: 2, y: 3, kind: 'shop', name: 'Tux Mart', text: 'Chào mừng! Bạn cần mua gì nào?', sprite: 'mart_clerk', face: 'clerk' },
     ],
     warps: [
       { x: 3, y: 7, to: 'town_1', tx: 13, ty: 9 },
@@ -609,7 +609,7 @@ export const MAPS = {
     ],
   },
   pc_lake: {
-    name: 'Trung Tâm Pokémon',
+    name: 'Trung Tâm Tuxemon',
     image: 'assets/interiors/pokecenter.png',
     spawn: { x: 6, y: 8 },
     rows: [
@@ -626,8 +626,8 @@ export const MAPS = {
     buildings: [
     ],
     spots: [
-      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy', face: 'nurse' },
-      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Pokémon. Mở hộp chứa nhé?' },
+      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Tuxemon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy', face: 'nurse' },
+      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Tuxemon. Mở hộp chứa nhé?' },
     ],
     warps: [
       { x: 6, y: 8, to: 'lake_1', tx: 23, ty: 21 },
@@ -638,7 +638,7 @@ export const MAPS = {
     ],
   },
   pc_town2: {
-    name: 'Trung Tâm Pokémon',
+    name: 'Trung Tâm Tuxemon',
     image: 'assets/interiors/pokecenter.png',
     spawn: { x: 6, y: 8 },
     rows: [
@@ -655,8 +655,8 @@ export const MAPS = {
     buildings: [
     ],
     spots: [
-      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Pokémon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy', face: 'nurse' },
-      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Pokémon. Mở hộp chứa nhé?' },
+      { x: 6, y: 3, kind: 'heal', name: 'Nurse Joy', text: 'Chào mừng tới Trung tâm Tuxemon! Để tôi chăm sóc đội của bạn nhé.', sprite: 'nurse_joy', face: 'nurse' },
+      { x: 9, y: 3, kind: 'pc', name: 'PC', text: 'Máy gửi Tuxemon. Mở hộp chứa nhé?' },
     ],
     warps: [
       { x: 6, y: 8, to: 'town_2', tx: 8, ty: 8 },
@@ -667,7 +667,7 @@ export const MAPS = {
     ],
   },
   mart_town2: {
-    name: 'Poké Mart',
+    name: 'Tux Mart',
     image: 'assets/interiors/mart.png',
     spawn: { x: 3, y: 7 },
     rows: [
@@ -683,7 +683,7 @@ export const MAPS = {
     buildings: [
     ],
     spots: [
-      { x: 2, y: 3, kind: 'shop', name: 'Poké Mart', text: 'Chào mừng! Bạn cần mua gì nào?', sprite: 'mart_clerk', face: 'clerk' },
+      { x: 2, y: 3, kind: 'shop', name: 'Tux Mart', text: 'Chào mừng! Bạn cần mua gì nào?', sprite: 'mart_clerk', face: 'clerk' },
     ],
     warps: [
       { x: 3, y: 7, to: 'town_2', tx: 19, ty: 8 },

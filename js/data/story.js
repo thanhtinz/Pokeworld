@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/story.js | Cốt truyện chiến dịch 8 chương
+// TuxeWorld H5 | data/story.js | Cốt truyện chiến dịch 8 chương
 // Mỗi chương: hội thoại mở đầu (dialog), mục tiêu (goal — cùng schema quest),
 // thưởng, zone mở khóa khi hoàn thành, hội thoại kết chương (outro).
 // speaker: 'prof' Giáo sư Oak | 'rival' Blue | 'rocket' Team Rocket | 'me' người chơi | 'sys'
@@ -15,20 +15,21 @@ export const SPEAKERS = {
 
 // Đội của rival Blue theo từng mốc — chọn khắc hệ với starter của người chơi.
 // key = starter dex của NGƯỜI CHƠI (1 cỏ -> Blue cầm 4 lửa, 4 -> 7 nước, 7 -> 1 cỏ)
-export const RIVAL_STARTER = { 1: 4, 4: 7, 7: 1 };
+// Đối thủ luôn chọn con khắc hệ với con mình chọn (xoay vòng ba hệ)
+export const RIVAL_STARTER = { 83: 31, 31: 119, 119: 83 };
 
 export const CHAPTERS = [
   {
     id: 'ch1', title: 'Chương 1 — Món quà của Giáo sư',
-    desc: 'Gặp Giáo sư Oak và nhận Pokémon đầu tiên.',
+    desc: 'Gặp Giáo sư Oak và nhận Tuxemon đầu tiên.',
     dialog: [
-      ['prof', 'Chào mừng đến Thị Trấn Khởi Đầu! Ta là Giáo sư Oak, người nghiên cứu Pokémon của vùng này.'],
-      ['prof', 'Dạo này Team Rocket lộng hành, bắt trộm Pokémon khắp nơi... Vùng này cần một nhà huấn luyện tài năng.'],
-      ['prof', 'Ta có ba Pokémon quý. Hãy chọn một bạn đồng hành, và bắt đầu hành trình của cháu!'],
+      ['prof', 'Chào mừng đến Thị Trấn Khởi Đầu! Ta là Giáo sư Oak, người nghiên cứu Tuxemon của vùng này.'],
+      ['prof', 'Dạo này Team Rocket lộng hành, bắt trộm Tuxemon khắp nơi... Vùng này cần một nhà huấn luyện tài năng.'],
+      ['prof', 'Ta có ba Tuxemon quý. Hãy chọn một bạn đồng hành, và bắt đầu hành trình của cháu!'],
     ],
     goal: { t: 'choose_starter' },       // hoàn thành ngay khi chọn starter
     outro: [
-      ['rival', 'Ê! Cậu cũng nhận Pokémon từ ông nội tớ hả? Tớ là Blue!'],
+      ['rival', 'Ê! Cậu cũng nhận Tuxemon từ ông nội tớ hả? Tớ là Blue!'],
       ['rival', 'Vậy thì... tớ chọn con KHẮC HỆ với cậu luôn! Hê hê. Mai đấu thử một trận nhé!'],
     ],
     reward: { items: [{ id: 'potion', n: 3 }] },
@@ -38,21 +39,21 @@ export const CHAPTERS = [
     id: 'ch2', title: 'Chương 2 — Trận đấu đầu tiên',
     desc: 'Blue đang chờ ở Đường Số 1. Thắng cậu ấy để chứng tỏ bản thân!',
     dialog: [
-      ['rival', 'Tới rồi à! Xem Pokémon của ai mạnh hơn nào. Đừng khóc nếu thua đấy!'],
+      ['rival', 'Tới rồi à! Xem Tuxemon của ai mạnh hơn nào. Đừng khóc nếu thua đấy!'],
     ],
     goal: { t: 'defeat_trainer', id: 'rival_1' },
     outro: [
       ['rival', 'Hừm! Chỉ là may mắn thôi! Tớ sẽ luyện tập và phục thù!'],
-      ['prof', 'Giỏi lắm! Đây là Poké Ball — hãy bắt thêm đồng đội. Gặp Pokémon hoang trong bụi cỏ, làm yếu rồi ném bóng!'],
+      ['prof', 'Giỏi lắm! Đây là Tux Ball — hãy bắt thêm đồng đội. Gặp Tuxemon hoang trong bụi cỏ, làm yếu rồi ném bóng!'],
     ],
     reward: { money: 500, items: [{ id: 'poke_ball', n: 10 }] },
     unlock: [],
   },
   {
     id: 'ch3', title: 'Chương 3 — Đồng đội mới',
-    desc: 'Bắt 2 Pokémon hoang để mở rộng đội hình.',
+    desc: 'Bắt 2 Tuxemon hoang để mở rộng đội hình.',
     dialog: [
-      ['prof', 'Một nhà huấn luyện giỏi cần một đội đa dạng. Hãy bắt 2 Pokémon hoang dã nhé!'],
+      ['prof', 'Một nhà huấn luyện giỏi cần một đội đa dạng. Hãy bắt 2 Tuxemon hoang dã nhé!'],
     ],
     goal: { t: 'catch_count', n: 2 },
     outro: [
@@ -65,7 +66,7 @@ export const CHAPTERS = [
     id: 'ch4', title: 'Chương 4 — Bóng đen trong rừng',
     desc: 'Điều tra Rừng Xanh Thẳm. Đánh bại tên Team Rocket!',
     dialog: [
-      ['rocket', 'Ê nhóc! Chỗ này là địa bàn của Team Rocket. Bọn ta đang "thu hoạch" Pokémon ở đây!'],
+      ['rocket', 'Ê nhóc! Chỗ này là địa bàn của Team Rocket. Bọn ta đang "thu hoạch" Tuxemon ở đây!'],
       ['rocket', 'Muốn qua thì bước qua xác Zubat của ta đã!'],
     ],
     goal: { t: 'defeat_trainer', id: 'rocket_1' },
@@ -127,7 +128,7 @@ export const CHAPTERS = [
     require: { badge: 'badge_cascade' }, // cần badge nước trước khi rival_2 xuất hiện
     outro: [
       ['rival', 'Thua tâm phục khẩu phục... Cậu xứng đáng là Nhà Vô Địch. Nhưng tớ sẽ không bỏ cuộc đâu!'],
-      ['prof', 'Cháu đã đi một hành trình dài... Từ hôm nay, cháu là NHÀ VÔ ĐỊCH của vùng! Hãy tiếp tục hoàn thành Pokédex nhé!'],
+      ['prof', 'Cháu đã đi một hành trình dài... Từ hôm nay, cháu là NHÀ VÔ ĐỊCH của vùng! Hãy tiếp tục hoàn thành Tuxedex nhé!'],
     ],
     reward: { money: 10000, items: [{ id: 'rare_candy', n: 3 }, { id: 'lucky_egg', n: 1 }] },
     unlock: [],

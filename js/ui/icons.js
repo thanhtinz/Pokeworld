@@ -1,6 +1,6 @@
-// PokeWorld H5 | ui/icons.js | Icon giao diện vẽ bằng SVG
+// TuxeWorld H5 | ui/icons.js | Icon giao diện vẽ bằng SVG
 //
-// Trước đây mọi nút trong giao diện đều mượn tạm sprite vật phẩm Pokémon, nên
+// Trước đây mọi nút trong giao diện đều mượn tạm sprite vật phẩm Tuxemon, nên
 // nhiều chỗ khác nghĩa nhau lại dùng chung một ảnh (cục vàng vừa là tiền vừa là
 // bảng xếp hạng...). Bộ icon này vẽ bằng SVG nên mỗi chức năng có hình riêng,
 // ăn theo màu chữ hiện hành và nét luôn sắc ở mọi cỡ.

@@ -1,4 +1,4 @@
-// PokeWorld H5 | state.js | Trạng thái game + save/load localStorage + quest engine
+// TuxeWorld H5 | state.js | Trạng thái game + save/load localStorage + quest engine
 import { clamp, todayNum } from './util.js';
 import { QUESTS } from './data/quests.js';
 import { loadActiveSave, writeActiveSave, clearActiveSave } from './engine/accounts.js';
@@ -117,7 +117,7 @@ export function firstAlive() {
 }
 export function allFainted() { return firstAlive() === null; }
 
-// ==== Pokédex ====
+// ==== Tuxedex ====
 export function markSeen(id) { G.p.dex.seen[id] = true; save(); }
 export function markCaught(id) { G.p.dex.seen[id] = true; G.p.dex.caught[id] = true; save(); }
 export function dexCounts() {

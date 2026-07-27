@@ -1,9 +1,9 @@
-// PokeWorld H5 | engine/overworld.js | Di chuyển trên bản đồ: va chạm, cổng dịch chuyển, gặp Pokémon
+// TuxeWorld H5 | engine/overworld.js | Di chuyển trên bản đồ: va chạm, cổng dịch chuyển, gặp Tuxemon
 import { MAPS, TILE_SIZE, mapWidth, mapHeight } from '../data/maps.js';
 import { bake, isSolidAt, isEncAt, doorAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
 import { G, save, markSeen } from '../state.js';
-import { newPokemon } from './pokemon.js';
+import { newTuxemon } from './pokemon.js';
 import { rng } from '../util.js';
 
 const SPEED = 3.6;              // ô mỗi giây
@@ -103,7 +103,7 @@ export function update(dt, vx, vy) {
     return { t: 'warp', to: warp.to, name: MAPS[warp.to]?.name };
   }
 
-  // Gặp Pokémon khi đi trong cỏ cao
+  // Gặp Tuxemon khi đi trong cỏ cao
   if (isEncAt(baked, tx, ty)) {
     player.steps += 1;
     if (player.steps >= ENC_STEP_MIN && rng.roll(ENC_CHANCE)) {
@@ -115,12 +115,12 @@ export function update(dt, vx, vy) {
   return null;
 }
 
-// Chọn Pokémon hoang theo bảng spawn của khu vực
+// Chọn Tuxemon hoang theo bảng spawn của khu vực
 export function rollWild(mapId) {
   const zone = ZONES[mapId];
   if (!zone?.encounters?.length) return null;
   const e = rng.weighted(zone.encounters);
-  const mon = newPokemon(e.sp, rng.int(e.min, e.max));
+  const mon = newTuxemon(e.sp, rng.int(e.min, e.max));
   if (mon) markSeen(e.sp);
   return mon;
 }

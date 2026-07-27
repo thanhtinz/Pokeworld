@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/equipment.js | Engine trang bị: mặc/tháo, cường hóa, bonus cộng dồn, trainer level
+// TuxeWorld H5 | engine/equipment.js | Engine trang bị: mặc/tháo, cường hóa, bonus cộng dồn, trainer level
 import { G, save, spend, addMoney } from '../state.js';
 import { rng, clamp } from '../util.js';
 import { SLOTS, RARITY, EQUIPMENT, UPGRADE, STAT_KEYS, statsOf, maxLevelOf } from '../data/equipment.js';

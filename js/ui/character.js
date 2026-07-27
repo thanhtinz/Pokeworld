@@ -1,7 +1,7 @@
-// PokeWorld H5 | ui/character.js | Màn Nhân Vật: 6 ô trang bị, cường hóa, kho đồ
+// TuxeWorld H5 | ui/character.js | Màn Nhân Vật: 6 ô trang bị, cường hóa, kho đồ
 //
 // Trang bị ở đây là ĐỒ TRANG TRÍ: mặc cho nhân vật đẹp, không cộng sức mạnh và
-// không tham gia chiến đấu (nhân vật không đánh nhau, chỉ Pokémon đánh).
+// không tham gia chiến đấu (nhân vật không đánh nhau, chỉ Tuxemon đánh).
 import { save } from '../state.js';
 import { activeAvatar } from '../engine/accounts.js';
 import {

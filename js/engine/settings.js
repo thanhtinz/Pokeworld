@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/settings.js | Tuỳ chỉnh của người chơi + tiếng động giao diện
+// TuxeWorld H5 | engine/settings.js | Tuỳ chỉnh của người chơi + tiếng động giao diện
 //
 // Cài đặt lưu THEO MÁY (localStorage riêng) chứ không nằm trong save, vì cùng
 // một tài khoản chơi trên máy yếu và máy khoẻ thì mức đồ hoạ nên khác nhau.
@@ -6,7 +6,7 @@
 // Mọi mục ở đây đều thật sự có tác dụng — không có công tắc bật cho vui:
 //   sfx/volume  -> tiếng động giao diện (tự tạo bằng WebAudio, không cần file)
 //   motion      -> tắt là bỏ rung/nháy/hiệu ứng chuyển động toàn game
-//   anim        -> tắt là dùng ảnh Pokémon tĩnh thay ảnh động (nhẹ mạng hơn)
+//   anim        -> tắt là dùng ảnh Tuxemon tĩnh thay ảnh động (nhẹ mạng hơn)
 //   stars       -> tắt lớp sao nền cho máy yếu đỡ phải vẽ
 //   textSpeed   -> nhanh/chậm của lời thoại trong trận
 //   autoDialog  -> thoại cốt truyện tự chạy tiếp, không phải chạm từng câu

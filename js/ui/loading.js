@@ -1,15 +1,14 @@
-// PokeWorld H5 | ui/loading.js | Màn tải dữ liệu: nạp trước asset hay dùng + thanh tiến trình
+// TuxeWorld H5 | ui/loading.js | Màn tải dữ liệu: nạp trước asset hay dùng + thanh tiến trình
 import { spriteUrl, animSpriteUrl } from '../util.js';
 import { show } from '../main.js';
 
 // Mẹo hiển thị lúc chờ
 const TIPS = [
-  'Pokémon hệ Nước rất mạnh trước hệ Lửa, Đá và Đất.',
-  'Làm Pokémon hoang yếu máu rồi hãy ném bóng — tỉ lệ bắt cao hơn nhiều.',
-  'Pokémon đang ngủ hoặc đóng băng dễ bắt hơn gấp đôi.',
+  'Tuxemon hệ Nước rất mạnh trước hệ Lửa, Đá và Đất.',
+  'Làm Tuxemon hoang yếu máu rồi hãy ném bóng — tỉ lệ bắt cao hơn nhiều.',
+  'Tuxemon đang ngủ hoặc đóng băng dễ bắt hơn gấp đôi.',
   'Trang bị cường hóa giúp tăng EXP, tiền và tỉ lệ gặp shiny.',
   'Bạn vẫn nhận tiền và EXP khi thoát game — tối đa 8 giờ.',
-  'Mega Evolution cần Key Stone và đúng viên đá Mega của loài đó.',
   'Đá tiến hóa mua được ở cửa hàng trong thị trấn.',
 ];
 
@@ -30,7 +29,8 @@ const LOCAL_ASSETS = [
 const PRELOAD_DEX = [1, 4, 7, 25, 16, 19, 10, 129];
 
 // Ảnh động để sẵn trong dự án — nạp trước vài con hay gặp nhất
-const LOCAL_ANIM = [1, 4, 7, 25, 16, 19].map(d => `assets/anim/${d}.gif`);
+// Vài sprite nạp sẵn cho màn chờ khỏi trống
+const LOCAL_ANIM = [1, 31, 83, 119, 60, 19].map(d => `assets/mon/${d}.png`);
 
 function loadImage(src, timeoutMs = 2500) {
   return new Promise(resolve => {
@@ -75,7 +75,7 @@ export async function render(el) {
 
   // Danh sách công việc: mỗi mục là [nhãn, hàm async]
   const tasks = [];
-  tasks.push(['Đang tải dữ liệu Pokémon...', async () => {
+  tasks.push(['Đang tải dữ liệu Tuxemon...', async () => {
     await Promise.all([
       import('../data/species.js'), import('../data/moves.js'),
       import('../data/learnsets.js'), import('../data/evolutions.js'),
@@ -86,7 +86,7 @@ export async function render(el) {
     await Promise.all([
       import('../data/items.js'), import('../data/zones.js'),
       import('../data/trainers.js'), import('../data/quests.js'),
-      import('../data/story.js'), import('../data/mega.js'),
+      import('../data/story.js'),
       import('../data/equipment.js'),
     ]);
   }]);

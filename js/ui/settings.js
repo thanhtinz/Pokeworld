@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/settings.js | Cài đặt: âm thanh, hình ảnh, tự động, tài khoản
+// TuxeWorld H5 | ui/settings.js | Cài đặt: âm thanh, hình ảnh, tự động, tài khoản
 // Mọi công tắc ở đây đều nối thẳng vào engine/settings.js và có tác dụng thật.
 import { wipeSave } from '../state.js';
 import { logout } from '../engine/accounts.js';
@@ -40,7 +40,7 @@ export function render(el) {
 
       <div class="card set-group">
         <h3>Hình ảnh</h3>
-        ${sw('anim', 'Ảnh Pokémon động', 'Tắt thì dùng ảnh tĩnh, nhẹ mạng và mượt hơn trên máy yếu.')}
+        ${sw('anim', 'Ảnh Tuxemon động', 'Tắt thì dùng ảnh tĩnh, nhẹ mạng và mượt hơn trên máy yếu.')}
         ${sw('motion', 'Hiệu ứng chuyển động', 'Rung, nháy, chữ chạy trong hội thoại.')}
         ${sw('stars', 'Nền sao', 'Lớp sao lấp lánh phía sau giao diện.')}
         <div class="set-row">
@@ -66,8 +66,8 @@ export function render(el) {
       </div>
 
       <div class="card about-card">
-        <b>PokeWorld H5 v1.0</b>
-        <small>Fan game phi lợi nhuận, chơi vui trên trình duyệt. Pokémon © Nintendo / Game Freak. Sprite: PokeAPI.</small>
+        <b>TuxeWorld H5 v1.0</b>
+        <small>Fan game phi lợi nhuận, chơi vui trên trình duyệt. Tuxemon © Nintendo / Game Freak. Sprite: PokeAPI.</small>
       </div>`;
 
     el.querySelectorAll('[data-sw]').forEach(b => b.addEventListener('click', () => {

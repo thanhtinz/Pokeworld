@@ -1,470 +1,427 @@
-// PokeWorld H5 | data/learnsets.js | Bảng chiêu học theo cấp của từng loài
+// PokeWorld H5 | data/learnsets.js | Học chiêu theo cấp — TỰ SINH TỪ tools/mktuxemon.py
+// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
 
-// key = số dex; {level: moveId}
 export const LEARNSETS = {
-  1: { // Bulbasaur
-    1: 'tackle', 3: 'growl', 7: 'vine_whip', 13: 'leech_seed', 20: 'razor_leaf', 27: 'poison_powder', 34: 'solar_beam',
-  },
-  2: { // Ivysaur
-    1: 'tackle', 3: 'growl', 7: 'vine_whip', 13: 'leech_seed', 22: 'razor_leaf', 30: 'poison_powder', 38: 'solar_beam',
-  },
-  3: { // Venusaur
-    1: 'tackle', 3: 'growl', 7: 'vine_whip', 13: 'leech_seed', 22: 'razor_leaf', 30: 'sleep_powder', 43: 'solar_beam', 50: 'mega_drain',
-  },
-  4: { // Charmander
-    1: 'scratch', 3: 'growl', 7: 'ember', 13: 'leer', 20: 'bite', 27: 'flamethrower', 34: 'body_slam',
-  },
-  5: { // Charmeleon
-    1: 'scratch', 3: 'growl', 7: 'ember', 13: 'leer', 24: 'bite', 33: 'flamethrower', 42: 'body_slam',
-  },
-  6: { // Charizard
-    1: 'scratch', 3: 'growl', 7: 'ember', 13: 'leer', 24: 'wing_attack', 36: 'flamethrower', 46: 'body_slam', 55: 'hyper_beam',
-  },
-  7: { // Squirtle
-    1: 'tackle', 4: 'tail_whip', 7: 'water_gun', 13: 'bubble', 20: 'bite', 28: 'bubble_beam', 35: 'hydro_pump',
-  },
-  8: { // Wartortle
-    1: 'tackle', 4: 'tail_whip', 7: 'water_gun', 13: 'bubble', 24: 'bite', 31: 'bubble_beam', 39: 'hydro_pump',
-  },
-  9: { // Blastoise
-    1: 'tackle', 4: 'tail_whip', 7: 'water_gun', 13: 'bubble', 24: 'bite', 31: 'bubble_beam', 42: 'hydro_pump', 52: 'hyper_beam',
-  },
-  10: { // Caterpie
-    1: 'tackle', 2: 'string_shot', 8: 'poison_sting', 12: 'harden', 15: 'leech_life', 20: 'pin_missile',
-  },
-  11: { // Metapod
-    1: 'harden', 4: 'string_shot', 7: 'tackle', 12: 'leech_life', 16: 'poison_sting', 20: 'take_down',
-  },
-  12: { // Butterfree
-    1: 'confusion', 10: 'gust', 13: 'poison_powder', 15: 'stun_spore', 17: 'sleep_powder', 24: 'psybeam', 32: 'swift',
-  },
-  13: { // Weedle
-    1: 'poison_sting', 2: 'string_shot', 8: 'leech_life', 12: 'harden', 16: 'twineedle', 20: 'pin_missile',
-  },
-  14: { // Kakuna
-    1: 'harden', 4: 'string_shot', 7: 'poison_sting', 12: 'leech_life', 16: 'twineedle', 20: 'pin_missile',
-  },
-  15: { // Beedrill
-    1: 'fury_attack', 10: 'twineedle', 15: 'leech_life', 20: 'pin_missile', 25: 'pin_missile', 30: 'agility', 40: 'toxic',
-  },
-  16: { // Pidgey
-    1: 'tackle', 5: 'growl', 9: 'gust', 15: 'quick_attack', 21: 'wing_attack', 29: 'agility',
-  },
-  17: { // Pidgeotto
-    1: 'tackle', 5: 'growl', 9: 'gust', 17: 'quick_attack', 24: 'wing_attack', 32: 'agility', 40: 'swift',
-  },
-  18: { // Pidgeot
-    1: 'tackle', 5: 'growl', 9: 'gust', 17: 'quick_attack', 24: 'wing_attack', 34: 'agility', 46: 'swift', 54: 'hyper_beam',
-  },
-  19: { // Rattata
-    1: 'tackle', 3: 'tail_whip', 7: 'quick_attack', 14: 'hyper_fang', 23: 'bite', 34: 'double_edge',
-  },
-  20: { // Raticate
-    1: 'tackle', 3: 'tail_whip', 7: 'quick_attack', 14: 'hyper_fang', 27: 'bite', 41: 'double_edge', 50: 'hyper_beam',
-  },
-  21: { // Spearow
-    1: 'peck', 5: 'growl', 9: 'leer', 13: 'fury_attack', 19: 'headbutt', 25: 'agility', 31: 'drill_peck',
-  },
-  22: { // Fearow
-    1: 'peck', 5: 'growl', 9: 'leer', 13: 'fury_attack', 20: 'agility', 29: 'drill_peck', 40: 'take_down', 50: 'hyper_beam',
-  },
-  23: { // Ekans
-    1: 'sludge', 4: 'leer', 9: 'poison_sting', 12: 'bite', 17: 'glare', 23: 'screech', 30: 'acid', 38: 'sludge',
-  },
-  24: { // Arbok
-    1: 'leer', 4: 'poison_sting', 9: 'bite', 15: 'glare', 22: 'screech', 30: 'acid', 40: 'sludge', 48: 'hyper_beam',
-  },
-  25: { // Pikachu
-    1: 'thundershock', 3: 'growl', 6: 'tail_whip', 8: 'thunder_wave', 11: 'quick_attack', 21: 'swift', 26: 'agility', 33: 'thunderbolt',
-  },
-  26: { // Raichu (tiến hoá bằng đá, giữ bộ chiêu cơ bản)
-    1: 'thundershock', 2: 'growl', 3: 'thunder_wave', 4: 'quick_attack', 5: 'swift', 6: 'thunderbolt', 8: 'thunder',
-  },
-  27: { // Sandshrew
-    1: 'scratch', 3: 'defense_curl', 7: 'sand_attack', 11: 'poison_sting', 17: 'slash', 23: 'swift', 30: 'dig', 38: 'earthquake',
-  },
-  28: { // Sandslash
-    1: 'scratch', 3: 'defense_curl', 7: 'sand_attack', 11: 'poison_sting', 20: 'slash', 28: 'swift', 36: 'dig', 46: 'earthquake',
-  },
-  29: { // Nidoran-F
-    1: 'growl', 5: 'scratch', 9: 'tail_whip', 13: 'double_kick', 19: 'poison_sting', 25: 'bite', 31: 'toxic', 38: 'body_slam',
-  },
-  30: { // Nidorina
-    1: 'growl', 5: 'scratch', 9: 'tail_whip', 13: 'double_kick', 20: 'poison_sting', 28: 'bite', 35: 'toxic', 43: 'body_slam',
-  },
-  31: { // Nidoqueen
-    1: 'scratch', 8: 'double_kick', 14: 'tail_whip', 23: 'poison_sting', 31: 'body_slam', 40: 'earthquake', 48: 'sludge', 55: 'hyper_beam',
-  },
-  32: { // Nidoran-M
-    1: 'leer', 5: 'peck', 9: 'focus_energy', 13: 'double_kick', 19: 'poison_sting', 25: 'horn_attack', 31: 'toxic', 38: 'thrash',
-  },
-  33: { // Nidorino
-    1: 'leer', 5: 'peck', 9: 'focus_energy', 13: 'double_kick', 20: 'poison_sting', 28: 'horn_attack', 35: 'toxic', 43: 'thrash',
-  },
-  34: { // Nidoking
-    1: 'peck', 8: 'double_kick', 14: 'horn_attack', 23: 'poison_sting', 31: 'thrash', 40: 'earthquake', 48: 'sludge', 55: 'hyper_beam',
-  },
-  35: { // Clefairy
-    1: 'pound', 4: 'growl', 8: 'sing', 13: 'doubleslap', 19: 'defense_curl', 25: 'minimize', 31: 'headbutt', 39: 'body_slam',
-  },
-  36: { // Clefable
-    1: 'pound', 4: 'sing', 8: 'doubleslap', 13: 'minimize', 20: 'body_slam', 28: 'psychic_mv', 36: 'softboiled', 45: 'hyper_beam',
-  },
-  37: { // Vulpix
-    1: 'ember', 4: 'tail_whip', 9: 'quick_attack', 13: 'fire_spin', 17: 'confuse_ray', 23: 'flamethrower', 31: 'fire_spin', 39: 'fire_blast',
-  },
-  38: { // Ninetales
-    1: 'ember', 4: 'quick_attack', 9: 'confuse_ray', 15: 'flamethrower', 24: 'fire_spin', 33: 'body_slam', 42: 'fire_blast', 50: 'hyper_beam',
-  },
-  39: { // Jigglypuff
-    1: 'sing', 4: 'defense_curl', 9: 'pound', 14: 'disable', 19: 'doubleslap', 24: 'rest', 29: 'body_slam', 34: 'double_edge',
-  },
-  40: { // Wigglytuff
-    1: 'sing', 4: 'doubleslap', 9: 'defense_curl', 15: 'body_slam', 23: 'rest', 31: 'psychic_mv', 40: 'double_edge', 49: 'hyper_beam',
-  },
-  41: { // Zubat
-    1: 'absorb', 5: 'poison_sting', 10: 'bite', 15: 'wing_attack', 21: 'confusion', 28: 'mega_drain',
-  },
-  42: { // Golbat
-    1: 'absorb', 5: 'poison_sting', 10: 'bite', 15: 'wing_attack', 24: 'confusion', 33: 'mega_drain', 42: 'psybeam',
-  },
-  43: { // Oddish
-    1: 'absorb', 5: 'poison_powder', 9: 'stun_spore', 13: 'sleep_powder', 19: 'acid', 25: 'mega_drain', 31: 'solar_beam',
-  },
-  44: { // Gloom
-    1: 'absorb', 5: 'poison_powder', 9: 'stun_spore', 15: 'sleep_powder', 23: 'acid', 30: 'mega_drain', 38: 'solar_beam',
-  },
-  45: { // Vileplume
-    1: 'absorb', 5: 'poison_powder', 9: 'stun_spore', 15: 'sleep_powder', 25: 'acid', 34: 'mega_drain', 44: 'petal_dance', 52: 'solar_beam',
-  },
-  46: { // Paras
-    1: 'scratch', 6: 'stun_spore', 11: 'poison_powder', 17: 'leech_life', 22: 'spore', 27: 'slash', 34: 'growth', 41: 'mega_drain',
-  },
-  47: { // Parasect
-    1: 'scratch', 6: 'stun_spore', 11: 'poison_powder', 17: 'leech_life', 24: 'spore', 32: 'slash', 41: 'growth', 50: 'mega_drain',
-  },
-  48: { // Venonat
-    1: 'tackle', 5: 'disable', 11: 'supersonic', 17: 'confusion', 23: 'poison_powder', 29: 'leech_life', 35: 'psybeam', 43: 'sleep_powder',
-  },
-  49: { // Venomoth
-    1: 'tackle', 5: 'disable', 11: 'supersonic', 17: 'confusion', 25: 'poison_powder', 33: 'leech_life', 41: 'psybeam', 50: 'sludge',
-  },
-  50: { // Diglett
-    1: 'scratch', 5: 'sand_attack', 9: 'growl', 17: 'magnitude', 25: 'dig', 33: 'slash', 41: 'earthquake', 49: 'dig',
-  },
-  51: { // Dugtrio
-    1: 'scratch', 5: 'sand_attack', 9: 'growl', 19: 'magnitude', 28: 'dig', 38: 'slash', 47: 'earthquake', 55: 'hyper_beam',
-  },
-  52: { // Meowth
-    1: 'scratch', 6: 'growl', 11: 'bite', 16: 'pay_day', 23: 'fury_swipes', 30: 'screech', 38: 'slash', 46: 'body_slam',
-  },
-  53: { // Persian
-    1: 'scratch', 6: 'growl', 11: 'bite', 18: 'pay_day', 27: 'fury_swipes', 36: 'screech', 45: 'slash', 54: 'hyper_beam',
-  },
-  54: { // Psyduck
-    1: 'water_gun', 5: 'tail_whip', 10: 'confusion', 16: 'disable', 23: 'bubble_beam', 31: 'psybeam', 39: 'surf', 47: 'hydro_pump',
-  },
-  55: { // Golduck
-    1: 'water_gun', 5: 'tail_whip', 10: 'confusion', 16: 'disable', 26: 'bubble_beam', 36: 'psybeam', 46: 'surf', 55: 'hydro_pump',
-  },
-  56: { // Mankey
-    1: 'scratch', 6: 'leer', 11: 'low_kick', 16: 'karate_chop', 23: 'fury_swipes', 30: 'seismic_toss', 38: 'thrash', 46: 'submission',
-  },
-  57: { // Primeape
-    1: 'scratch', 6: 'leer', 11: 'low_kick', 16: 'karate_chop', 27: 'fury_swipes', 36: 'seismic_toss', 45: 'thrash', 54: 'submission',
-  },
-  58: { // Growlithe
-    1: 'bite', 6: 'fire_spin', 12: 'ember', 18: 'leer', 25: 'take_down', 32: 'flamethrower', 40: 'agility', 48: 'fire_blast',
-  },
-  59: { // Arcanine
-    1: 'bite', 6: 'ember', 12: 'leer', 20: 'take_down', 30: 'flamethrower', 40: 'agility', 50: 'fire_blast', 58: 'hyper_beam',
-  },
-  60: { // Poliwag
-    1: 'bubble', 7: 'hypnosis', 13: 'water_gun', 19: 'doubleslap', 25: 'body_slam', 31: 'bubble_beam', 38: 'hydro_pump', 45: 'amnesia',
-  },
-  61: { // Poliwhirl
-    1: 'bubble', 7: 'hypnosis', 13: 'water_gun', 19: 'doubleslap', 27: 'body_slam', 35: 'bubble_beam', 43: 'hydro_pump', 51: 'amnesia',
-  },
-  62: { // Poliwrath
-    1: 'water_gun', 8: 'doubleslap', 16: 'submission', 24: 'body_slam', 33: 'bubble_beam', 42: 'karate_chop', 50: 'hydro_pump', 58: 'hyper_beam',
-  },
-  63: { // Abra
-    1: 'teleport', 5: 'confusion', 10: 'disable', 16: 'psybeam', 22: 'reflect', 28: 'recover', 34: 'psychic_mv', 42: 'agility',
-  },
-  64: { // Kadabra
-    1: 'teleport', 5: 'confusion', 10: 'disable', 16: 'psybeam', 24: 'reflect', 32: 'recover', 40: 'psychic_mv', 48: 'agility',
-  },
-  65: { // Alakazam
-    1: 'teleport', 5: 'confusion', 10: 'disable', 16: 'psybeam', 26: 'reflect', 35: 'recover', 45: 'psychic_mv', 55: 'agility',
-  },
-  66: { // Machop
-    1: 'karate_chop', 3: 'growl', 7: 'low_kick', 13: 'leer', 21: 'body_slam', 31: 'double_edge',
-  },
-  67: { // Machoke
-    1: 'karate_chop', 3: 'growl', 7: 'low_kick', 13: 'leer', 25: 'body_slam', 36: 'double_edge', 44: 'hyper_beam',
-  },
-  68: { // Machamp
-    1: 'karate_chop', 3: 'low_kick', 13: 'leer', 22: 'seismic_toss', 33: 'body_slam', 43: 'submission', 52: 'double_edge', 60: 'hyper_beam',
-  },
-  69: { // Bellsprout
-    1: 'vine_whip', 6: 'growth', 11: 'sleep_powder', 15: 'poison_powder', 21: 'stun_spore', 27: 'acid', 34: 'razor_leaf', 42: 'slam',
-  },
-  70: { // Weepinbell
-    1: 'vine_whip', 6: 'growth', 11: 'sleep_powder', 15: 'poison_powder', 23: 'stun_spore', 30: 'acid', 38: 'razor_leaf', 47: 'slam',
-  },
-  71: { // Victreebel
-    1: 'vine_whip', 6: 'sleep_powder', 13: 'acid', 22: 'razor_leaf', 32: 'slam', 42: 'stun_spore', 50: 'solar_beam', 58: 'hyper_beam',
-  },
-  72: { // Tentacool
-    1: 'poison_sting', 6: 'supersonic', 12: 'water_gun', 19: 'acid', 25: 'bubble_beam', 30: 'waterfall', 36: 'barrier', 43: 'hydro_pump',
-  },
-  73: { // Tentacruel
-    1: 'poison_sting', 6: 'supersonic', 12: 'water_gun', 19: 'acid', 28: 'bubble_beam', 38: 'barrier', 47: 'hydro_pump', 55: 'hyper_beam',
-  },
-  74: { // Geodude
-    1: 'tackle', 4: 'harden', 8: 'rock_throw', 14: 'magnitude', 22: 'body_slam', 30: 'double_edge',
-  },
-  75: { // Graveler
-    1: 'tackle', 4: 'harden', 8: 'rock_throw', 14: 'magnitude', 27: 'body_slam', 36: 'double_edge', 45: 'hyper_beam',
-  },
-  76: { // Golem
-    1: 'tackle', 4: 'defense_curl', 11: 'rock_throw', 19: 'magnitude', 29: 'rock_slide', 38: 'earthquake', 48: 'explosion', 56: 'double_edge',
-  },
-  77: { // Ponyta
-    1: 'ember', 6: 'growl', 12: 'tail_whip', 19: 'stomp', 26: 'fire_spin', 33: 'take_down', 40: 'agility', 48: 'fire_blast',
-  },
-  78: { // Rapidash
-    1: 'ember', 6: 'growl', 12: 'tail_whip', 20: 'stomp', 30: 'fire_spin', 40: 'take_down', 50: 'agility', 58: 'fire_blast',
-  },
-  79: { // Slowpoke
-    1: 'tackle', 6: 'growl', 13: 'water_gun', 19: 'confusion', 25: 'disable', 31: 'headbutt', 38: 'psychic_mv', 46: 'amnesia',
-  },
-  80: { // Slowbro
-    1: 'tackle', 6: 'growl', 13: 'water_gun', 19: 'confusion', 27: 'withdraw', 35: 'headbutt', 44: 'psychic_mv', 53: 'amnesia',
-  },
-  81: { // Magnemite
-    1: 'tackle', 6: 'thundershock', 11: 'supersonic', 16: 'thunder_wave', 22: 'swift', 29: 'screech', 36: 'thunderbolt', 44: 'explosion',
-  },
-  82: { // Magneton
-    1: 'tackle', 6: 'thundershock', 11: 'supersonic', 16: 'thunder_wave', 25: 'swift', 34: 'screech', 44: 'thunderbolt', 53: 'explosion',
-  },
-  83: { // Farfetchd
-    1: 'peck', 7: 'sand_attack', 13: 'leer', 19: 'fury_attack', 25: 'swords_dance', 31: 'agility', 38: 'slash', 45: 'body_slam',
-  },
-  84: { // Doduo
-    1: 'peck', 6: 'growl', 12: 'fury_attack', 19: 'headbutt', 25: 'tri_attack', 31: 'agility', 38: 'drill_peck', 45: 'take_down',
-  },
-  85: { // Dodrio
-    1: 'peck', 6: 'growl', 12: 'fury_attack', 22: 'tri_attack', 32: 'agility', 41: 'drill_peck', 50: 'take_down', 58: 'hyper_beam',
-  },
-  86: { // Seel
-    1: 'headbutt', 6: 'growl', 13: 'aurora_beam', 20: 'rest', 27: 'take_down', 34: 'ice_beam', 41: 'surf', 48: 'waterfall',
-  },
-  87: { // Dewgong
-    1: 'headbutt', 6: 'growl', 13: 'aurora_beam', 22: 'rest', 31: 'take_down', 40: 'ice_beam', 49: 'surf', 57: 'blizzard',
-  },
-  88: { // Grimer
-    1: 'pound', 5: 'poison_gas', 10: 'harden', 16: 'sludge', 23: 'minimize', 30: 'screech', 38: 'acid_armor', 46: 'toxic',
-  },
-  89: { // Muk
-    1: 'pound', 5: 'poison_gas', 10: 'harden', 16: 'sludge', 26: 'minimize', 36: 'screech', 46: 'acid_armor', 55: 'hyper_beam',
-  },
-  90: { // Shellder
-    1: 'tackle', 6: 'withdraw', 12: 'supersonic', 19: 'aurora_beam', 26: 'clamp', 33: 'leer', 40: 'ice_beam', 48: 'explosion',
-  },
-  91: { // Cloyster
-    1: 'withdraw', 6: 'supersonic', 13: 'aurora_beam', 22: 'clamp', 32: 'waterfall', 41: 'ice_beam', 50: 'explosion', 58: 'hydro_pump',
-  },
-  92: { // Gastly
-    1: 'lick', 5: 'hypnosis', 12: 'confuse_ray', 18: 'night_shade', 25: 'mega_drain', 32: 'dream_eater', 40: 'toxic', 48: 'psychic_mv',
-  },
-  93: { // Haunter
-    1: 'lick', 5: 'hypnosis', 12: 'confuse_ray', 18: 'night_shade', 28: 'mega_drain', 36: 'dream_eater', 45: 'toxic', 54: 'psychic_mv',
-  },
-  94: { // Gengar
-    1: 'lick', 5: 'hypnosis', 12: 'confuse_ray', 18: 'night_shade', 30: 'mega_drain', 40: 'dream_eater', 50: 'psychic_mv', 58: 'explosion',
-  },
-  95: { // Onix
-    1: 'tackle', 6: 'harden', 11: 'rock_throw', 18: 'rock_slide', 25: 'slam', 32: 'rock_slide', 40: 'dig', 48: 'earthquake',
-  },
-  96: { // Drowzee
-    1: 'pound', 5: 'hypnosis', 11: 'disable', 17: 'confusion', 24: 'headbutt', 31: 'psychic_mv', 38: 'meditate', 46: 'dream_eater',
-  },
-  97: { // Hypno
-    1: 'pound', 5: 'hypnosis', 11: 'disable', 17: 'confusion', 26: 'headbutt', 35: 'psychic_mv', 44: 'meditate', 53: 'dream_eater',
-  },
-  98: { // Krabby
-    1: 'bubble', 5: 'leer', 12: 'waterfall', 19: 'harden', 25: 'stomp', 32: 'clamp', 40: 'crabhammer', 48: 'surf',
-  },
-  99: { // Kingler
-    1: 'bubble', 5: 'leer', 12: 'harden', 20: 'stomp', 30: 'crabhammer', 40: 'surf', 49: 'body_slam', 57: 'hyper_beam',
-  },
-  100: { // Voltorb
-    1: 'tackle', 5: 'screech', 11: 'thundershock', 17: 'thunder_wave', 23: 'swift', 30: 'thunder_wave', 38: 'thunderbolt', 46: 'explosion',
-  },
-  101: { // Electrode
-    1: 'tackle', 5: 'screech', 11: 'thundershock', 20: 'swift', 30: 'thunder_wave', 40: 'thunderbolt', 50: 'explosion', 58: 'thunder',
-  },
-  102: { // Exeggcute
-    1: 'absorb', 7: 'leech_seed', 13: 'poison_powder', 19: 'confusion', 25: 'stun_spore', 31: 'sleep_powder', 39: 'solar_beam', 47: 'psychic_mv',
-  },
-  103: { // Exeggutor
-    1: 'absorb', 7: 'confusion', 15: 'stomp', 25: 'egg_bomb', 35: 'psychic_mv', 45: 'solar_beam', 53: 'explosion', 60: 'hyper_beam',
-  },
-  104: { // Cubone
-    1: 'growl', 5: 'bone_club', 11: 'headbutt', 17: 'leer', 24: 'focus_energy', 31: 'bonemerang', 39: 'dig', 47: 'double_edge',
-  },
-  105: { // Marowak
-    1: 'growl', 5: 'bone_club', 11: 'headbutt', 17: 'leer', 27: 'focus_energy', 36: 'bonemerang', 45: 'earthquake', 54: 'double_edge',
-  },
-  106: { // Hitmonlee
-    1: 'double_kick', 6: 'meditate', 12: 'rolling_kick', 20: 'jump_kick', 27: 'focus_energy', 34: 'hi_jump_kick', 42: 'swords_dance', 50: 'mega_kick',
-  },
-  107: { // Hitmonchan
-    1: 'comet_punch', 6: 'agility', 12: 'fire_punch', 20: 'ice_punch', 27: 'thunder_punch', 34: 'mega_punch', 42: 'submission', 50: 'body_slam',
-  },
-  108: { // Lickitung
-    1: 'lick', 7: 'supersonic', 13: 'defense_curl', 19: 'stomp', 25: 'headbutt', 31: 'slam', 39: 'screech', 47: 'body_slam',
-  },
-  109: { // Koffing
-    1: 'poison_gas', 6: 'tackle', 12: 'smog', 19: 'sludge', 26: 'smokescreen', 33: 'haze', 40: 'self_destruct', 48: 'explosion',
-  },
-  110: { // Weezing
-    1: 'poison_gas', 6: 'tackle', 12: 'smog', 19: 'sludge', 28: 'smokescreen', 37: 'haze', 46: 'self_destruct', 55: 'explosion',
-  },
-  111: { // Rhyhorn
-    1: 'horn_attack', 8: 'tail_whip', 15: 'stomp', 22: 'fury_attack', 29: 'magnitude', 36: 'rock_slide', 43: 'take_down', 50: 'earthquake',
-  },
-  112: { // Rhydon
-    1: 'horn_attack', 8: 'tail_whip', 15: 'stomp', 22: 'fury_attack', 32: 'magnitude', 42: 'rock_slide', 51: 'earthquake', 60: 'hyper_beam',
-  },
-  113: { // Chansey
-    1: 'pound', 5: 'growl', 9: 'tail_whip', 13: 'softboiled', 20: 'doubleslap', 27: 'sing', 35: 'egg_bomb', 44: 'double_edge',
-  },
-  114: { // Tangela
-    1: 'absorb', 7: 'growth', 13: 'vine_whip', 19: 'poison_powder', 25: 'stun_spore', 31: 'mega_drain', 39: 'slam', 47: 'solar_beam',
-  },
-  115: { // Kangaskhan
-    1: 'comet_punch', 7: 'leer', 13: 'bite', 19: 'tail_whip', 26: 'mega_punch', 34: 'dizzy_punch', 42: 'body_slam', 50: 'double_edge',
-  },
-  116: { // Horsea
-    1: 'bubble', 8: 'smokescreen', 15: 'leer', 22: 'water_gun', 29: 'bubble_beam', 36: 'agility', 43: 'surf', 50: 'hydro_pump',
-  },
-  117: { // Seadra
-    1: 'bubble', 8: 'smokescreen', 15: 'leer', 22: 'water_gun', 32: 'bubble_beam', 41: 'agility', 50: 'surf', 58: 'hydro_pump',
-  },
-  118: { // Goldeen
-    1: 'peck', 7: 'tail_whip', 13: 'supersonic', 19: 'horn_attack', 25: 'water_gun', 32: 'fury_attack', 40: 'waterfall', 48: 'agility',
-  },
-  119: { // Seaking
-    1: 'peck', 7: 'tail_whip', 13: 'supersonic', 19: 'horn_attack', 28: 'water_gun', 37: 'fury_attack', 46: 'waterfall', 55: 'hydro_pump',
-  },
-  120: { // Staryu
-    1: 'tackle', 6: 'harden', 12: 'water_gun', 19: 'swift', 25: 'recover', 32: 'bubble_beam', 40: 'psychic_mv', 48: 'hydro_pump',
-  },
-  121: { // Starmie
-    1: 'water_gun', 8: 'swift', 15: 'recover', 24: 'bubble_beam', 33: 'psychic_mv', 42: 'ice_beam', 50: 'hydro_pump', 58: 'hyper_beam',
-  },
-  122: { // Mr. Mime
-    1: 'pound', 6: 'confusion', 12: 'barrier', 19: 'light_screen', 26: 'doubleslap', 33: 'psybeam', 41: 'psychic_mv', 49: 'reflect',
-  },
-  123: { // Scyther
-    1: 'quick_attack', 7: 'leer', 13: 'focus_energy', 20: 'fury_swipes', 27: 'wing_attack', 34: 'slash', 42: 'swords_dance', 50: 'agility',
-  },
-  124: { // Jynx
-    1: 'pound', 7: 'lick', 13: 'aurora_beam', 20: 'doubleslap', 27: 'ice_punch', 34: 'psychic_mv', 42: 'ice_beam', 50: 'blizzard',
-  },
-  125: { // Electabuzz
-    1: 'quick_attack', 7: 'leer', 13: 'thundershock', 20: 'thunder_punch', 27: 'light_screen', 34: 'swift', 42: 'thunderbolt', 50: 'thunder',
-  },
-  126: { // Magmar
-    1: 'ember', 7: 'leer', 13: 'smokescreen', 20: 'fire_punch', 27: 'smog', 34: 'flamethrower', 42: 'confuse_ray', 50: 'fire_blast',
-  },
-  127: { // Pinsir
-    1: 'pin_missile', 7: 'focus_energy', 13: 'seismic_toss', 20: 'harden', 27: 'slash', 34: 'swords_dance', 42: 'submission', 50: 'leech_life',
-  },
-  128: { // Tauros
-    1: 'tackle', 7: 'tail_whip', 13: 'stomp', 20: 'horn_attack', 28: 'leer', 36: 'take_down', 44: 'body_slam', 52: 'earthquake',
-  },
-  129: { // Magikarp
-    1: 'splash', 15: 'tackle', 20: 'waterfall', 25: 'bubble', 30: 'water_gun', 35: 'harden',
-  },
-  130: { // Gyarados
-    1: 'tackle', 20: 'bite', 25: 'dragon_rage', 32: 'body_slam', 41: 'hydro_pump', 47: 'hyper_beam',
-  },
-  131: { // Lapras
-    1: 'water_gun', 8: 'growl', 15: 'sing', 22: 'mist', 29: 'body_slam', 36: 'surf', 44: 'ice_beam', 52: 'hydro_pump',
-  },
-  132: { // Ditto
-    1: 'transform', 5: 'tackle', 10: 'pound', 15: 'quick_attack', 20: 'swift', 25: 'body_slam',
-  },
-  133: { // Eevee
-    1: 'tackle', 3: 'tail_whip', 8: 'quick_attack', 16: 'bite', 23: 'swift', 30: 'body_slam', 42: 'double_edge',
-  },
-  134: { // Vaporeon
-    1: 'tackle', 8: 'quick_attack', 16: 'water_gun', 23: 'bite', 30: 'aurora_beam', 36: 'bubble_beam', 42: 'surf', 52: 'hydro_pump',
-  },
-  135: { // Jolteon
-    1: 'tackle', 8: 'quick_attack', 16: 'thundershock', 23: 'bite', 30: 'thunder_wave', 36: 'swift', 42: 'thunderbolt', 52: 'thunder',
-  },
-  136: { // Flareon
-    1: 'tackle', 8: 'quick_attack', 16: 'ember', 23: 'bite', 30: 'fire_spin', 36: 'swift', 42: 'flamethrower', 52: 'fire_blast',
-  },
-  137: { // Porygon
-    1: 'tackle', 9: 'conversion', 12: 'agility', 20: 'psybeam', 24: 'recover', 32: 'swift', 36: 'tri_attack', 44: 'hyper_beam',
-  },
-  138: { // Omanyte
-    1: 'water_gun', 13: 'withdraw', 19: 'horn_attack', 25: 'leer', 31: 'bubble_beam', 37: 'rock_slide', 43: 'rock_throw', 49: 'hydro_pump',
-  },
-  139: { // Omastar
-    1: 'water_gun', 13: 'withdraw', 19: 'horn_attack', 25: 'leer', 34: 'bubble_beam', 44: 'surf', 53: 'hydro_pump', 60: 'hyper_beam',
-  },
-  140: { // Kabuto
-    1: 'scratch', 13: 'harden', 19: 'absorb', 25: 'leer', 31: 'mega_drain', 37: 'slash', 43: 'surf', 49: 'hydro_pump',
-  },
-  141: { // Kabutops
-    1: 'scratch', 13: 'harden', 19: 'absorb', 25: 'leer', 34: 'slash', 44: 'mega_drain', 53: 'surf', 60: 'hyper_beam',
-  },
-  142: { // Aerodactyl
-    1: 'wing_attack', 8: 'agility', 15: 'bite', 22: 'supersonic', 29: 'take_down', 36: 'rock_slide', 44: 'fly', 52: 'hyper_beam',
-  },
-  143: { // Snorlax
-    1: 'tackle', 6: 'growl', 13: 'body_slam', 20: 'rest', 28: 'harden', 35: 'double_edge', 48: 'hyper_beam',
-  },
-  144: { // Articuno
-    1: 'gust', 13: 'mist', 25: 'aurora_beam', 37: 'ice_beam', 49: 'agility', 55: 'blizzard', 60: 'hyper_beam',
-  },
-  145: { // Zapdos
-    1: 'peck', 13: 'thunder_wave', 25: 'thundershock', 37: 'thunderbolt', 49: 'agility', 55: 'thunder', 60: 'hyper_beam',
-  },
-  146: { // Moltres
-    1: 'peck', 13: 'fire_spin', 25: 'ember', 37: 'flamethrower', 49: 'agility', 55: 'fire_blast', 60: 'hyper_beam',
-  },
-  147: { // Dratini
-    1: 'tackle', 5: 'leer', 10: 'thunder_wave', 15: 'dragon_rage', 22: 'agility', 29: 'body_slam', 38: 'hyper_beam',
-  },
-  148: { // Dragonair
-    1: 'tackle', 5: 'leer', 10: 'thunder_wave', 15: 'dragon_rage', 25: 'agility', 35: 'slam', 45: 'body_slam', 55: 'hyper_beam',
-  },
-  149: { // Dragonite
-    1: 'wing_attack', 10: 'thunder_wave', 20: 'dragon_rage', 30: 'agility', 40: 'slam', 50: 'wing_attack', 55: 'body_slam', 61: 'hyper_beam',
-  },
-  150: { // Mewtwo
-    1: 'confusion', 11: 'disable', 22: 'swift', 33: 'psychic_mv', 44: 'barrier', 55: 'recover', 66: 'amnesia', 77: 'hyper_beam',
-  },
-  151: { // Mew
-    1: 'pound', 10: 'transform', 20: 'confusion', 30: 'psychic_mv', 40: 'swift', 50: 'recover', 60: 'hyper_beam',
-  },
+  1: [[1, "fire_shield"], [1, "struggle"], [1, "sunburst"], [4, "salamander"], [7, "energy_claws"], [13, "surge"], [16, "invictus"], [19, "shapechange"], [25, "berserk"], [28, "fiery"], [31, "torch"], [37, "proboscis"], [40, "firestorm"]],
+  2: [[1, "beam"], [1, "greenstone"], [1, "struggle"], [4, "strike"], [7, "meltdown"], [13, "clairaudience"], [16, "undertaker"], [19, "overfeed"], [25, "radiance"], [28, "battery_discharge"], [31, "sting"], [37, "stabilo"], [40, "arcane_eye"]],
+  3: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "strike"], [13, "beam"], [16, "rust_bomb"], [19, "meltdown"], [25, "blade"], [28, "lightning_spheres"], [31, "bullet"], [37, "time_crisis"], [40, "ruby"]],
+  4: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "flow"], [7, "frostbite"], [13, "spit_poison"], [16, "midnight_mantle"], [19, "orbs"], [25, "shapechange"], [28, "ice_storm"], [31, "kraken"], [37, "ice_shield"], [40, "proboscis"]],
+  5: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "rust_bomb"], [13, "radiance"], [16, "constrict"], [19, "slice"], [25, "bubble_trap"], [28, "gold_digger"], [31, "time_crisis"], [37, "terror"], [40, "undertaker"]],
+  6: [[1, "fluff_up"], [1, "sting"], [1, "struggle"], [4, "splinter"], [7, "chameleon"], [13, "spit_poison"], [16, "shadow_boxing"], [19, "stabilo"], [25, "walls"], [28, "pseudopod"], [31, "air_chain"], [37, "feline"], [40, "blossom"]],
+  7: [[1, "chameleon"], [1, "gust"], [1, "struggle"], [4, "all_in"], [7, "pseudopod"], [13, "sunburst"], [16, "negation"], [19, "salamander"], [25, "berserk"], [28, "shadow_boxing"], [31, "conjurer"], [37, "torch"], [40, "supernova"]],
+  8: [[1, "blossom"], [1, "overgrowth"], [1, "struggle"], [4, "boulder"], [7, "all_in"], [13, "pseudopod"], [16, "fester"], [19, "splinter"], [25, "feline"], [28, "air_chain"], [31, "radiance"], [37, "orbs"], [40, "chameleon"]],
+  9: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "beam"], [13, "blade"], [16, "acid"], [19, "platinum"], [25, "crystal"], [28, "lineage"]],
+  10: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "amnesia"], [13, "battery_discharge"], [16, "strike"], [19, "crystal"], [25, "undertaker"], [28, "lineage"]],
+  11: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "beam"], [13, "blade"], [16, "acid"], [19, "platinum"], [25, "crystal"], [28, "lineage"], [31, "terror"], [37, "sunburst"], [40, "gold_digger"]],
+  12: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "beam"], [13, "blade"], [16, "acid"], [19, "platinum"], [25, "crystal"], [28, "lineage"], [31, "terror"], [37, "sunburst"], [40, "gold_digger"]],
+  13: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "amnesia"], [13, "battery_discharge"], [16, "strike"], [19, "crystal"], [25, "undertaker"], [28, "lineage"], [31, "slice"], [37, "viper"], [40, "acid"]],
+  14: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "amnesia"]],
+  15: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "thunderball"], [7, "lust"], [13, "thunderclap"], [16, "fester"], [19, "crystal"], [25, "cavity"], [28, "tsunami"], [31, "meltdown"], [37, "pit"], [40, "avalanche"]],
+  16: [[1, "ram"], [1, "stampede"], [1, "struggle"], [4, "hammerhead"], [7, "ants"], [13, "sand_spray"], [16, "fester"], [19, "stonehenge"], [25, "meltdown"], [28, "evasion"], [31, "greenstone"], [37, "strangulation"], [40, "lust"]],
+  17: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "peregrine"], [13, "crystal"], [16, "muddle"], [19, "strike"], [25, "shadow_boxing"], [28, "whirlwind"], [31, "lightning_spheres"], [37, "undertaker"], [40, "insanity"]],
+  18: [[1, "electrical_storm"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "peregrine"], [13, "shuriken"], [16, "beam"], [19, "ruby"], [25, "amnesia"], [28, "blade"], [31, "bubble_trap"], [37, "platinum"], [40, "crystal"]],
+  19: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "mudslide"], [7, "assault"], [13, "thunderball"], [28, "glower"], [31, "ice_claw"], [34, "surge"], [43, "stampede"], [46, "earthquake"], [52, "biting_winds"]],
+  20: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "mudslide"], [7, "assault"], [13, "thunderball"], [28, "glower"], [31, "ice_claw"], [34, "surge"], [43, "stampede"], [46, "earthquake"], [52, "biting_winds"]],
+  21: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "mudslide"], [7, "assault"], [13, "thunderball"], [28, "glower"], [31, "ice_claw"], [34, "surge"], [43, "stampede"], [46, "earthquake"], [52, "biting_winds"], [61, "divinity_beam"]],
+  22: [[1, "bullet"], [1, "static_field"], [1, "struggle"], [4, "shuriken"], [7, "clamp_on"], [10, "muddle"], [13, "bubble_trap"], [16, "beam"], [19, "surge"], [25, "thunderclap"]],
+  23: [[1, "bullet"], [1, "static_field"], [1, "struggle"], [4, "shuriken"], [7, "clamp_on"], [10, "muddle"], [13, "bubble_trap"], [16, "beam"], [19, "surge"], [25, "thunderclap"]],
+  24: [[1, "bullet"], [1, "static_field"], [1, "struggle"], [4, "shuriken"], [7, "clamp_on"], [10, "muddle"], [13, "bubble_trap"], [16, "beam"], [19, "surge"], [25, "thunderclap"], [37, "magnetic_body"], [43, "laser_beam"]],
+  25: [[1, "ice_claw"], [1, "peck"], [1, "struggle"], [4, "orbs"], [7, "flow"], [13, "energy_field"], [28, "icicle_spear"], [31, "biting_winds"], [34, "flood"], [43, "font"], [46, "chill_mist"], [52, "snowstorm"]],
+  26: [[1, "ice_claw"], [1, "peck"], [1, "struggle"], [4, "orbs"], [7, "flow"], [13, "energy_field"], [28, "icicle_spear"], [31, "biting_winds"], [34, "flood"], [43, "font"], [46, "chill_mist"], [52, "snowstorm"]],
+  27: [[1, "ice_claw"], [1, "peck"], [1, "struggle"], [4, "orbs"], [7, "flow"], [13, "energy_field"], [28, "icicle_spear"], [31, "biting_winds"], [34, "flood"], [43, "font"], [46, "chill_mist"], [52, "snowstorm"], [61, "tornado"]],
+  28: [[1, "blossom"], [1, "sting"], [1, "struggle"], [4, "poison_courtship"], [7, "splinter"], [13, "boulder"], [28, "overgrowth"], [31, "peregrine"], [34, "spit_poison"], [43, "thunderball"], [46, "shadow_boxing"], [52, "invictus"]],
+  29: [[1, "blossom"], [1, "sting"], [1, "struggle"], [4, "poison_courtship"], [7, "splinter"], [13, "boulder"], [28, "overgrowth"], [31, "peregrine"], [34, "spit_poison"], [43, "thunderball"], [46, "shadow_boxing"], [52, "invictus"]],
+  30: [[1, "blossom"], [1, "sting"], [1, "struggle"], [4, "poison_courtship"], [7, "splinter"], [13, "boulder"], [28, "overgrowth"], [31, "peregrine"], [34, "spit_poison"], [43, "thunderball"], [46, "shadow_boxing"], [52, "invictus"], [55, "energy_beam"]],
+  31: [[1, "fume"], [1, "gnaw"], [1, "struggle"], [4, "fire_claw"], [10, "fire_ball"], [13, "saber"], [16, "tooth_for_tooth"], [22, "kindling_flame"], [25, "energy_claws"], [28, "all_in"], [31, "supernova"]],
+  32: [[1, "fume"], [1, "gnaw"], [1, "struggle"], [4, "fire_claw"], [10, "fire_ball"], [13, "saber"], [16, "tooth_for_tooth"], [22, "kindling_flame"], [25, "energy_claws"], [28, "all_in"], [31, "supernova"]],
+  33: [[1, "fume"], [1, "gnaw"], [1, "struggle"], [4, "fire_claw"], [10, "fire_ball"], [13, "saber"], [16, "tooth_for_tooth"], [22, "kindling_flame"], [25, "energy_claws"], [28, "all_in"], [31, "supernova"], [34, "shadow_blast"]],
+  34: [[1, "boulder"], [1, "sand_spray"], [1, "struggle"], [4, "electroplate"], [7, "stonehenge"], [13, "avalanche"]],
+  35: [[1, "boulder"], [1, "sand_spray"], [1, "struggle"], [4, "electroplate"], [7, "stonehenge"], [13, "avalanche"], [16, "fire_claw"], [19, "give_all"], [25, "flamethrower"]],
+  36: [[1, "boulder"], [1, "sand_spray"], [1, "struggle"], [4, "electroplate"], [7, "stonehenge"], [13, "avalanche"], [16, "surge"], [19, "stampede"], [25, "hammerhead"]],
+  37: [[1, "eyebite"], [1, "feint"], [1, "struggle"], [4, "shuriken"], [7, "slice"], [13, "sand_spray"]],
+  38: [[1, "eyebite"], [1, "feint"], [1, "struggle"], [4, "shuriken"], [7, "slice"], [13, "sand_spray"], [19, "petrify"], [25, "fluff_up"], [28, "overgrowth"], [37, "oedipus"]],
+  39: [[1, "eyebite"], [1, "feint"], [1, "struggle"], [4, "shuriken"], [7, "slice"], [13, "sand_spray"], [19, "rot"], [25, "blade"], [28, "bullet"], [40, "shadow_blast"]],
+  40: [[1, "feint"], [1, "riposte"], [1, "struggle"], [4, "shuriken"], [7, "slice"], [13, "sand_spray"], [19, "insanity"], [25, "lineage"], [28, "staff_smash"], [40, "shadow_blast"]],
+  41: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "grinding"], [13, "flow"]],
+  42: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "grinding"], [13, "flow"], [16, "splinter"], [19, "overgrowth"], [25, "water_blast"], [31, "chill_mist"], [40, "tsunami"], [46, "snowstorm"], [55, "blossom"]],
+  43: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "grinding"], [13, "flow"], [16, "refresh"], [19, "font"], [25, "starfall"], [31, "water_blast"], [55, "energy_beam"]],
+  44: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "grinding"], [13, "flow"], [16, "splinter"], [19, "web"], [25, "water_blast"], [31, "chill_mist"], [40, "all_in"], [55, "frostbite"]],
+  45: [[1, "clamp_on"], [1, "stick"], [1, "struggle"], [7, "mending"], [10, "tail_lash"], [16, "mobbing"], [22, "stabilo"], [25, "overgrowth"], [28, "all_in"], [34, "flower_bloom"]],
+  46: [[1, "clamp_on"], [1, "stick"], [1, "struggle"], [7, "mending"], [10, "tail_lash"], [16, "blade"], [22, "stabilo"], [25, "one_two"], [28, "all_in"], [31, "woodsmash"], [34, "give_all"]],
+  47: [[1, "clamp_on"], [1, "stick"], [1, "struggle"], [7, "mending"], [10, "tail_lash"], [16, "mobbing"], [22, "stabilo"], [25, "lantern"], [28, "divinity_beam"], [31, "woodsmash"], [34, "flower_bloom"]],
+  48: [[1, "boulder"], [1, "fire_ball"], [1, "struggle"], [4, "one_two"], [7, "fire_claw"], [13, "tinder"]],
+  49: [[1, "boulder"], [1, "fire_ball"], [1, "struggle"], [4, "one_two"], [7, "fire_claw"], [13, "tinder"], [16, "static_field"], [19, "kindling_flame"], [25, "flamethrower"]],
+  50: [[1, "boulder"], [1, "fire_ball"], [1, "struggle"], [4, "one_two"], [7, "fire_claw"], [13, "tinder"], [16, "berserk"], [19, "hibernate"], [25, "energy_field"]],
+  51: [[1, "bullet"], [1, "frighten"], [1, "struggle"], [4, "buzz"], [7, "hibernate"], [10, "perfect_cut"], [13, "blade"], [16, "lineage"], [19, "viper"], [22, "shuriken"], [25, "eyebite"]],
+  52: [[1, "bullet"], [1, "frighten"], [1, "struggle"], [4, "buzz"], [7, "hibernate"], [10, "perfect_cut"], [13, "blade"], [16, "lineage"], [19, "viper"], [22, "shuriken"], [25, "eyebite"]],
+  53: [[1, "bullet"], [1, "frighten"], [1, "struggle"], [4, "buzz"], [7, "hibernate"], [10, "perfect_cut"], [13, "blade"], [16, "lineage"], [19, "viper"], [22, "shuriken"], [25, "eyebite"], [34, "tornado"]],
+  54: [[1, "proboscis"], [1, "spit_poison"], [1, "struggle"], [4, "refresh"], [7, "font"], [10, "hibernate"], [13, "goad"], [16, "tonguespear"], [19, "sleeping_powder"], [25, "venomous_tentacle"], [28, "icicle_spear"], [55, "shadow_blast"]],
+  55: [[1, "proboscis"], [1, "spit_poison"], [1, "struggle"], [4, "refresh"], [7, "font"], [10, "hibernate"], [13, "goad"], [16, "tonguespear"], [19, "sleeping_powder"], [25, "venomous_tentacle"], [28, "icicle_spear"], [55, "shadow_blast"]],
+  56: [[1, "proboscis"], [1, "spit_poison"], [1, "struggle"], [4, "refresh"], [7, "font"], [10, "hibernate"], [13, "goad"], [16, "tonguespear"], [19, "sleeping_powder"], [25, "venomous_tentacle"], [28, "icicle_spear"], [55, "shadow_blast"]],
+  57: [[1, "biting_winds"], [1, "goad"], [1, "struggle"], [4, "shapechange"], [7, "chill_mist"], [13, "fume"], [25, "altitude"], [28, "flood"], [31, "flow"], [43, "ten_thousand_feathers"], [46, "thunderclap"], [52, "one_million_talons"]],
+  58: [[1, "biting_winds"], [1, "goad"], [1, "struggle"], [4, "shapechange"], [7, "chill_mist"], [13, "fume"], [25, "altitude"], [28, "flood"], [31, "flow"], [43, "ten_thousand_feathers"], [46, "thunderclap"], [52, "one_million_talons"]],
+  59: [[1, "biting_winds"], [1, "goad"], [1, "struggle"], [4, "shapechange"], [7, "chill_mist"], [13, "fume"], [25, "altitude"], [28, "flood"], [31, "flow"], [43, "ten_thousand_feathers"], [46, "thunderclap"], [52, "one_million_talons"]],
+  60: [[1, "evasion"], [1, "gnaw"], [1, "struggle"], [7, "lick_lash"], [10, "assault"], [13, "sand_spray"], [16, "hibernate"], [19, "feint"], [25, "stampede"], [28, "tonguespear"], [31, "mudslide"]],
+  61: [[1, "evasion"], [1, "gnaw"], [1, "struggle"], [7, "lick_lash"], [10, "assault"], [13, "sand_spray"], [16, "hibernate"], [19, "feint"], [25, "stampede"], [28, "tonguespear"], [31, "mudslide"]],
+  62: [[1, "shadow_boxing"], [1, "struggle"], [1, "thunderball"], [4, "quicksand"], [7, "fledgling"], [13, "one_two"], [25, "stampede"], [28, "electrical_storm"], [31, "snowstorm"], [40, "energy_beam"]],
+  63: [[1, "shadow_boxing"], [1, "struggle"], [1, "thunderball"], [4, "quicksand"], [7, "fledgling"], [13, "one_two"], [25, "stampede"], [28, "electrical_storm"], [31, "snowstorm"], [37, "burrow_blast"], [43, "energy_beam"]],
+  64: [[1, "bullet"], [1, "spit_poison"], [1, "struggle"], [4, "amnesia"], [7, "sleep_bomb"], [13, "glower"], [25, "eyebite"], [28, "breath"], [31, "dreamwalk"], [55, "energy_beam"]],
+  65: [[1, "bullet"], [1, "spit_poison"], [1, "struggle"], [4, "amnesia"], [7, "sleep_bomb"], [13, "glower"], [25, "eyebite"], [28, "breath"], [31, "dreamwalk"], [55, "energy_beam"]],
+  66: [[1, "rot"], [1, "splinter"], [1, "struggle"], [4, "overfeed"], [7, "peck"], [13, "take_cover"], [25, "all_in"], [28, "blossom"], [31, "one_two"]],
+  67: [[1, "rot"], [1, "splinter"], [1, "struggle"], [4, "overfeed"], [7, "peck"], [13, "take_cover"], [25, "all_in"], [28, "blossom"], [31, "one_two"], [55, "shadow_blast"]],
+  68: [[1, "midnight_mantle"], [1, "rot"], [1, "struggle"], [4, "goad"], [7, "font"], [13, "take_cover"], [25, "starfall"], [31, "chill_mist"]],
+  69: [[1, "midnight_mantle"], [1, "rot"], [1, "struggle"], [4, "goad"], [7, "font"], [13, "take_cover"], [25, "starfall"], [31, "chill_mist"], [55, "shadow_blast"]],
+  70: [[1, "feint"], [1, "flood"], [1, "struggle"], [4, "muck"], [7, "fiery"], [13, "suck_poison"], [19, "rot"], [25, "bubble_trap"], [28, "caustic_spray"]],
+  71: [[1, "feint"], [1, "flood"], [1, "struggle"], [4, "muck"], [7, "fiery"], [13, "suck_poison"], [19, "rot"], [25, "bubble_trap"], [28, "caustic_spray"]],
+  72: [[1, "feint"], [1, "flood"], [1, "struggle"], [4, "muck"], [7, "fiery"], [13, "suck_poison"], [19, "sleep_bomb"], [25, "bubble_trap"], [28, "energy_beam"]],
+  73: [[1, "feint"], [1, "flood"], [1, "struggle"], [4, "muck"], [7, "fiery"], [13, "suck_poison"], [19, "sleep_bomb"], [25, "bubble_trap"], [28, "energy_beam"]],
+  74: [[1, "buzz"], [1, "clamp_on"], [1, "struggle"], [4, "splinter"], [7, "font"], [10, "evasion"], [13, "sting"]],
+  75: [[1, "buzz"], [1, "clamp_on"], [1, "struggle"], [4, "splinter"], [7, "font"], [10, "evasion"], [13, "sting"]],
+  76: [[1, "buzz"], [1, "clamp_on"], [1, "struggle"], [4, "splinter"], [7, "font"], [10, "evasion"], [13, "sting"], [16, "undertaker"], [19, "perfect_cut"], [25, "blade"], [28, "sleep_bomb"], [46, "vorpal"]],
+  77: [[1, "buzz"], [1, "clamp_on"], [1, "struggle"], [4, "splinter"], [7, "font"], [10, "evasion"], [13, "sting"], [16, "fluff_up"], [19, "wall_of_steel"], [25, "invictus"], [28, "blade"], [46, "suplex"]],
+  78: [[1, "buzz"], [1, "clamp_on"], [1, "struggle"], [4, "splinter"], [7, "font"], [10, "evasion"], [13, "sting"], [16, "shuriken"], [19, "steel_jaws"], [25, "riposte"], [31, "give_all"], [37, "magnetic_body"]],
+  79: [[1, "slice"], [1, "struggle"], [1, "tail_lash"], [4, "wall_of_steel"], [7, "shuriken"], [13, "muddle"], [16, "lineage"], [19, "bubble_trap"], [25, "shrapnel"], [28, "meltdown"], [31, "breath"], [37, "dreamwalk"], [40, "undertaker"], [55, "shadow_blast"]],
+  80: [[1, "arcane_eye"], [1, "struggle"], [1, "wing_tip"], [7, "tinder"], [10, "breathe_fire"], [13, "fire_claw"], [19, "saber"], [25, "kindling_flame"], [28, "peregrine"], [31, "ten_thousand_feathers"], [40, "berserk"], [43, "all_in"], [46, "flamethrower"]],
+  81: [[1, "arcane_eye"], [1, "struggle"], [1, "wing_tip"], [7, "tinder"], [10, "breathe_fire"], [13, "fire_claw"], [19, "saber"], [25, "kindling_flame"], [28, "peregrine"], [31, "ten_thousand_feathers"], [40, "berserk"], [43, "all_in"], [46, "flamethrower"]],
+  82: [[1, "arcane_eye"], [1, "struggle"], [1, "wing_tip"], [7, "tinder"], [10, "breathe_fire"], [13, "fire_claw"], [19, "saber"], [25, "kindling_flame"], [28, "peregrine"], [31, "ten_thousand_feathers"], [40, "berserk"], [43, "all_in"], [46, "flamethrower"]],
+  83: [[1, "feint"], [1, "leaf_stab"], [1, "struggle"], [4, "assault"], [7, "chameleon"], [13, "whirlwind"], [25, "splinter"], [28, "revenge_stance"], [31, "leaf_barrage"], [40, "needle"], [43, "all_in"], [46, "thorn_burst"]],
+  84: [[1, "feint"], [1, "leaf_stab"], [1, "struggle"], [4, "assault"], [7, "chameleon"], [13, "whirlwind"], [25, "splinter"], [28, "revenge_stance"], [31, "leaf_barrage"], [40, "needle"], [43, "all_in"], [46, "thorn_burst"]],
+  85: [[1, "feint"], [1, "leaf_stab"], [1, "struggle"], [4, "assault"], [7, "chameleon"], [13, "whirlwind"], [25, "splinter"], [28, "revenge_stance"], [31, "leaf_barrage"], [40, "needle"], [43, "all_in"], [46, "thorn_burst"]],
+  86: [[1, "flow"], [1, "struggle"], [1, "sudden_glow"], [4, "grinding"], [7, "geyser"], [13, "glower"], [25, "goad"], [28, "starfall"], [31, "flood"], [40, "static_field"], [43, "icicle_spear"], [46, "proboscis"]],
+  87: [[1, "flow"], [1, "struggle"], [1, "sudden_glow"], [4, "grinding"], [7, "geyser"], [13, "glower"], [25, "goad"], [28, "starfall"], [31, "flood"], [40, "static_field"], [43, "icicle_spear"], [46, "proboscis"]],
+  88: [[1, "flow"], [1, "struggle"], [1, "sudden_glow"], [4, "grinding"], [7, "geyser"], [13, "glower"], [25, "goad"], [28, "starfall"], [31, "flood"], [40, "static_field"], [43, "icicle_spear"], [46, "proboscis"]],
+  89: [[1, "pseudopod"], [1, "refresh"], [1, "struggle"], [4, "stampede"], [7, "mending"], [13, "greenstone"], [16, "muddle"], [19, "quicksand"], [25, "crystal"], [28, "muck"], [31, "amnesia"], [37, "bubble_trap"], [40, "constrict"]],
+  90: [[1, "pseudopod"], [1, "refresh"], [1, "struggle"], [4, "stampede"], [7, "mending"], [13, "greenstone"], [16, "muddle"], [19, "quicksand"], [25, "crystal"], [28, "muck"], [31, "amnesia"], [37, "bubble_trap"], [40, "constrict"]],
+  91: [[1, "pollen_blast"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "fester"], [13, "sleeping_powder"], [25, "energy_claws"], [28, "one_two"], [31, "all_in"]],
+  92: [[1, "pollen_blast"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "fester"], [13, "sleeping_powder"], [25, "energy_claws"], [28, "one_two"], [31, "all_in"]],
+  93: [[1, "fire_ball"], [1, "refresh"], [1, "struggle"], [4, "fire_shield"], [7, "one_two"], [13, "tinder"], [16, "kindling_flame"], [19, "arcane_eye"], [25, "fire_claw"], [28, "magma"], [31, "berserk"], [37, "fume"], [40, "flamethrower"]],
+  94: [[1, "fire_ball"], [1, "refresh"], [1, "struggle"], [4, "fire_shield"], [7, "one_two"], [13, "tinder"], [16, "kindling_flame"], [19, "arcane_eye"], [25, "fire_claw"], [28, "magma"], [31, "berserk"], [37, "fume"], [40, "flamethrower"]],
+  95: [[1, "pseudopod"], [1, "struggle"], [1, "take_cover"], [4, "ants"], [7, "solar_synthesis"], [13, "sting"], [25, "sleeping_powder"], [28, "fester"], [31, "blossom"]],
+  96: [[1, "pseudopod"], [1, "struggle"], [1, "take_cover"], [4, "ants"], [7, "solar_synthesis"], [13, "sting"], [25, "sleeping_powder"], [28, "fester"], [31, "blossom"], [40, "flower_armor"], [52, "flower_bloom"]],
+  97: [[1, "blossom"], [1, "fire_ball"], [1, "struggle"], [4, "saber"], [7, "gust"], [13, "petrify"], [31, "rock"], [37, "berserk"], [40, "flamethrower"]],
+  98: [[1, "blossom"], [1, "fire_ball"], [1, "struggle"], [4, "saber"], [7, "gust"], [13, "petrify"], [31, "rock"], [37, "berserk"], [40, "flamethrower"], [55, "energy_beam"]],
+  99: [[1, "peck"], [1, "roll"], [1, "struggle"], [4, "whirlwind"], [7, "egg_smash"], [13, "fluff_up"], [25, "altitude"], [28, "peregrine"], [31, "air_chain"], [34, "one_two"]],
+  100: [[1, "peck"], [1, "roll"], [1, "struggle"], [4, "whirlwind"], [7, "egg_smash"], [13, "fluff_up"], [25, "altitude"], [28, "peregrine"], [31, "air_chain"], [34, "one_two"]],
+  101: [[1, "fire_ball"], [1, "muddle"], [1, "struggle"], [4, "amnesia"], [7, "berserk"], [13, "one_two"], [16, "bubble_trap"], [31, "all_in"], [37, "give_all"], [40, "breathe_fire"]],
+  102: [[1, "fire_ball"], [1, "muddle"], [1, "struggle"], [4, "amnesia"], [7, "berserk"], [13, "one_two"], [16, "bubble_trap"], [31, "all_in"], [37, "give_all"], [40, "pyrokinesis"]],
+  103: [[1, "hammerhead"], [1, "solar_synthesis"], [1, "struggle"], [4, "greenstone"], [7, "assault"], [13, "fluff_up"], [31, "one_two"], [37, "all_in"], [40, "cutting_leaves"]],
+  104: [[1, "hammerhead"], [1, "solar_synthesis"], [1, "struggle"], [4, "greenstone"], [7, "assault"], [13, "fluff_up"], [31, "one_two"], [37, "all_in"], [40, "cutting_leaves"]],
+  105: [[1, "energy_field"], [1, "rock"], [1, "struggle"], [4, "tinder"], [7, "muck"], [13, "sleep_bomb"], [19, "staff_smash"], [25, "shadow_boxing"], [28, "flamethrower"], [55, "divinity_beam"]],
+  106: [[1, "energy_field"], [1, "rock"], [1, "struggle"], [4, "tinder"], [7, "muck"], [13, "sleep_bomb"], [19, "staff_smash"], [25, "shadow_boxing"], [28, "flamethrower"], [55, "divinity_beam"]],
+  107: [[1, "strike"], [1, "struggle"], [1, "surge"], [4, "viper"], [7, "radiance"], [13, "constrict"]],
+  108: [[1, "strike"], [1, "struggle"], [1, "surge"], [4, "viper"], [7, "radiance"], [13, "constrict"], [19, "amnesia"], [25, "shuriken"], [28, "electrical_storm"]],
+  109: [[1, "strike"], [1, "struggle"], [1, "surge"], [4, "viper"], [7, "radiance"], [13, "constrict"], [19, "perfect_cut"], [25, "rust_bomb"], [28, "blade"]],
+  110: [[1, "bullet"], [1, "riposte"], [1, "struggle"], [4, "sudden_glow"], [7, "flamethrower"], [13, "shrapnel"], [16, "beam"], [19, "supernova"], [25, "breathe_fire"], [28, "chameleon"], [31, "wall_fire"], [37, "fire_shield"], [40, "energy_claws"], [55, "energy_beam"]],
+  111: [[1, "blade"], [1, "struggle"], [1, "wall_of_steel"], [4, "lineage"], [7, "rust_bomb"], [13, "terror"], [16, "fume"], [31, "strike"], [37, "energy_field"], [40, "shuriken"]],
+  112: [[1, "blade"], [1, "struggle"], [1, "wall_of_steel"], [4, "lineage"], [7, "rust_bomb"], [13, "terror"], [16, "fume"], [31, "strike"], [37, "energy_field"], [40, "shuriken"], [55, "energy_beam"]],
+  113: [[1, "strike"], [1, "struggle"], [1, "web"], [4, "sleep_bomb"], [7, "platinum"], [13, "constrict"], [25, "amnesia"], [28, "overgrowth"], [31, "whirlwind"]],
+  114: [[1, "strike"], [1, "struggle"], [1, "web"], [4, "sleep_bomb"], [7, "platinum"], [13, "constrict"], [25, "amnesia"], [28, "overgrowth"], [31, "whirlwind"]],
+  115: [[1, "invictus"], [1, "punch"], [1, "struggle"], [4, "strike"], [7, "constrict"], [13, "shuriken"], [16, "blade"], [19, "platinum"], [25, "undertaker"], [28, "time_crisis"], [31, "arcane_eye"], [37, "all_in"], [40, "insanity"]],
+  116: [[1, "mind_vise"], [1, "punch"], [1, "struggle"], [4, "strike"], [7, "shuriken"], [13, "bullet"], [16, "wall_of_steel"], [19, "muddle"], [25, "terror"], [28, "undertaker"], [31, "lineage"], [37, "time_crisis"], [40, "slice"]],
+  117: [[1, "crystal"], [1, "spit_poison"], [1, "struggle"], [4, "sleep_bomb"], [7, "ruby"], [13, "kindling_flame"], [16, "nest"], [19, "magma"], [25, "surge"], [28, "chameleon"], [31, "salamander"], [37, "glower"], [40, "sunburst"]],
+  118: [[1, "petrify"], [1, "struggle"], [1, "web"], [4, "shrapnel"], [7, "beam"], [13, "muddle"], [16, "platinum"], [19, "lineage"], [25, "rust_bomb"], [28, "perfect_cut"], [31, "meltdown"], [37, "insanity"], [40, "needle"]],
+  119: [[1, "midnight_mantle"], [1, "starfall"], [1, "struggle"], [4, "spit_poison"], [7, "frostbite"], [13, "snowstorm"], [16, "torch"], [19, "flood"], [25, "ice_shield"], [28, "goad"], [31, "grinding"], [37, "proboscis"], [40, "geyser"]],
+  120: [[1, "fluff_up"], [1, "punch"], [1, "struggle"], [4, "sting"], [7, "overgrowth"], [13, "walls"], [16, "orbs"], [19, "changeling"], [25, "phantasmal_force"], [28, "clairaudience"], [31, "splinter"], [37, "one_two"], [40, "blossom"], [43, "pseudopod"], [49, "sylvan"], [52, "shadow_boxing"]],
+  121: [[1, "fluff_up"], [1, "punch"], [1, "struggle"], [4, "sting"], [7, "overgrowth"], [13, "walls"], [16, "orbs"], [19, "changeling"], [25, "phantasmal_force"], [28, "clairaudience"], [31, "splinter"], [37, "one_two"], [40, "blossom"], [43, "pseudopod"], [49, "sylvan"], [52, "shadow_boxing"]],
+  122: [[1, "ice_claw"], [1, "stampede"], [1, "struggle"], [4, "hammerhead"], [7, "thunderball"], [13, "quicksand"], [16, "changeling"], [19, "lust"], [25, "canine"], [28, "mudslide"], [31, "electrical_storm"], [37, "sand_spray"], [40, "revenge_stance"]],
+  123: [[1, "air_chain"], [1, "buzz"], [1, "struggle"], [4, "fluff_up"], [7, "battery_discharge"], [13, "web"], [16, "caustic_spray"], [19, "cat_calling"], [25, "clairaudience"], [28, "avalanche"], [31, "chameleon"], [37, "needle"], [40, "fester"]],
+  124: [[1, "chill_mist"], [1, "solar_synthesis"], [1, "struggle"], [4, "whirlwind"], [7, "icicle_spear"], [13, "starfall"], [16, "leaf_barrage"], [19, "mobbing"], [25, "geyser"], [28, "biting_winds"], [31, "goad"], [37, "snowstorm"], [43, "frostbite"]],
+  125: [[1, "fungal_spore"], [1, "solar_synthesis"], [1, "struggle"], [4, "petrify"], [7, "pseudopod"], [13, "amnesia"], [16, "negation"], [19, "hallucinogen_spore"], [25, "stabilo"], [28, "radiance"], [31, "phantasmal_force"], [37, "splinter"], [40, "mind_explosion"]],
+  126: [[1, "fire_ball"], [1, "petrify"], [1, "struggle"], [4, "fire_claw"], [7, "saber"], [13, "nest"], [16, "tinder"], [19, "lava"], [25, "give_all"], [28, "magma"], [31, "wall_fire"], [37, "flamethrower"], [40, "shadow_blast"], [40, "thunderclap"]],
+  127: [[1, "flood"], [1, "sand_spray"], [1, "struggle"], [4, "refresh"], [7, "poison_courtship"], [13, "mobbing"], [16, "ice_shield"], [19, "spit_poison"], [25, "chill_mist"], [28, "muck"], [31, "kraken"], [37, "icicle_spear"], [40, "goad"]],
+  128: [[1, "hammerhead"], [1, "spit_poison"], [1, "struggle"], [4, "refresh"], [7, "lust"], [13, "ice_claw"], [16, "crystal"], [19, "assault"], [25, "nest"], [28, "avalanche"], [31, "mystic_blending"], [37, "platinum"], [40, "stonehenge"]],
+  129: [[1, "blood_bond"], [1, "midnight_mantle"], [1, "struggle"], [4, "chill_mist"], [7, "mind_vise"], [13, "amnesia"], [16, "beam"], [19, "phantasmal_force"], [25, "crystal"], [28, "undertaker"], [31, "shuriken"], [37, "bubble_trap"], [40, "blade"], [55, "shadow_blast"]],
+  130: [[1, "lightning_spheres"], [1, "slice"], [1, "struggle"], [4, "crystal"], [7, "muddle"], [13, "radiance"], [16, "perfect_cut"], [19, "peregrine"], [25, "time_crisis"], [28, "viper"], [31, "shrapnel"], [37, "electrical_storm"], [40, "lineage"]],
+  131: [[1, "invictus"], [1, "struggle"], [1, "wall_of_steel"], [4, "perfect_cut"], [7, "rust_bomb"], [13, "ruby"], [16, "sunburst"], [19, "bubble_trap"], [25, "time_crisis"], [28, "platinum"], [31, "beam"], [37, "negation"], [40, "constrict"]],
+  132: [[1, "sting"], [1, "struggle"], [1, "water_bullet"], [4, "flood"], [7, "flow"], [13, "spit_poison"], [16, "poison_courtship"], [19, "font"], [25, "water_blast"], [28, "ice_claw"], [31, "frostbite"], [37, "biting_winds"], [40, "ice_storm"]],
+  133: [[1, "beam"], [1, "starfall"], [1, "struggle"], [4, "supernova"], [7, "lava"], [13, "firestorm"], [16, "magma"], [19, "thunderclap"], [25, "muddle"], [28, "chameleon"], [31, "fire_claw"], [37, "bubble_trap"], [40, "flamethrower"]],
+  134: [[1, "struggle"], [1, "sunburst"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "sleep_bomb"], [13, "meltdown"], [16, "electroplate"], [19, "beam"], [25, "bullet"], [28, "bubble_trap"], [31, "rift_dash"], [37, "battery_acid"], [40, "electrical_storm"]],
+  135: [[1, "hammerhead"], [1, "punch"], [1, "struggle"], [4, "invictus"], [7, "ram"], [13, "fester"], [16, "avalanche"], [19, "assault"], [25, "thunderclap"], [28, "pit"], [31, "meltdown"], [37, "all_in"], [40, "one_two"]],
+  136: [[1, "blade"], [1, "struggle"], [1, "wing_tip"], [4, "fluff_up"], [7, "strike"], [13, "slice"], [16, "beam"], [19, "perfect_cut"], [25, "bubble_trap"], [28, "tip"], [31, "shrapnel"], [37, "arcane_eye"], [40, "meltdown"]],
+  137: [[1, "pollen_blast"], [1, "solar_synthesis"], [1, "struggle"], [4, "blossom"], [7, "spit_poison"], [13, "sylvan"], [16, "assault"], [19, "overgrowth"], [25, "orbs"], [28, "caustic_spray"], [31, "chameleon"], [37, "clairaudience"], [40, "shadow_blast"]],
+  138: [[1, "pseudopod"], [1, "sting"], [1, "struggle"], [4, "energy_claws"], [7, "thunderball"], [13, "sand_spray"], [16, "sylvan"], [19, "needle"], [25, "electroplate"], [28, "lust"], [31, "blood_nets"], [37, "stonehenge"], [40, "thorn_burst"]],
+  139: [[1, "fluff_up"], [1, "sting"], [1, "struggle"], [4, "splinter"], [7, "blossom"], [13, "overgrowth"], [16, "shadow_boxing"], [19, "wing_tip"], [25, "pseudopod"], [28, "whirlwind"], [31, "phantasmal_force"], [37, "poison_courtship"], [40, "stonehenge"]],
+  140: [[1, "ice_claw"], [1, "icicle_spear"], [1, "struggle"], [4, "snowball"], [7, "ram"], [13, "sand_spray"], [16, "avalanche"], [19, "snowstorm"], [25, "evasion"], [28, "biting_winds"], [31, "earthquake"], [37, "greenstone"], [40, "mending"]],
+  141: [[1, "pollen_blast"], [1, "solar_synthesis"], [1, "struggle"], [4, "sleeping_powder"], [7, "walls"], [13, "midnight_mantle"], [16, "web"], [19, "phantasmal_force"], [25, "ring"], [28, "ants"], [31, "stabilo"], [37, "one_two"], [40, "all_in"]],
+  142: [[1, "fire_claw"], [1, "fire_shield"], [1, "struggle"], [4, "sudden_glow"], [7, "sleep_bomb"], [13, "arcane_eye"], [16, "conjurer"], [19, "shadow_boxing"], [25, "lava"], [28, "thunderclap"], [31, "give_all"], [37, "flamethrower"], [40, "supernova"]],
+  143: [[1, "beam"], [1, "levitate"], [1, "struggle"], [4, "strike"], [7, "radiance"], [13, "battery_discharge"]],
+  144: [[1, "beam"], [1, "levitate"], [1, "struggle"], [4, "peck"], [7, "radiance"], [13, "battery_discharge"], [16, "wing_tip"], [19, "glower"], [25, "shrapnel"]],
+  145: [[1, "beam"], [1, "levitate"], [1, "struggle"], [4, "strike"], [7, "radiance"], [13, "battery_discharge"], [16, "wall_of_steel"], [19, "shrapnel"], [25, "constrict"]],
+  146: [[1, "beam"], [1, "levitate"], [1, "struggle"], [4, "strike"], [7, "radiance"], [13, "battery_discharge"], [16, "wall_of_steel"], [19, "shrapnel"], [25, "glower"]],
+  147: [[1, "beam"], [1, "levitate"], [1, "struggle"], [4, "strike"], [7, "radiance"], [13, "battery_discharge"], [16, "constrict"], [19, "glower"], [25, "shrapnel"]],
+  148: [[1, "beam"], [1, "levitate"], [1, "struggle"], [4, "strike"], [7, "radiance"], [13, "battery_discharge"], [16, "wall_of_steel"], [19, "glower"], [25, "shrapnel"]],
+  149: [[1, "constrict"], [1, "goad"], [1, "struggle"], [4, "strike"], [7, "perfect_cut"], [13, "roll"], [16, "muddle"], [19, "sleep_bomb"], [25, "shrapnel"], [28, "crystal"], [31, "battery_discharge"], [37, "clamp_on"], [40, "sunburst"]],
+  150: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"]],
+  151: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"], [16, "salamander"], [19, "flamethrower"], [25, "refresh"], [31, "fire_shield"], [40, "firestorm"]],
+  152: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"], [16, "fester"], [19, "infectious_bite"], [25, "flower_armor"], [31, "flower_bloom"]],
+  153: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"], [16, "rust_bomb"], [19, "constrict"], [25, "perfect_cut"], [31, "crushing_bite"], [37, "steel_jaws"]],
+  154: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"], [16, "chill_mist"], [19, "bubble_trap"], [25, "frostbite"]],
+  155: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"], [16, "electrical_storm"], [19, "sudden_glow"], [25, "battery_acid"], [31, "rift_dash"], [40, "electric_multibite"]],
+  156: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"], [16, "wing_tip"], [19, "crushing_bite"], [25, "frostbite"], [31, "burrow_blast"], [55, "energy_beam"]],
+  157: [[1, "hammerhead"], [1, "stone_rot"], [1, "struggle"], [4, "quicksand"], [7, "spit_poison"], [13, "wallow"], [16, "flood"], [19, "chill_mist"], [25, "water_blast"], [31, "depth_charge"]],
+  158: [[1, "flower_armor"], [1, "ram"], [1, "struggle"], [4, "greenstone"], [7, "negation"], [13, "overfeed"], [16, "hibernate"], [31, "leaf_barrage"], [37, "one_two"], [40, "fluff_up"], [55, "whirlwind"], [61, "flower_bloom"], [64, "shadow_boxing"], [70, "energy_beam"]],
+  159: [[1, "flower_armor"], [1, "ram"], [1, "struggle"], [4, "greenstone"], [7, "negation"], [13, "overfeed"], [16, "hibernate"], [31, "leaf_barrage"], [37, "one_two"], [40, "fluff_up"], [55, "whirlwind"], [61, "flower_bloom"], [64, "shadow_boxing"], [70, "energy_beam"]],
+  160: [[1, "flower_armor"], [1, "ram"], [1, "struggle"], [4, "greenstone"], [7, "negation"], [13, "overfeed"], [16, "hibernate"], [31, "leaf_barrage"], [37, "one_two"], [40, "fluff_up"], [55, "whirlwind"], [61, "flower_bloom"], [64, "shadow_boxing"], [70, "energy_beam"]],
+  161: [[1, "hammerhead"], [1, "struggle"], [1, "wing_tip"], [4, "peck"], [7, "avalanche"], [13, "air_chain"], [16, "fester"], [19, "ram"], [25, "icicle_spear"], [28, "greenstone"], [31, "altitude"], [37, "slime"], [40, "lantern"], [55, "tornado"]],
+  162: [[1, "boulder"], [1, "hammerhead"], [1, "struggle"], [4, "gnaw"], [7, "quicksand"], [13, "rock"], [16, "crushing_bite"], [19, "lust"], [25, "meltdown"], [28, "electroplate"], [31, "platinum"], [37, "steel_jaws"], [40, "earthquake"]],
+  163: [[1, "gnaw"], [1, "struggle"], [1, "tinder"], [4, "breathe_fire"], [7, "fire_shield"], [13, "firestorm"], [16, "give_all"], [19, "one_two"], [25, "all_in"], [28, "chameleon"], [31, "muddle"], [37, "supernova"], [40, "bubble_trap"], [55, "energy_beam"]],
+  164: [[1, "gust"], [1, "midnight_mantle"], [1, "struggle"], [4, "electrical_storm"], [7, "firestorm"], [13, "magma"], [16, "energy_claws"], [19, "bubble_trap"], [25, "muddle"], [28, "snowstorm"], [31, "one_two"], [37, "arcane_eye"], [40, "supernova"], [55, "divinity_beam"]],
+  165: [[1, "energy_field"], [1, "struggle"], [1, "sudden_glow"], [4, "sand_spray"], [7, "electrical_storm"], [13, "battery_acid"], [16, "ram"], [19, "platinum"], [25, "fledgling"], [28, "meltdown"], [31, "mystic_blending"], [37, "lust"], [40, "tsunami"], [55, "shadow_blast"]],
+  166: [[1, "pseudopod"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [7, "assault"], [13, "leaf_stab"], [16, "sting"], [19, "sylvan"], [25, "leaf_barrage"], [28, "all_in"], [31, "chameleon"], [37, "shadow_boxing"], [40, "stabilo"]],
+  167: [[1, "fire_ball"], [1, "fume"], [1, "struggle"], [4, "fluff_up"], [7, "breathe_fire"], [13, "one_two"], [16, "torch"], [19, "lava"], [25, "all_in"], [28, "invictus"], [31, "give_all"], [37, "supernova"], [40, "flamethrower"]],
+  168: [[1, "fire_ball"], [1, "fume"], [1, "struggle"], [4, "fluff_up"], [7, "breathe_fire"], [13, "one_two"], [16, "torch"], [19, "lava"], [25, "all_in"], [28, "invictus"], [31, "give_all"], [37, "supernova"], [40, "flamethrower"]],
+  169: [[1, "struggle"], [1, "wallow"], [1, "water_bullet"], [4, "flow"], [7, "goad"], [13, "stampede"], [16, "geyser"], [19, "spit_poison"], [25, "water_blast"], [28, "ice_claw"], [31, "chill_mist"], [37, "tsunami"], [40, "kraken"], [55, "divinity_beam"]],
+  170: [[1, "chill_mist"], [1, "proboscis"], [1, "struggle"], [4, "font"], [7, "goad"], [13, "flood"], [25, "flow"], [28, "kraken"], [31, "water_blast"], [40, "snowstorm"], [55, "shadow_blast"]],
+  171: [[1, "chill_mist"], [1, "proboscis"], [1, "struggle"], [4, "font"], [7, "goad"], [13, "flood"], [25, "flow"], [28, "kraken"], [31, "water_blast"], [40, "snowstorm"], [55, "shadow_blast"]],
+  172: [[1, "ice_claw"], [1, "punch"], [1, "struggle"], [4, "chill_mist"], [7, "flow"], [13, "snowstorm"], [25, "flood"], [28, "icicle_spear"], [40, "frostbite"]],
+  173: [[1, "ice_claw"], [1, "punch"], [1, "struggle"], [4, "chill_mist"], [7, "flow"], [13, "snowstorm"], [25, "flood"], [28, "icicle_spear"], [40, "frostbite"]],
+  174: [[1, "peck"], [1, "struggle"], [1, "wing_tip"], [4, "lineage"], [7, "slice"], [13, "one_two"], [25, "amnesia"], [28, "rust_bomb"], [31, "all_in"], [40, "one_million_talons"], [43, "perfect_cut"], [46, "tornado"]],
+  175: [[1, "peck"], [1, "struggle"], [1, "wing_tip"], [4, "lineage"], [7, "slice"], [13, "one_two"], [25, "amnesia"], [28, "rust_bomb"], [31, "all_in"], [40, "one_million_talons"], [43, "perfect_cut"], [46, "tornado"]],
+  176: [[1, "peck"], [1, "struggle"], [1, "wing_tip"], [4, "lineage"], [7, "slice"], [13, "one_two"], [25, "amnesia"], [28, "rust_bomb"], [31, "all_in"], [40, "one_million_talons"], [43, "perfect_cut"], [46, "tornado"]],
+  177: [[1, "bullet"], [1, "struggle"], [1, "tail_lash"], [4, "viper"], [7, "insanity"], [13, "muddle"], [16, "strike"], [40, "rust_bomb"], [43, "shuriken"], [46, "wall_of_steel"], [61, "amnesia"], [64, "undertaker"], [70, "shadow_blast"]],
+  178: [[1, "bullet"], [1, "struggle"], [1, "tail_lash"], [4, "viper"], [7, "insanity"], [13, "muddle"], [16, "strike"], [40, "rust_bomb"], [43, "shuriken"], [46, "wall_of_steel"], [61, "amnesia"], [64, "undertaker"], [70, "shadow_blast"]],
+  179: [[1, "bullet"], [1, "struggle"], [1, "tail_lash"], [4, "viper"], [7, "insanity"], [13, "muddle"], [16, "strike"], [40, "rust_bomb"], [43, "shuriken"], [46, "wall_of_steel"], [61, "amnesia"], [64, "undertaker"], [70, "shadow_blast"]],
+  180: [[1, "chill_mist"], [1, "fire_ball"], [1, "struggle"], [4, "muddle"], [7, "invictus"], [13, "midnight_mantle"], [25, "flamethrower"], [28, "water_blast"], [31, "breathe_fire"], [40, "shadow_blast"]],
+  181: [[1, "chill_mist"], [1, "fire_ball"], [1, "struggle"], [4, "muddle"], [7, "invictus"], [13, "midnight_mantle"], [25, "flamethrower"], [28, "water_blast"], [31, "breathe_fire"], [40, "shadow_blast"]],
+  182: [[1, "chill_mist"], [1, "fire_ball"], [1, "struggle"], [4, "muddle"], [7, "invictus"], [13, "midnight_mantle"], [25, "flamethrower"], [28, "water_blast"], [31, "breathe_fire"], [40, "shadow_blast"]],
+  183: [[1, "chill_mist"], [1, "fire_ball"], [1, "struggle"], [4, "muddle"], [7, "invictus"], [13, "midnight_mantle"], [25, "flamethrower"], [28, "water_blast"], [31, "breathe_fire"], [40, "shadow_blast"]],
+  184: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "rock"], [7, "thunderball"], [13, "mudslide"], [16, "fume"], [19, "air_chain"], [25, "stampede"], [28, "clamp_on"], [31, "electroplate"], [37, "breathe_fire"], [40, "stonehenge"]],
+  185: [[1, "punch"], [1, "riposte"], [1, "struggle"], [4, "rock"], [7, "stampede"], [13, "mending"], [16, "surge"], [19, "fledgling"], [25, "beam"], [28, "assault"], [31, "pit"], [37, "rocky_barrage"], [43, "all_in"], [55, "give_all"]],
+  186: [[1, "ram"], [1, "rock"], [1, "struggle"], [4, "mudslide"], [7, "stampede"], [13, "evasion"], [16, "lantern"], [19, "mending"], [25, "breath"], [28, "sylvan"], [31, "fledgling"], [37, "tip"], [40, "earthquake"]],
+  187: [[1, "fluff_up"], [1, "leaf_stab"], [1, "struggle"], [4, "splinter"], [7, "spit_poison"], [13, "invictus"], [16, "solar_synthesis"], [19, "fester"], [25, "blossom"], [28, "leaf_barrage"], [31, "chameleon"], [37, "whirlwind"], [40, "clairaudience"]],
+  188: [[1, "fluff_up"], [1, "leaf_stab"], [1, "struggle"], [4, "splinter"], [7, "spit_poison"], [13, "invictus"], [16, "solar_synthesis"], [19, "fester"], [25, "blossom"], [28, "leaf_barrage"], [31, "chameleon"], [37, "whirlwind"], [40, "clairaudience"]],
+  189: [[1, "fluff_up"], [1, "leaf_stab"], [1, "struggle"], [4, "splinter"], [7, "spit_poison"], [13, "invictus"], [16, "solar_synthesis"], [19, "fester"], [25, "blossom"], [28, "leaf_barrage"], [31, "chameleon"], [37, "whirlwind"], [40, "clairaudience"], [55, "tornado"]],
+  190: [[1, "riposte"], [1, "strike"], [1, "struggle"], [4, "blade"], [7, "mudslide"], [13, "fester"], [16, "crystal"], [19, "platinum"], [25, "staff_smash"], [28, "battery_acid"], [31, "thunderball"], [37, "snowstorm"], [40, "berserk"]],
+  191: [[1, "fume"], [1, "rock"], [1, "struggle"], [4, "spit_poison"], [7, "electroplate"], [13, "ants"], [16, "cat_calling"], [19, "quicksand"], [25, "biting_winds"], [28, "cloud_aether"], [31, "greenstone"], [37, "earthquake"], [40, "surge"]],
+  192: [[1, "bullet"], [1, "buzz"], [1, "struggle"], [4, "blade"], [7, "strike"], [13, "wall_of_steel"]],
+  193: [[1, "bullet"], [1, "buzz"], [1, "struggle"], [4, "blade"], [7, "strike"], [13, "wall_of_steel"], [25, "fire_ball"], [28, "fire_claw"], [31, "flamethrower"]],
+  194: [[1, "bullet"], [1, "buzz"], [1, "struggle"], [4, "blade"], [7, "strike"], [13, "wall_of_steel"], [25, "mudslide"], [28, "ram"], [31, "rock"]],
+  195: [[1, "bullet"], [1, "buzz"], [1, "struggle"], [4, "blade"], [7, "strike"], [13, "wall_of_steel"], [19, "amnesia"], [25, "peregrine"], [28, "whirlwind"]],
+  196: [[1, "buzz"], [1, "mind_vise"], [1, "struggle"], [4, "blade"], [7, "strike"], [13, "wall_of_steel"], [19, "shuriken"], [25, "frostbite"], [28, "shrapnel"]],
+  197: [[1, "slice"], [1, "struggle"], [1, "whirlwind"], [4, "bullet"], [7, "muddle"], [13, "wall_of_steel"], [19, "bubble_trap"], [28, "constrict"]],
+  198: [[1, "slice"], [1, "struggle"], [1, "whirlwind"], [4, "bullet"], [7, "muddle"], [13, "wall_of_steel"], [19, "bubble_trap"], [25, "adamantine"], [28, "constrict"]],
+  199: [[1, "peck"], [1, "struggle"], [1, "whirlwind"], [4, "assault"], [7, "negation"], [13, "gust"], [16, "wing_tip"], [31, "fluff_up"], [37, "peregrine"], [40, "one_two"]],
+  200: [[1, "peck"], [1, "struggle"], [1, "whirlwind"], [4, "assault"], [7, "negation"], [13, "gust"], [16, "wing_tip"], [31, "fluff_up"], [37, "peregrine"], [40, "one_two"], [55, "ten_thousand_feathers"]],
+  201: [[1, "flood"], [1, "flow"], [1, "struggle"], [4, "mobbing"], [7, "orbs"], [13, "spit_poison"], [16, "font"], [19, "goad"], [25, "feint"], [28, "venomous_tentacle"]],
+  202: [[1, "flood"], [1, "flow"], [1, "struggle"], [4, "mobbing"], [7, "orbs"], [13, "spit_poison"], [16, "font"], [19, "goad"], [25, "feint"], [28, "venomous_tentacle"]],
+  203: [[1, "flow"], [1, "spit_poison"], [1, "struggle"], [4, "grinding"], [7, "muck"], [13, "flood"], [25, "icicle_spear"], [28, "font"], [31, "starfall"], [40, "ice_claw"], [43, "chill_mist"], [46, "frostbite"]],
+  204: [[1, "flow"], [1, "spit_poison"], [1, "struggle"], [4, "grinding"], [7, "muck"], [13, "flood"], [25, "icicle_spear"], [28, "font"], [31, "starfall"], [40, "ice_claw"], [43, "chill_mist"], [46, "frostbite"]],
+  205: [[1, "flow"], [1, "spit_poison"], [1, "struggle"], [4, "grinding"], [7, "muck"], [13, "flood"], [25, "icicle_spear"], [28, "font"], [31, "starfall"], [40, "ice_claw"], [43, "chill_mist"], [46, "frostbite"]],
+  206: [[1, "clamp_on"], [1, "rock"], [1, "struggle"], [4, "crystal"], [7, "petrify"], [13, "take_cover"], [25, "quicksand"], [28, "fester"], [31, "avalanche"]],
+  207: [[1, "clamp_on"], [1, "rock"], [1, "struggle"], [4, "crystal"], [7, "petrify"], [13, "take_cover"], [25, "quicksand"], [28, "fester"], [31, "avalanche"]],
+  208: [[1, "fire_ball"], [1, "rock"], [1, "struggle"], [4, "fire_claw"], [7, "one_two"], [13, "flamethrower"], [25, "give_all"], [28, "supernova"], [31, "tinder"]],
+  209: [[1, "fire_ball"], [1, "rock"], [1, "struggle"], [4, "fire_claw"], [7, "one_two"], [13, "flamethrower"], [25, "give_all"], [28, "supernova"], [31, "electrical_storm"]],
+  210: [[1, "solar_synthesis"], [1, "stick"], [1, "struggle"], [4, "negation"], [7, "clairaudience"], [13, "overfeed"], [16, "trample"], [19, "fluff_up"], [25, "blossom"], [28, "cutting_leaves"]],
+  211: [[1, "solar_synthesis"], [1, "stick"], [1, "struggle"], [4, "negation"], [7, "clairaudience"], [13, "overfeed"], [16, "trample"], [19, "fluff_up"], [25, "blossom"], [28, "cutting_leaves"], [55, "energy_beam"]],
+  212: [[1, "goad"], [1, "strike"], [1, "struggle"], [4, "time_crisis"], [7, "slice"], [13, "shrapnel"], [25, "electrical_storm"], [28, "muddle"], [31, "wall_of_steel"]],
+  213: [[1, "goad"], [1, "strike"], [1, "struggle"], [4, "time_crisis"], [7, "slice"], [13, "shrapnel"], [25, "electrical_storm"], [28, "muddle"], [31, "wall_of_steel"], [55, "energy_beam"]],
+  214: [[1, "strike"], [1, "struggle"], [1, "tail_lash"], [4, "constrict"], [7, "terror"], [10, "insanity"], [13, "bubble_trap"], [19, "sleep_bomb"], [25, "shrapnel"], [28, "wall_of_steel"]],
+  215: [[1, "strike"], [1, "struggle"], [1, "tail_lash"], [4, "constrict"], [7, "terror"], [10, "insanity"], [13, "bubble_trap"], [19, "sleep_bomb"], [25, "shrapnel"], [28, "wall_of_steel"]],
+  216: [[1, "leaf_stab"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "pseudopod"], [13, "invictus"], [25, "fester"], [28, "one_two"], [31, "fluff_up"], [40, "shadow_blast"]],
+  217: [[1, "leaf_stab"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "pseudopod"], [13, "invictus"], [25, "fester"], [28, "one_two"], [31, "fluff_up"], [40, "shadow_blast"]],
+  218: [[1, "leaf_stab"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "pseudopod"], [13, "invictus"], [25, "fester"], [28, "one_two"], [31, "fluff_up"], [40, "shadow_blast"]],
+  219: [[1, "mind_vise"], [1, "struggle"], [1, "tail_lash"], [4, "strike"], [7, "arcane_eye"], [13, "bullet"], [16, "meltdown"], [19, "crystal"], [25, "perfect_cut"], [28, "neutralize"], [31, "demiurge"], [37, "lightning_spheres"], [40, "wall_of_steel"], [55, "divinity_beam"]],
+  220: [[1, "fire_ball"], [1, "peck"], [1, "struggle"], [4, "sand_spray"], [7, "stampede"], [13, "fire_shield"], [16, "arcane_eye"], [19, "breathe_fire"], [43, "peregrine"], [46, "all_in"], [52, "flamethrower"], [55, "tornado"]],
+  221: [[1, "fire_ball"], [1, "peck"], [1, "struggle"], [4, "sand_spray"], [7, "stampede"], [13, "fire_shield"], [16, "arcane_eye"], [19, "breathe_fire"], [43, "peregrine"], [46, "all_in"], [52, "flamethrower"], [55, "tornado"]],
+  222: [[1, "solar_synthesis"], [1, "sting"], [1, "struggle"], [4, "splinter"], [7, "assault"], [13, "blossom"], [16, "stabilo"], [19, "clairaudience"], [25, "fester"], [28, "radiance"], [31, "poison_courtship"], [37, "one_two"], [40, "flower_bloom"]],
+  223: [[1, "solar_synthesis"], [1, "sting"], [1, "struggle"], [4, "splinter"], [7, "assault"], [13, "blossom"], [16, "stabilo"], [19, "clairaudience"], [25, "fester"], [28, "radiance"], [31, "poison_courtship"], [37, "one_two"], [40, "flower_bloom"]],
+  224: [[1, "solar_synthesis"], [1, "sting"], [1, "struggle"], [4, "splinter"], [7, "assault"], [13, "blossom"], [16, "stabilo"], [19, "clairaudience"], [25, "fester"], [28, "radiance"], [31, "poison_courtship"], [37, "one_two"], [40, "flower_bloom"]],
+  225: [[1, "hibernate"], [1, "struggle"], [1, "water_bullet"], [4, "flood"], [7, "ice_shield"], [13, "chill_mist"], [16, "water_blast"], [19, "orbs"], [25, "biting_winds"], [28, "mobbing"], [31, "shapechange"], [37, "frostbite"], [40, "breath"], [55, "dreamwalk"]],
+  226: [[1, "hibernate"], [1, "struggle"], [1, "water_bullet"], [4, "flood"], [7, "ice_shield"], [13, "chill_mist"], [16, "water_blast"], [19, "orbs"], [25, "biting_winds"], [28, "mobbing"], [31, "shapechange"], [37, "frostbite"], [40, "breath"], [55, "dreamwalk"]],
+  227: [[1, "fire_ball"], [1, "fire_claw"], [1, "struggle"], [4, "muddle"], [7, "breathe_fire"], [13, "chameleon"], [16, "kindling_flame"], [28, "sunburst"], [31, "magma"], [37, "arcane_eye"], [40, "battery_acid"]],
+  228: [[1, "fire_ball"], [1, "fire_claw"], [1, "struggle"], [4, "muddle"], [7, "breathe_fire"], [13, "chameleon"], [16, "kindling_flame"], [25, "webs_wind"], [28, "sunburst"], [31, "magma"], [37, "arcane_eye"], [40, "battery_acid"]],
+  229: [[1, "spiky_strike"], [1, "struggle"], [1, "tip"], [4, "needle"], [7, "pseudopod"], [13, "overgrowth"], [16, "blossom"], [19, "fester"], [25, "sylvan"], [28, "trample"], [31, "woodsmash"], [40, "cutting_leaves"]],
+  230: [[1, "spiky_strike"], [1, "struggle"], [1, "tip"], [4, "needle"], [7, "pseudopod"], [13, "overgrowth"], [16, "blossom"], [19, "fester"], [25, "sylvan"], [28, "trample"], [31, "woodsmash"], [40, "cutting_leaves"]],
+  231: [[1, "spiky_strike"], [1, "struggle"], [1, "tip"], [4, "needle"], [7, "pseudopod"], [13, "overgrowth"], [16, "blossom"], [19, "fester"], [25, "sylvan"], [28, "trample"], [31, "woodsmash"], [40, "cutting_leaves"]],
+  232: [[1, "spit_poison"], [1, "sting"], [1, "struggle"], [4, "web"], [7, "wing_tip"], [13, "fester"], [16, "chameleon"], [19, "clock"], [25, "combat_clone"], [28, "poison_courtship"], [31, "damage_division"], [37, "stabilo"], [40, "assault"]],
+  233: [[1, "midnight_mantle"], [1, "shadow_boxing"], [1, "struggle"], [4, "wall_of_steel"], [7, "constrict"], [13, "changeling"], [16, "platinum"], [19, "ruby"], [25, "bullet"], [28, "undertaker"], [31, "insanity"], [37, "battery_discharge"], [40, "muddle"], [55, "shadow_blast"]],
+  234: [[1, "boulder"], [1, "gnaw"], [1, "struggle"], [4, "shadow_boxing"], [7, "invictus"], [13, "spit_poison"], [16, "splinter"], [19, "pseudopod"], [25, "phantasmal_force"], [28, "poison_courtship"], [31, "orbs"], [37, "strangulation"], [40, "steel_jaws"], [55, "energy_beam"]],
+  235: [[1, "hammerhead"], [1, "hibernate"], [1, "struggle"], [4, "chameleon"], [7, "sylvan"], [13, "diet"], [25, "hallucinogen_spore"], [28, "shadow_boxing"], [31, "life_surge"], [37, "rocky_barrage"]],
+  236: [[1, "hammerhead"], [1, "hibernate"], [1, "struggle"], [4, "chameleon"], [7, "sylvan"], [13, "diet"], [25, "hallucinogen_spore"], [28, "shadow_boxing"], [31, "life_surge"], [37, "rocky_barrage"]],
+  237: [[1, "biting_winds"], [1, "struggle"], [1, "water_bullet"], [4, "flood"], [7, "goad"], [13, "midnight_mantle"], [16, "ice_shield"], [19, "pouch"], [25, "mobbing"], [28, "poison_courtship"], [31, "ice_storm"], [37, "venomous_tentacle"], [40, "kraken"]],
+  238: [[1, "ice_claw"], [1, "shadow_boxing"], [1, "struggle"], [4, "icicle_spear"], [7, "roll"], [13, "shrapnel"], [16, "surge"], [19, "fester"], [25, "needle"], [28, "mending"], [31, "quicksand"], [37, "electroplate"], [40, "thorn_burst"]],
+  239: [[1, "ice_claw"], [1, "shadow_boxing"], [1, "struggle"], [4, "icicle_spear"], [7, "roll"], [13, "shrapnel"], [16, "surge"], [19, "fester"], [25, "needle"], [28, "mending"], [31, "quicksand"], [37, "electroplate"], [40, "thorn_burst"]],
+  240: [[1, "invictus"], [1, "splinter"], [1, "struggle"], [4, "wall_of_steel"], [7, "shuriken"], [13, "arcane_eye"], [16, "beam"], [19, "overgrowth"], [25, "terror"], [28, "amnesia"], [31, "negation"], [37, "breath"], [40, "dreamwalk"]],
+  241: [[1, "blade"], [1, "struggle"], [1, "wall_of_steel"], [4, "muddle"], [7, "peregrine"], [13, "insanity"], [16, "bullet"], [19, "shrapnel"], [25, "sleep_bomb"], [28, "undertaker"], [31, "viper"], [37, "horn"], [40, "whirlwind"]],
+  242: [[1, "ice_claw"], [1, "starfall"], [1, "struggle"], [4, "blood_bond"], [7, "midnight_mantle"], [13, "icicle_spear"], [16, "biting_winds"], [19, "mobbing"], [25, "geyser"], [28, "water_blast"], [31, "ice_shield"], [37, "goad"], [40, "snowstorm"]],
+  243: [[1, "strike"], [1, "struggle"], [1, "surge"], [4, "lineage"], [7, "rust_bomb"], [13, "terror"], [16, "frostbite"], [25, "battery_acid"], [28, "sudden_glow"], [31, "shrapnel"]],
+  244: [[1, "strike"], [1, "struggle"], [1, "surge"], [4, "lineage"], [7, "rust_bomb"], [13, "terror"], [16, "frostbite"], [25, "battery_acid"], [28, "sudden_glow"], [31, "shrapnel"], [55, "shadow_blast"]],
+  245: [[1, "gnaw"], [1, "struggle"], [1, "water_bullet"], [4, "goad"], [7, "flood"], [13, "midnight_mantle"], [25, "water_blast"], [28, "viper"], [31, "electric_multibite"], [40, "tsunami"]],
+  246: [[1, "gnaw"], [1, "struggle"], [1, "water_bullet"], [4, "goad"], [7, "flood"], [13, "midnight_mantle"], [25, "water_blast"], [28, "viper"], [31, "electric_multibite"], [40, "tsunami"]],
+  247: [[1, "beam"], [1, "fire_ball"], [1, "struggle"], [4, "shrapnel"], [7, "arcane_eye"], [13, "acid"], [16, "strike"], [19, "lineage"], [25, "sleep_bomb"], [28, "radiance"], [31, "gold_digger"], [37, "muddle"], [40, "perfect_cut"]],
+  248: [[1, "beam"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "fire_claw"], [13, "energy_claws"], [16, "give_all"], [19, "electrical_storm"], [25, "lava"], [28, "arcane_eye"], [31, "fire_shield"], [37, "kindling_flame"], [40, "supernova"]],
+  249: [[1, "fluff_up"], [1, "ice_claw"], [1, "struggle"], [4, "stonehenge"], [7, "barking"], [13, "canine"], [16, "frostbite"], [19, "icicle_spear"], [25, "fume"], [28, "greenstone"], [31, "invictus"], [37, "ice_storm"], [40, "overgrowth"]],
+  250: [[1, "flood"], [1, "struggle"], [1, "whirlwind"], [4, "roll"], [7, "midnight_mantle"], [13, "muck"], [16, "mobbing"], [19, "kraken"], [25, "poison_courtship"], [28, "ice_shield"], [31, "shapechange"], [37, "chill_mist"], [40, "tornado"]],
+  251: [[1, "flood"], [1, "struggle"], [1, "whirlwind"], [4, "roll"], [7, "midnight_mantle"], [13, "muck"], [16, "mobbing"], [19, "kraken"], [25, "poison_courtship"], [28, "ice_shield"], [31, "shapechange"], [37, "chill_mist"], [40, "tornado"]],
+  252: [[1, "assault"], [1, "crystal"], [1, "struggle"], [4, "breath"], [7, "peck"], [13, "greenstone"], [16, "frostbite"], [19, "muck"], [25, "rock"], [28, "fledgling"], [31, "strangulation"], [37, "platinum"], [40, "sylvan"]],
+  253: [[1, "bullet"], [1, "eyebite"], [1, "struggle"], [4, "mind_vise"], [7, "crystal"], [13, "sleep_bomb"], [16, "ruby"], [19, "acid"], [25, "slice"], [28, "amnesia"], [31, "radiance"], [37, "lineage"], [40, "energy_beam"]],
+  254: [[1, "sand_spray"], [1, "stampede"], [1, "struggle"], [4, "surge"], [7, "ruby"], [13, "icicle_spear"], [16, "crystal"], [19, "stonehenge"], [25, "thunderclap"], [28, "electroplate"], [31, "tsunami"], [37, "greenstone"], [40, "pit"]],
+  255: [[1, "sand_spray"], [1, "stampede"], [1, "struggle"], [4, "surge"], [7, "ruby"], [13, "icicle_spear"], [16, "crystal"], [19, "stonehenge"], [25, "thunderclap"], [28, "electroplate"], [31, "tsunami"], [37, "greenstone"], [40, "pit"]],
+  256: [[1, "flow"], [1, "proboscis"], [1, "struggle"], [4, "goad"], [7, "ice_claw"], [13, "grinding"], [16, "blood_bond"], [19, "geyser"], [25, "water_blast"], [28, "frostbite"], [31, "venomous_tentacle"], [37, "flood"], [40, "kraken"]],
+  257: [[1, "fire_ball"], [1, "struggle"], [1, "sunburst"], [4, "salamander"], [7, "surge"], [13, "muddle"], [16, "kindling_flame"], [19, "fire_claw"], [25, "wall_fire"], [28, "gold_digger"], [31, "energy_claws"], [37, "arcane_eye"], [40, "supernova"], [55, "tornado"]],
+  258: [[1, "mind_vise"], [1, "muddle"], [1, "struggle"], [4, "rust_bomb"], [7, "radiance"], [13, "meltdown"], [16, "amnesia"], [19, "lineage"], [25, "whirlwind"], [28, "acid"], [31, "lightning_spheres"], [37, "sleep_bomb"], [40, "shadow_blast"]],
+  259: [[1, "mind_vise"], [1, "muddle"], [1, "struggle"], [4, "rust_bomb"], [7, "radiance"], [13, "meltdown"], [16, "amnesia"], [19, "lineage"], [25, "whirlwind"], [28, "acid"], [31, "lightning_spheres"], [37, "sleep_bomb"], [40, "shadow_blast"]],
+  260: [[1, "ants"], [1, "ice_claw"], [1, "struggle"], [4, "muck"], [7, "hammerhead"], [13, "infectious_bite"], [16, "breath"], [19, "grinding"], [25, "gourmet"], [28, "strangulation"], [31, "cat_calling"], [37, "burrow_blast"], [40, "evasion"]],
+  261: [[1, "spiky_strike"], [1, "struggle"], [1, "torch"], [4, "flow"], [7, "roll"], [13, "mobbing"], [16, "icicle_spear"], [19, "venomous_tentacle"], [25, "needle"], [28, "ice_claw"], [31, "poison_courtship"], [37, "flood"], [40, "thorn_burst"]],
+  262: [[1, "buzz"], [1, "pseudopod"], [1, "struggle"], [4, "bubble_trap"], [7, "all_in"], [13, "surge"], [16, "give_all"], [19, "magma"], [25, "lava"], [28, "sunburst"], [31, "conjurer"], [37, "supernova"], [40, "flamethrower"], [55, "electrical_storm"]],
+  263: [[1, "fire_claw"], [1, "stampede"], [1, "struggle"], [4, "salamander"], [7, "breathe_fire"], [13, "all_in"], [25, "eyebite"], [28, "glower"], [31, "flamethrower"]],
+  264: [[1, "fire_claw"], [1, "stampede"], [1, "struggle"], [4, "salamander"], [7, "breathe_fire"], [13, "all_in"], [25, "eyebite"], [28, "glower"], [31, "flamethrower"]],
+  265: [[1, "muddle"], [1, "solar_synthesis"], [1, "struggle"], [4, "sleep_bomb"], [7, "sylvan"], [13, "overgrowth"], [16, "nest"], [19, "stabilo"], [25, "surge"], [28, "chameleon"], [31, "tinder"], [37, "sleeping_powder"], [40, "mind_explosion"]],
+  266: [[1, "slice"], [1, "struggle"], [1, "wing_tip"], [4, "strike"], [7, "berserk"], [13, "amnesia"], [16, "lineage"], [19, "rust_bomb"], [25, "blade"], [28, "all_in"], [31, "perfect_cut"], [37, "one_two"], [40, "platinum"]],
+  267: [[1, "mending"], [1, "peck"], [1, "struggle"], [4, "mudslide"], [7, "egg_smash"], [13, "evasion"], [16, "lantern"], [19, "life_surge"], [25, "breath"], [28, "neutralize"], [31, "fledgling"], [37, "pouch"], [40, "earthquake"]],
+  268: [[1, "strike"], [1, "struggle"], [1, "wall_of_steel"], [4, "bullet"], [7, "muddle"], [13, "shrapnel"], [16, "lineage"], [19, "perfect_cut"], [25, "terror"], [28, "rust_bomb"], [31, "crystal"], [40, "shadow_blast"]],
+  269: [[1, "strike"], [1, "struggle"], [1, "wall_of_steel"], [4, "bullet"], [7, "muddle"], [13, "shrapnel"], [16, "lineage"], [19, "perfect_cut"], [25, "terror"], [28, "rust_bomb"], [31, "crystal"], [40, "shadow_blast"]],
+  270: [[1, "flow"], [1, "goad"], [1, "struggle"], [4, "hook"], [7, "grinding"], [13, "mobbing"], [16, "flood"], [19, "horn"], [25, "font"], [28, "icicle_spear"], [31, "needle"], [37, "tsunami"], [40, "kraken"]],
+  271: [[1, "gold_digger"], [1, "struggle"], [1, "wall_of_steel"], [4, "shrapnel"], [7, "rust_bomb"], [13, "radiance"], [16, "constrict"], [19, "slice"], [25, "bubble_trap"], [28, "electrical_storm"], [31, "time_crisis"], [37, "terror"], [40, "undertaker"]],
+  272: [[1, "flow"], [1, "peck"], [1, "struggle"], [4, "mobbing"], [7, "flood"], [13, "font"], [16, "starfall"], [19, "grinding"], [25, "blood_bond"], [28, "tux_attack"], [31, "frostbite"], [37, "tsunami"], [40, "shapechange"]],
+  273: [[1, "bullet"], [1, "struggle"], [1, "wall_of_steel"], [4, "tinder"], [7, "sleep_bomb"], [13, "meltdown"], [16, "shuriken"], [19, "beam"], [25, "electrical_storm"], [28, "kiss"], [31, "shrapnel"], [37, "terror"], [40, "sunburst"]],
+  274: [[1, "assault"], [1, "gnaw"], [1, "struggle"], [4, "greenstone"], [7, "sylvan"], [13, "pseudopod"], [16, "stonehenge"], [19, "horn"], [25, "one_two"], [28, "fester"], [31, "clairaudience"], [37, "steel_jaws"], [40, "negation"]],
+  275: [[1, "bullet"], [1, "muddle"], [1, "struggle"], [4, "wall_of_steel"], [7, "lineage"], [13, "ruby"], [16, "terror"], [19, "crystal"], [25, "phantasmal_force"], [28, "perfect_cut"], [31, "shrapnel"], [40, "shadow_blast"]],
+  276: [[1, "bullet"], [1, "muddle"], [1, "struggle"], [4, "wall_of_steel"], [7, "lineage"], [13, "ruby"], [16, "terror"], [19, "crystal"], [25, "phantasmal_force"], [28, "perfect_cut"], [31, "shrapnel"], [40, "shadow_blast"]],
+  277: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "riposte"], [7, "assault"], [13, "thunderball"], [28, "glower"], [31, "wall_of_steel"], [34, "surge"], [43, "stampede"], [46, "earthquake"], [52, "rocky_barrage"]],
+  278: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "riposte"], [7, "assault"], [13, "thunderball"], [28, "glower"], [31, "wall_of_steel"], [34, "surge"], [43, "stampede"], [46, "earthquake"], [52, "rocky_barrage"]],
+  279: [[1, "boulder"], [1, "ram"], [1, "struggle"], [4, "riposte"], [7, "assault"], [13, "thunderball"], [28, "glower"], [31, "wall_of_steel"], [34, "surge"], [43, "stampede"], [46, "earthquake"], [52, "rocky_barrage"]],
+  280: [[1, "goad"], [1, "ice_claw"], [1, "struggle"], [4, "beam"], [7, "orbs"], [13, "neutralize"]],
+  281: [[1, "goad"], [1, "ice_claw"], [1, "struggle"], [4, "beam"], [7, "orbs"], [13, "neutralize"], [28, "fiery"], [34, "sudden_glow"], [43, "icicle_spear"], [46, "snowstorm"], [52, "divinity_beam"]],
+  282: [[1, "goad"], [1, "ice_claw"], [1, "struggle"], [4, "torch"], [7, "orbs"], [13, "muck"], [28, "chill_mist"], [34, "grinding"], [43, "tsunami"], [46, "snowstorm"], [52, "shadow_blast"]],
+  283: [[1, "goad"], [1, "ice_claw"], [1, "struggle"], [4, "torch"], [7, "orbs"], [13, "muck"], [28, "chill_mist"], [34, "grinding"], [43, "tsunami"], [46, "snowstorm"], [52, "shadow_blast"]],
+  284: [[1, "goad"], [1, "ice_claw"], [1, "struggle"], [4, "beam"], [7, "orbs"], [13, "neutralize"], [28, "fiery"], [34, "sudden_glow"], [43, "icicle_spear"], [46, "snowstorm"], [52, "divinity_beam"]],
+  285: [[1, "lightning_spheres"], [1, "petrify"], [1, "struggle"], [4, "shrapnel"], [7, "beam"], [13, "time_crisis"], [16, "platinum"], [19, "lineage"], [25, "rust_bomb"], [28, "perfect_cut"], [31, "meltdown"], [37, "insanity"], [40, "radiance"]],
+  286: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "grinding"], [13, "flow"], [16, "icicle_spear"], [19, "font"], [25, "starfall"], [31, "tsunami"], [37, "ice_storm"]],
+  287: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "grinding"], [13, "flow"], [16, "icicle_spear"], [19, "font"], [25, "starfall"], [31, "tsunami"], [37, "ice_storm"]],
+  288: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "icicle_spear"], [13, "flow"], [16, "water_blast"], [25, "starfall"], [31, "tsunami"], [37, "ice_storm"]],
+  289: [[1, "flood"], [1, "goad"], [1, "struggle"], [4, "geyser"], [7, "icicle_spear"], [13, "flow"], [16, "water_blast"], [25, "starfall"], [31, "tsunami"], [37, "ice_storm"]],
+  290: [[1, "slime"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "stonehenge"], [13, "clairaudience"], [16, "negation"], [19, "greenstone"], [28, "breath"], [31, "all_in"], [34, "surge"], [37, "mudslide"], [52, "earthquake"], [55, "thunderball"]],
+  291: [[1, "slime"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "stonehenge"], [13, "clairaudience"], [16, "negation"], [19, "greenstone"], [28, "breath"], [31, "all_in"], [34, "surge"], [37, "mudslide"], [52, "earthquake"], [55, "thunderball"]],
+  292: [[1, "slime"], [1, "solar_synthesis"], [1, "struggle"], [4, "sylvan"], [7, "stonehenge"], [13, "clairaudience"], [16, "negation"], [19, "greenstone"], [28, "breath"], [31, "all_in"], [34, "surge"], [37, "mudslide"], [52, "earthquake"], [55, "thunderball"]],
+  293: [[1, "goad"], [1, "snowball"], [1, "struggle"], [4, "geyser"], [7, "lock_horns"], [13, "flow"], [16, "icicle_spear"], [19, "horn"], [25, "starfall"], [31, "tsunami"], [37, "ice_storm"]],
+  294: [[1, "goad"], [1, "snowball"], [1, "struggle"], [4, "geyser"], [7, "lock_horns"], [13, "flow"], [16, "icicle_spear"], [19, "horn"], [25, "starfall"], [31, "tsunami"], [37, "ice_storm"]],
+  295: [[1, "font"], [1, "midnight_mantle"], [1, "struggle"], [4, "flow"], [7, "flood"], [13, "starfall"], [16, "ice_claw"], [19, "icicle_spear"], [25, "snowstorm"], [28, "mobbing"], [31, "orbs"], [37, "kraken"], [40, "poison_courtship"]],
+  296: [[1, "font"], [1, "midnight_mantle"], [1, "struggle"], [4, "flow"], [7, "flood"], [13, "starfall"], [16, "ice_claw"], [19, "icicle_spear"], [25, "snowstorm"], [28, "mobbing"], [31, "orbs"], [37, "kraken"], [40, "poison_courtship"]],
+  297: [[1, "font"], [1, "midnight_mantle"], [1, "struggle"], [4, "flow"], [7, "flood"], [13, "starfall"], [16, "ice_claw"], [19, "icicle_spear"], [25, "snowstorm"], [28, "mobbing"], [31, "orbs"], [37, "kraken"], [40, "poison_courtship"]],
+  298: [[1, "midnight_mantle"], [1, "starfall"], [1, "struggle"], [4, "spit_poison"], [7, "frostbite"], [13, "snowstorm"], [16, "torch"], [19, "flood"], [25, "ice_shield"], [28, "goad"], [31, "grinding"], [37, "proboscis"], [40, "geyser"], [55, "energy_beam"]],
+  299: [[1, "barking"], [1, "ram"], [1, "struggle"], [4, "revenge_stance"], [7, "canine"], [13, "hibernate"], [16, "mystic_blending"], [19, "take_cover"], [25, "life_surge"], [28, "sand_spray"], [31, "fluff_up"], [37, "all_in"], [40, "saber"], [49, "needle"]],
+  300: [[1, "barking"], [1, "ram"], [1, "struggle"], [4, "revenge_stance"], [7, "canine"], [13, "hibernate"], [16, "mystic_blending"], [19, "take_cover"], [25, "life_surge"], [28, "sand_spray"], [31, "fluff_up"], [37, "all_in"], [40, "saber"]],
+  301: [[1, "stampede"], [1, "struggle"], [1, "wallow"], [4, "hibernate"], [10, "mudslide"], [19, "earthquake"]],
+  302: [[1, "solar_synthesis"], [1, "splinter"], [1, "struggle"], [4, "changeling"], [10, "roll"], [19, "blossom"], [25, "sylvan"], [28, "overgrowth"], [34, "terror"], [40, "rot"], [46, "undertaker"]],
+  303: [[1, "flood"], [1, "ice_shield"], [1, "struggle"], [4, "terror"], [10, "phantasmal_force"], [13, "mind_vise"], [19, "flow"]],
+  304: [[1, "flood"], [1, "ice_shield"], [1, "struggle"], [4, "terror"], [10, "phantasmal_force"], [13, "mind_vise"], [19, "flow"]],
+  305: [[1, "changeling"], [1, "fire_claw"], [1, "struggle"], [4, "ants"], [7, "blood_nets"], [13, "energy_claws"], [16, "clamp_on"], [25, "perfect_cut"], [31, "blossom"], [40, "tornado"]],
+  306: [[1, "changeling"], [1, "fire_claw"], [1, "struggle"], [4, "ants"], [7, "blood_nets"], [13, "energy_claws"], [16, "clamp_on"], [25, "perfect_cut"], [31, "blossom"], [40, "tornado"]],
+  307: [[1, "clamp_on"], [1, "gnaw"], [1, "struggle"], [4, "ants"], [10, "blood_nets"], [16, "sting"], [19, "energy_claws"]],
+  308: [[1, "energy_claws"], [1, "gnaw"], [1, "struggle"], [4, "ants"], [10, "blood_nets"], [16, "sting"]],
+  309: [[1, "clamp_on"], [1, "gnaw"], [1, "struggle"], [4, "ants"], [10, "blood_nets"], [16, "sting"], [19, "energy_claws"], [25, "hibernate"], [31, "flamethrower"], [40, "earthquake"], [46, "all_in"]],
+  310: [[1, "invictus"], [1, "mind_vise"], [1, "struggle"], [4, "stonehenge"], [10, "breathe_fire"], [13, "phantasmal_force"], [19, "terror"], [25, "earthquake"], [31, "flamethrower"], [40, "energy_beam"], [55, "supernova"]],
+  311: [[1, "invictus"], [1, "mind_vise"], [1, "struggle"], [4, "stonehenge"], [10, "breathe_fire"], [13, "phantasmal_force"], [19, "terror"], [25, "earthquake"], [31, "flamethrower"], [40, "energy_beam"], [55, "supernova"]],
+  312: [[1, "invictus"], [1, "mind_vise"], [1, "struggle"], [4, "stonehenge"], [10, "breathe_fire"], [13, "phantasmal_force"], [19, "terror"], [25, "earthquake"], [31, "flamethrower"], [40, "energy_beam"], [55, "supernova"]],
+  313: [[1, "punch"], [1, "strike"], [1, "struggle"], [4, "crystal"], [7, "perfect_cut"], [13, "time_crisis"], [16, "riposte"], [19, "terror"], [25, "whirlwind"], [28, "undertaker"], [31, "meltdown"], [37, "pouch"], [40, "all_in"]],
+  314: [[1, "fluff_up"], [1, "sting"], [1, "struggle"], [4, "overgrowth"], [7, "fester"], [13, "stonehenge"], [16, "blossom"], [19, "chameleon"], [25, "sylvan"], [28, "radiance"], [31, "cat_calling"], [37, "splinter"], [40, "clairaudience"]],
+  315: [[1, "bullet"], [1, "riposte"], [1, "struggle"], [4, "sudden_glow"], [7, "flamethrower"], [13, "shrapnel"], [16, "beam"], [19, "supernova"], [25, "breathe_fire"], [28, "chameleon"], [31, "wall_fire"], [37, "fire_shield"], [40, "energy_claws"], [55, "energy_beam"]],
+  316: [[1, "fire_ball"], [1, "gnaw"], [1, "struggle"], [4, "fire_claw"], [10, "mudslide"], [13, "earthquake"], [19, "flamethrower"]],
+  317: [[1, "fire_ball"], [1, "gnaw"], [1, "struggle"], [4, "fire_claw"], [10, "mudslide"], [13, "earthquake"], [19, "flamethrower"]],
+  318: [[1, "peck"], [1, "solar_synthesis"], [1, "struggle"], [4, "wing_tip"], [10, "peregrine"], [13, "whirlwind"], [19, "flamethrower"], [25, "tornado"], [31, "energy_beam"], [40, "frostbite"], [55, "divinity_beam"]],
+  319: [[1, "flow"], [1, "goad"], [1, "struggle"], [4, "roll"], [7, "grinding"], [13, "mobbing"], [16, "starfall"], [19, "frostbite"], [25, "blood_bond"], [28, "icicle_spear"], [31, "flood"], [37, "tsunami"], [40, "poison_courtship"]],
+  320: [[1, "goad"], [1, "struggle"], [1, "tail_lash"], [4, "changeling"], [7, "muddle"], [13, "shuriken"], [16, "arcane_eye"], [19, "ruby"], [25, "crystal"], [28, "beam"], [31, "lightning_spheres"], [37, "sunburst"], [40, "meltdown"]],
+  321: [[1, "struggle"], [1, "wall_of_steel"], [4, "mudslide"], [10, "take_cover"], [16, "roll"], [19, "rust_bomb"], [28, "earthquake"]],
+  322: [[1, "struggle"], [1, "wall_of_steel"], [4, "mudslide"], [10, "take_cover"], [16, "roll"], [19, "rust_bomb"], [28, "earthquake"]],
+  323: [[1, "midnight_mantle"], [1, "shooting_star"], [1, "struggle"], [4, "radiance"], [10, "roll"], [19, "sunburst"], [40, "supernova"], [46, "tsunami"], [55, "tornado"]],
+  324: [[1, "blossom"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [10, "stabilo"], [19, "nest"], [25, "pouch"], [40, "energy_beam"]],
+  325: [[1, "overfeed"], [1, "slice"], [1, "struggle"], [4, "food_fight"], [7, "lick_lash"], [10, "piece_of_cake"], [13, "egg_smash"], [16, "potluck"], [19, "diet"], [25, "just_desserts"], [28, "gourmet"], [31, "oven"], [37, "heavenly_desserts"]],
+  326: [[1, "overfeed"], [1, "slice"], [1, "struggle"], [4, "food_fight"], [7, "lick_lash"], [10, "piece_of_cake"], [13, "egg_smash"], [16, "potluck"], [19, "diet"], [25, "just_desserts"], [28, "gourmet"], [31, "oven"], [37, "heavenly_desserts"]],
+  327: [[1, "stampede"], [1, "struggle"], [1, "wallow"], [4, "hibernate"], [10, "mudslide"], [19, "earthquake"]],
+  328: [[1, "stampede"], [1, "struggle"], [1, "wallow"], [4, "hibernate"], [10, "mudslide"], [19, "earthquake"], [31, "energy_beam"], [40, "shadow_blast"]],
+  329: [[1, "stampede"], [1, "struggle"], [1, "wallow"], [4, "hibernate"], [10, "mudslide"], [19, "earthquake"], [31, "energy_beam"], [40, "shadow_blast"]],
+  330: [[1, "acid"], [1, "spit_poison"], [1, "struggle"], [4, "stone_rot"], [10, "poison_courtship"], [19, "biting_winds"], [25, "venomous_tentacle"], [31, "viper"]],
+  331: [[1, "hammerhead"], [1, "punch"], [1, "struggle"], [4, "invictus"], [10, "shadow_boxing"], [19, "one_two"], [25, "pouch"], [40, "energy_beam"]],
+  332: [[1, "constrict"], [1, "pseudopod"], [1, "struggle"], [4, "venomous_tentacle"], [10, "slime"], [16, "inner_power"], [19, "kraken"], [22, "sockpuppet"], [25, "external_power"], [31, "damage_division"], [37, "combat_clone"], [40, "energy_beam"]],
+  333: [[1, "muddle"], [1, "phantasmal_force"], [1, "struggle"], [4, "mind_vise"], [10, "changeling"], [13, "terror"], [19, "orbs"], [22, "cavity"], [40, "divinity_beam"]],
+  334: [[1, "evasion"], [1, "punch"], [1, "struggle"], [4, "shadow_boxing"], [10, "hammerhead"], [19, "one_two"], [25, "rocky_barrage"]],
+  335: [[1, "mending"], [1, "rock"], [1, "struggle"], [4, "strike"], [7, "stampede"], [13, "icicle_spear"], [16, "muck"], [19, "shadow_boxing"], [25, "stonehenge"], [28, "saber"], [31, "undertaker"], [37, "shuriken"], [43, "earthquake"], [55, "rocky_barrage"]],
+  336: [[1, "mending"], [1, "rock"], [1, "struggle"], [4, "strike"], [7, "stampede"], [13, "icicle_spear"], [16, "muck"], [19, "shadow_boxing"], [25, "stonehenge"], [28, "saber"], [31, "undertaker"], [37, "shuriken"], [43, "earthquake"], [55, "rocky_barrage"]],
+  337: [[1, "flood"], [1, "rot"], [1, "struggle"], [4, "crystal"], [10, "venomous_tentacle"], [19, "spit_poison"]],
+  338: [[1, "flood"], [1, "rot"], [1, "struggle"], [4, "crystal"], [10, "venomous_tentacle"], [19, "spit_poison"]],
+  339: [[1, "flood"], [1, "rot"], [1, "struggle"], [4, "crystal"], [10, "venomous_tentacle"], [19, "spit_poison"]],
+  340: [[1, "fire_claw"], [1, "struggle"], [1, "wall_fire"], [4, "caustic_spray"], [10, "spit_poison"], [13, "fire_ball"], [19, "flamethrower"]],
+  341: [[1, "fire_claw"], [1, "struggle"], [1, "wall_fire"], [4, "caustic_spray"], [10, "spit_poison"], [13, "fire_ball"], [19, "flamethrower"], [25, "strangulation"], [31, "oven"]],
+  342: [[1, "fire_claw"], [1, "struggle"], [1, "wall_fire"], [4, "caustic_spray"], [10, "spit_poison"], [13, "fire_ball"], [19, "flamethrower"], [25, "strangulation"], [31, "oven"]],
+  343: [[1, "pollen_blast"], [1, "solar_synthesis"], [1, "struggle"], [4, "tip"], [10, "stabilo"], [19, "perfect_cut"], [28, "needle"], [40, "woodsmash"]],
+  344: [[1, "pollen_blast"], [1, "solar_synthesis"], [1, "struggle"], [4, "tip"], [10, "stabilo"], [19, "perfect_cut"], [28, "needle"], [40, "woodsmash"], [55, "thorn_burst"]],
+  345: [[1, "ice_claw"], [1, "ice_shield"], [1, "struggle"], [4, "canine"], [10, "ice_storm"], [19, "frostbite"]],
+  346: [[1, "ice_claw"], [1, "ice_shield"], [1, "struggle"], [4, "canine"], [10, "ice_storm"], [19, "frostbite"]],
+  347: [[1, "fire_claw"], [1, "struggle"], [1, "wall_fire"], [4, "canine"], [7, "fiery"], [13, "flamethrower"], [16, "diet"], [25, "kindling_flame"], [28, "strangulation"], [31, "oven"], [37, "magnetic_body"]],
+  348: [[1, "fire_claw"], [1, "struggle"], [1, "wall_fire"], [4, "canine"], [7, "fiery"], [13, "flamethrower"], [16, "diet"], [25, "kindling_flame"], [28, "strangulation"], [31, "oven"], [37, "magnetic_body"]],
+  349: [[1, "blossom"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [10, "stabilo"], [13, "overfeed"], [19, "nest"]],
+  350: [[1, "boulder"], [1, "buzz"], [1, "struggle"], [4, "petrify"], [7, "rock"], [10, "stonehenge"], [13, "take_cover"], [19, "electroplate"], [40, "shadow_blast"]],
+  351: [[1, "boulder"], [1, "buzz"], [1, "struggle"], [4, "petrify"], [7, "rock"], [10, "stonehenge"], [13, "take_cover"], [19, "electroplate"], [40, "shadow_blast"]],
+  352: [[1, "boulder"], [1, "buzz"], [1, "struggle"], [4, "petrify"], [7, "rock"], [10, "stonehenge"], [13, "take_cover"], [19, "electroplate"], [40, "shadow_blast"]],
+  353: [[1, "fire_ball"], [1, "hammerhead"], [1, "struggle"], [4, "supernova"], [7, "fire_claw"], [13, "magma"], [16, "kindling_flame"], [19, "lava"], [25, "firestorm"], [28, "breathe_fire"], [31, "electrical_storm"], [37, "sunburst"], [40, "berserk"]],
+  354: [[1, "blossom"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [10, "stabilo"], [13, "life_surge"], [19, "nest"]],
+  355: [[1, "blossom"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [10, "stabilo"], [13, "life_surge"], [19, "nest"], [25, "peregrine"], [28, "potluck"], [31, "leaf_barrage"], [37, "cutting_leaves"]],
+  356: [[1, "acid"], [1, "struggle"], [1, "wall_of_steel"], [4, "viper"], [7, "shrapnel"], [13, "slime"], [16, "radiance"], [19, "rust_bomb"], [25, "meltdown"], [31, "magnetic_body"], [37, "gourmet"]],
+  357: [[1, "acid"], [1, "struggle"], [1, "wall_of_steel"], [4, "viper"], [7, "shrapnel"], [13, "slime"], [16, "radiance"], [19, "rust_bomb"], [25, "meltdown"], [31, "magnetic_body"], [37, "gourmet"]],
+  358: [[1, "mind_vise"], [1, "muddle"], [1, "struggle"], [4, "terror"], [10, "time_crisis"], [13, "phantasmal_force"], [19, "changeling"], [40, "shadow_blast"]],
+  359: [[1, "mind_vise"], [1, "muddle"], [1, "struggle"], [4, "terror"], [10, "time_crisis"], [13, "phantasmal_force"], [19, "changeling"], [22, "taunt"], [25, "magic_spell"], [28, "entomb"], [40, "shadow_blast"]],
+  360: [[1, "mind_vise"], [1, "muddle"], [1, "struggle"], [4, "terror"], [10, "time_crisis"], [13, "phantasmal_force"], [19, "changeling"], [22, "taunt"], [25, "magic_spell"], [28, "entomb"], [34, "wicked_wind"], [37, "arcane_eye"], [40, "shadow_blast"]],
+  361: [[1, "solar_synthesis"], [1, "sting"], [1, "struggle"], [4, "spit_poison"], [10, "poison_courtship"]],
+  362: [[1, "solar_synthesis"], [1, "sting"], [1, "struggle"], [4, "spit_poison"], [10, "poison_courtship"], [16, "buzz"], [19, "needle"], [25, "viper"], [31, "combat_clone"], [34, "thorn_burst"], [40, "damage_division"]],
+  363: [[1, "lightning_spheres"], [1, "rot"], [1, "struggle"], [4, "flood"], [7, "surge"], [13, "fire_shield"], [16, "energy_claws"], [19, "one_two"], [25, "thunderclap"], [28, "give_all"], [31, "salamander"], [37, "shadow_boxing"], [40, "electrical_storm"]],
+  364: [[1, "clamp_on"], [1, "rock"], [1, "struggle"], [4, "quicksand"], [7, "hammerhead"], [13, "take_cover"], [25, "tonguespear"], [28, "sand_spray"], [31, "rocky_barrage"]],
+  365: [[1, "clamp_on"], [1, "rock"], [1, "struggle"], [4, "quicksand"], [7, "hammerhead"], [13, "take_cover"], [25, "tonguespear"], [28, "sand_spray"], [31, "rocky_barrage"]],
+  366: [[1, "flood"], [1, "flow"], [1, "struggle"], [4, "goad"], [7, "muck"], [13, "font"], [22, "midnight_mantle"], [25, "needle"], [28, "chill_mist"]],
+  367: [[1, "flood"], [1, "flow"], [1, "struggle"], [4, "goad"], [7, "muck"], [13, "font"], [22, "midnight_mantle"], [25, "needle"], [28, "chill_mist"], [40, "viper"], [46, "thorn_burst"], [55, "energy_beam"]],
+  368: [[1, "assault"], [1, "invictus"], [1, "struggle"], [4, "canine"], [7, "rock"], [10, "energy_claws"], [19, "berserk"], [40, "earthquake"]],
+  369: [[1, "assault"], [1, "invictus"], [1, "struggle"], [4, "canine"], [7, "rock"], [10, "energy_claws"], [19, "berserk"], [40, "earthquake"]],
+  370: [[1, "solar_synthesis"], [1, "struggle"], [1, "water_bullet"], [4, "overgrowth"], [10, "flood"], [13, "stabilo"], [19, "nest"], [25, "water_blast"], [31, "blossom"], [37, "energy_field"], [40, "woodsmash"], [55, "energy_beam"]],
+  371: [[1, "solar_synthesis"], [1, "struggle"], [1, "water_bullet"], [4, "overgrowth"], [10, "flood"], [13, "stabilo"], [19, "nest"], [25, "water_blast"], [31, "blossom"], [37, "energy_field"], [40, "woodsmash"], [55, "energy_beam"]],
+  372: [[1, "constrict"], [1, "gnaw"], [1, "struggle"], [4, "biting_winds"], [7, "invictus"], [13, "clamp_on"], [16, "mudslide"], [19, "quicksand"], [25, "all_in"], [28, "one_two"], [31, "venomous_tentacle"], [37, "pit"], [40, "greenstone"]],
+  373: [[1, "splinter"], [1, "struggle"], [1, "walls"], [4, "shadow_boxing"], [7, "leaf_stab"], [13, "sylvan"], [16, "pseudopod"], [19, "solar_synthesis"], [25, "blossom"], [28, "cutting_leaves"], [31, "overgrowth"], [37, "fester"], [40, "one_two"], [55, "shadow_blast"]],
+  374: [[1, "splinter"], [1, "struggle"], [1, "walls"], [4, "shadow_boxing"], [7, "leaf_stab"], [13, "sylvan"], [16, "pseudopod"], [19, "solar_synthesis"], [25, "blossom"], [28, "cutting_leaves"], [31, "overgrowth"], [37, "fester"], [40, "one_two"], [55, "shadow_blast"]],
+  375: [[1, "splinter"], [1, "struggle"], [1, "walls"], [4, "shadow_boxing"], [7, "leaf_stab"], [13, "sylvan"], [16, "pseudopod"], [19, "solar_synthesis"], [25, "blossom"], [28, "cutting_leaves"], [31, "overgrowth"], [37, "fester"], [40, "one_two"], [55, "shadow_blast"]],
+  376: [[1, "assault"], [1, "struggle"], [1, "wallow"], [4, "ram"], [7, "surge"], [13, "quicksand"], [16, "canine"], [19, "grinding"], [25, "tsunami"], [28, "avalanche"], [31, "sands_of_time"], [37, "entomb"], [40, "strangulation"]],
+  377: [[1, "fire_ball"], [1, "rock"], [1, "struggle"], [4, "fire_claw"], [7, "one_two"], [13, "flamethrower"], [25, "give_all"], [28, "supernova"], [31, "electrical_storm"]],
+  378: [[1, "barking"], [1, "ram"], [1, "struggle"], [4, "revenge_stance"], [7, "canine"], [13, "hibernate"], [16, "mystic_blending"], [19, "take_cover"], [25, "staff_smash"], [28, "caustic_spray"], [31, "fluff_up"], [37, "all_in"], [40, "viper"], [55, "divinity_beam"], [61, "shadow_blast"]],
+  379: [[1, "barking"], [1, "ram"], [1, "struggle"], [4, "revenge_stance"], [7, "canine"], [13, "hibernate"], [16, "mystic_blending"], [19, "take_cover"], [25, "life_surge"], [28, "blood_nets"], [31, "fluff_up"], [37, "all_in"], [40, "needle"], [55, "energy_beam"]],
+  380: [[1, "struggle"], [1, "wallow"], [1, "water_bullet"], [4, "flow"], [7, "goad"], [13, "stampede"], [16, "geyser"], [19, "spit_poison"], [25, "water_blast"], [28, "ice_claw"], [31, "chill_mist"], [37, "tsunami"], [40, "kraken"], [55, "divinity_beam"]],
+  381: [[1, "lineage"], [1, "phantasmal_force"], [1, "struggle"], [4, "saber"], [10, "riposte"], [16, "slice"], [25, "levitate"], [28, "petrify"], [34, "one_two"], [40, "give_all"], [55, "shadow_blast"]],
+  382: [[1, "biting_winds"], [1, "bubbles"], [1, "struggle"], [4, "water_blast"], [10, "ice_storm"], [16, "surf"], [25, "tsunami"], [28, "ice_shield"], [34, "snowstorm"], [40, "electrical_storm"]],
+  383: [[1, "peck"], [1, "struggle"], [1, "whirlwind"], [4, "energy_claws"], [7, "negation"], [13, "egg_smash"], [16, "fledgling"], [31, "fluff_up"], [37, "peregrine"], [40, "one_two"]],
+  384: [[1, "peck"], [1, "struggle"], [1, "whirlwind"], [4, "energy_claws"], [7, "negation"], [10, "gust"], [16, "fledgling"], [22, "fluff_up"], [25, "peregrine"], [28, "berserk"], [40, "one_two"], [55, "tornado"]],
+  385: [[1, "shuriken"], [1, "slice"], [1, "struggle"], [4, "constrict"], [7, "sand_spray"], [13, "energy_claws"], [19, "revenge_stance"], [25, "ruby"], [31, "rust_bomb"]],
+  386: [[1, "shuriken"], [1, "slice"], [1, "struggle"], [4, "constrict"], [7, "sand_spray"], [13, "energy_claws"], [19, "revenge_stance"], [25, "ruby"], [31, "rust_bomb"], [34, "pouch"]],
+  387: [[1, "ice_shield"], [1, "struggle"], [1, "water_bullet"], [4, "slice"], [7, "geyser"], [13, "water_blast"], [19, "grinding"], [25, "tsunami"], [31, "kraken"], [37, "frostbite"], [40, "viper"], [55, "energy_beam"]],
+  388: [[1, "ice_shield"], [1, "struggle"], [1, "water_bullet"], [4, "slice"], [7, "geyser"], [13, "water_blast"], [19, "grinding"], [25, "tsunami"], [31, "kraken"], [37, "frostbite"], [40, "viper"], [55, "energy_beam"]],
+  389: [[1, "ice_shield"], [1, "struggle"], [1, "water_bullet"], [4, "slice"], [7, "geyser"], [13, "water_blast"], [19, "grinding"], [25, "tsunami"], [31, "kraken"], [37, "frostbite"], [40, "viper"], [55, "energy_beam"]],
+  390: [[1, "boulder"], [1, "sand_spray"], [1, "struggle"], [4, "mudslide"], [7, "stonehenge"], [13, "avalanche"], [19, "muck"], [22, "slice"], [25, "lineage"], [31, "all_in"], [55, "earthquake"]],
+  391: [[1, "boulder"], [1, "sand_spray"], [1, "struggle"], [4, "mudslide"], [7, "stonehenge"], [13, "avalanche"], [19, "muck"], [22, "slice"], [25, "lineage"], [31, "all_in"], [55, "divinity_beam"]],
+  392: [[1, "boulder"], [1, "sand_spray"], [1, "struggle"], [4, "mudslide"], [7, "blade"], [13, "avalanche"], [19, "muck"], [22, "saber"], [25, "lineage"], [31, "all_in"], [55, "earthquake"]],
+  393: [[1, "boulder"], [1, "sand_spray"], [1, "struggle"], [4, "mudslide"], [7, "stonehenge"], [13, "avalanche"], [19, "muck"], [22, "muddle"], [25, "lineage"], [31, "rocky_barrage"], [55, "energy_beam"]],
+  394: [[1, "roll"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [7, "assault"], [13, "wing_tip"], [16, "sting"], [19, "sylvan"], [28, "all_in"], [31, "chameleon"], [37, "shadow_boxing"], [40, "stabilo"]],
+  395: [[1, "roll"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [7, "assault"], [13, "wing_tip"], [16, "sting"], [19, "sylvan"], [28, "all_in"], [31, "chameleon"], [37, "flower_bloom"], [40, "stabilo"]],
+  396: [[1, "roll"], [1, "solar_synthesis"], [1, "struggle"], [4, "overgrowth"], [7, "assault"], [13, "wing_tip"], [16, "sting"], [19, "sylvan"], [28, "all_in"], [31, "chameleon"], [37, "flower_bloom"], [40, "stabilo"], [55, "tornado"]],
+  397: [[1, "bullet"], [1, "struggle"], [1, "wall_of_steel"], [4, "buzz"], [7, "sleep_bomb"], [13, "meltdown"], [16, "shuriken"], [19, "beam"], [25, "terror"], [28, "bubble_trap"], [31, "electroplate"], [37, "electrical_storm"], [40, "magnetic_body"], [55, "energy_beam"]],
+  398: [[1, "bullet"], [1, "struggle"], [1, "wall_of_steel"], [4, "buzz"], [7, "sleep_bomb"], [13, "meltdown"], [16, "shuriken"], [19, "beam"], [25, "terror"], [28, "bubble_trap"], [31, "electroplate"], [37, "electrical_storm"], [40, "magnetic_body"], [55, "energy_beam"]],
+  399: [[1, "bubbles"], [1, "muddle"], [1, "struggle"], [7, "mudslide"], [10, "glower"], [16, "hallucinogen_spore"], [19, "walls"], [25, "sockpuppet"], [31, "combat_clone"], [34, "tsunami"], [37, "damage_division"], [40, "arcane_eye"], [46, "one_two"], [55, "earthquake"]],
+  400: [[1, "ice_shield"], [1, "solar_synthesis"], [1, "struggle"], [4, "poison_courtship"], [7, "stabilo"], [13, "icicle_spear"], [19, "fester"], [25, "splinter"], [28, "blossom"], [40, "snowstorm"], [55, "woodsmash"]],
+  401: [[1, "ice_shield"], [1, "solar_synthesis"], [1, "struggle"], [4, "poison_courtship"], [7, "stabilo"], [13, "icicle_spear"], [19, "fester"], [25, "splinter"], [28, "blossom"], [40, "snowstorm"], [55, "woodsmash"]],
+  402: [[1, "ice_shield"], [1, "solar_synthesis"], [1, "struggle"], [4, "poison_courtship"], [7, "stabilo"], [13, "icicle_spear"], [19, "fester"], [25, "splinter"], [28, "blossom"], [40, "snowstorm"], [55, "woodsmash"]],
+  403: [[1, "hammerhead"], [1, "slice"], [1, "struggle"], [4, "muddle"], [10, "ram"], [13, "breathe_fire"], [19, "amnesia"], [25, "berserk"], [28, "clamp_on"], [34, "wallow"], [40, "earthquake"], [55, "energy_beam"]],
+  404: [[1, "acid"], [1, "struggle"], [1, "wallow"], [4, "bubble_trap"], [7, "power_theft"], [10, "amnesia"], [13, "breathe_fire"], [19, "water_blast"], [22, "external_power"], [28, "firestorm"], [34, "snowstorm"], [40, "shooting_star"]],
+  405: [[1, "gust"], [1, "peck"], [1, "struggle"], [4, "whirlwind"], [7, "proboscis"], [13, "panjandrum"], [16, "sylvan"], [19, "energy_claws"], [25, "peregrine"], [28, "nest"], [31, "one_million_talons"], [40, "ten_thousand_feathers"], [55, "fluff_up"]],
+  406: [[1, "gust"], [1, "peck"], [1, "struggle"], [4, "whirlwind"], [7, "proboscis"], [13, "panjandrum"], [16, "sylvan"], [19, "energy_claws"], [25, "peregrine"], [28, "nest"], [31, "one_million_talons"], [40, "ten_thousand_feathers"], [55, "fluff_up"]],
+  407: [[1, "revenge_stance"], [1, "sting"], [1, "struggle"], [4, "sand_spray"], [7, "solar_synthesis"], [13, "spit_poison"], [16, "splinter"], [19, "overgrowth"], [25, "staff_smash"], [28, "needle"], [40, "woodsmash"], [55, "thorn_burst"]],
+  408: [[1, "revenge_stance"], [1, "sting"], [1, "struggle"], [4, "sand_spray"], [7, "solar_synthesis"], [13, "spit_poison"], [16, "splinter"], [19, "overgrowth"], [25, "staff_smash"], [28, "needle"], [40, "caustic_spray"], [55, "thorn_burst"]],
+  409: [[1, "flood"], [1, "struggle"], [1, "take_cover"], [4, "mobbing"], [7, "fire_shield"], [13, "breathe_fire"], [19, "water_blast"], [25, "fiery"], [31, "refresh"], [34, "tsunami"], [37, "supernova"], [40, "kraken"], [52, "energy_beam"]],
+  410: [[1, "flood"], [1, "struggle"], [1, "take_cover"], [4, "mobbing"], [7, "fire_shield"], [13, "breathe_fire"], [19, "water_blast"], [25, "fiery"], [31, "refresh"], [34, "tsunami"], [37, "supernova"], [40, "kraken"], [52, "energy_beam"]],
+  411: [[1, "flood"], [1, "struggle"], [1, "take_cover"], [4, "mobbing"], [7, "fire_shield"], [13, "breathe_fire"], [19, "water_blast"], [25, "fiery"], [31, "refresh"], [34, "tsunami"], [37, "supernova"], [40, "kraken"], [52, "energy_beam"], [55, "firestorm"]],
 };
 
-// Danh sách chiêu một loài biết được đến cấp lv (tối đa 4 chiêu mới nhất)
-export function movesAtLevel(dex, lv) {
-  const ls = LEARNSETS[dex];
-  if (!ls) return [];
-  const learned = Object.keys(ls)
-    .map(Number)
-    .filter((l) => l <= lv)
-    .sort((a, b) => a - b)
-    .map((l) => ls[l]);
-  return learned.slice(-4);
+// Các chiêu học được đúng tại cấp `lv`
+export function movesAtLevel(dexId, lv) {
+  return (LEARNSETS[dexId] || []).filter(([l]) => l === lv).map(([, id]) => id);
+}
+
+// Bộ 4 chiêu khi tạo mới một con ở cấp `lv`: lấy 4 chiêu mới nhất học được
+export function movesUpTo(dexId, lv) {
+  const all = (LEARNSETS[dexId] || []).filter(([l]) => l <= lv).map(([, id]) => id);
+  return all.slice(-4);
 }

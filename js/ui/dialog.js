@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/dialog.js | Hộp thoại cutscene kiểu game Pokémon: chạm để qua câu
+// TuxeWorld H5 | ui/dialog.js | Hộp thoại cutscene kiểu game Tuxemon: chạm để qua câu
 import { esc } from '../util.js';
 import { SPEAKERS } from '../data/story.js';
 import { activeAvatar } from '../engine/accounts.js';

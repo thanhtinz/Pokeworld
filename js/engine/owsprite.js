@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/owsprite.js | Nhân vật đi lại trên bản đồ (sprite kiểu GBA)
+// TuxeWorld H5 | engine/owsprite.js | Nhân vật đi lại trên bản đồ (sprite kiểu GBA)
 // Mỗi file assets/ow/<tên>.png là lưới 3 cột x 4 hàng, ô 16x32:
 //   hàng 0 xuống · hàng 1 lên · hàng 2 trái · hàng 3 phải
 //   cột 0 đứng yên · cột 1 và 2 là hai bước chân

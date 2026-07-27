@@ -1,6 +1,6 @@
-// PokeWorld H5 | ui/starter.js | Màn mở đầu: đặt tên + chọn starter
+// TuxeWorld H5 | ui/starter.js | Màn mở đầu: đặt tên + chọn starter
 import { G, newGame, addToParty, markCaught, startQuest, save } from '../state.js';
-import { newPokemon } from '../engine/pokemon.js';
+import { newTuxemon } from '../engine/pokemon.js';
 import { SPECIES } from '../data/species.js';
 import { QUESTS } from '../data/quests.js';
 import { spriteUrl, boxIcon, esc } from '../util.js';
@@ -11,14 +11,15 @@ import { markIntroSeen, emitStory } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 
-const STARTERS = [1, 4, 7]; // Bulbasaur / Charmander / Squirtle
+import { STARTERS as STARTER_LIST } from '../data/starters.js';
+const STARTERS = STARTER_LIST.map(s => s.sp);
 
 export async function render(el) {
   // Đã có save + đã chọn starter -> không nên ở đây
   if (G.p && G.p.starterChosen) { show('home'); return; }
   const hasPlayer = true; // tên đã có từ tài khoản -> vào thẳng phần chọn starter
 
-  // Lời thoại Giáo sư Oak chạy TRƯỚC khi bày 3 Pokémon (đúng thứ tự game gốc).
+  // Lời thoại Giáo sư Oak chạy TRƯỚC khi bày 3 Tuxemon (đúng thứ tự game gốc).
   // Chỉ phát 1 lần cho mỗi ván chơi mới.
   if (G.p && !G.p.metProfessor) {
     G.p.metProfessor = true;
@@ -80,7 +81,7 @@ export async function render(el) {
       const ok = await confirmDlg(`Chọn ${s.name} làm bạn đồng hành nhé?`, 'Chọn!');
       if (!ok) return;
       if (!G.p) newGame((activeAccount()?.user) || pendingName || 'Trainer');
-      const mon = newPokemon(id, 5);
+      const mon = newTuxemon(id, 5);
       if (!mon) { toast('Có lỗi dữ liệu, thử lại sau!'); return; }
       addToParty(mon);
       markCaught(id);

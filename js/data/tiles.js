@@ -1,5 +1,5 @@
-// PokeWorld H5 | data/tiles.js | Bộ tile thật + luật ghép cạnh (autotile) + khối nhà
-// Ảnh: assets/tiles/terrain.png — bộ tile Pokémon 16px, cách nhau 1px, 21 cột.
+// TuxeWorld H5 | data/tiles.js | Bộ tile thật + luật ghép cạnh (autotile) + khối nhà
+// Ảnh: assets/tiles/terrain.png — bộ tile Tuxemon 16px, cách nhau 1px, 21 cột.
 // Nguồn: dorianleveque/Pokemap (assets/Terrain.png). Chỉ số ô tính từ 0.
 
 export const TILESET = {
@@ -42,8 +42,8 @@ export const DECOR = {
 // Khối nhà nhiều ô: vẽ từ ô `start` sang phải `w` ô, xuống dưới `h` ô.
 // door: [cột, hàng] trong khối — ô cửa đi vào được, các ô còn lại chắn đường.
 export const BUILDINGS = {
-  center: { start: 231, w: 5, h: 5, door: [2, 4] },   // Trung tâm Pokémon (mái đỏ, huy hiệu bóng)
-  mart:   { start: 147, w: 4, h: 4, door: [1, 3] },   // Poké Mart (biển MART)
+  center: { start: 231, w: 5, h: 5, door: [2, 4] },   // Trung tâm Tuxemon (mái đỏ, huy hiệu bóng)
+  mart:   { start: 147, w: 4, h: 4, door: [1, 3] },   // Tux Mart (biển MART)
   gym:    { start: 236, w: 4, h: 5, door: [1, 4] },   // Nhà kính xanh ngọc — dùng làm Gym
   lab:    { start: 240, w: 7, h: 5, door: [4, 4] },   // Toà nhà lớn có máy móc — phòng nghiên cứu
   house:  { start: 16,  w: 4, h: 5, door: [1, 4] },   // Nhà mái đỏ

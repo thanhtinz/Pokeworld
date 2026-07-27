@@ -1,4 +1,4 @@
-// PokeWorld H5 | net/servers.js | DANH SÁCH MÁY CHỦ
+// TuxeWorld H5 | net/servers.js | DANH SÁCH MÁY CHỦ
 //
 // ĐÂY LÀ CHỖ DUY NHẤT BẠN CẦN SỬA KHI DỰNG XONG VPS.
 // Người chơi chỉ được CHỌN trong danh sách này, không tự nhập địa chỉ.

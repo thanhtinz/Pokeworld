@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/equipment.js | Dữ liệu trang bị nhân vật: slot, độ hiếm, 24 món, bảng cường hóa
+// TuxeWorld H5 | data/equipment.js | Dữ liệu trang bị nhân vật: slot, độ hiếm, 24 món, bảng cường hóa
 
 // 6 ô trang bị của huấn luyện viên. icon = id sprite item PokeAPI dùng làm ảnh mờ cho ô trống.
 // icon = tên icon SVG trong ui/icons.js, dùng cho ô còn trống.
@@ -41,13 +41,13 @@ export const EQUIPMENT = {
                    desc: 'Mũ lưỡi trai may mắn, đội vào học nhanh hơn một chút.' },
   cap_scope:     { name: 'Scope Visor', slot: 'hat', rarity: 'rare', reqLevel: 5, price: 8000,
                    sprite: 'silph_scope', stats: { expBonus: 8, catchBonus: 5 },
-                   desc: 'Kính che mắt nhìn xuyên bụi rậm, dễ nhắm Pokémon hoang dã.' },
+                   desc: 'Kính che mắt nhìn xuyên bụi rậm, dễ nhắm Tuxemon hoang dã.' },
   cap_crown:     { name: 'Champion Crown', slot: 'hat', rarity: 'epic', reqLevel: 12, price: 26000,
                    sprite: 'nugget', stats: { expBonus: 14, moneyBonus: 10, atkBonus: 4 },
-                   desc: 'Vương miện của nhà vô địch, uy phong khiến Pokémon mạnh hơn.' },
+                   desc: 'Vương miện của nhà vô địch, uy phong khiến Tuxemon mạnh hơn.' },
   cap_ashen:     { name: 'Sacred Halo', slot: 'hat', rarity: 'legendary', reqLevel: 20, price: 90000,
                    sprite: 'sacred_ash', stats: { expBonus: 22, shinyBonus: 12, hpBonus: 8 },
-                   desc: 'Vòng hào quang tro thiêng, truyền thuyết kể nó gọi được Pokémon hiếm.' },
+                   desc: 'Vòng hào quang tro thiêng, truyền thuyết kể nó gọi được Tuxemon hiếm.' },
 
   // ==== Trang phục ====
   outfit_tee:    { name: 'Rookie Jacket', slot: 'outfit', rarity: 'common', reqLevel: 1, price: 2400,
@@ -111,13 +111,13 @@ export const EQUIPMENT = {
                    desc: 'Bùa hướng dẫn tân thủ, nhắc bạn ném bóng đúng lúc.' },
   charm_fame:    { name: 'Fame Charm', slot: 'charm', rarity: 'rare', reqLevel: 5, price: 10000,
                    sprite: 'fame_checker', stats: { catchBonus: 9, shinyBonus: 4 },
-                   desc: 'Bùa danh vọng, Pokémon nổi tiếng thích xuất hiện trước mặt bạn.' },
+                   desc: 'Bùa danh vọng, Tuxemon nổi tiếng thích xuất hiện trước mặt bạn.' },
   charm_record:  { name: 'Recorder Charm', slot: 'charm', rarity: 'epic', reqLevel: 12, price: 33000,
                    sprite: 'vs_recorder', stats: { catchBonus: 15, shinyBonus: 8, expBonus: 6 },
                    desc: 'Bùa ghi hình mọi trận đấu, học được cả mẹo bắt của cao thủ.' },
   charm_revive:  { name: 'Eternal Charm', slot: 'charm', rarity: 'legendary', reqLevel: 20, price: 105000,
                    sprite: 'max_revive', stats: { catchBonus: 22, shinyBonus: 18, hpBonus: 10 },
-                   desc: 'Bùa vĩnh cửu, ánh sáng của nó dụ ra cả những Pokémon lấp lánh.' },
+                   desc: 'Bùa vĩnh cửu, ánh sáng của nó dụ ra cả những Tuxemon lấp lánh.' },
 };
 
 // ==== Bảng cường hóa ====

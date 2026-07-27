@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/kit.js | Bộ helper UI dùng chung: toast, modal chọn, thanh HP, badge hệ
+// TuxeWorld H5 | ui/kit.js | Bộ helper UI dùng chung: toast, modal chọn, thanh HP, badge hệ
 import { esc } from '../util.js';
 import { itemIconPath } from '../data/itemicons.js';
 import { TYPE_VI, TYPE_COLORS } from '../data/types.js';
@@ -57,18 +57,13 @@ export function hpBar(cur, max) {
   return `<div class="hpbar"><div class="hpbar-fill ${cls}" style="width:${pct}%"></div></div>`;
 }
 
-// Icon vật phẩm: ảnh pokesprite nằm ngay trong dự án nên không cần mạng.
+// Icon vật phẩm: ảnh nằm ngay trong dự án nên không cần mạng. Không có ảnh thì bỏ trống.
 // Tham số 2 giữ lại cho tương thích chữ ký cũ (trước đây là emoji) — nay ảnh lỗi thì ẩn hẳn.
 export function itemIcon(itemId, _legacy = '', size = 26) {
   const local = itemIconPath(itemId);
-  const cdn = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${String(itemId).replace(/_/g, '-')}.png`;
-  return `<span class="item-ico"><img class="px-icon" src="${local || cdn}" width="${size}" height="${size}" alt=""
+  if (!local) return '';
+  return `<span class="item-ico"><img class="px-icon" src="${local}" width="${size}" height="${size}" alt=""
     onerror="this.style.visibility='hidden'"></span>`;
-}
-
-// URL artwork Pokémon GO (PokeMiners) — dùng cho Pokédex / thẻ đội hình
-export function artUrl(dex) {
-  return `https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon/pokemon_icon_${String(dex).padStart(3, '0')}_00.png`;
 }
 
 // Chèn ảnh asset local, tự ẩn khi lỗi (không bao giờ rơi về emoji)
@@ -77,14 +72,14 @@ export function assetIcon(path, size = 22, alt = '') {
     onerror="this.style.visibility='hidden'"></span>`;
 }
 
-// Inline CSS vars cho card holo: gradient theo hệ của Pokémon (pha tím galaxy trong CSS)
+// Inline CSS vars cho card holo: gradient theo hệ của Tuxemon (pha tím galaxy trong CSS)
 export function holoStyle(types = []) {
   const c1 = TYPE_COLORS[types[0]] || '#7048e8';
   const c2 = TYPE_COLORS[types[1] || types[0]] || c1;
   return `--t1:${c1};--t2:${c2}`;
 }
 
-// Badge hệ: icon ảnh 18 hệ + tên tiếng Việt, nền màu hệ nhạt
+// Badge hệ: icon 13 hệ của Tuxemon + tên tiếng Việt, nền màu hệ
 export function typeBadge(t) {
   const c = TYPE_COLORS[t] || '#888';
   return `<span class="type-badge type-${esc(t)}" style="--tc:${c};background:${c}"

@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/pvp.js | Đấu PvP theo kiểu "khoá bước": hai máy chạy cùng một engine
+// TuxeWorld H5 | ui/pvp.js | Đấu PvP theo kiểu "khoá bước": hai máy chạy cùng một engine
 //
 // Cách hoạt động: máy chủ chỉ phát một hạt ngẫu nhiên chung rồi chuyển tiếp
 // hành động qua lại. Hai máy tự tính trận đấu, cùng hạt nên ra cùng kết quả.
@@ -75,7 +75,7 @@ export function render(el, ctx = {}) {
     $log.scrollTop = $log.scrollHeight;
   }
 
-  // Pokémon từ máy chủ là dữ liệu thô, dựng lại cho đủ trường engine cần
+  // Tuxemon từ máy chủ là dữ liệu thô, dựng lại cho đủ trường engine cần
   function reviveMon(raw) {
     if (!raw || !SPECIES[raw.sp]) return null;
     const m = { ...raw };
@@ -95,7 +95,7 @@ export function render(el, ctx = {}) {
       <img class="bt-sprite ${back ? 'bt-sprite-me' : 'bt-sprite-enemy'} ${monSpriteClass(mon, back)} ${isFainted(mon) ? 'faint' : ''}"
            style="width:min(${monPx(mon)}px, 58vw)"
            src="${monLocalSrc(mon, back)}" data-up="${monUpgradeChain(mon, back)}" alt="">`;
-    // Bên mình đứng TRÁI DƯỚI, đối thủ đứng PHẢI TRÊN — giống game Pokémon gốc.
+    // Bên mình đứng TRÁI DƯỚI, đối thủ đứng PHẢI TRÊN — giống game Tuxemon gốc.
     return back ? img + info : info + img;
   }
 
@@ -140,7 +140,7 @@ export function render(el, ctx = {}) {
     const alive = b.sides[mySide].mons
       .map((m, i) => ({ m, i }))
       .filter(x => !isFainted(x.m) && x.i !== b.sides[mySide].active);
-    if (!alive.length) { toast('Không còn Pokémon nào để đổi.'); return; }
+    if (!alive.length) { toast('Không còn Tuxemon nào để đổi.'); return; }
     act({ t: 'switch', slot: alive[0].i });
   }
 
@@ -192,7 +192,7 @@ export function render(el, ctx = {}) {
 
     if (out.over) {
       finished = true;
-      // Bên nào còn Pokémon sống thì bên đó thắng
+      // Bên nào còn Tuxemon sống thì bên đó thắng
       const iWon = out.winner === mySide;
       const winnerName = iWon ? me.username : opponent.username;
       log(iWon ? 'Bạn thắng!' : 'Bạn thua.');

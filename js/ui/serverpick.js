@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/serverpick.js | Chọn máy chủ: chơi offline hoặc chọn một máy chủ online
+// TuxeWorld H5 | ui/serverpick.js | Chọn máy chủ: chơi offline hoặc chọn một máy chủ online
 // Danh sách máy chủ nằm ở js/net/servers.js — người chơi chỉ chọn, không tự nhập địa chỉ.
 import { getServerUrl, setServerUrl, setToken } from '../net/config.js';
 import { fetchConfig, register as netRegister, login as netLogin } from '../net/api.js';

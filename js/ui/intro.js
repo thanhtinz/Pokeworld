@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/intro.js | Đoạn intro mở đầu (cinematic dựng bằng ảnh + chữ, có nút bỏ qua)
+// TuxeWorld H5 | ui/intro.js | Đoạn intro mở đầu (cinematic dựng bằng ảnh + chữ, có nút bỏ qua)
 // Muốn dùng video thật: đặt file vào assets/video/intro.mp4 — màn này tự phát video đó
 // và bỏ qua phần cinematic ảnh.
 import { activeAvatar } from '../engine/accounts.js';
@@ -13,7 +13,7 @@ const SCENES = [
   {
     bg: 'assets/img/worldmap.jpg',
     art: null,
-    text: 'Một thế giới rộng lớn, nơi con người và Pokémon cùng chung sống...',
+    text: 'Một thế giới rộng lớn, nơi con người và Tuxemon cùng chung sống...',
     ms: 3400,
   },
   {
@@ -25,7 +25,7 @@ const SCENES = [
   {
     bg: null,
     art: ['assets/trainers/rocket_m.png', 'assets/trainers/giovanni.png'],
-    text: 'Nhưng bóng tối đang trỗi dậy — Team Rocket săn lùng Pokémon khắp nơi.',
+    text: 'Nhưng bóng tối đang trỗi dậy — Team Rocket săn lùng Tuxemon khắp nơi.',
     ms: 3600,
     dark: true,
   },

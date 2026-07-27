@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/damage.js | Công thức damage Gen-style: STAB, crit, khắc hệ
+// TuxeWorld H5 | engine/damage.js | Công thức damage Gen-style: STAB, crit, khắc hệ
 import { rng, clamp } from '../util.js';
 import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';

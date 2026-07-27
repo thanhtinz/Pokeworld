@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/createchar.js | Tạo nhân vật: chọn giới tính + đặt tên nhà huấn luyện
+// TuxeWorld H5 | ui/createchar.js | Tạo nhân vật: chọn giới tính + đặt tên nhà huấn luyện
 import { activeAccount, setAvatar, setCharCreated } from '../engine/accounts.js';
 import { G, newGame, save } from '../state.js';
 import { esc } from '../util.js';
@@ -7,7 +7,7 @@ import { show } from '../main.js';
 
 const CHARS = [
   { id: 'red',  label: 'Nam', sub: 'Red',  desc: 'Nhà huấn luyện trẻ đầy nhiệt huyết.' },
-  { id: 'leaf', label: 'Nữ',  sub: 'Leaf', desc: 'Cô gái thông minh, yêu Pokémon.' },
+  { id: 'leaf', label: 'Nữ',  sub: 'Leaf', desc: 'Cô gái thông minh, yêu Tuxemon.' },
 ];
 
 export function render(el) {

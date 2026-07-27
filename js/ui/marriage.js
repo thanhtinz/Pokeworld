@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/marriage.js | Trang kết hôn: cầu hôn, trả lời, ly hôn
+// TuxeWorld H5 | ui/marriage.js | Trang kết hôn: cầu hôn, trả lời, ly hôn
 // Máy chủ bắt buộc phải là bạn bè trước khi cầu hôn, nên trang này luôn
 // chỉ đường sang trang Bạn bè khi chưa có ai để cầu hôn.
 import { esc } from '../util.js';

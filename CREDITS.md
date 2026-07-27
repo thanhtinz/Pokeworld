@@ -1,8 +1,28 @@
-# Nguồn asset
+# Nguồn tài nguyên
 
-PokeWorld là dự án fan-game phi thương mại. Pokémon, tên nhân vật và hình ảnh
-gốc thuộc bản quyền của **Nintendo, Creatures Inc. và GAME FREAK Inc.**
-Dự án này không liên kết với các công ty trên và không bán bất cứ thứ gì.
+Game này dùng sinh vật, hệ và chiêu thức của **[Tuxemon](https://github.com/Tuxemon/Tuxemon)**
+— một game mã nguồn mở kiểu Pokémon.
+
+- Mã nguồn Tuxemon: GPL-3.0
+- Hình ảnh sinh vật và dữ liệu: **CC BY-SA 4.0**, xem `ATTRIBUTIONS.md` bên kho
+  của họ để biết từng tác giả.
+
+Cụ thể đã lấy:
+
+| Lấy gì | Vào đâu |
+|---|---|
+| 411 sinh vật: sprite trước, sprite sau, icon | `assets/mon/` |
+| 13 hệ + bảng khắc chế + icon hệ | `js/data/types.js`, `assets/types/` |
+| 256 chiêu thức | `js/data/moves.js` |
+| Bảng học chiêu, chuỗi tiến hoá, chỉ số theo dáng thân | `js/data/learnsets.js`, `js/data/evolutions.js`, `js/data/species.js` |
+
+Toàn bộ do `tools/mktuxemon.py` và `tools/mkworld.py` sinh ra — chạy lại được
+bất cứ lúc nào, không sửa tay.
+
+CC BY-SA yêu cầu: ghi công (chính là trang này) và nếu sửa lại ảnh thì bản sửa
+cũng phải để CC BY-SA. Icon nhỏ của 15 con được thu từ chính sprite mặt trước
+của chúng (bản gốc chỉ có ảnh dấu hỏi dùng chung), nên phần sửa đó cũng theo
+CC BY-SA 4.0.
 
 ## Ảnh 2D huấn luyện viên — `assets/trainers/`
 
@@ -38,29 +58,10 @@ Từ [dorianleveque/Pokemap](https://github.com/dorianleveque/Pokemap).
 Cắt từ sheet "Pokémon Centre & Mart" (Pokémon Emerald) trên The Spriters
 Resource. Người rip: Nintendofreak106.
 
-## Ảnh Pokémon trong trận — `assets/anim/` và `assets/sprites/`
+## Ảnh vật phẩm — `assets/pokesprite/items/`
 
-Đều là sprite Gen 5 (Black/White), nguồn gốc
-[veekun.com/dex/downloads](https://veekun.com/dex/downloads).
-
-- `assets/anim/` — ảnh ĐỘNG, dex 1–386, mặt trước và mặt sau. Mặt trước do
-  người dùng gửi qua gói Eagle; mặt sau lấy từ
-  [PokeAPI/sprites](https://github.com/PokeAPI/sprites) (cùng bộ ảnh, vì
-  veekun.com bị chặn từ môi trường dựng dự án). Thiếu #297 ở mặt trước.
-- `assets/sprites/shiny/` và `assets/sprites/back/shiny/` — ảnh TĨNH shiny,
-  dex 1–649, cắt từ gói `generation5.tar.gz` của veekun do người dùng gửi.
-  Dùng ảnh tĩnh cho shiny vì bản động nặng thêm khoảng 26 MB; màu và hướng
-  vẫn đúng, có mạng thì tự nâng lên ảnh động của CDN.
-
-## Dấu chân Pokédex — `assets/footprints/`
-
-649 dấu chân 16×16, từ gói `pokemonfootprints.tar.gz` của veekun do người
-dùng gửi. Ảnh gốc là hình đen nền trong suốt nên giao diện đảo màu lại
-cho hợp nền tối.
-
-## Ảnh Pokémon và vật phẩm — `assets/pokesprite/`
-
-Từ [msikma/pokesprite](https://github.com/msikma/pokesprite).
+Từ [msikma/pokesprite](https://github.com/msikma/pokesprite). Chỉ còn giữ
+thư mục vật phẩm; phần ảnh Pokémon đã bỏ vì sinh vật nay lấy từ Tuxemon.
 
 ## Nguồn khác đã xem qua nhưng chưa dùng
 

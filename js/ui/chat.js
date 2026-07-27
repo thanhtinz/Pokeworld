@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/chat.js | Trang trò chuyện: thế giới, bang hội, nhắn riêng
+// TuxeWorld H5 | ui/chat.js | Trang trò chuyện: thế giới, bang hội, nhắn riêng
 import { esc } from '../util.js';
 import { toast, header } from './kit.js';
 import { isOnlineMode } from '../net/config.js';

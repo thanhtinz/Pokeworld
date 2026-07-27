@@ -1,147 +1,156 @@
-// PokeWorld H5 | data/zones.js | Khu vực bản đồ: encounter hoang dã, trainer và liên kết di chuyển
+// TuxeWorld H5 | data/zones.js | Khu vực: bảng gặp sinh vật, huấn luyện viên, lối đi
+// Bảng gặp TỰ SINH TỪ tools/mkworld.py theo địa hình của Tuxemon — đừng sửa tay phần encounters.
 
 // kind: 'town' | 'route' | 'forest' | 'cave' | 'lake' | 'meadow' | 'beach'
-// encounters: [{sp: số dex, w: trọng số, min/max: cấp}]
-// next: các zone đi được từ zone này
 export const ZONES = {
   town_1: {
-    name: 'Thị Trấn Khởi Đầu', kind: 'town', icon: 'town', iconSp: null, iconItem: 'town_map',
-    desc: 'Nơi hành trình bắt đầu. Có Trung tâm Pokémon, cửa hàng và Nhà Thi Đấu Đá của Brock.',
+    name: "Thị Trấn Khởi Đầu", kind: "town", icon: "town", iconSp: null, iconItem: "town_map",
+    desc: "Nơi hành trình bắt đầu. Có trung tâm hồi phục, cửa hàng và võ đường đầu tiên.",
     encounters: [],
-    trainers: ['gym_brock'],
-    next: ['route_1'],
+    trainers: ["gym_brock"],
+    next: ["route_1"],
   },
   route_1: {
-    name: 'Đường Số 1', kind: 'route', icon: 'route', iconSp: 16, iconItem: null,
-    desc: 'Con đường cỏ dại phía bắc thị trấn, nhiều Pokémon hoang dã cấp thấp.',
+    name: "Đường Số 1", kind: "route", icon: "route", iconSp: 60, iconItem: null,
+    desc: "Đồng cỏ phía bắc thị trấn, đầy sinh vật hoang cấp thấp.",
     encounters: [
-      { sp: 16, w: 30, min: 2, max: 5 },   // Pidgey
-      { sp: 19, w: 30, min: 2, max: 5 },   // Rattata
-      { sp: 10, w: 20, min: 2, max: 4 },   // Caterpie
-      { sp: 25, w: 5, min: 3, max: 6 },    // Pikachu (hiếm)
-      { sp: 133, w: 2, min: 4, max: 6 },   // Eevee (rất hiếm)
+      { sp: 60, w: 30, min: 2, max: 6 },   // Aardorn (basic)
+      { sp: 83, w: 30, min: 2, max: 6 },   // Anoleaf (basic)
+      { sp: 293, w: 30, min: 2, max: 6 },   // Caper (basic)
+      { sp: 80, w: 30, min: 2, max: 6 },   // Cardiling (basic)
+      { sp: 400, w: 30, min: 2, max: 6 },   // Cohldrabi (basic)
+      { sp: 310, w: 30, min: 2, max: 6 },   // Devidin (basic)
+      { sp: 57, w: 30, min: 2, max: 6 },   // Elofly (basic)
     ],
-    trainers: ['youngster_minh', 'lass_lan'],
-    next: ['town_1', 'forest_1', 'route_2'],
+    trainers: ["youngster_minh", "lass_lan"],
+    next: ["town_1", "forest_1", "route_2"],
   },
   forest_1: {
-    name: 'Rừng Xanh Thẳm', kind: 'forest', icon: 'forest', iconSp: 10, iconItem: null,
-    desc: 'Khu rừng rậm rạp đầy côn trùng, nghe đồn ban đêm có Snorlax xuất hiện.',
+    name: "Rừng Xanh Thẳm", kind: "forest", icon: "forest", iconSp: 373, iconItem: null,
+    desc: "Khu rừng rậm rạp, tán cây che kín mặt trời.",
     encounters: [
-      { sp: 10, w: 35, min: 3, max: 6 },   // Caterpie
-      { sp: 11, w: 15, min: 4, max: 7 },   // Metapod
-      { sp: 43, w: 20, min: 4, max: 8 },   // Oddish
-      { sp: 25, w: 8, min: 4, max: 7 },    // Pikachu
-      { sp: 12, w: 3, min: 8, max: 10 },   // Butterfree (hiếm)
-      { sp: 143, w: 1, min: 15, max: 18 }, // Snorlax (cực hiếm)
+      { sp: 373, w: 30, min: 4, max: 9 },   // Banling (basic)
+      { sp: 45, w: 30, min: 4, max: 9 },   // Budaye (basic)
+      { sp: 101, w: 30, min: 4, max: 9 },   // Bursa (basic)
+      { sp: 383, w: 30, min: 4, max: 9 },   // Chickadee (basic)
+      { sp: 158, w: 30, min: 4, max: 9 },   // Chloragon (basic)
+      { sp: 174, w: 30, min: 4, max: 9 },   // Flacono (basic)
+      { sp: 229, w: 30, min: 4, max: 9 },   // Fordin (basic)
     ],
-    trainers: ['bugcatcher_tung'],
-    next: ['route_1'],
+    trainers: ["bugcatcher_tung"],
+    next: ["route_1"],
   },
   route_2: {
-    name: 'Đường Số 2', kind: 'route', icon: 'route', iconSp: 19, iconItem: null,
-    desc: 'Đường mòn dẫn tới hang núi và hồ nước, Pokémon ở đây mạnh hơn hẳn.',
+    name: "Đường Số 2", kind: "route", icon: "route", iconSp: 212, iconItem: null,
+    desc: "Đường mòn dẫn tới hang núi và hồ nước.",
     encounters: [
-      { sp: 16, w: 25, min: 4, max: 8 },   // Pidgey
-      { sp: 19, w: 25, min: 4, max: 8 },   // Rattata
-      { sp: 43, w: 20, min: 5, max: 9 },   // Oddish
-      { sp: 66, w: 10, min: 6, max: 10 },  // Machop
-      { sp: 17, w: 5, min: 9, max: 12 },   // Pidgeotto (hiếm)
+      { sp: 212, w: 30, min: 5, max: 11 },   // Boltnu (basic)
+      { sp: 143, w: 30, min: 5, max: 11 },   // Botbot (basic)
+      { sp: 192, w: 30, min: 5, max: 11 },   // Chromeye (basic)
+      { sp: 335, w: 30, min: 5, max: 11 },   // Claymorior (basic)
+      { sp: 203, w: 30, min: 5, max: 11 },   // Drashimi (basic)
+      { sp: 325, w: 30, min: 5, max: 11 },   // Flummby (basic)
+      { sp: 99, w: 30, min: 5, max: 11 },   // Hatchling (basic)
     ],
     trainers: [],
-    next: ['route_1', 'cave_1', 'lake_1'],
+    next: ["route_1", "cave_1", "lake_1"],
   },
   cave_1: {
-    name: 'Hang Đá', kind: 'cave', icon: 'cave', iconSp: 41, iconItem: null,
-    desc: 'Hang động tối tăm, lãnh địa của Pokémon hệ Đá và bầy Zubat.',
+    name: "Hang Đá", kind: "cave", icon: "cave", iconSp: 368, iconItem: null,
+    desc: "Hang động tối tăm, lãnh địa của những sinh vật sống dưới lòng đất.",
     encounters: [
-      { sp: 41, w: 40, min: 6, max: 10 },  // Zubat
-      { sp: 74, w: 30, min: 6, max: 10 },  // Geodude
-      { sp: 66, w: 10, min: 7, max: 11 },  // Machop
-      { sp: 75, w: 5, min: 12, max: 15 },  // Graveler (hiếm)
-      { sp: 42, w: 3, min: 13, max: 16 },  // Golbat (hiếm)
+      { sp: 368, w: 30, min: 7, max: 13 },   // Babysnitch (basic)
+      { sp: 105, w: 30, min: 7, max: 13 },   // Forturtle (basic)
+      { sp: 277, w: 30, min: 7, max: 13 },   // Imbrickcile (basic)
+      { sp: 290, w: 30, min: 7, max: 13 },   // Slichen (basic)
+      { sp: 150, w: 30, min: 7, max: 13 },   // Vivipere (basic)
+      { sp: 268, w: 30, min: 7, max: 13 },   // Woodoor (basic)
+      { sp: 177, w: 30, min: 7, max: 13 },   // Wrougon (basic)
     ],
-    trainers: ['hiker_dung'],
-    next: ['route_2', 'cave_2'],
+    trainers: ["hiker_dung"],
+    next: ["route_2", "cave_2"],
   },
   lake_1: {
-    name: 'Hồ Gương Trời', kind: 'lake', icon: 'lake', iconSp: 129, iconItem: null,
-    desc: 'Hồ nước trong vắt, nơi đặt Nhà Thi Đấu Nước của Thủy. Nghe đồn có rồng ẩn mình dưới đáy hồ.',
+    name: "Hồ Gương Trời", kind: "lake", icon: "lake", iconSp: 119, iconItem: null,
+    desc: "Hồ nước trong vắt, nơi đặt võ đường hệ Nước.",
     encounters: [
-      { sp: 129, w: 45, min: 3, max: 10 }, // Magikarp
-      { sp: 7, w: 10, min: 5, max: 9 },    // Squirtle
-      { sp: 41, w: 10, min: 6, max: 9 },   // Zubat ven hồ
-      { sp: 147, w: 3, min: 10, max: 15 }, // Dratini (hiếm)
-      { sp: 130, w: 1, min: 20, max: 25 }, // Gyarados (cực hiếm)
+      { sp: 119, w: 30, min: 6, max: 12 },   // Axolightl (basic)
+      { sp: 41, w: 30, min: 6, max: 12 },   // Dollfin (basic)
+      { sp: 409, w: 30, min: 6, max: 12 },   // Gupphish (basic)
+      { sp: 387, w: 30, min: 6, max: 12 },   // Kroki (basic)
+      { sp: 307, w: 30, min: 6, max: 12 },   // Scarlant (basic)
+      { sp: 180, w: 30, min: 6, max: 12 },   // Seirein (basic)
+      { sp: 303, w: 30, min: 6, max: 12 },   // Sheye (basic)
     ],
-    trainers: ['gym_thuy'],
-    next: ['route_2', 'route_3'],
+    trainers: ["gym_thuy"],
+    next: ["route_2", "route_3"],
   },
   route_3: {
-    name: 'Đường Số 3', kind: 'route', icon: 'route', iconSp: 21, iconItem: null,
-    desc: 'Con đường dài phía nam hồ, một nhánh dẫn ra đồng hoa, nhánh kia về làng ven núi.',
+    name: "Đường Số 3", kind: "route", icon: "route", iconSp: 31, iconItem: null,
+    desc: "Con đường cát nóng phía nam hồ.",
     encounters: [
-      { sp: 21, w: 28, min: 8, max: 13 },   // Spearow
-      { sp: 19, w: 20, min: 8, max: 13 },   // Rattata
-      { sp: 43, w: 18, min: 9, max: 14 },   // Oddish
-      { sp: 27, w: 15, min: 9, max: 14 },   // Sandshrew
-      { sp: 56, w: 12, min: 10, max: 15 },  // Mankey
-      { sp: 22, w: 5, min: 14, max: 18 },   // Fearow (hiếm)
+      { sp: 31, w: 30, min: 9, max: 15 },   // Agnite (basic)
+      { sp: 340, w: 30, min: 9, max: 15 },   // Hissiorite (basic)
+      { sp: 407, w: 30, min: 9, max: 15 },   // Hoodoll (basic)
+      { sp: 48, w: 30, min: 9, max: 15 },   // Ignibus (basic)
+      { sp: 110, w: 30, min: 9, max: 15 },   // Komodraw (basic)
+      { sp: 263, w: 30, min: 9, max: 15 },   // Pantherafira (basic)
+      { sp: 390, w: 30, min: 9, max: 15 },   // Pawsand (basic)
     ],
-    trainers: ['camper_route3', 'sailor_route3'],
-    next: ['lake_1', 'meadow_1', 'town_2'],
+    trainers: ["camper_route3", "sailor_route3"],
+    next: ["lake_1", "meadow_1", "town_2"],
   },
   meadow_1: {
-    name: 'Đồng Hoa Nắng', kind: 'meadow', icon: 'meadow', iconSp: 44, iconItem: null,
-    desc: 'Cánh đồng hoa nở quanh năm. Pokémon hệ Cỏ và hệ Bay tụ về đây rất đông.',
+    name: "Đồng Hoa Nắng", kind: "meadow", icon: "meadow", iconSp: 394, iconItem: null,
+    desc: "Cánh đồng hoa nở quanh năm, sinh vật hệ Gỗ tụ về rất đông.",
     encounters: [
-      { sp: 43, w: 25, min: 10, max: 15 },  // Oddish
-      { sp: 69, w: 22, min: 10, max: 15 },  // Bellsprout
-      { sp: 46, w: 18, min: 10, max: 14 },  // Paras
-      { sp: 48, w: 15, min: 11, max: 16 },  // Venonat
-      { sp: 16, w: 10, min: 10, max: 14 },  // Pidgey
-      { sp: 44, w: 6, min: 16, max: 20 },   // Gloom (hiếm)
-      { sp: 123, w: 2, min: 18, max: 22 },  // Scyther (cực hiếm)
+      { sp: 394, w: 30, min: 11, max: 17 },   // Helipi (basic)
+      { sp: 220, w: 30, min: 11, max: 17 },   // Metesaur (basic)
+      { sp: 222, w: 30, min: 11, max: 17 },   // Rosarin (basic)
+      { sp: 354, w: 30, min: 11, max: 17 },   // Sprightly (basic)
+      { sp: 316, w: 30, min: 11, max: 17 },   // Thumpurn (basic)
+      { sp: 405, w: 30, min: 11, max: 17 },   // Toucanary (basic)
+      { sp: 103, w: 30, min: 11, max: 17 },   // Trapsnap (basic)
     ],
-    trainers: ['lass_rainbow'],
-    next: ['route_3'],
+    trainers: ["lass_rainbow"],
+    next: ["route_3"],
   },
   town_2: {
-    name: 'Làng Ven Núi', kind: 'town', icon: 'town', iconSp: null, iconItem: 'town_map',
-    desc: 'Ngôi làng nhỏ kẹp giữa núi và biển. Có Trung tâm Pokémon và cửa hàng.',
+    name: "Làng Ven Núi", kind: "town", icon: "town", iconSp: null, iconItem: "town_map",
+    desc: "Ngôi làng nhỏ kẹp giữa núi và biển.",
     encounters: [],
-    trainers: ['rocket_grunt_3'],
-    next: ['route_3', 'beach_1'],
+    trainers: ["rocket_grunt_3"],
+    next: ["route_3", "beach_1"],
   },
   beach_1: {
-    name: 'Bãi Biển Hoàng Hôn', kind: 'beach', icon: 'beach', iconSp: 98, iconItem: null,
-    desc: 'Bãi cát trải dài dưới nắng chiều. Pokémon vỏ cứng bò lên bờ khi thuỷ triều rút.',
+    name: "Bãi Biển Hoàng Hôn", kind: "beach", icon: "beach", iconSp: 86, iconItem: null,
+    desc: "Bãi cát trải dài dưới nắng chiều, sóng vỗ suốt ngày đêm.",
     encounters: [
-      { sp: 98, w: 30, min: 12, max: 17 },  // Krabby
-      { sp: 90, w: 22, min: 12, max: 17 },  // Shellder
-      { sp: 72, w: 18, min: 12, max: 16 },  // Tentacool
-      { sp: 120, w: 14, min: 13, max: 18 }, // Staryu
-      { sp: 116, w: 10, min: 13, max: 18 }, // Horsea
-      { sp: 99, w: 4, min: 20, max: 24 },   // Kingler (hiếm)
-      { sp: 131, w: 1, min: 25, max: 30 },  // Lapras (cực hiếm)
+      { sp: 86, w: 30, min: 13, max: 19 },   // Fluoresfin (basic)
+      { sp: 295, w: 30, min: 13, max: 19 },   // Lesmagu (basic)
+      { sp: 337, w: 30, min: 13, max: 19 },   // Nebufin (basic)
+      { sp: 366, w: 30, min: 13, max: 19 },   // Poinchin (basic)
+      { sp: 370, w: 30, min: 13, max: 19 },   // Weedsea (basic)
+      { sp: 403, w: 30, min: 13, max: 19 },   // Carcharock (standalone)
+      { sp: 256, w: 30, min: 13, max: 19 },   // Flisces (standalone)
     ],
-    trainers: ['swimmer_light'],
-    next: ['town_2'],
+    trainers: ["swimmer_light"],
+    next: ["town_2"],
   },
   cave_2: {
-    name: 'Hang Sâu Thẳm', kind: 'cave', icon: 'cave', iconSp: 95, iconItem: null,
-    desc: 'Mê cung đá sâu trong lòng núi, tối đến mức không thấy lối ra.',
+    name: "Hang Sâu Thẳm", kind: "cave", icon: "cave", iconSp: 172, iconItem: null,
+    desc: "Mê cung đá sâu trong lòng núi, tối đến mức không thấy lối ra.",
     encounters: [
-      { sp: 41, w: 25, min: 14, max: 19 },  // Zubat
-      { sp: 74, w: 22, min: 14, max: 19 },  // Geodude
-      { sp: 66, w: 18, min: 15, max: 20 },  // Machop
-      { sp: 50, w: 15, min: 14, max: 18 },  // Diglett
-      { sp: 75, w: 10, min: 18, max: 23 },  // Graveler
-      { sp: 95, w: 6, min: 20, max: 25 },   // Onix (hiếm)
-      { sp: 142, w: 1, min: 28, max: 32 },  // Aerodactyl (cực hiếm)
+      { sp: 172, w: 30, min: 15, max: 22 },   // Chillimp (basic)
+      { sp: 19, w: 30, min: 15, max: 22 },   // Rockitten (basic)
+      { sp: 25, w: 30, min: 15, max: 22 },   // Tweesher (basic)
+      { sp: 118, w: 30, min: 15, max: 22 },   // Araignee (standalone)
+      { sp: 257, w: 30, min: 15, max: 22 },   // Mingdyn (standalone)
+      { sp: 353, w: 30, min: 15, max: 22 },   // Teddisun (standalone)
+      { sp: 32, w: 8, min: 17, max: 25 },   // Agnidon (stage1)
     ],
-    trainers: ['camper_victory', 'channeler_unknown'],
-    next: ['cave_1'],
+    trainers: ["camper_victory", "channeler_unknown"],
+    next: ["cave_1"],
   },
 };
 

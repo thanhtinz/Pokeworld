@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/pokemon.js | Tạo instance Pokémon: IV, EV, nature, gender, shiny, tính stats
+// TuxeWorld H5 | engine/pokemon.js | Tạo instance Tuxemon: IV, EV, nature, gender, shiny, tính stats
 import { rng, clamp } from '../util.js';
 import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
@@ -11,10 +11,10 @@ import { expForLevel } from './exp.js';
 export const STAT_KEYS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
 // Tạo 1 instance mới. opts = { iv, nature, gender, shiny, ability, ball, moves }
-export function newPokemon(spId, level, opts = {}) {
+export function newTuxemon(spId, level, opts = {}) {
   const spec = SPECIES[spId];
   if (!spec) {
-    console.warn(`newPokemon: species ${spId} không tồn tại`);
+    console.warn(`newTuxemon: species ${spId} không tồn tại`);
     return null;
   }
   const lv = clamp(level || 5, 1, CONFIG.MAX_LEVEL);
@@ -69,19 +69,12 @@ export function newPokemon(spId, level, opts = {}) {
   return mon;
 }
 
-// 4 chiêu gần nhất theo learnset tại level cho trước
+// 4 chiêu gần nhất theo learnset tại level cho trước.
+// LEARNSETS[dex] = [[cấp, mã chiêu], ...] đã sắp sẵn theo cấp; một cấp có thể
+// học nhiều chiêu nên phải là mảng chứ không phải object khoá theo cấp.
 export function defaultMoves(spId, level) {
-  const ls = LEARNSETS[spId];
-  const learned = [];
-  if (ls) {
-    const entries = [];
-    for (const [lvStr, mvId] of Object.entries(ls)) {
-      const lv = Number(lvStr);
-      if (Number.isFinite(lv) && lv <= level) entries.push({ lv, id: mvId });
-    }
-    entries.sort((a, b) => a.lv - b.lv);
-    for (const e of entries) learned.push(e.id);
-  }
+  const ls = LEARNSETS[spId] || [];
+  const learned = ls.filter(([lv]) => lv <= level).map(([, id]) => id);
   // Lấy 4 chiêu cuối cùng (mới nhất)
   const moves = [];
   const start = Math.max(0, learned.length - 4);
@@ -89,7 +82,8 @@ export function defaultMoves(spId, level) {
     const mv = MOVES[learned[i]];
     moves.push({ id: learned[i], pp: mv ? mv.pp : 10 });
   }
-  if (moves.length === 0) moves.push({ id: 'tackle', pp: 35 });
+  // Con nào không có bảng học chiêu thì vẫn phải có gì đó để đánh
+  if (moves.length === 0) moves.push({ id: 'struggle', pp: MOVES.struggle ? MOVES.struggle.pp : 20 });
   return moves;
 }
 

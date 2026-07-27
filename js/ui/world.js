@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/world.js | Màn bản đồ: vẽ canvas + joystick ảo + nút tương tác
+// TuxeWorld H5 | ui/world.js | Màn bản đồ: vẽ canvas + joystick ảo + nút tương tác
 import { G, save } from '../state.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing,

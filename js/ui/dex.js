@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/dex.js | Pokédex: lưới loài + chi tiết
+// TuxeWorld H5 | ui/dex.js | Tuxedex: lưới loài + chi tiết
 import { G, dexCounts } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
@@ -14,7 +14,7 @@ export function render(el) {
   function drawList() {
     const [seen, caughtN] = dexCounts();
     el.innerHTML = `
-      ${header('Pokédex')}
+      ${header('Tuxedex')}
       <div class="card dex-count">Đã gặp <b>${seen}</b> — Đã bắt <b>${caughtN}</b> / ${total}</div>
       <div class="dex-grid">
         ${dexIds.map(id => {
@@ -75,14 +75,10 @@ export function render(el) {
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" id="dex-back">‹</button><h1>#${String(id).padStart(3, '0')} ${esc(s.name)}</h1></div>
       <div class="card dex-detail">
-        <img src="${boxIcon(id)}" data-up="${spriteUrl(id)}" width="120" height="120" alt="${esc(s.name)}" class="dex-big px-icon ${caughtIt ? '' : 'silhouette'}">
+        <img src="${boxIcon(id)}" width="120" height="120" alt="${esc(s.name)}" class="dex-big px-icon ${caughtIt ? '' : 'silhouette'}">
         <div>${s.types.map(typeBadge).join(' ')}</div>
         <small>Cao ${s.height ?? '?'} m · Nặng ${s.weight ?? '?'} kg</small>
-        <div class="dex-print">
-          <img src="assets/footprints/${id}.png" width="32" height="32" alt=""
-               onerror="this.closest('.dex-print').remove()">
-          <small>Dấu chân</small>
-        </div>
+        <small class="dex-shape">Dáng thân: ${esc(s.shape || '?')} · Bậc: ${esc(s.stage || '?')}</small>
       </div>
       <div class="card">
         <h3>Chỉ số gốc</h3>

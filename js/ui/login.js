@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/login.js | Màn đăng nhập / đăng ký + chọn nhân vật Nam (Red) / Nữ (Leaf)
+// TuxeWorld H5 | ui/login.js | Màn đăng nhập / đăng ký + chọn nhân vật Nam (Red) / Nữ (Leaf)
 import { listAccounts, register, login, deleteAccount } from '../engine/accounts.js';
 import { load } from '../state.js';
 import { esc } from '../util.js';
@@ -133,7 +133,7 @@ function drawRegister(el) {
     if (p1 !== p2) { toast('Mật khẩu nhập lại không khớp!'); return; }
     const [ok, err] = await register(user, p1, avatar);
     if (!ok) { toast(err); return; }
-    toast(`Chào mừng ${user.trim()}! Hãy chọn Pokémon đầu tiên.`);
+    toast(`Chào mừng ${user.trim()}! Hãy chọn Tuxemon đầu tiên.`);
     enterGame();
   });
   el.querySelector('#btn-back-list').addEventListener('click', () => drawList(el, listAccounts()));

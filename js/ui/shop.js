@@ -1,9 +1,8 @@
-// PokeWorld H5 | ui/shop.js | Cửa hàng: mua / bán
+// TuxeWorld H5 | ui/shop.js | Cửa hàng: mua / bán
 import { G, spend, addMoney, addItem, removeItem } from '../state.js';
 import { ITEMS } from '../data/items.js';
 import { esc, fmt } from '../util.js';
 import { toast, choose, itemIcon } from './kit.js';
-import { MEGA_ITEM_IDS } from '../engine/mega.js';
 import { uiIcon } from './icons.js';
 import { EQUIPMENT, RARITY } from '../data/equipment.js';
 import { shopList, buyEquip, buyStone, stoneCount, trainerLevel, STONE_ITEM } from '../engine/equipment.js';
@@ -12,11 +11,9 @@ export function render(el) {
   let tab = 'buy';
 
   function draw() {
-    const megaSet = new Set(MEGA_ITEM_IDS);
-    const buyIds = Object.keys(ITEMS).filter(id =>
-      ITEMS[id].price > 0 && ITEMS[id].kind !== 'held' && !megaSet.has(id));
+    const buyIds = Object.keys(ITEMS).filter(id => ITEMS[id].price > 0 && ITEMS[id].kind !== 'held');
     const sellIds = Object.keys(G.p.bag).filter(id => G.p.bag[id] > 0 && ITEMS[id] && ITEMS[id].sell > 0);
-    const ids = tab === 'buy' ? buyIds : tab === 'mega' ? MEGA_ITEM_IDS : tab === 'gear' ? [] : sellIds;
+    const ids = tab === 'buy' ? buyIds : tab === 'gear' ? [] : sellIds;
 
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>Cửa hàng</h1></div>
@@ -24,7 +21,6 @@ export function render(el) {
       <div class="tab-row">
         <button type="button" class="tab-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
         <button type="button" class="tab-btn ${tab === 'gear' ? 'active' : ''}" data-tab="gear">Trang bị</button>
-        <button type="button" class="tab-btn ${tab === 'mega' ? 'active' : ''}" data-tab="mega">Đá Mega</button>
         <button type="button" class="tab-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>
       </div>
       ${tab === 'gear' ? gearShopHtml() : ''}
@@ -40,8 +36,6 @@ export function render(el) {
               : `${fmt(it.price)}₽${G.p.bag[id] ? ` <small>(có ${G.p.bag[id]})</small>` : ''}`}</span>
           </button>`;
         }).join('')}
-        ${tab === 'mega' ? `<div class="card empty-note">Cần Key Stone, rồi cho Pokémon cầm đúng viên đá của loài đó ở màn Túi.
-          Vào trận sẽ hiện nút MEGA EVOLUTION.</div>` : ''}
         ${ids.length === 0 ? `<div class="card empty-note">${tab === 'sell' ? 'Không có gì để bán.' : 'Chưa có hàng.'}</div>` : ''}
       </div>`;
 

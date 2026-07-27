@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/menu.js | Bảng Menu: chỉ gồm các nút dẫn sang trang khác
+// TuxeWorld H5 | ui/menu.js | Bảng Menu: chỉ gồm các nút dẫn sang trang khác
 import { G, claimDaily } from '../state.js';
 import { DAILY_REWARDS } from '../data/quests.js';
 import { ITEMS } from '../data/items.js';
@@ -9,7 +9,7 @@ import { net } from '../net/session.js';
 import { show, refresh } from '../main.js';
 
 // Menu chỉ chứa những trang KHÔNG có sẵn trên thanh dưới và nút chat nổi.
-// Bản đồ / Đội / Túi / Nhân vật / Pokédex đã có nút riêng nên không lặp lại ở đây.
+// Bản đồ / Đội / Túi / Nhân vật / Tuxedex đã có nút riêng nên không lặp lại ở đây.
 // 'act' = nút làm việc gì đó tại chỗ, 'to' = nút mở trang.
 const HUB = [
   { act: 'daily',     icon: 'gift',    label: 'Điểm danh' },

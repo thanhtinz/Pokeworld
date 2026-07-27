@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/catchmon.js | Công thức tỷ lệ bắt: ball modifier, status, critical catch
+// TuxeWorld H5 | engine/catchmon.js | Công thức tỷ lệ bắt: ball modifier, status, critical catch
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { ITEMS } from '../data/items.js';

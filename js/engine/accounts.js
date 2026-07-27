@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/accounts.js | Hệ thống tài khoản cục bộ: đăng ký/đăng nhập, nhiều hồ sơ
+// TuxeWorld H5 | engine/accounts.js | Hệ thống tài khoản cục bộ: đăng ký/đăng nhập, nhiều hồ sơ
 // LƯU Ý: đây là tài khoản LƯU TRÊN MÁY (localStorage) — mỗi thiết bị một danh sách,
 // mật khẩu băm SHA-256. Muốn đồng bộ đa thiết bị thật cần backend (Firebase...) sau này.
 

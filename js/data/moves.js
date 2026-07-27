@@ -1,277 +1,264 @@
-// PokeWorld H5 | data/moves.js | Dữ liệu chiêu thức (47 chiêu)
+// PokeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py
+// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
+// power quy từ hệ số của Tuxemon sang thang 0-150; category theo tầm đánh.
 
-// category: 'physical' | 'special' | 'status'
-// effect: {kind:'status',id,chance} | {kind:'stat',target:'foe'|'self',stat,stages,chance}
-//         | {kind:'recoil',frac} | {kind:'drain',frac} | {kind:'heal',frac} | {kind:'flinch',chance}
 export const MOVES = {
-  // Hệ normal
-  tackle:       { name: 'Tackle', type: 'normal', category: 'physical', power: 40, acc: 100, pp: 35, priority: 0, effect: null },
-  scratch:      { name: 'Scratch', type: 'normal', category: 'physical', power: 40, acc: 100, pp: 35, priority: 0, effect: null },
-  growl:        { name: 'Growl', type: 'normal', category: 'status', power: 0, acc: 100, pp: 40, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'atk', stages: -1, chance: 100 } },
-  tail_whip:    { name: 'Tail Whip', type: 'normal', category: 'status', power: 0, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'def', stages: -1, chance: 100 } },
-  leer:         { name: 'Leer', type: 'normal', category: 'status', power: 0, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'def', stages: -1, chance: 100 } },
-  quick_attack: { name: 'Quick Attack', type: 'normal', category: 'physical', power: 40, acc: 100, pp: 30, priority: 1, effect: null },
-  hyper_fang:   { name: 'Hyper Fang', type: 'normal', category: 'physical', power: 80, acc: 90, pp: 15, priority: 0,
-                  effect: { kind: 'flinch', chance: 10 } },
-  body_slam:    { name: 'Body Slam', type: 'normal', category: 'physical', power: 85, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 30 } },
-  double_edge:  { name: 'Double-Edge', type: 'normal', category: 'physical', power: 120, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'recoil', frac: 0.33 } },
-  hyper_beam:   { name: 'Hyper Beam', type: 'normal', category: 'special', power: 150, acc: 90, pp: 5, priority: 0, effect: null },
-  swift:        { name: 'Swift', type: 'normal', category: 'special', power: 60, acc: 100, pp: 20, priority: 0, effect: null }, // coi như luôn trúng
-  splash:       { name: 'Splash', type: 'normal', category: 'status', power: 0, acc: 100, pp: 40, priority: 0, effect: null }, // không có tác dụng
-  harden:       { name: 'Harden', type: 'normal', category: 'status', power: 0, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'def', stages: 1, chance: 100 } },
-  recover:      { name: 'Recover', type: 'normal', category: 'status', power: 0, acc: 100, pp: 10, priority: 0,
-                  effect: { kind: 'heal', frac: 0.5 } },
-  rest:         { name: 'Rest', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 10, priority: 0,
-                  effect: { kind: 'heal', frac: 1.0 } }, // đơn giản hoá: hồi đầy máu
-
-  // Hệ fire
-  ember:        { name: 'Ember', type: 'fire', category: 'special', power: 40, acc: 100, pp: 25, priority: 0,
-                  effect: { kind: 'status', id: 'brn', chance: 10 } },
-  flamethrower: { name: 'Flamethrower', type: 'fire', category: 'special', power: 90, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'brn', chance: 10 } },
-
-  // Hệ water
-  water_gun:    { name: 'Water Gun', type: 'water', category: 'special', power: 40, acc: 100, pp: 25, priority: 0, effect: null },
-  bubble:       { name: 'Bubble', type: 'water', category: 'special', power: 40, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'spe', stages: -1, chance: 10 } },
-  bubble_beam:  { name: 'Bubble Beam', type: 'water', category: 'special', power: 65, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'spe', stages: -1, chance: 10 } },
-  hydro_pump:   { name: 'Hydro Pump', type: 'water', category: 'special', power: 110, acc: 80, pp: 5, priority: 0, effect: null },
-
-  // Hệ grass / poison (bột)
-  vine_whip:    { name: 'Vine Whip', type: 'grass', category: 'physical', power: 45, acc: 100, pp: 25, priority: 0, effect: null },
-  razor_leaf:   { name: 'Razor Leaf', type: 'grass', category: 'physical', power: 55, acc: 95, pp: 25, priority: 0, effect: null },
-  solar_beam:   { name: 'Solar Beam', type: 'grass', category: 'special', power: 120, acc: 100, pp: 10, priority: 0, effect: null }, // đơn giản hoá: đánh ngay 1 lượt
-  absorb:       { name: 'Absorb', type: 'grass', category: 'special', power: 20, acc: 100, pp: 25, priority: 0,
-                  effect: { kind: 'drain', frac: 0.5 } },
-  mega_drain:   { name: 'Mega Drain', type: 'grass', category: 'special', power: 40, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'drain', frac: 0.5 } },
-  leech_seed:   { name: 'Leech Seed', type: 'grass', category: 'special', power: 20, acc: 90, pp: 10, priority: 0,
-                  effect: { kind: 'drain', frac: 0.5 } }, // đơn giản hoá: coi như chiêu hút máu
-  sleep_powder: { name: 'Sleep Powder', type: 'grass', category: 'status', power: 0, acc: 75, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'slp', chance: 100 } },
-  poison_powder:{ name: 'Poison Powder', type: 'poison', category: 'status', power: 0, acc: 75, pp: 35, priority: 0,
-                  effect: { kind: 'status', id: 'psn', chance: 100 } },
-  stun_spore:   { name: 'Stun Spore', type: 'grass', category: 'status', power: 0, acc: 75, pp: 30, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 100 } },
-
-  // Hệ electric
-  thundershock: { name: 'Thunder Shock', type: 'electric', category: 'special', power: 40, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 10 } },
-  thunderbolt:  { name: 'Thunderbolt', type: 'electric', category: 'special', power: 90, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 10 } },
-  thunder_wave: { name: 'Thunder Wave', type: 'electric', category: 'status', power: 0, acc: 90, pp: 20, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 100 } },
-
-  // Hệ flying
-  gust:         { name: 'Gust', type: 'flying', category: 'special', power: 40, acc: 100, pp: 35, priority: 0, effect: null },
-  wing_attack:  { name: 'Wing Attack', type: 'flying', category: 'physical', power: 60, acc: 100, pp: 35, priority: 0, effect: null },
-
-  // Hệ dark
-  bite:         { name: 'Bite', type: 'dark', category: 'physical', power: 60, acc: 100, pp: 25, priority: 0,
-                  effect: { kind: 'flinch', chance: 30 } },
-
-  // Hệ poison
-  poison_sting: { name: 'Poison Sting', type: 'poison', category: 'physical', power: 15, acc: 100, pp: 35, priority: 0,
-                  effect: { kind: 'status', id: 'psn', chance: 30 } },
-  acid:         { name: 'Acid', type: 'poison', category: 'special', power: 40, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'spd', stages: -1, chance: 10 } },
-
-  // Hệ bug
-  string_shot:  { name: 'String Shot', type: 'bug', category: 'status', power: 0, acc: 95, pp: 40, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'spe', stages: -2, chance: 100 } },
-
-  // Hệ psychic
-  confusion:    { name: 'Confusion', type: 'psychic', category: 'special', power: 50, acc: 100, pp: 25, priority: 0,
-                  effect: { kind: 'status', id: 'conf', chance: 10 } },
-  psybeam:      { name: 'Psybeam', type: 'psychic', category: 'special', power: 65, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'status', id: 'conf', chance: 10 } },
-  agility:      { name: 'Agility', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'spe', stages: 2, chance: 100 } },
-
-  // Hệ fighting
-  karate_chop:  { name: 'Karate Chop', type: 'fighting', category: 'physical', power: 50, acc: 100, pp: 25, priority: 0, effect: null },
-  low_kick:     { name: 'Low Kick', type: 'fighting', category: 'physical', power: 60, acc: 100, pp: 20, priority: 0, effect: null }, // đơn giản hoá: power cố định
-
-  // Hệ rock / ground
-  rock_throw:   { name: 'Rock Throw', type: 'rock', category: 'physical', power: 50, acc: 90, pp: 15, priority: 0, effect: null },
-  magnitude:    { name: 'Magnitude', type: 'ground', category: 'physical', power: 70, acc: 100, pp: 30, priority: 0, effect: null }, // đơn giản hoá: power cố định 70
-
-  // Hệ dragon
-  dragon_rage:  { name: 'Dragon Rage', type: 'dragon', category: 'special', power: 40, acc: 100, pp: 10, priority: 0, effect: null }, // đơn giản hoá: power 40 thay damage cố định
-
-  // ==== Bổ sung chiêu Gen 1 ====
-  // Hệ normal (đánh)
-  pound:        { name: 'Pound', type: 'normal', category: 'physical', power: 40, acc: 100, pp: 35, priority: 0, effect: null },
-  comet_punch:  { name: 'Comet Punch', type: 'normal', category: 'physical', power: 60, acc: 85, pp: 15, priority: 0, effect: null }, // đơn giản hoá: gộp nhiều đòn
-  mega_punch:   { name: 'Mega Punch', type: 'normal', category: 'physical', power: 80, acc: 85, pp: 20, priority: 0, effect: null },
-  mega_kick:    { name: 'Mega Kick', type: 'normal', category: 'physical', power: 120, acc: 75, pp: 5, priority: 0, effect: null },
-  pay_day:      { name: 'Pay Day', type: 'normal', category: 'physical', power: 40, acc: 100, pp: 20, priority: 0, effect: null },
-  doubleslap:   { name: 'Double Slap', type: 'normal', category: 'physical', power: 45, acc: 85, pp: 10, priority: 0, effect: null }, // đơn giản hoá: gộp nhiều đòn
-  slam:         { name: 'Slam', type: 'normal', category: 'physical', power: 80, acc: 75, pp: 20, priority: 0, effect: null },
-  horn_attack:  { name: 'Horn Attack', type: 'normal', category: 'physical', power: 65, acc: 100, pp: 25, priority: 0, effect: null },
-  fury_attack:  { name: 'Fury Attack', type: 'normal', category: 'physical', power: 60, acc: 85, pp: 20, priority: 0, effect: null }, // đơn giản hoá: gộp nhiều đòn
-  fury_swipes:  { name: 'Fury Swipes', type: 'normal', category: 'physical', power: 60, acc: 80, pp: 15, priority: 0, effect: null }, // đơn giản hoá: gộp nhiều đòn
-  take_down:    { name: 'Take Down', type: 'normal', category: 'physical', power: 90, acc: 85, pp: 20, priority: 0,
-                  effect: { kind: 'recoil', frac: 0.25 } },
-  thrash:       { name: 'Thrash', type: 'normal', category: 'physical', power: 120, acc: 100, pp: 10, priority: 0, effect: null },
-  strength:     { name: 'Strength', type: 'normal', category: 'physical', power: 80, acc: 100, pp: 15, priority: 0, effect: null },
-  cut:          { name: 'Cut', type: 'normal', category: 'physical', power: 50, acc: 95, pp: 30, priority: 0, effect: null },
-  headbutt:     { name: 'Headbutt', type: 'normal', category: 'physical', power: 70, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'flinch', chance: 30 } },
-  stomp:        { name: 'Stomp', type: 'normal', category: 'physical', power: 65, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'flinch', chance: 30 } },
-  dizzy_punch:  { name: 'Dizzy Punch', type: 'normal', category: 'physical', power: 70, acc: 100, pp: 10, priority: 0, effect: null },
-  skull_bash:   { name: 'Skull Bash', type: 'normal', category: 'physical', power: 130, acc: 100, pp: 10, priority: 0, effect: null }, // đơn giản hoá: đánh ngay 1 lượt
-  slash:        { name: 'Slash', type: 'normal', category: 'physical', power: 70, acc: 100, pp: 20, priority: 0, effect: null },
-  super_fang:   { name: 'Super Fang', type: 'normal', category: 'physical', power: 60, acc: 90, pp: 10, priority: 0, effect: null }, // đơn giản hoá: power cố định
-  egg_bomb:     { name: 'Egg Bomb', type: 'normal', category: 'physical', power: 100, acc: 75, pp: 10, priority: 0, effect: null },
-  tri_attack:   { name: 'Tri Attack', type: 'normal', category: 'physical', power: 80, acc: 100, pp: 10, priority: 0,
-                  effect: { kind: 'status', id: 'brn', chance: 20 } },
-  self_destruct:{ name: 'Self-Destruct', type: 'normal', category: 'physical', power: 200, acc: 100, pp: 5, priority: 0, effect: null }, // đơn giản hoá: không tự ngất
-  explosion:    { name: 'Explosion', type: 'normal', category: 'physical', power: 250, acc: 100, pp: 5, priority: 0, effect: null }, // đơn giản hoá: không tự ngất
-
-  // Hệ normal (trạng thái)
-  sing:         { name: 'Sing', type: 'normal', category: 'status', power: 0, acc: 55, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'slp', chance: 100 } },
-  glare:        { name: 'Glare', type: 'normal', category: 'status', power: 0, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 100 } },
-  supersonic:   { name: 'Supersonic', type: 'normal', category: 'status', power: 0, acc: 55, pp: 20, priority: 0, effect: null },
-  disable:      { name: 'Disable', type: 'normal', category: 'status', power: 0, acc: 100, pp: 20, priority: 0, effect: null },
-  screech:      { name: 'Screech', type: 'normal', category: 'status', power: 0, acc: 85, pp: 40, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'def', stages: -2, chance: 100 } },
-  defense_curl: { name: 'Defense Curl', type: 'normal', category: 'status', power: 0, acc: 100, pp: 40, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'def', stages: 1, chance: 100 } },
-  swords_dance: { name: 'Swords Dance', type: 'normal', category: 'status', power: 0, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'atk', stages: 2, chance: 100 } },
-  sharpen:      { name: 'Sharpen', type: 'normal', category: 'status', power: 0, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'atk', stages: 1, chance: 100 } },
-  growth:       { name: 'Growth', type: 'normal', category: 'status', power: 0, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'spa', stages: 1, chance: 100 } },
-  double_team:  { name: 'Double Team', type: 'normal', category: 'status', power: 0, acc: 100, pp: 15, priority: 0, effect: null }, // né tránh chưa hỗ trợ
-  minimize:     { name: 'Minimize', type: 'normal', category: 'status', power: 0, acc: 100, pp: 10, priority: 0, effect: null }, // né tránh chưa hỗ trợ
-  focus_energy: { name: 'Focus Energy', type: 'normal', category: 'status', power: 0, acc: 100, pp: 30, priority: 0, effect: null }, // tỉ lệ chí mạng chưa hỗ trợ
-  smokescreen:  { name: 'Smokescreen', type: 'normal', category: 'status', power: 0, acc: 100, pp: 20, priority: 0, effect: null }, // giảm acc chưa hỗ trợ
-  flash:        { name: 'Flash', type: 'normal', category: 'status', power: 0, acc: 100, pp: 20, priority: 0, effect: null }, // giảm acc chưa hỗ trợ
-  softboiled:   { name: 'Soft-Boiled', type: 'normal', category: 'status', power: 0, acc: 100, pp: 10, priority: 0,
-                  effect: { kind: 'heal', frac: 0.5 } },
-  transform:    { name: 'Transform', type: 'normal', category: 'status', power: 0, acc: 100, pp: 10, priority: 0, effect: null }, // biến hình chưa hỗ trợ
-  conversion:   { name: 'Conversion', type: 'normal', category: 'status', power: 0, acc: 100, pp: 30, priority: 0, effect: null }, // đổi hệ chưa hỗ trợ
-
-  // Hệ fighting
-  double_kick:  { name: 'Double Kick', type: 'fighting', category: 'physical', power: 60, acc: 100, pp: 30, priority: 0, effect: null }, // đơn giản hoá: gộp 2 đòn
-  seismic_toss: { name: 'Seismic Toss', type: 'fighting', category: 'physical', power: 60, acc: 100, pp: 20, priority: 0, effect: null }, // đơn giản hoá: power cố định
-  submission:   { name: 'Submission', type: 'fighting', category: 'physical', power: 80, acc: 80, pp: 20, priority: 0,
-                  effect: { kind: 'recoil', frac: 0.25 } },
-  jump_kick:    { name: 'Jump Kick', type: 'fighting', category: 'physical', power: 100, acc: 95, pp: 10, priority: 0, effect: null },
-  hi_jump_kick: { name: 'High Jump Kick', type: 'fighting', category: 'physical', power: 130, acc: 90, pp: 10, priority: 0, effect: null },
-  rolling_kick: { name: 'Rolling Kick', type: 'fighting', category: 'physical', power: 60, acc: 85, pp: 15, priority: 0,
-                  effect: { kind: 'flinch', chance: 30 } },
-
-  // Hệ poison
-  sludge:       { name: 'Sludge', type: 'poison', category: 'physical', power: 65, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'status', id: 'psn', chance: 30 } },
-  smog:         { name: 'Smog', type: 'poison', category: 'physical', power: 30, acc: 70, pp: 20, priority: 0,
-                  effect: { kind: 'status', id: 'psn', chance: 40 } },
-  poison_gas:   { name: 'Poison Gas', type: 'poison', category: 'status', power: 0, acc: 90, pp: 40, priority: 0,
-                  effect: { kind: 'status', id: 'psn', chance: 100 } },
-  toxic:        { name: 'Toxic', type: 'poison', category: 'status', power: 0, acc: 90, pp: 10, priority: 0,
-                  effect: { kind: 'status', id: 'psn', chance: 100 } }, // đơn giản hoá: độc thường
-  acid_armor:   { name: 'Acid Armor', type: 'poison', category: 'status', power: 0, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'def', stages: 2, chance: 100 } },
-
-  // Hệ bug
-  pin_missile:  { name: 'Pin Missile', type: 'bug', category: 'physical', power: 60, acc: 95, pp: 20, priority: 0, effect: null }, // đơn giản hoá: gộp nhiều đòn
-  twineedle:    { name: 'Twineedle', type: 'bug', category: 'physical', power: 50, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'status', id: 'psn', chance: 20 } },
-  leech_life:   { name: 'Leech Life', type: 'bug', category: 'physical', power: 20, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'drain', frac: 0.5 } },
-
-  // Hệ flying
-  peck:         { name: 'Peck', type: 'flying', category: 'physical', power: 35, acc: 100, pp: 35, priority: 0, effect: null },
-  drill_peck:   { name: 'Drill Peck', type: 'flying', category: 'physical', power: 80, acc: 100, pp: 20, priority: 0, effect: null },
-  fly:          { name: 'Fly', type: 'flying', category: 'physical', power: 90, acc: 95, pp: 15, priority: 0, effect: null }, // đơn giản hoá: đánh ngay 1 lượt
-  sky_attack:   { name: 'Sky Attack', type: 'flying', category: 'physical', power: 140, acc: 90, pp: 5, priority: 0, effect: null }, // đơn giản hoá: đánh ngay 1 lượt
-
-  // Hệ ground
-  earthquake:   { name: 'Earthquake', type: 'ground', category: 'physical', power: 100, acc: 100, pp: 10, priority: 0, effect: null },
-  dig:          { name: 'Dig', type: 'ground', category: 'physical', power: 80, acc: 100, pp: 10, priority: 0, effect: null }, // đơn giản hoá: đánh ngay 1 lượt
-  bone_club:    { name: 'Bone Club', type: 'ground', category: 'physical', power: 65, acc: 85, pp: 20, priority: 0,
-                  effect: { kind: 'flinch', chance: 10 } },
-  bonemerang:   { name: 'Bonemerang', type: 'ground', category: 'physical', power: 90, acc: 90, pp: 10, priority: 0, effect: null }, // đơn giản hoá: gộp 2 đòn
-  sand_attack:  { name: 'Sand Attack', type: 'ground', category: 'status', power: 0, acc: 100, pp: 15, priority: 0, effect: null }, // giảm acc chưa hỗ trợ
-
-  // Hệ rock
-  rock_slide:   { name: 'Rock Slide', type: 'rock', category: 'physical', power: 75, acc: 90, pp: 10, priority: 0,
-                  effect: { kind: 'flinch', chance: 30 } },
-
-  // Hệ ghost
-  lick:         { name: 'Lick', type: 'ghost', category: 'physical', power: 30, acc: 100, pp: 30, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 30 } },
-  night_shade:  { name: 'Night Shade', type: 'ghost', category: 'physical', power: 60, acc: 100, pp: 15, priority: 0, effect: null }, // đơn giản hoá: power cố định
-  confuse_ray:  { name: 'Confuse Ray', type: 'ghost', category: 'status', power: 0, acc: 100, pp: 10, priority: 0,
-                  effect: { kind: 'status', id: 'conf', chance: 100 } },
-
-  // Hệ fire
-  fire_spin:    { name: 'Fire Spin', type: 'fire', category: 'special', power: 35, acc: 85, pp: 15, priority: 0, effect: null },
-  fire_punch:   { name: 'Fire Punch', type: 'fire', category: 'special', power: 75, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'brn', chance: 10 } },
-  fire_blast:   { name: 'Fire Blast', type: 'fire', category: 'special', power: 110, acc: 85, pp: 5, priority: 0,
-                  effect: { kind: 'status', id: 'brn', chance: 10 } },
-
-  // Hệ water
-  surf:         { name: 'Surf', type: 'water', category: 'special', power: 90, acc: 100, pp: 15, priority: 0, effect: null },
-  waterfall:    { name: 'Waterfall', type: 'water', category: 'special', power: 80, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'flinch', chance: 20 } },
-  crabhammer:   { name: 'Crabhammer', type: 'water', category: 'special', power: 100, acc: 90, pp: 10, priority: 0, effect: null },
-  clamp:        { name: 'Clamp', type: 'water', category: 'special', power: 35, acc: 85, pp: 15, priority: 0, effect: null },
-  withdraw:     { name: 'Withdraw', type: 'water', category: 'status', power: 0, acc: 100, pp: 40, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'def', stages: 1, chance: 100 } },
-
-  // Hệ grass
-  petal_dance:  { name: 'Petal Dance', type: 'grass', category: 'special', power: 120, acc: 100, pp: 10, priority: 0, effect: null },
-  spore:        { name: 'Spore', type: 'grass', category: 'status', power: 0, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'slp', chance: 100 } },
-
-  // Hệ electric
-  thunder:      { name: 'Thunder', type: 'electric', category: 'special', power: 110, acc: 70, pp: 10, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 30 } },
-  thunder_punch:{ name: 'Thunder Punch', type: 'electric', category: 'special', power: 75, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'par', chance: 10 } },
-
-  // Hệ ice
-  ice_beam:     { name: 'Ice Beam', type: 'ice', category: 'special', power: 90, acc: 100, pp: 10, priority: 0,
-                  effect: { kind: 'status', id: 'frz', chance: 10 } },
-  blizzard:     { name: 'Blizzard', type: 'ice', category: 'special', power: 110, acc: 70, pp: 5, priority: 0,
-                  effect: { kind: 'status', id: 'frz', chance: 10 } },
-  ice_punch:    { name: 'Ice Punch', type: 'ice', category: 'special', power: 75, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'status', id: 'frz', chance: 10 } },
-  aurora_beam:  { name: 'Aurora Beam', type: 'ice', category: 'special', power: 65, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'atk', stages: -1, chance: 10 } },
-  haze:         { name: 'Haze', type: 'ice', category: 'status', power: 0, acc: 100, pp: 30, priority: 0, effect: null }, // xoá buff chưa hỗ trợ
-  mist:         { name: 'Mist', type: 'ice', category: 'status', power: 0, acc: 100, pp: 30, priority: 0, effect: null }, // chắn giảm chỉ số chưa hỗ trợ
-
-  // Hệ psychic
-  psychic_mv:   { name: 'Psychic', type: 'psychic', category: 'special', power: 90, acc: 100, pp: 10, priority: 0,
-                  effect: { kind: 'stat', target: 'foe', stat: 'spd', stages: -1, chance: 10 } },
-  psywave:      { name: 'Psywave', type: 'psychic', category: 'special', power: 60, acc: 100, pp: 15, priority: 0, effect: null }, // đơn giản hoá: power cố định
-  dream_eater:  { name: 'Dream Eater', type: 'psychic', category: 'special', power: 100, acc: 100, pp: 15, priority: 0,
-                  effect: { kind: 'drain', frac: 0.5 } },
-  hypnosis:     { name: 'Hypnosis', type: 'psychic', category: 'status', power: 0, acc: 60, pp: 20, priority: 0,
-                  effect: { kind: 'status', id: 'slp', chance: 100 } },
-  barrier:      { name: 'Barrier', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'def', stages: 2, chance: 100 } },
-  amnesia:      { name: 'Amnesia', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 20, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'spd', stages: 2, chance: 100 } },
-  meditate:     { name: 'Meditate', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 40, priority: 0,
-                  effect: { kind: 'stat', target: 'self', stat: 'atk', stages: 1, chance: 100 } },
-  teleport:     { name: 'Teleport', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 20, priority: 0, effect: null },
-  reflect:      { name: 'Reflect', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 20, priority: 0, effect: null }, // màn chắn chưa hỗ trợ
-  light_screen: { name: 'Light Screen', type: 'psychic', category: 'status', power: 0, acc: 100, pp: 30, priority: 0, effect: null }, // màn chắn chưa hỗ trợ
+  "acid": { name: "Acid", type: "venom", category: "special", power: 70, acc: 80, pp: 29, priority: 0 },
+  "adamantine": { name: "Adamantine", type: "metal", category: "physical", power: 150, acc: 100, pp: 15, priority: 0 },
+  "air_chain": { name: "Air Chain", type: "sky", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "all_in": { name: "All In", type: "heroic", category: "physical", power: 150, acc: 80, pp: 15, priority: 0 },
+  "altitude": { name: "Altitude", type: "sky", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "amnesia": { name: "Amnesia", type: "cosmic", category: "physical", power: 112, acc: 80, pp: 22, priority: 0 },
+  "ants": { name: "Ants", type: "earth", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "arcane_eye": { name: "Arcane Eye", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "assault": { name: "Assault", type: "normal", category: "physical", power: 85, acc: 90, pp: 26, priority: 0 },
+  "avalanche": { name: "Avalanche", type: "earth", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "barking": { name: "Barking", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "battery_acid": { name: "Battery Acid", type: "venom", category: "special", power: 112, acc: 80, pp: 22, priority: 0 },
+  "battery_discharge": { name: "Battery Discharge", type: "lightning", category: "special", power: 62, acc: 80, pp: 30, priority: 0 },
+  "beam": { name: "Beam", type: "heroic", category: "special", power: 62, acc: 100, pp: 30, priority: 0 },
+  "berserk": { name: "Berserk", type: "heroic", category: "physical", power: 112, acc: 80, pp: 22, priority: 0 },
+  "biting_winds": { name: "Biting Winds", type: "sky", category: "special", power: 62, acc: 80, pp: 30, priority: 0 },
+  "blade": { name: "Blade", type: "metal", category: "physical", power: 62, acc: 85, pp: 30, priority: 0 },
+  "blood_bond": { name: "Blood Bond", type: "water", category: "physical", power: 112, acc: 80, pp: 22, priority: 0 },
+  "blood_nets": { name: "Blood Nets", type: "shadow", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "blossom": { name: "Blossom", type: "wood", category: "special", power: 62, acc: 85, pp: 30, priority: 0 },
+  "boulder": { name: "Boulder", type: "earth", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "breath": { name: "Breath", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "breathe_fire": { name: "Breathe Fire", type: "fire", category: "special", power: 112, acc: 80, pp: 22, priority: 0 },
+  "bubble_trap": { name: "Bubble Trap", type: "cosmic", category: "physical", power: 112, acc: 75, pp: 22, priority: 0 },
+  "bubbles": { name: "Bubbles", type: "water", category: "special", power: 70, acc: 100, pp: 29, priority: 0 },
+  "bullet": { name: "Bullet", type: "metal", category: "special", power: 62, acc: 85, pp: 30, priority: 0 },
+  "burrow_blast": { name: "Burrow Blast", type: "earth", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "buzz": { name: "Buzz", type: "lightning", category: "physical", power: 60, acc: 100, pp: 30, priority: 0 },
+  "canine": { name: "Canine", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "cat_calling": { name: "Cat Calling", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "caustic_spray": { name: "Caustic Spray", type: "venom", category: "special", power: 110, acc: 90, pp: 22, priority: 0 },
+  "cavity": { name: "Cavity", type: "normal", category: "special", power: 145, acc: 70, pp: 16, priority: 0 },
+  "chameleon": { name: "Chameleon", type: "wood", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "changeling": { name: "Changeling", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "chill_mist": { name: "Chill Mist", type: "frost", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "clairaudience": { name: "Clairaudience", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "clamp_on": { name: "Clamp On", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "clock": { name: "Clock", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "cloud_aether": { name: "Cloud Aether", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "combat_clone": { name: "Combat Clone", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "conjurer": { name: "Conjurer", type: "shadow", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "constrict": { name: "Constrict", type: "normal", category: "special", power: 62, acc: 85, pp: 30, priority: 0 },
+  "crushing_bite": { name: "Crushing Bite", type: "normal", category: "physical", power: 90, acc: 90, pp: 25, priority: 0 },
+  "crystal": { name: "Crystal", type: "cosmic", category: "special", power: 50, acc: 90, pp: 32, priority: 0 },
+  "cutting_leaves": { name: "Cutting Leaves", type: "wood", category: "physical", power: 150, acc: 95, pp: 15, priority: 0 },
+  "damage_division": { name: "Damage Division", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "demiurge": { name: "Demiurge", type: "cosmic", category: "physical", power: 100, acc: 80, pp: 24, priority: 0 },
+  "depth_charge": { name: "Depth Charge", type: "water", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "diet": { name: "Diet", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "divinity_beam": { name: "Divinity Beam", type: "cosmic", category: "special", power: 150, acc: 95, pp: 15, priority: 0 },
+  "dreamwalk": { name: "Dreamwalk", type: "cosmic", category: "special", power: 140, acc: 100, pp: 17, priority: 0 },
+  "earthquake": { name: "Earthquake", type: "earth", category: "physical", power: 145, acc: 70, pp: 16, priority: 0 },
+  "egg_smash": { name: "Egg Smash", type: "normal", category: "special", power: 100, acc: 90, pp: 24, priority: 0 },
+  "electric_multibite": { name: "Electric Multibite", type: "lightning", category: "status", power: 0, acc: 90, pp: 40, priority: 0 },
+  "electrical_storm": { name: "Electrical Storm", type: "lightning", category: "status", power: 0, acc: 75, pp: 40, priority: 0 },
+  "electroplate": { name: "Electroplate", type: "metal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "energy_beam": { name: "Energy Beam", type: "normal", category: "special", power: 150, acc: 95, pp: 15, priority: 0 },
+  "energy_claws": { name: "Energy Claws", type: "lightning", category: "physical", power: 112, acc: 80, pp: 22, priority: 0 },
+  "energy_field": { name: "Energy Field", type: "lightning", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "entomb": { name: "Entomb", type: "earth", category: "physical", power: 150, acc: 90, pp: 15, priority: 0 },
+  "evasion": { name: "Evasion", type: "heroic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "external_power": { name: "External Power", type: "normal", category: "special", power: 100, acc: 100, pp: 24, priority: 0 },
+  "eyebite": { name: "Eyebite", type: "shadow", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "feint": { name: "Feint", type: "normal", category: "physical", power: 50, acc: 100, pp: 32, priority: 0 },
+  "feline": { name: "Feline", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "fester": { name: "Fester", type: "venom", category: "physical", power: 112, acc: 100, pp: 22, priority: 0 },
+  "fiery": { name: "Fiery", type: "fire", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "fire_ball": { name: "Fire Ball", type: "fire", category: "special", power: 60, acc: 90, pp: 30, priority: 0 },
+  "fire_claw": { name: "Fire Claw", type: "fire", category: "physical", power: 88, acc: 75, pp: 26, priority: 0 },
+  "fire_shield": { name: "Fire Shield", type: "fire", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "firestorm": { name: "Firestorm", type: "fire", category: "physical", power: 150, acc: 80, pp: 15, priority: 0 },
+  "flamethrower": { name: "Flamethrower", type: "fire", category: "special", power: 112, acc: 80, pp: 22, priority: 0 },
+  "fledgling": { name: "Fledgling", type: "sky", category: "special", power: 85, acc: 75, pp: 26, priority: 0 },
+  "flood": { name: "Flood", type: "water", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "flow": { name: "Flow", type: "water", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "flower_armor": { name: "Flower Armor", type: "wood", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "flower_bloom": { name: "Flower Bloom", type: "wood", category: "status", power: 0, acc: 95, pp: 40, priority: 0 },
+  "fluff_up": { name: "Fluff Up", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "font": { name: "Font", type: "water", category: "special", power: 62, acc: 80, pp: 30, priority: 0 },
+  "food_fight": { name: "Food Fight", type: "normal", category: "special", power: 20, acc: 95, pp: 37, priority: 0 },
+  "frighten": { name: "Frighten", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "frostbite": { name: "Frostbite", type: "frost", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "fume": { name: "Fume", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "fungal_spore": { name: "Fungal Spore", type: "wood", category: "physical", power: 70, acc: 100, pp: 29, priority: 0 },
+  "geyser": { name: "Geyser", type: "water", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "give_all": { name: "Give All", type: "heroic", category: "physical", power: 150, acc: 100, pp: 15, priority: 0 },
+  "glower": { name: "Glower", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "gnaw": { name: "Gnaw", type: "normal", category: "physical", power: 50, acc: 100, pp: 32, priority: 0 },
+  "goad": { name: "Goad", type: "normal", category: "physical", power: 88, acc: 80, pp: 26, priority: 0 },
+  "gold_digger": { name: "Gold Digger", type: "normal", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "gourmet": { name: "Gourmet", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "greenstone": { name: "Greenstone", type: "earth", category: "physical", power: 125, acc: 60, pp: 20, priority: 0 },
+  "grinding": { name: "Grinding", type: "earth", category: "physical", power: 110, acc: 75, pp: 22, priority: 0 },
+  "gust": { name: "Gust", type: "sky", category: "special", power: 45, acc: 100, pp: 33, priority: 0 },
+  "hallucinogen_spore": { name: "Hallucinogen Spore", type: "cosmic", category: "special", power: 100, acc: 90, pp: 24, priority: 0 },
+  "hammerhead": { name: "Hammerhead", type: "earth", category: "physical", power: 50, acc: 100, pp: 32, priority: 0 },
+  "heavenly_desserts": { name: "Heavenly Desserts", type: "cosmic", category: "physical", power: 150, acc: 90, pp: 15, priority: 0 },
+  "hibernate": { name: "Hibernate", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "hook": { name: "Hook", type: "heroic", category: "special", power: 50, acc: 95, pp: 32, priority: 0 },
+  "horn": { name: "Horn", type: "normal", category: "physical", power: 125, acc: 75, pp: 20, priority: 0 },
+  "ice_claw": { name: "Ice Claw", type: "frost", category: "physical", power: 62, acc: 80, pp: 30, priority: 0 },
+  "ice_shield": { name: "Ice Shield", type: "frost", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "ice_storm": { name: "Ice Storm", type: "frost", category: "special", power: 125, acc: 60, pp: 20, priority: 0 },
+  "icicle_spear": { name: "Icicle Spear", type: "frost", category: "status", power: 0, acc: 75, pp: 40, priority: 0 },
+  "infectious_bite": { name: "Infectious Bite", type: "venom", category: "physical", power: 50, acc: 95, pp: 32, priority: 0 },
+  "inner_power": { name: "Inner Power", type: "normal", category: "physical", power: 100, acc: 100, pp: 24, priority: 0 },
+  "insanity": { name: "Insanity", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "invictus": { name: "Invictus", type: "heroic", category: "physical", power: 62, acc: 75, pp: 30, priority: 0 },
+  "just_desserts": { name: "Just Desserts", type: "cosmic", category: "special", power: 100, acc: 80, pp: 24, priority: 0 },
+  "kindling_flame": { name: "Kindling Flame", type: "fire", category: "special", power: 112, acc: 80, pp: 22, priority: 0 },
+  "kiss": { name: "Kiss", type: "normal", category: "physical", power: 0, acc: 100, pp: 40, priority: 0 },
+  "kraken": { name: "Kraken", type: "water", category: "physical", power: 125, acc: 80, pp: 20, priority: 0 },
+  "lantern": { name: "Lantern", type: "heroic", category: "special", power: 50, acc: 90, pp: 32, priority: 0 },
+  "laser_beam": { name: "Laser Beam", type: "lightning", category: "special", power: 150, acc: 100, pp: 15, priority: 0 },
+  "lava": { name: "Lava", type: "fire", category: "special", power: 145, acc: 80, pp: 16, priority: 0 },
+  "leaf_barrage": { name: "Leaf Barrage", type: "wood", category: "status", power: 0, acc: 95, pp: 40, priority: 0 },
+  "leaf_stab": { name: "Leaf Stab", type: "wood", category: "special", power: 60, acc: 80, pp: 30, priority: 0 },
+  "levitate": { name: "Levitate", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "lick_lash": { name: "Lick Lash", type: "normal", category: "physical", power: 75, acc: 80, pp: 28, priority: 0 },
+  "life_surge": { name: "Life Surge", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "lightning_spheres": { name: "Lightning Spheres", type: "lightning", category: "special", power: 60, acc: 90, pp: 30, priority: 0 },
+  "lineage": { name: "Lineage", type: "cosmic", category: "physical", power: 75, acc: 100, pp: 28, priority: 0 },
+  "lock_horns": { name: "Lock Horns", type: "heroic", category: "physical", power: 75, acc: 95, pp: 28, priority: 0 },
+  "lust": { name: "Lust", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "magic_spell": { name: "Magic Spell", type: "cosmic", category: "status", power: 0, acc: 95, pp: 40, priority: 0 },
+  "magma": { name: "Magma", type: "fire", category: "special", power: 70, acc: 80, pp: 29, priority: 0 },
+  "magnetic_body": { name: "Magnetic Body", type: "metal", category: "physical", power: 150, acc: 100, pp: 15, priority: 0 },
+  "meltdown": { name: "Meltdown", type: "venom", category: "physical", power: 140, acc: 70, pp: 17, priority: 0 },
+  "mending": { name: "Mending", type: "metal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "midnight_mantle": { name: "Midnight Mantle", type: "shadow", category: "special", power: 62, acc: 60, pp: 30, priority: 0 },
+  "mind_explosion": { name: "Mind Explosion", type: "cosmic", category: "special", power: 150, acc: 100, pp: 15, priority: 0 },
+  "mind_vise": { name: "Mind Vise", type: "cosmic", category: "physical", power: 50, acc: 100, pp: 32, priority: 0 },
+  "mobbing": { name: "Mobbing", type: "shadow", category: "physical", power: 90, acc: 100, pp: 25, priority: 0 },
+  "muck": { name: "Muck", type: "venom", category: "physical", power: 100, acc: 80, pp: 24, priority: 0 },
+  "muddle": { name: "Muddle", type: "cosmic", category: "physical", power: 50, acc: 100, pp: 32, priority: 0 },
+  "mudslide": { name: "Mudslide", type: "earth", category: "physical", power: 112, acc: 80, pp: 22, priority: 0 },
+  "mystic_blending": { name: "Mystic Blending", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "needle": { name: "Needle", type: "metal", category: "special", power: 125, acc: 90, pp: 20, priority: 0 },
+  "negation": { name: "Negation", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "nest": { name: "Nest", type: "sky", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "neutralize": { name: "Neutralize", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "oedipus": { name: "Oedipus", type: "metal", category: "physical", power: 110, acc: 85, pp: 22, priority: 0 },
+  "one_million_talons": { name: "One Million Talons", type: "sky", category: "physical", power: 150, acc: 100, pp: 15, priority: 0 },
+  "one_two": { name: "One-Two", type: "heroic", category: "physical", power: 150, acc: 100, pp: 15, priority: 0 },
+  "orbs": { name: "Orbs", type: "cosmic", category: "special", power: 100, acc: 100, pp: 24, priority: 0 },
+  "oven": { name: "Oven", type: "fire", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "overfeed": { name: "Overfeed", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "overgrowth": { name: "Overgrowth", type: "wood", category: "special", power: 112, acc: 80, pp: 22, priority: 0 },
+  "panjandrum": { name: "Panjandrum", type: "normal", category: "status", power: 0, acc: 75, pp: 40, priority: 0 },
+  "peck": { name: "Peck", type: "sky", category: "physical", power: 62, acc: 100, pp: 30, priority: 0 },
+  "peregrine": { name: "Peregrine", type: "sky", category: "physical", power: 88, acc: 80, pp: 26, priority: 0 },
+  "perfect_cut": { name: "Perfect Cut", type: "metal", category: "special", power: 100, acc: 100, pp: 24, priority: 0 },
+  "petrify": { name: "Petrify", type: "earth", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "phantasmal_force": { name: "Phantasmal Force", type: "shadow", category: "physical", power: 55, acc: 90, pp: 31, priority: 0 },
+  "piece_of_cake": { name: "Piece of Cake", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "pit": { name: "Pit", type: "earth", category: "physical", power: 105, acc: 80, pp: 23, priority: 0 },
+  "platinum": { name: "Platinum", type: "metal", category: "physical", power: 85, acc: 70, pp: 26, priority: 0 },
+  "poison_courtship": { name: "Poison Courtship", type: "venom", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "pollen_blast": { name: "Pollen Blast", type: "wood", category: "special", power: 75, acc: 80, pp: 28, priority: 0 },
+  "potluck": { name: "Potluck", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "pouch": { name: "Pouch", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "power_theft": { name: "Power Theft", type: "normal", category: "physical", power: 50, acc: 100, pp: 32, priority: 0 },
+  "proboscis": { name: "Proboscis", type: "normal", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "pseudopod": { name: "Pseudopod", type: "venom", category: "physical", power: 62, acc: 100, pp: 30, priority: 0 },
+  "punch": { name: "Punch", type: "heroic", category: "physical", power: 75, acc: 90, pp: 28, priority: 0 },
+  "pyrokinesis": { name: "Pyrokinesis", type: "fire", category: "physical", power: 125, acc: 80, pp: 20, priority: 0 },
+  "quicksand": { name: "Quicksand", type: "earth", category: "physical", power: 112, acc: 80, pp: 22, priority: 0 },
+  "radiance": { name: "Radiance", type: "heroic", category: "special", power: 125, acc: 95, pp: 20, priority: 0 },
+  "ram": { name: "Ram", type: "normal", category: "physical", power: 75, acc: 85, pp: 28, priority: 0 },
+  "refresh": { name: "Refresh", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "revenge_stance": { name: "Revenge Stance", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "rift_dash": { name: "Rift Dash", type: "lightning", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "ring": { name: "Ring", type: "wood", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "riposte": { name: "Riposte", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "rock": { name: "Rock", type: "earth", category: "physical", power: 75, acc: 100, pp: 28, priority: 0 },
+  "rocky_barrage": { name: "Rocky Barrage", type: "earth", category: "status", power: 0, acc: 90, pp: 40, priority: 0 },
+  "roll": { name: "Roll", type: "normal", category: "physical", power: 60, acc: 90, pp: 30, priority: 0 },
+  "rot": { name: "Rot", type: "venom", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "ruby": { name: "Ruby", type: "cosmic", category: "physical", power: 125, acc: 80, pp: 20, priority: 0 },
+  "rust_bomb": { name: "Rust Bomb", type: "metal", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "saber": { name: "Saber", type: "metal", category: "physical", power: 110, acc: 80, pp: 22, priority: 0 },
+  "salamander": { name: "Salamander", type: "fire", category: "physical", power: 62, acc: 80, pp: 30, priority: 0 },
+  "sand_spray": { name: "Sand Spray", type: "earth", category: "physical", power: 62, acc: 80, pp: 30, priority: 0 },
+  "sands_of_time": { name: "Sands of Time", type: "earth", category: "physical", power: 120, acc: 90, pp: 20, priority: 0 },
+  "shadow_blast": { name: "Shadow Blast", type: "shadow", category: "special", power: 140, acc: 95, pp: 17, priority: 0 },
+  "shadow_boxing": { name: "Shadow Boxing", type: "heroic", category: "physical", power: 62, acc: 100, pp: 30, priority: 0 },
+  "shapechange": { name: "Shapechange", type: "cosmic", category: "physical", power: 110, acc: 70, pp: 22, priority: 0 },
+  "shooting_star": { name: "Shooting Star", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "shrapnel": { name: "Shrapnel", type: "metal", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "shuriken": { name: "Shuriken", type: "metal", category: "special", power: 112, acc: 80, pp: 22, priority: 0 },
+  "sleep_bomb": { name: "Sleep Bomb", type: "cosmic", category: "physical", power: 112, acc: 75, pp: 22, priority: 0 },
+  "sleeping_powder": { name: "Sleeping Powder", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "slice": { name: "Slice", type: "metal", category: "physical", power: 60, acc: 90, pp: 30, priority: 0 },
+  "slime": { name: "Slime", type: "venom", category: "physical", power: 55, acc: 100, pp: 31, priority: 0 },
+  "snowball": { name: "Snowball", type: "frost", category: "special", power: 50, acc: 90, pp: 32, priority: 0 },
+  "snowstorm": { name: "Snowstorm", type: "frost", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "sockpuppet": { name: "Sockpuppet", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "solar_synthesis": { name: "Solar Synthesis", type: "wood", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "spiky_strike": { name: "Spiky Strike", type: "wood", category: "physical", power: 75, acc: 95, pp: 28, priority: 0 },
+  "spit_poison": { name: "Spit Poison", type: "venom", category: "special", power: 62, acc: 80, pp: 30, priority: 0 },
+  "splinter": { name: "Splinter", type: "wood", category: "physical", power: 62, acc: 80, pp: 30, priority: 0 },
+  "stabilo": { name: "Stabilo", type: "wood", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "staff_smash": { name: "Staff Smash", type: "metal", category: "physical", power: 125, acc: 80, pp: 20, priority: 0 },
+  "stampede": { name: "Stampede", type: "normal", category: "physical", power: 62, acc: 100, pp: 30, priority: 0 },
+  "starfall": { name: "Starfall", type: "cosmic", category: "special", power: 62, acc: 80, pp: 30, priority: 0 },
+  "static_field": { name: "Static Field", type: "lightning", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "steel_jaws": { name: "Steel Jaws", type: "metal", category: "physical", power: 125, acc: 95, pp: 20, priority: 0 },
+  "stick": { name: "Stick", type: "wood", category: "physical", power: 70, acc: 95, pp: 29, priority: 0 },
+  "sting": { name: "Sting", type: "venom", category: "physical", power: 62, acc: 80, pp: 30, priority: 0 },
+  "stone_rot": { name: "Stone Rot", type: "venom", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "stonehenge": { name: "Stonehenge", type: "earth", category: "status", power: 0, acc: 80, pp: 40, priority: 0 },
+  "strangulation": { name: "Strangulation", type: "shadow", category: "physical", power: 125, acc: 80, pp: 20, priority: 0 },
+  "strike": { name: "Strike", type: "normal", category: "special", power: 62, acc: 100, pp: 30, priority: 0 },
+  "struggle": { name: "Struggle", type: "normal", category: "special", power: 25, acc: 100, pp: 36, priority: 0 },
+  "suck_poison": { name: "Suck Poison", type: "venom", category: "physical", power: 100, acc: 100, pp: 24, priority: 0 },
+  "sudden_glow": { name: "Sudden Glow", type: "heroic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "sunburst": { name: "Sunburst", type: "fire", category: "special", power: 55, acc: 90, pp: 31, priority: 0 },
+  "supernova": { name: "Supernova", type: "fire", category: "special", power: 150, acc: 75, pp: 15, priority: 0 },
+  "suplex": { name: "Suplex", type: "metal", category: "physical", power: 100, acc: 95, pp: 24, priority: 0 },
+  "surf": { name: "Surf", type: "water", category: "status", power: 0, acc: 60, pp: 40, priority: 0 },
+  "surge": { name: "Surge", type: "lightning", category: "special", power: 62, acc: 75, pp: 30, priority: 0 },
+  "sylvan": { name: "Sylvan", type: "wood", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "tail_lash": { name: "Tail Lash", type: "normal", category: "physical", power: 60, acc: 100, pp: 30, priority: 0 },
+  "take_cover": { name: "Take Cover", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "taunt": { name: "Taunt", type: "shadow", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "ten_thousand_feathers": { name: "Ten Thousand Feathers", type: "sky", category: "special", power: 150, acc: 90, pp: 15, priority: 0 },
+  "terror": { name: "Terror", type: "cosmic", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "thorn_burst": { name: "Thorn Burst", type: "wood", category: "special", power: 150, acc: 95, pp: 15, priority: 0 },
+  "thunderball": { name: "Thunderball", type: "earth", category: "physical", power: 112, acc: 100, pp: 22, priority: 0 },
+  "thunderclap": { name: "Thunderclap", type: "lightning", category: "special", power: 62, acc: 95, pp: 30, priority: 0 },
+  "time_crisis": { name: "Time Crisis", type: "cosmic", category: "special", power: 125, acc: 80, pp: 20, priority: 0 },
+  "tinder": { name: "Tinder", type: "fire", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "tip": { name: "Tip", type: "metal", category: "physical", power: 110, acc: 100, pp: 22, priority: 0 },
+  "tonguespear": { name: "Tonguespear", type: "normal", category: "physical", power: 125, acc: 80, pp: 20, priority: 0 },
+  "tooth_for_tooth": { name: "Tooth for Tooth", type: "normal", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "torch": { name: "Torch", type: "fire", category: "physical", power: 70, acc: 70, pp: 29, priority: 0 },
+  "tornado": { name: "Tornado", type: "sky", category: "special", power: 145, acc: 80, pp: 16, priority: 0 },
+  "trample": { name: "Trample", type: "normal", category: "physical", power: 125, acc: 90, pp: 20, priority: 0 },
+  "tsunami": { name: "Tsunami", type: "water", category: "physical", power: 135, acc: 75, pp: 18, priority: 0 },
+  "tux_attack": { name: "Tux Attack", type: "frost", category: "physical", power: 100, acc: 100, pp: 24, priority: 0 },
+  "undertaker": { name: "Undertaker", type: "shadow", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "venomous_tentacle": { name: "Venomous Tentacle", type: "water", category: "physical", power: 112, acc: 80, pp: 22, priority: 0 },
+  "viper": { name: "Viper", type: "venom", category: "special", power: 145, acc: 80, pp: 16, priority: 0 },
+  "vorpal": { name: "Vorpal", type: "metal", category: "physical", power: 150, acc: 95, pp: 15, priority: 0 },
+  "wall_fire": { name: "Wall Fire", type: "fire", category: "physical", power: 95, acc: 80, pp: 25, priority: 0 },
+  "wall_of_steel": { name: "Wall of Steel", type: "metal", category: "physical", power: 62, acc: 75, pp: 30, priority: 0 },
+  "wallow": { name: "Wallow", type: "water", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "walls": { name: "Walls", type: "earth", category: "physical", power: 50, acc: 80, pp: 32, priority: 0 },
+  "water_blast": { name: "Water Blast", type: "water", category: "special", power: 115, acc: 100, pp: 21, priority: 0 },
+  "water_bullet": { name: "Water Bullet", type: "water", category: "special", power: 62, acc: 90, pp: 30, priority: 0 },
+  "web": { name: "Web", type: "venom", category: "physical", power: 62, acc: 80, pp: 30, priority: 0 },
+  "webs_wind": { name: "Webs Wind", type: "sky", category: "status", power: 0, acc: 100, pp: 40, priority: 0 },
+  "whirlwind": { name: "Whirlwind", type: "sky", category: "special", power: 62, acc: 100, pp: 30, priority: 0 },
+  "wicked_wind": { name: "Wicked Wind", type: "shadow", category: "special", power: 120, acc: 85, pp: 20, priority: 0 },
+  "wing_tip": { name: "Wing Tip", type: "sky", category: "physical", power: 62, acc: 80, pp: 30, priority: 0 },
+  "woodsmash": { name: "Woodsmash", type: "heroic", category: "physical", power: 145, acc: 90, pp: 16, priority: 0 },
 };
+
+export const moveName = (id) => (MOVES[id] && MOVES[id].name) || id;

@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/evolution.js | Kiểm tra + thực thi tiến hóa
+// TuxeWorld H5 | engine/evolution.js | Kiểm tra + thực thi tiến hóa
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';

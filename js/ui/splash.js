@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/splash.js | Màn khởi động: nền + nút START
+// TuxeWorld H5 | ui/splash.js | Màn khởi động: nền + nút START
 import { show } from '../main.js';
 
 export function render(el) {

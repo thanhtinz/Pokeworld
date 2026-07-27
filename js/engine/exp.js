@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/exp.js | Đường cong EXP, lên level, chia EXP
+// TuxeWorld H5 | engine/exp.js | Đường cong EXP, lên level, chia EXP
 import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { LEARNSETS } from '../data/learnsets.js';
@@ -51,15 +51,10 @@ export function gainExp(mon, amount) {
   return newLevels;
 }
 
-// Chiêu mới có thể học tại level này
+// Chiêu mới có thể học đúng tại level này
 export function movesAtLevel(spId, lv) {
-  const ls = LEARNSETS[spId];
-  const out = [];
-  if (ls) {
-    for (const [l, mv] of Object.entries(ls)) {
-      if (Number(l) === lv) out.push(mv);
-    }
-  }
+  const ls = LEARNSETS[spId] || [];
+  const out = ls.filter(([l]) => l === lv).map(([, id]) => id);
   return out;
 }
 

@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/mapbake.js | "Nướng" bản đồ: từ lưới ký tự ra lưới ô ảnh thật
+// TuxeWorld H5 | engine/mapbake.js | "Nướng" bản đồ: từ lưới ký tự ra lưới ô ảnh thật
 // Ghép cạnh (autotile) một lần rồi nhớ lại, vẽ mỗi khung hình chỉ việc tra bảng.
 import { AUTOTILES, DECOR, BUILDINGS, pickAuto } from '../data/tiles.js';
 import { MAPS, TERRAIN, charAt, mapWidth, mapHeight } from '../data/maps.js';
@@ -84,7 +84,7 @@ export function bake(mapId) {
       else if (t.decor === 'sign') over[i] = DECOR.sign;
 
       if (t.solid) solid[i] = 1;
-      // Hang động không có cỏ cao: mọi ô đi được đều là ô gặp Pokémon
+      // Hang động không có cỏ cao: mọi ô đi được đều là ô gặp Tuxemon
       if (t.enc || (map.encAll && !t.solid)) enc[i] = 1;
     }
   }

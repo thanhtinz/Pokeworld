@@ -1,4 +1,4 @@
-// PokeWorld H5 | main.js | Router màn hình + khởi động app
+// TuxeWorld H5 | main.js | Router màn hình + khởi động app
 import { G, load, hasSave } from './state.js';
 import { toast } from './ui/kit.js';
 
@@ -30,7 +30,6 @@ import * as marriage from './ui/marriage.js';
 import * as settings from './ui/settings.js';
 import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
-import { sanitizeSave } from './engine/mega.js';
 import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/pokemon.js';
 import { activeAvatar } from './engine/accounts.js';
@@ -108,9 +107,6 @@ onChange(() => {
 });
 
 // Mở phiên online nếu người chơi đã chọn máy chủ (chơi offline thì bỏ qua)
-// Thoát game giữa lúc đang Mega thì save còn dạng 10xxx — dọn lại cho sạch
-if (G.p) sanitizeSave(G.p, maxHp);
-
 wirePvpInvites();
 startSession().catch(e => console.warn('[online]', e));
 

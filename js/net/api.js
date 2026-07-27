@@ -1,4 +1,4 @@
-// PokeWorld H5 | net/api.js | Gọi REST API máy chủ. Mọi hàm trả {ok, data|error} — không ném lỗi.
+// TuxeWorld H5 | net/api.js | Gọi REST API máy chủ. Mọi hàm trả {ok, data|error} — không ném lỗi.
 import { getServerUrl, getToken, setToken } from './config.js';
 
 async function call(path, { method = 'GET', body, auth = true } = {}) {

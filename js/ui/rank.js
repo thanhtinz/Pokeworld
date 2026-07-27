@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/rank.js | Trang bảng xếp hạng
+// TuxeWorld H5 | ui/rank.js | Trang bảng xếp hạng
 import { esc, fmt } from '../util.js';
 import { header } from './kit.js';
 import { isOnlineMode } from '../net/config.js';
@@ -6,7 +6,7 @@ import * as api from '../net/api.js';
 import { net } from '../net/session.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
 
-const METRICS = [['money', 'Tiền'], ['badges', 'Huy hiệu'], ['dex', 'Pokédex']];
+const METRICS = [['money', 'Tiền'], ['badges', 'Huy hiệu'], ['dex', 'Tuxedex']];
 let metric = 'money';
 
 export function render(el) {

@@ -1,4 +1,4 @@
-// PokeWorld H5 | engine/battle.js | State machine trận đấu: hàng đợi lượt, resolve action
+// TuxeWorld H5 | engine/battle.js | State machine trận đấu: hàng đợi lượt, resolve action
 import { rng, clamp } from '../util.js';
 import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
@@ -71,7 +71,7 @@ export class Battle {
     if (this.over) return [false, 'Trận đấu đã kết thúc.'];
     // Chặn hành vi không hợp lệ theo loại trận
     if (action.t === 'ball' && this.kind !== 'wild') {
-      return [false, 'Không thể bắt Pokémon của huấn luyện viên khác!'];
+      return [false, 'Không thể bắt Tuxemon của huấn luyện viên khác!'];
     }
     if (action.t === 'run' && this.kind === 'trainer') {
       return [false, 'Không thể bỏ chạy khỏi trận đấu với huấn luyện viên!'];
@@ -86,7 +86,7 @@ export class Battle {
       const s = this.sides[sideIdx];
       const target = s.mons[action.slot];
       if (!target || isFainted(target) || action.slot === s.active) {
-        return [false, 'Không thể đổi sang Pokémon này.'];
+        return [false, 'Không thể đổi sang Tuxemon này.'];
       }
     }
     this.pending[sideIdx] = action;

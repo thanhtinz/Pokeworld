@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/quests.js | Dữ liệu nhiệm vụ (2 main, 4 side, 2 daily) và thưởng điểm danh
+// TuxeWorld H5 | data/quests.js | Dữ liệu nhiệm vụ (2 main, 4 side, 2 daily) và thưởng điểm danh
 
 // kind: 'main' | 'side' | 'daily'
 // goal.t: catch_any | catch_species | defeat_trainer | reach_zone | catch_count | win_battles
@@ -7,7 +7,7 @@ export const QUESTS = {
   main_starter: {
     kind: 'main',
     name: 'Người Bạn Đầu Tiên',
-    desc: 'Hãy bắt Pokémon hoang dã đầu tiên của bạn để bắt đầu hành trình!',
+    desc: 'Hãy bắt Tuxemon hoang dã đầu tiên của bạn để bắt đầu hành trình!',
     goal: { t: 'catch_any', n: 1 },
     reward: { money: 500, items: [{ id: 'poke_ball', n: 5 }] },
     next: 'main_gym1',
@@ -55,7 +55,7 @@ export const QUESTS = {
   daily_catch3: {
     kind: 'daily',
     name: 'Thợ Săn Trong Ngày',
-    desc: 'Bắt 3 Pokémon hoang dã bất kỳ trong hôm nay.',
+    desc: 'Bắt 3 Tuxemon hoang dã bất kỳ trong hôm nay.',
     goal: { t: 'catch_count', n: 3 },
     reward: { money: 400, items: [{ id: 'poke_ball', n: 3 }] },
   },

@@ -1,4 +1,4 @@
-// PokeWorld H5 | ui/friends.js | Trang bạn bè: kết bạn, nhắn tin, thách đấu
+// TuxeWorld H5 | ui/friends.js | Trang bạn bè: kết bạn, nhắn tin, thách đấu
 import { esc } from '../util.js';
 import { toast, confirmDlg, header } from './kit.js';
 import { isOnlineMode } from '../net/config.js';

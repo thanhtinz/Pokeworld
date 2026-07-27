@@ -1,6 +1,20 @@
-// PokeWorld H5 | engine/story.js | Engine cốt truyện: chương hiện tại, tiến độ, khóa zone
+// TuxeWorld H5 | engine/story.js | Engine cốt truyện: chương hiện tại, tiến độ, khóa zone
 import { G, save, addMoney, addItem } from '../state.js';
 import { CHAPTERS, ZONE_LOCKS, RIVAL_STARTER } from '../data/story.js';
+import { EVOLUTIONS } from '../data/evolutions.js';
+
+const RIVAL_KEYS = Object.keys(RIVAL_STARTER).map(Number);
+
+// Lần theo chuỗi tiến hoá tối đa hai bậc
+function evolveTwice(sp) {
+  let cur = sp;
+  for (let i = 0; i < 2; i++) {
+    const e = EVOLUTIONS[cur];
+    if (!e) break;
+    cur = e.into;
+  }
+  return cur;
+}
 
 // Trạng thái lưu trong save: G.p.story = { idx: 0, doneIntro: {}, finished: false }
 function st() {
@@ -37,18 +51,19 @@ export function zoneLockedBy(zoneId) {
 
 // Đội rival theo starter người chơi + mốc truyện
 export function rivalTeam(battleId) {
-  const starter = G.p.starterId || G.p.party[0]?.sp || 1;
-  const rs = RIVAL_STARTER[starter] || 4;
+  const starter = G.p.starterId || G.p.party[0]?.sp || RIVAL_KEYS[0];
+  const rs = RIVAL_STARTER[starter] || RIVAL_KEYS[0];
   if (battleId === 'rival_1') {
     return [{ sp: rs, lv: 6 }];
   }
   // rival_2: đội cuối — starter tiến hóa 2 lần + đội đa hệ
-  const evo2 = { 4: 6, 7: 9, 1: 3 }[rs] || rs;
+  // Tiến hoá hai bậc từ chính con đối thủ chọn, tra thẳng trong bảng tiến hoá
+  const evo2 = evolveTwice(rs);
   return [
-    { sp: 18, lv: 30 },   // Pidgeot
-    { sp: 26, lv: 31 },   // Raichu
-    { sp: 130, lv: 32 },  // Gyarados
-    { sp: evo2, lv: 34 }, // Starter tiến hóa cuối
+    { sp: 257, lv: 30 },
+    { sp: 353, lv: 31 },
+    { sp: 32, lv: 32 },
+    { sp: evo2, lv: 34 }, // con khởi đầu của đối thủ, đã tiến hoá tối đa
   ];
 }
 

@@ -1,5 +1,4 @@
-// PokeWorld H5 | util.js | Tiện ích chung: RNG, clamp, sprite, escape HTML
-import { getSetting } from './engine/settings.js';
+// TuxeWorld H5 | util.js | Tiện ích chung: RNG, clamp, sprite, escape HTML
 
 // Nguồn số ngẫu nhiên. Bình thường dùng Math.random, nhưng khi đấu PvP thì
 // gieo hạt để HAI MÁY tính ra y hệt nhau — không có bước này thì mỗi bên thấy
@@ -40,27 +39,20 @@ export const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g,
   c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-// Sprite Pokémon từ PokeAPI (CDN công khai). back = sprite nhìn từ sau lưng.
-export const spriteUrl = (dexId, back = false) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${back ? 'back/' : ''}${dexId}.png`;
+// ===== Sprite sinh vật (Tuxemon, nằm sẵn trong dự án) =====
+// assets/mon/<id>.png     mặt trước (64x64)
+// assets/mon/<id>_b.png   mặt sau
+// assets/mon/<id>_i.png   icon nhỏ 24x24 cho danh sách
+// Không còn phụ thuộc CDN nào — mất mạng vẫn chơi được đầy đủ.
+export const monPath = (dexId, back = false) =>
+  `assets/mon/${dexId}${back ? '_b' : ''}.png`;
+export const monIconPath = (dexId) => `assets/mon/${dexId}_i.png`;
 
-export const spriteShinyUrl = (dexId, back = false) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${back ? 'back/' : ''}${dexId}.png`;
-
-// Sprite theo mon instance (tự chọn shiny)
-export const monSprite = (mon, back = false) =>
-  mon.shiny ? spriteShinyUrl(mon.sp, back) : spriteUrl(mon.sp, back);
-
-// Sprite pixel ĐỘNG (gen 5 B/W animated .gif) — dùng trong trận đấu.
-// Cấu trúc repo PokeAPI: animated/{id}.gif, animated/back/{id}.gif,
-// animated/shiny/{id}.gif, animated/back/shiny/{id}.gif
-const ANIM_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated';
-export const animSpriteUrl = (dexId, back = false, shiny = false) =>
-  `${ANIM_BASE}/${back ? 'back/' : ''}${shiny ? 'shiny/' : ''}${dexId}.gif`;
-
-// Animated sprite theo mon instance (tự chọn shiny)
-export const animSprite = (mon, back = false) =>
-  animSpriteUrl(mon.sp, back, !!mon.shiny);
+export const spriteUrl = (dexId, back = false) => monPath(dexId, back);
+export const spriteShinyUrl = (dexId, back = false) => monPath(dexId, back);
+export const monSprite = (mon, back = false) => monPath(mon.sp, back);
+export const animSpriteUrl = (dexId, back = false) => monPath(dexId, back);
+export const animSprite = (mon, back = false) => monPath(mon.sp, back);
 
 // Sprite item chính hãng từ PokeAPI (id của mình dùng _ , CDN dùng -)
 export const itemSpriteUrl = (itemId) =>
@@ -75,16 +67,9 @@ export const todayNum = () => {
 };
 export const dayNum = () => Math.floor(Date.now() / 86400000);
 
-// ===== Ảnh cục bộ từ pokesprite (msikma/pokesprite) =====
-// Ảnh nằm ngay trong dự án nên chơi được cả khi mất mạng / bị chặn CDN.
-import { slugOf } from './data/slugs.js';
-
-// Ảnh nhỏ kiểu "trong hộp" — dùng cho danh sách đội, Pokédex, túi đồ
-export const boxIcon = (dexId, shiny = false) => {
-  const slug = slugOf(dexId);
-  return slug ? `assets/pokesprite/${shiny ? 'shiny' : 'regular'}/${slug}.png` : 'assets/pokesprite/unknown.png';
-};
-export const monBoxIcon = (mon) => boxIcon(mon.sp, !!mon.shiny);
+// Ảnh nhỏ kiểu "trong hộp" — dùng cho danh sách đội, Tuxedex, túi đồ
+export const boxIcon = (dexId) => monIconPath(dexId);
+export const monBoxIcon = (mon) => monIconPath(mon.sp);
 export const EGG_ICON = 'assets/pokesprite/egg.png';
 
 // Ảnh vật phẩm cục bộ. Kho pokesprite chia theo nhóm nên cần biết nhóm.
@@ -121,52 +106,14 @@ export function upgradeImages(root) {
   }
 }
 
-// Ảnh Gen 5 để sẵn trong dự án.
-//   Thường : ảnh ĐỘNG, dex 1..386 — assets/anim/{,back/}{id}.gif
-//   Shiny  : ảnh TĨNH, dex 1..649 — assets/sprites/{shiny,back/shiny}/{id}.png
-// Ảnh động shiny nặng thêm ~26 MB nên dùng ảnh tĩnh cho đủ dùng; màu và
-// hướng vẫn đúng, và khi có mạng vẫn tự nâng lên ảnh động của CDN.
-// Mặt sau là phần quan trọng: Pokémon của mình phải quay LƯNG về người chơi.
-const ANIM_MAX = 386;
-const STATIC_MAX = 649;
-const ANIM_MISSING = { front: new Set([297]), back: new Set() };
-
-export function animLocal(dexId, back = false, shiny = false) {
-  const id = Number(dexId);
-  if (!(id >= 1)) return null;
-  if (shiny) {
-    if (id > STATIC_MAX) return null;
-    return `assets/sprites/${back ? 'back/shiny' : 'shiny'}/${id}.png`;
-  }
-  // Tắt ảnh động trong cài đặt -> trả null để rơi về ảnh hộp tĩnh (nhẹ hơn nhiều)
-  if (!getSetting('anim')) return null;
-  if (id > ANIM_MAX) return null;
-  const kind = back ? 'back' : 'front';
-  if (ANIM_MISSING[kind].has(id)) return null;
-  return `assets/anim/${back ? 'back/' : ''}${id}.gif`;
-}
-
-// Ảnh hiện NGAY, lấy trong dự án: ưu tiên ảnh động đúng hướng (trước/sau),
-// không có thì tạm dùng ảnh hộp. Nhờ vậy Pokémon của mình không bị loé một
-// nhịp quay mặt về phía người chơi trước khi ảnh lưng kịp tải.
-export const monLocalSrc = (mon, back = false) =>
-  animLocal(mon.sp, back, mon.shiny) || monBoxIcon(mon);
-
-// Lưới an toàn cho ảnh cục bộ: nếu tệp chưa có (hoặc tải hỏng) thì tự chuyển
-// sang ảnh trên mạng rồi cuối cùng là ảnh hộp — không bao giờ để vỡ ảnh.
+// Toàn bộ ảnh sinh vật đã nằm trong dự án nên không còn chuỗi dự phòng qua CDN.
+// Giữ lại các tên hàm cũ để phần giao diện không phải sửa theo.
+export const animLocal = (dexId, back = false) => monPath(dexId, back);
+export const monLocalSrc = (mon, back = false) => monPath(mon.sp, back);
 export const monFallbackAttr = (mon, back = false) =>
-  fallbackAttr(animSprite(mon, back), monSprite(mon, back), monBoxIcon(mon));
-
-// Ảnh hộp vốn nhỏ và nhiều khoảng trống nên cần phóng to; ảnh động thì không.
-export const monSpriteClass = (mon, back = false) =>
-  (animLocal(mon.sp, back, mon.shiny) ? '' : 'px-icon');
-
-// Ảnh trên mạng để nâng cấp dần (dùng với data-up). Nếu ảnh cục bộ đã đúng
-// hướng rồi thì không cần đổi nữa.
-export const monUpgradeChain = (mon, back = false) =>
-  (animLocal(mon.sp, back, mon.shiny)
-    ? []
-    : [animSprite(mon, back), monSprite(mon, back)]).join('|');
+  `this.onerror=null;this.src='${monIconPath(mon.sp)}'`;
+export const monSpriteClass = () => '';
+export const monUpgradeChain = () => '';
 
 // Đường dẫn tuyệt đối tính từ trang. Cần khi nhét ảnh vào biến CSS: URL tương đối
 // trong biến CSS được tính theo vị trí file .css chứ không phải theo trang.

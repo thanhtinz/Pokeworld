@@ -1,4 +1,4 @@
-// PokeWorld H5 | net/config.js | Cấu hình địa chỉ máy chủ (rỗng = chơi offline trên máy)
+// TuxeWorld H5 | net/config.js | Cấu hình địa chỉ máy chủ (rỗng = chơi offline trên máy)
 const KEY_URL = 'pw_server_url';
 const KEY_TOKEN = 'pw_token';
 

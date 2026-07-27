@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/natures.js | 25 tính cách (nature) chuẩn, tăng/giảm 10% chỉ số
+// TuxeWorld H5 | data/natures.js | 25 tính cách (nature) chuẩn, tăng/giảm 10% chỉ số
 
 // up = chỉ số +10%, down = chỉ số -10%; up === down => trung tính
 export const NATURES = {
