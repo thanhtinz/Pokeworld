@@ -81,6 +81,32 @@ export function rangeBlocked(mon, range) {
   return String(s.p?.[1] || '').split(':').filter(Boolean).includes(range);
 }
 
+// Điều kiện bấm được chiêu (db/technique: conditions). Bản gốc chỉ dùng một
+// dạng: "status <tên>" với is/not — chiêu chỉ ra được khi NGƯỜI DÙNG đang (hoặc
+// đang không) mang trạng thái đó. Ví dụ: "Đi trong mơ" phải đang ngủ mới bấm
+// được, còn mấy chiêu lấy đà thì đang bị ghì/kẹt là chịu.
+// Trả về null nếu bấm được, hoặc câu giải thích nếu không.
+export function condBlocked(mon, mv, name) {
+  for (const c of mv?.cond || []) {
+    if (c.t !== 'status') continue;
+    const co = mon.status === c.id;
+    if (c.no && co) return `${name} đang ${(statusName(c.id) || c.id).toLowerCase()}, không dùng chiêu này được!`;
+    if (!c.no && !co) return `${name} phải đang ${(statusName(c.id) || c.id).toLowerCase()} mới dùng được chiêu này!`;
+  }
+  return null;
+}
+
+// Nhãn ngắn cho nút bấm: vì sao chiêu này đang bị chặn.
+export function condTag(mon, mv) {
+  for (const c of mv?.cond || []) {
+    if (c.t !== 'status') continue;
+    const co = mon.status === c.id;
+    if (c.no && co) return `Đang ${statusName(c.id)}`;
+    if (!c.no && !co) return `Cần ${statusName(c.id)}`;
+  }
+  return null;
+}
+
 export const isLocked = (mon) => def(mon.status)?.kind === 'lockdown';
 export const cantHeal = (mon) => def(mon.status)?.kind === 'festering';
 

@@ -35,7 +35,7 @@ import { STATUSES } from '../js/data/statuses.js';
 import { TECH_SFX } from '../js/data/sounds.js';
 import { fxFor } from '../js/data/vfx.js';
 import { applyStatus, removeStatus, endOfTurn, statMult, thornDamage,
-  counterDamage, swapDamage, wildRampage } from '../js/engine/status.js';
+  counterDamage, swapDamage, wildRampage, condBlocked, condTag } from '../js/engine/status.js';
 import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
@@ -368,6 +368,40 @@ ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) ==
     const sai = newTuxemon(Number(g[0]), 60, { gender: gw.gender === 'f' ? 'm' : 'f' });
     ok('điều kiện giới tính có tác dụng',
       checkEvolution(dung, 'level') === gw.into && checkEvolution(sai, 'level') !== gw.into);
+  }
+}
+
+// Điều kiện bấm chiêu (db/technique: conditions của bản gốc).
+{
+  const co = Object.entries(MOVES).filter(([, m]) => m.cond?.length);
+  ok('có chiêu đòi điều kiện trạng thái', co.length >= 5, `${co.length} chiêu`);
+  ok('dreamwalk phải đang ngủ mới dùng được',
+    MOVES.dreamwalk?.cond?.some(c => c.id === 'noddingoff' && !c.no));
+  ok('mấy chiêu lấy đà bị chặn khi đang ghì/kẹt',
+    ['altitude', 'burrow_blast', 'depth_charge', 'oven', 'rift_dash']
+      .every(id => !MOVES[id] || MOVES[id].cond?.some(c => c.id === 'grabbed' && c.no)));
+
+  const m = newTuxemon(STARTERS[0].sp, 20);
+  m.status = null;
+  ok('chưa ngủ thì không bấm được dreamwalk', !!condBlocked(m, MOVES.dreamwalk, 'X'));
+  ok('nút hiện lý do bị chặn', condTag(m, MOVES.dreamwalk) === 'Cần Ngủ gật');
+  m.status = 'noddingoff';
+  ok('đang ngủ thì dreamwalk mở khoá', condBlocked(m, MOVES.dreamwalk, 'X') === null);
+  ok('đang ngủ thì chiêu lấy đà vẫn bấm được',
+    condBlocked(m, MOVES.altitude, 'X') === null);
+  m.status = 'grabbed';
+  ok('đang bị ghì thì chiêu lấy đà bị chặn', !!condBlocked(m, MOVES.altitude, 'X'));
+
+  // Engine phải từ chối thật, không chỉ mờ nút
+  {
+    const ta = newTuxemon(STARTERS[0].sp, 20);
+    ta.moves = [{ id: 'dreamwalk', cd: 0 }, { id: 'canine', cd: 0 }];
+    const dich = newTuxemon(STARTERS[1].sp, 20);
+    const bt = new Battle({ kind: 'wild',
+      sides: [{ kind: 'player', mons: [ta] }, { kind: 'wild', mons: [dich] }] });
+    ok('submit chặn chiêu chưa đủ điều kiện', bt.submit(0, { t: 'move', i: 0 })[0] === false);
+    ta.status = 'noddingoff';
+    ok('đủ điều kiện thì submit cho qua', bt.submit(0, { t: 'move', i: 0 })[0] === true);
   }
 }
 

@@ -501,6 +501,21 @@ TOC_DO = {'extremely_slow': -3, 'very_slow': -2, 'slow': -1, 'normal': 0,
           'fast': 1, 'very_fast': 2, 'extremely_fast': 3}
 
 
+# Dieu kien dung chieu (db/technique: conditions). Ban goc chi dung mot loai:
+# "status <ten>" voi operator is/not — chieu chi bam duoc khi NGUOI DUNG dang
+# (hoac dang khong) mang trang thai do.
+def dieu_kien_chieu(t):
+    out = []
+    for c in t.get('conditions') or []:
+        if not isinstance(c, dict) or c.get('type') != 'status':
+            continue
+        par = c.get('parameters') or []
+        if not par:
+            continue
+        out.append({'t': 'status', 'id': par[0], 'no': c.get('operator') == 'not'})
+    return out
+
+
 def write_moves(techs, disp):
     out = ["// TuxeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
@@ -531,13 +546,15 @@ def write_moves(techs, disp):
         if not sfx.startswith('sfx_'):
             sfx = ''
         anim = (t.get('visuals') or {}).get('animation') or ''
-        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, speed: %d, potency: %s, heal: %s%s%s%s },'
+        cond = dieu_kien_chieu(t)
+        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, speed: %d, potency: %s, heal: %s%s%s%s%s },'
                    % (js(slug), js(disp(slug)), js(types), js(rng), js(cat), fmtnum(power), acc,
                       int(t.get('recharge') or 0),
                       TOC_DO.get(t.get('speed') or 'normal', 0),
                       fmtnum(round(float(t.get('potency') or 0), 2)),
                       fmtnum(round(heal, 2)),
                       (', eff: %s' % js(eff)) if eff else '',
+                      (', cond: %s' % js(cond)) if cond else '',
                       (', sfx: %s' % js(sfx)) if sfx else '',
                       (', anim: %s' % js(anim)) if anim else ''))
     out.append('};')

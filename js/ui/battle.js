@@ -7,6 +7,7 @@ import { Battle } from '../engine/battle.js';
 import { monImg } from '../engine/monskin.js';
 import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '../engine/monster.js';
 import { expProgress } from '../engine/exp.js';
+import { condTag } from '../engine/status.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
 import { isInside } from '../engine/overworld.js';
 import { SPECIES } from '../data/species.js';
@@ -223,19 +224,22 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       <div class="move-grid">
         ${m.moves.map((mv, i) => {
           const def = MOVES[mv.id];
-          const dis = busy || (mv.cd || 0) > 0;
+          // Vài chiêu của bản gốc còn đòi trạng thái: "Đi trong mơ" phải đang
+          // ngủ mới bấm được, chiêu lấy đà thì đang bị ghì/kẹt là chịu.
+          const chan = condTag(m, def);
+          const dis = busy || (mv.cd || 0) > 0 || !!chan;
           return `<button class="btn move-btn" data-mv="${i}" ${dis ? 'disabled' : ''}>
             <span class="mv-name">${esc(def ? def.name : mv.id)}</span>
             <span class="mv-sub">${def ? typeBadge(def.types[0]) : ''}${
               def ? rangeIcon(def.range) : ''}${def ? speedIcon(def.speed) : ''}</span>
-            <small class="mv-cd">${(mv.cd || 0) > 0
+            <small class="mv-cd">${chan ? esc(chan) : (mv.cd || 0) > 0
               ? `Chờ ${mv.cd} lượt` : `Hồi ${def ? def.recharge : 0} lượt`}</small>
           </button>`;
         }).join('')}
       </div>
-      ${m.moves.every(mv => (mv.cd || 0) > 0) ? `
+      ${m.moves.every(mv => (mv.cd || 0) > 0 || condTag(m, MOVES[mv.id])) ? `
         <button class="btn btn-primary" id="bt-struggle" ${busy ? 'disabled' : ''}>
-          Gắng sức <small>(chiêu nào cũng đang hồi)</small></button>` : ''}
+          Gắng sức <small>(không bấm được chiêu nào)</small></button>` : ''}
       <div class="bt-subrow">
         <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>Túi</button>
         <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>Đổi</button>

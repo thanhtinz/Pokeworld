@@ -11,7 +11,7 @@ import { PLAGUES } from '../data/plagues.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName,
-  counterDamage, swapDamage, wildRampage } from './status.js';
+  counterDamage, swapDamage, wildRampage, condBlocked } from './status.js';
 import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch, applyBallEffects, keepOnFail, keepOnCatch } from './catchmon.js';
 import { attemptEscape } from './escape.js';
@@ -103,6 +103,8 @@ export class Battle {
       const mv = mon && mon.moves[action.i];
       if (!mv) return [false, 'Chiêu thức không hợp lệ.'];
       if ((mv.cd || 0) > 0) return [false, `Chiêu này còn chờ ${mv.cd} lượt!`];
+      const vuong = condBlocked(mon, MOVES[mv.id], displayName(mon));
+      if (vuong) return [false, vuong];
     }
     if (action.t === 'switch') {
       const s = this.sides[sideIdx];
@@ -134,7 +136,9 @@ export class Battle {
 
     const usable = [];
     for (let idx = 0; idx < mon.moves.length; idx++) {
-      if ((mon.moves[idx].cd || 0) <= 0) usable.push(idx);
+      if ((mon.moves[idx].cd || 0) > 0) continue;
+      if (condBlocked(mon, MOVES[mon.moves[idx].id], 'x')) continue;
+      usable.push(idx);
     }
     if (usable.length === 0) return { t: 'struggle' };
     if (!foe) return { t: 'move', i: rng.pick(usable) };
