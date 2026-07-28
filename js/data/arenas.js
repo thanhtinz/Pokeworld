@@ -15,10 +15,9 @@ export const DEFAULT_ARENA = 'grass';
 
 // Nền của một bản đồ. Trời tối thì lấy cảnh đêm; môi trường nào không
 // có cảnh đêm riêng (trong nhà) thì vẫn dùng cảnh thường.
-// ep = tên nền ép buộc (câu cá luôn dùng nền biển, đúng mods/fishing.yaml)
-export function arenaFor(mapId, ep = null) {
+export function arenaFor(mapId) {
   const mp = MAPS[mapId];
-  let a = ep || (mp ? (isDaytime() ? mp.env : mp.envNight) : DEFAULT_ARENA);
+  let a = mp ? (isDaytime() ? mp.env : mp.envNight) : DEFAULT_ARENA;
   if (!ARENAS.includes(a)) a = mp && ARENAS.includes(mp.env) ? mp.env : DEFAULT_ARENA;
   return { name: a, bg: absUrl(`assets/arena/${a}_bg.png`) };
 }

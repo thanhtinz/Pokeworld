@@ -18,7 +18,7 @@ globalThis.Image = class { constructor() { this.complete = false; this.naturalWi
   };
 }
 
-import { SPECIES } from '../js/data/species.js';
+import { SPECIES, speciesBySlug } from '../js/data/species.js';
 import { MOVES } from '../js/data/moves.js';
 import { LEARNSETS } from '../js/data/learnsets.js';
 import { EVOLUTIONS } from '../js/data/evolutions.js';
@@ -1111,6 +1111,49 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   ok('ngủ không bao giờ quá số lượt tối đa', daiNhat <= STATUSES.noddingoff.dur + 1,
     String(daiNhat));
   ok('ngủ luôn mất ít nhất một lượt', daiNhat >= 2, String(daiNhat));
+}
+
+// ==== Đổi Tuxemon với NPC (lệnh "trading" rải sẵn trong bản đồ gốc) ====
+{
+  const { tradeNames, tradeCandidates, tradeDone, doTrade } =
+    await import('../js/engine/trade.js');
+  const doi = [];
+  for (const [id, mp] of Object.entries(MAPS)) {
+    for (const n of mp.npcs || []) if (n.trade) doi.push({ id, n });
+  }
+  ok('có NPC đổi Tuxemon trên bản đồ', doi.length >= 3, String(doi.length));
+  ok('vụ đổi nào cũng trỏ tới loài có thật',
+    doi.every(({ n }) => speciesBySlug(n.trade.give) && speciesBySlug(n.trade.get)),
+    doi.filter(({ n }) => !speciesBySlug(n.trade.get)).map(x => x.n.trade.get).join(' '));
+  ok('không ai đòi đổi lấy đúng loài mình đưa',
+    doi.every(({ n }) => n.trade.give !== n.trade.get));
+  ok('NPC đổi chác thì đứng yên cho dễ bấm',
+    doi.every(({ n }) => n.ai === 'stand'), doi.map(x => x.n.ai).join(' '));
+
+  const { id: mapId, n: npc } = doi[0];
+  const t = npc.trade;
+  const ten = tradeNames(t);
+  ok('lấy được tên tiếng Anh của hai loài', !!ten.give && !!ten.get, `${ten.give} -> ${ten.get}`);
+
+  newGame('Lái Buôn');
+  ok('chưa có con NPC cần thì không đổi được', tradeCandidates(t).length === 0);
+
+  const spGive = Object.entries(SPECIES).find(([, x]) => x.slug === t.give)[0];
+  const spGet = Object.entries(SPECIES).find(([, x]) => x.slug === t.get)[0];
+  G.p.party = [newTuxemon(STARTERS[0].sp, 9), newTuxemon(spGive, 24)];
+  const co = tradeCandidates(t);
+  ok('có con hợp thì NPC nhận ra', co.length === 1 && co[0].i === 1, JSON.stringify(co.map(x => x.i)));
+
+  ok('chưa đổi thì chưa đánh dấu xong', !tradeDone(mapId, npc.name, t));
+  const r = doTrade(mapId, npc.name, t, 1);
+  ok('đổi thành công', r.ok === true);
+  ok('con nhận về đúng loài NPC hứa', String(G.p.party[1].sp) === String(spGet),
+    `${G.p.party[1].sp} vs ${spGet}`);
+  ok('con nhận về đúng cấp con vừa đưa đi', G.p.party[1].lv === 24, String(G.p.party[1].lv));
+  ok('con nhận về được đánh dấu là đồ đổi', G.p.party[1].traded === true);
+  ok('con nhận về vào luôn Tuxedex', !!G.p.dex.caught[G.p.party[1].sp]);
+  ok('con còn lại trong đội không bị đụng tới', G.p.party[0].lv === 9);
+  ok('đổi rồi thì đánh dấu xong, không đổi lại', tradeDone(mapId, npc.name, t));
 }
 
 // ==== Câu cá + mấy món tác động lên bản đồ (tính năng của bản gốc) ====

@@ -150,7 +150,12 @@ NPC_VI = {
 }
 
 # Nhung thu KHONG phai nguoi (cuc da, qua bong trang tri) — bo qua
-NPC_SKIP_SPRITE = {'boulder', 'tuxeball_green', 'tuxeball_red', 'tuxeball_yellow', 'rock'}
+# Ban goc dat ca DO VAT bang lenh create_npc (thung, bang hieu, tuong da, va ca
+# mot con Volcoli lam thu cung). Khong co sprite di lai cho may thu do nen bo —
+# de lai chi thanh o trong nhap nhay giua ban do.
+NPC_SKIP_SPRITE = {'boulder', 'tuxeball_green', 'tuxeball_red', 'tuxeball_yellow', 'rock',
+                   'box', 'sign', 'volcoli',
+                   'statue_blue', 'statue_green', 'statue_grey', 'statue_orange', 'statue_red'}
 
 # Cach cu xu tren ban do (js/engine/overworld.js doc truong 'ai'):
 #   stand  dung yen sau quay, chi quay nguoi khi nguoi choi lai gan
@@ -201,15 +206,18 @@ def load_npc_db(root):
     d = os.path.join(root, 'mods/tuxemon/db/npc')
     if not os.path.isdir(d):
         return _npc_db
-    for f in os.listdir(d):
+    # db/npc co HAI dinh dang: mot tep mot NPC ("slug: x" o dau dong) va mot tep
+    # nhieu NPC dang danh sach ("- slug: x"). Truoc day chi doc duoc dang thu
+    # nhat — 1053/1133 khai bao bi bo qua, nen ca thanh pho khong con NPC nao.
+    for f in sorted(os.listdir(d)):
         if not f.endswith('.yaml'):
             continue
         txt = open(os.path.join(d, f), encoding='utf-8').read()
-        for blk in re.split(r'\n(?=slug: )', txt):
-            m = re.search(r'^slug: (\S+)', blk, re.M)
+        for blk in re.split(r'\n(?=-? *slug: )', txt):
+            m = re.search(r'^-? *slug: (\S+)', blk, re.M)
             sp = re.search(r'sprite_name: (\S+)', blk)
             if m and sp:
-                _npc_db[m.group(1)] = sp.group(1)
+                _npc_db.setdefault(m.group(1), sp.group(1))
     return _npc_db
 
 
@@ -234,9 +242,14 @@ def build_npc(n):
         name = 'Người Dân'
     if not lines:
         lines = [DEFAULT_LINE.get(sprite, 'Chào cậu! Chúc cậu lên đường may mắn.')]
-    return {'x': n['x'], 'y': n['y'], 'dir': n['dir'], 'slug': slug,
-            'sprite': sprite, 'name': name, 'lines': lines,
-            'ai': NPC_AI.get(sprite, 'wander')}
+    out = {'x': n['x'], 'y': n['y'], 'dir': n['dir'], 'slug': slug,
+           'sprite': sprite, 'name': n.get('ten') or name, 'lines': lines,
+           'ai': NPC_AI.get(sprite, 'wander')}
+    # NPC doi Tuxemon: dung mot cho cho de bam, khong di lang thang
+    if n.get('trade'):
+        out['trade'] = n['trade']
+        out['ai'] = 'stand'
+    return out
 
 
 def khac_nhau(npcs):
@@ -423,6 +436,7 @@ def parse_map(path, tsx_cache):
         if v:
             solid[idx] = 1
     warps, talks, encs, nhac = [], [], set(), [None]
+    trades = []
     # Nen tran dau: ban goc dat bang "set_environment <slug>", ban do nao cung
     # co mot canh ban ngay va mot canh ban dem.
     moi_truong = [None, None]
@@ -453,11 +467,30 @@ def parse_map(path, tsx_cache):
                     if slug in npcs:
                         npcs[slug]['dir'] = d
 
+            # Doi Tuxemon voi NPC: ban goc ghi "trading <dua>,<nhan>" kem
+            # behav "talk <npc>". Doi mot lan la xong (co bien hastraded).
+            for a in acts:
+                m = re.match(r'trading\s+([a-z0-9_]+)\s*,\s*([a-z0-9_]+)', a)
+                if m:
+                    ai = None
+                    for b in (v for k, v in props.items() if k.startswith('behav')):
+                        mb = re.match(r'talk\s+([a-z0-9_]+)', b)
+                        if mb:
+                            ai = mb.group(1)
+                    # behav nam o su kien "Has X" ke ben, khong nam cung o day —
+                    # lay npc tu ten su kien neu can
+                    trades.append({'npc': ai, 'give': m.group(1), 'get': m.group(2),
+                                   'ev': (obj.get('name') or '')})
+                    break
+
             for a in acts:
                 m = re.match(r'transition_teleport\s+player,\s*([^,]+),\s*(\d+),\s*(\d+)', a)
                 if m:
                     warps.append({'x': ox, 'y': oy,
-                                  'to': os.path.splitext(m.group(1).strip())[0],
+                                  # Ban Spyder tro toi 'spyder_<ten>' — cat tien to
+                                  # de khop voi ten dia danh minh dang dung
+                                  'to': re.sub(r'^spyder_', '',
+                                               os.path.splitext(m.group(1).strip())[0]),
                                   'tx': int(m.group(2)), 'ty': int(m.group(3))})
                     break
                 m = re.match(r'random_encounter\s+([a-z0-9_]+)', a)
@@ -486,12 +519,40 @@ def parse_map(path, tsx_cache):
                     talks.append(t)
                     break
 
+    # Su kien doi Tuxemon khong tu ghi ten NPC (behav "talk <npc>" nam o su kien
+    # "Has X" ben canh), nhung TEN SU KIEN co ten rieng cua nguoi do:
+    # "Talk Mieke - Will Trade Budaye". Doi chieu voi slug NPC tren ban do.
+    for t in trades:
+        if t['npc']:
+            continue
+        ten = re.sub(r'^talk\s+', '', (t['ev'] or '').lower()).split('-')[0].strip()
+        for slug in npcs:
+            if ten and ten.split()[0] in slug:
+                t['npc'] = slug
+                npcs[slug]['trade'] = {'give': t['give'], 'get': t['get']}
+                # Ten rieng lay luon tu ten su kien ("Talk Mieke - ...") — khong
+                # thi ca bon nguoi doi chac deu ten "Nguoi Dan"
+                npcs[slug]['ten'] = ten.split()[0].capitalize()
+                break
+
     ds = khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
-            'solid': solid, 'water': water, 'warps': warps, 'talks': talks, 'encs': sorted(encs),
+            'solid': solid, 'water': water, 'warps': warps, 'talks': talks,
+            'trades': trades, 'encs': sorted(encs),
             'music': nhac[0],          # None = ban do khong tu goi nhac
             'env': moi_truong[0], 'envNight': moi_truong[1],
             'npcs': xep_cho(ds, solid, warps, w, h)}
+
+
+def chon_tep(mdir, slug):
+    """Duong dan tep .tmx cho mot dia danh: ban Spyder neu dong dan hon."""
+    ung = [os.path.join(mdir, x) for x in (slug + '.tmx', 'spyder_' + slug + '.tmx')]
+    ung = [x for x in ung if os.path.exists(x)]
+    if not ung:
+        return None
+    def dong(p):
+        return open(p, encoding='utf-8').read().count('create_npc')
+    return max(ung, key=dong)
 
 
 def xep_cho(npcs, solid, warps, w, h):
@@ -659,8 +720,12 @@ def main():
     names = {s: vi_name(s) for s in want}
     out_maps = {}
     for slug in want:
-        p = os.path.join(mdir, slug + '.tmx')
-        if not os.path.exists(p):
+        # Tuxemon co HAI bo ban do cho cung mot dia danh: ban goc doi dau
+        # (flower_city.tmx) va ban cua chien dich Spyder (spyder_flower_city.tmx).
+        # Ban Spyder moi la ban dang duoc dung, dong dan hon han — vai cho ban
+        # cu khong con mot NPC nao. Uu tien ban nao dat nhieu nguoi hon.
+        p = chon_tep(mdir, slug)
+        if not p:
             print('BO QUA (khong co tep):', slug)
             continue
         m = parse_map(p, tsx_cache)

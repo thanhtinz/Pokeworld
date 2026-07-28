@@ -9,6 +9,7 @@ import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsp
 import { heal, displayName } from '../engine/monster.js';
 import { statusName } from '../engine/status.js';
 import { fish, wearRod } from '../engine/fishing.js';
+import { tradeNames, tradeCandidates, tradeDone, doTrade } from '../engine/trade.js';
 import { isDaytime } from '../engine/daytime.js';
 import { FISHING, isRod } from '../data/fishing.js';
 import { ITEMS } from '../data/items.js';
@@ -332,6 +333,39 @@ export function render(el) {
     }
   }
 
+  // NPC đổi Tuxemon (bản gốc rải sẵn trong bản đồ bằng lệnh "trading")
+  async function moiDoi(npc, who) {
+    const t = npc.trade;
+    const ten = tradeNames(t);
+    const mapId = player.mapId;
+    if (tradeDone(mapId, npc.name, t)) {
+      await playDialog([[who, `Cảm ơn cậu vụ đổi hôm trước nhé! ${ten.get} hợp với tôi lắm.`]]);
+      return;
+    }
+    await playDialog([
+      [who, `Tôi mê ${ten.give} lắm mà mãi chưa có con nào.`],
+      [who, `Cậu đổi cho tôi một con ${ten.give} không? Tôi đưa lại ${ten.get} của tôi.`],
+    ]);
+    const co = tradeCandidates(t);
+    if (!co.length) {
+      await playDialog([[who, `Cậu chưa có ${ten.give} à... Bao giờ có thì quay lại nhé.`]]);
+      return;
+    }
+    const opts = co.map(x => ({ label: `${displayName(x.m)} Lv.${x.m.lv}`,
+      sub: `Đổi lấy ${ten.get} cùng cấp` }));
+    opts.push({ label: 'Thôi, để sau' });
+    const idx = await choose(`Đưa con nào cho ${npc.name}?`, opts);
+    if (idx === null || idx >= co.length) return;
+    const r = doTrade(mapId, npc.name, t, co[idx].i);
+    if (!r.ok) { toast('Đổi không thành.'); return; }
+    await playDialog([
+      [who, `Tuyệt! ${displayName(r.given)} về tay tôi rồi.`],
+      [who, `Cầm lấy ${ten.get} nhé — chăm nó cho tốt!`],
+    ]);
+    toast(`Đã đổi ${displayName(r.given)} lấy ${displayName(r.got)}!`);
+    save();
+  }
+
   async function interact() {
     if (busy) return;
     const rod = canCau();
@@ -349,9 +383,12 @@ export function render(el) {
         return;
       }
       // NPC bản đồ mang sẵn vài câu thoại (js/data/maps.js), NPC cũ dùng .text
+      const who = { name: thing.name, img: thing.face || null,
+        ow: thing.face ? null : (thing.sprite || null) };
+      // NPC đổi Tuxemon: chào hỏi bằng chính lời mời đổi chứ không nói câu chung
+      if (thing.trade) { await moiDoi(thing, who); return; }
       const say = thing.lines?.length ? thing.lines : (thing.text ? [thing.text] : []);
       if (say.length) {
-        const who = { name: thing.name, img: thing.face || null, ow: thing.face ? null : (thing.sprite || null) };
         await playDialog(say.map(t => [who, t]));
       }
       switch (thing.kind) {

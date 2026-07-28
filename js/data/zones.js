@@ -101,7 +101,7 @@ export const ZONES = {
       { sp: 229, w: 30, min: 5, max: 11 },   // Fordin (basic)
     ],
     trainers: ["bat_bo_tung", "da_ngoai_hanh", "xero_1"],
-    next: ["cotton_town", "leather_town", "taba_town"],
+    next: ["cotton_town"],
   },
   player_house_bedroom: {
     name: "Nhà Mình — Phòng Ngủ", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -166,7 +166,7 @@ export const ZONES = {
       { sp: 268, w: 30, min: 8, max: 14 },   // Woodoor (basic)
     ],
     trainers: ["vo_duong_nuoc", "xero_grunt_3", "xero_boss"],
-    next: ["cotton_cafe", "cotton_cathedral", "cotton_daycare", "cotton_misa_house", "cotton_scoop", "dryadsgrove", "route1_sanglorian", "route2"],
+    next: ["cotton_cafe", "cotton_scoop", "dryadsgrove", "healing_center", "route1", "route2"],
   },
   leather_town: {
     name: "Thị Trấn Da", kind: "town", icon: "town", iconSp: 105, iconItem: null,
@@ -181,7 +181,7 @@ export const ZONES = {
       { sp: 79, w: 30, min: 11, max: 18 },   // Anu (standalone)
     ],
     trainers: ["leo_nui_marcos", "nghien_cuu_mio", "boi_douglas", "rival_2"],
-    next: ["citypark", "dryadsgrove", "flower_city", "leather_scoop", "leather_shaft1", "leather_shaft2", "route3"],
+    next: ["citypark", "flower_city", "leather_scoop", "leather_shaft1", "leather_shaft2", "route3"],
   },
   taba_ba_main: {
     name: "Khu Thi Đấu Taba — Đại Sảnh", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -224,7 +224,7 @@ export const ZONES = {
     desc: "Khu vực Quán Cà Phê Bông.",
     encounters: [],
     trainers: [],
-    next: ["cotton_cafe_basement", "cotton_town"],
+    next: ["cotton_town"],
   },
   cotton_daycare: {
     name: "Nhà Trẻ Bông", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
