@@ -195,7 +195,7 @@ export function render(el) {
       return {
         html: `${face}${esc(t.name)}${won ? ' <span class="won-pill">ĐÃ THẮNG</span>' : ''}`,
         label: `${t.name}${won ? ' (đã thắng)' : ''}`,
-        sub: t.kind === 'gym' ? `Gym — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${fmt(t.rewardMoney)}₽` : ''),
+        sub: t.kind === 'gym' ? `Võ đường — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${fmt(t.rewardMoney)}₽` : ''),
         tid,
       };
     });

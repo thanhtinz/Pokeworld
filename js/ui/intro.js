@@ -1,13 +1,14 @@
 // TuxeWorld H5 | ui/intro.js | Đoạn mở đầu: cinematic ảnh + lời dẫn, có nút bỏ qua
-// Muốn dùng video thật thì đặt tệp vào assets/video/intro.mp4 — có video là màn
-// này phát video và bỏ hẳn phần cinematic ảnh.
+//
+// Trước đây màn này dò thử assets/video/intro.mp4 bằng một request HEAD để nếu
+// có video thì phát video thay cinematic. Dự án không kèm video nào nên lần nào
+// vào game mới cũng ăn một lỗi 404 đỏ lòm trong console. Bỏ hẳn phần dò; muốn
+// dùng video thì thêm lại vài dòng ở đây, đừng để nó dò mò mỗi lần chạy.
 import { activeAvatar } from '../engine/accounts.js';
 import { G } from '../state.js';
 import { STARTERS } from '../data/starters.js';
 import { esc, sleep, spriteUrl } from '../util.js';
 import { show } from '../main.js';
-
-const VIDEO_SRC = 'assets/video/intro.mp4';
 
 // Bối cảnh lấy đúng theo thế giới Tuxemon: Thị Trấn Taba, ba Tuxemon khởi đầu
 // của Giáo sư, lệnh cấm nuôi Tuxemon và tổ chức Team Xero đi lùng bắt.
@@ -42,7 +43,7 @@ const SCENES = [
   },
 ];
 
-export async function render(el) {
+export function render(el) {
   el.innerHTML = `
     <div class="intro-wrap" id="intro">
       <div class="intro-stage" id="stage"></div>
@@ -56,21 +57,7 @@ export async function render(el) {
   const finish = () => { if (!skipped) { skipped = true; show('starter'); } };
   el.querySelector('#btn-skip').addEventListener('click', finish);
 
-  if (await hasVideo()) {
-    stage.innerHTML = `<video id="intro-video" playsinline autoplay muted src="${VIDEO_SRC}"></video>`;
-    const v = stage.querySelector('#intro-video');
-    v.addEventListener('ended', finish);
-    v.addEventListener('error', () => runScenes(stage, caption, () => skipped, finish));
-    return;
-  }
   runScenes(stage, caption, () => skipped, finish);
-}
-
-async function hasVideo() {
-  try {
-    const r = await fetch(VIDEO_SRC, { method: 'HEAD' });
-    return r.ok;
-  } catch { return false; }
 }
 
 async function runScenes(stage, caption, isSkipped, done) {

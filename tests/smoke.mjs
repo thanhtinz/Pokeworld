@@ -40,6 +40,9 @@ import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+
 let fails = 0;
 const ok = (name, cond, extra = '') => {
   console.log((cond ? '[OK] ' : '[FAIL] ') + name + (cond || !extra ? '' : ' — ' + extra));
@@ -479,6 +482,31 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const duong = new Set(Object.values(EVOLUTIONS).flat().flatMap(w => w.item || []));
   ok('đá tiến hoá nào cũng mở được ít nhất một đường',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
+}
+
+// Mọi đường dẫn assets/... viết cứng trong mã và CSS đều phải có tệp thật.
+// Trước đây màn mở đầu dò assets/video/intro.mp4 (không hề có) nên vào game
+// mới là ăn ngay một lỗi 404 trong console mà không ai để ý.
+{
+  const goc = new URL('..', import.meta.url).pathname;
+  const thieu = [];
+  const quet = (thuMuc, duoi) => {
+    for (const f of readdirSync(join(goc, thuMuc), { withFileTypes: true })) {
+      const p2 = join(thuMuc, f.name);
+      if (f.isDirectory()) { quet(p2, duoi); continue; }
+      if (!duoi.some(d => f.name.endsWith(d))) continue;
+      const src = readFileSync(join(goc, p2), 'utf8');
+      for (const m of src.matchAll(/['"`(]\s*(assets\/[A-Za-z0-9_./-]+\.[a-z0-9]{2,4})/g)) {
+        const duong = m[1];
+        if (duong.includes('${')) continue;
+        if (!existsSync(join(goc, duong))) thieu.push(`${p2}: ${duong}`);
+      }
+    }
+  };
+  quet('js', ['.js']);
+  quet('css', ['.css']);
+  ok('đường dẫn ảnh/âm thanh viết cứng nào cũng có tệp thật',
+    thieu.length === 0, thieu.slice(0, 5).join(' | '));
 }
 
 // Mã huấn luyện viên không còn đặt theo hạng huấn luyện viên của game khác

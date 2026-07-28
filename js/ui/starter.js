@@ -31,7 +31,7 @@ export async function render(el) {
   el.innerHTML = `
     <div class="starter-wrap">
       <img class="title-art" src="assets/img/title.png" alt="TuxeWorld" onerror="this.remove()">
-      <p class="tagline">Bắt · Huấn luyện · Chinh phục phòng Gym</p>
+      <p class="tagline">Bắt · Huấn luyện · Chinh phục các võ đường</p>
 
       ${hasPlayer ? '' : `
       <div class="card name-card" id="name-card">
