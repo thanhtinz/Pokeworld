@@ -370,7 +370,9 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
             c = CAU.get(slug) or {}
             lo, hi = (c.get('level_bounds') or [1, 10])[:2]
             phan.append('Đứng trước mặt nước rồi thả câu. Tỉ lệ cắn câu %d%%, '
-                        'cá lên cấp %d-%d.' % (round(float(c.get('trigger', 0)) * 100), lo, hi))
+                        'cá lên cấp %d-%d. Thả được %d lần thì gãy.'
+                        % (round(float(c.get('trigger', 0)) * 100), lo, hi,
+                           DO_BEN_CAN.get(slug, 20)))
         elif t == 'repellent':
             phan.append('Xịt xong thì %s bước tiếp theo không gặp Tuxemon hoang nào.'
                         % (p[0] if p else '100'))
@@ -390,6 +392,11 @@ CHIEU = {}
 CAU = {}
 
 
+# So lan tha cau moi can chiu duoc truoc khi gay. Ban goc khong tieu hao can,
+# nhung cau vo han thi cau kho het y nghia — can cang dat cang ben.
+DO_BEN_CAN = {'fishing_rod': 20, 'neptune': 40, 'poseidon': 80}
+
+
 def viet_fishing(root):
     """mods/fishing.yaml -> js/data/fishing.js. Tra ve so can cau."""
     import json as _json
@@ -400,7 +407,8 @@ def viet_fishing(root):
     out = ['// TuxeWorld H5 | data/fishing.js | Cấu hình câu cá — TỰ SINH TỪ tools/mkitems.py',
            '// Nguồn: mods/fishing.yaml của Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '// trigger = tỉ lệ cắn câu · lv = khoảng cấp · stages/shapes = lọc loài theo',
-           '// bậc tiến hoá và dáng thân, w = trọng số bốc dáng thân.', '',
+           '// bậc tiến hoá và dáng thân, w = trọng số bốc dáng thân,',
+           '// uses = thả được bao nhiêu lần thì cần gãy.', '',
            'export const FISHING = {']
     for slug, c in cfg.items():
         lo, hi = (c.get('level_bounds') or [1, 10])[:2]
@@ -411,6 +419,7 @@ def viet_fishing(root):
             'stages': list(c.get('stages') or []),
             'shapes': list(c.get('shapes') or []),
             'w': {k: round(float(v), 2) for k, v in (c.get('shape_weights') or {}).items()},
+            'uses': DO_BEN_CAN.get(slug, 20),
             'env': (c.get('environment') or {}).get('default', 'ocean'),
             'envNight': (c.get('environment') or {}).get('night', 'night_ocean'),
         }

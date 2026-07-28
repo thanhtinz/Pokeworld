@@ -4,7 +4,7 @@ import { maxHp, displayName, tryLearn, replaceMove, heal } from '../engine/monst
 import { movesAtLevel } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
 import { useItem as engineUse, canUse, isWorldItem } from '../engine/useitem.js';
-import { fish } from '../engine/fishing.js';
+import { fish, wearRod, rodLeft } from '../engine/fishing.js';
 import { isDaytime } from '../engine/daytime.js';
 import { isRod } from '../data/fishing.js';
 import { isInside, facingWater, setRepellent, enterMap, healSpot } from '../engine/overworld.js';
@@ -64,6 +64,7 @@ export function render(el) {
               const it = ITEMS[id];
               return `<button type="button" class="bag-cell" data-id="${esc(id)}" title="${esc(it.name)}">
                 <span class="bag-n">×${G.p.bag[id]}</span>
+                ${isRod(id) ? `<span class="bag-wear">${rodLeft(id)}</span>` : ''}
                 <span class="bag-art">${itemIcon(id, '', 40)}</span>
                 <b class="bag-name">${esc(it.name)}</b>
               </button>`;
@@ -87,7 +88,8 @@ export function render(el) {
           <div class="bag-detail">
             <span class="bag-detail-art">${itemIcon(id, '', 64)}</span>
             <div class="bag-detail-mid">
-              <b>${esc(it.name)} <span class="item-n">×${G.p.bag[id]}</span></b>
+              <b>${esc(it.name)} <span class="item-n">×${G.p.bag[id]}</span>${
+                isRod(id) ? ` <span class="item-n">còn ${rodLeft(id)} lần thả</span>` : ''}</b>
               <small>${esc(it.desc || '')}</small>
               <small class="bag-how">${esc(CACH_DUNG[it.kind] || '')}</small>
             </div>
@@ -187,9 +189,11 @@ export function render(el) {
     const v = res.world;
 
     if (v.t === 'fishing') {
-      // Cần câu KHÔNG tiêu hao — bản gốc dùng lại mãi
       const r = fish(id);
-      if (!r.ok) { toast('Thả câu mãi mà chẳng con nào cắn...'); return; }
+      const mon = wearRod(id);
+      if (mon.broke) toast(`${it.name} gãy mất rồi!`);
+      else if (mon.left <= 3) toast(`Cần sắp gãy — còn ${mon.left} lần thả.`);
+      if (!r.ok) { toast('Thả câu mãi mà chẳng con nào cắn...'); draw(); return; }
       toast('Có con cắn câu!');
       save();
       show('battle', { kind: 'wild', enemy: r.mon, from: 'bag',

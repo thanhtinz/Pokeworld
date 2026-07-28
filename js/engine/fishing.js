@@ -10,6 +10,7 @@ import { rng } from '../util.js';
 import { FISHING } from '../data/fishing.js';
 import { SPECIES } from '../data/species.js';
 import { newTuxemon } from './monster.js';
+import { G, removeItem, save } from '../state.js';
 
 // Danh sách loài hợp lệ cho một cần câu, nhóm theo dáng thân
 function theoDang(cfg) {
@@ -46,6 +47,32 @@ export function fish(rodId) {
   const [lo, hi] = cfg.lv;
   const mon = newTuxemon(rng.pick(nhom[dang]), rng.int(lo, hi));
   return { ok: true, mon, env: cfg.env, envNight: cfg.envNight };
+}
+
+// ==== Độ bền cần câu ====
+// CHỖ LỆCH CÓ CHỦ Ý so với bản gốc: Tuxemon cho câu vô hạn. Ở đây mỗi lần thả
+// câu mòn một điểm, hết là gãy và mất khỏi túi — cần càng đắt càng bền. Còn
+// nhiều cần cùng loại thì gãy cái này lấy cái khác ra dùng.
+export function rodLeft(id) {
+  const max = FISHING[id]?.uses || 0;
+  if (!max) return 0;
+  const con = G.p?.rod?.[id];
+  return con === undefined ? max : con;
+}
+
+// Trả về { broke, left } sau khi thả một lần
+export function wearRod(id) {
+  const max = FISHING[id]?.uses || 0;
+  if (!max) return { broke: false, left: 0 };
+  if (!G.p.rod) G.p.rod = {};
+  const con = (G.p.rod[id] === undefined ? max : G.p.rod[id]) - 1;
+  if (con > 0) { G.p.rod[id] = con; save(); return { broke: false, left: con }; }
+  // Gãy: bỏ một cái khỏi túi, còn cái nữa thì bộ đếm về đầy
+  removeItem(id, 1);
+  if ((G.p.bag[id] || 0) > 0) G.p.rod[id] = max;
+  else delete G.p.rod[id];
+  save();
+  return { broke: true, left: (G.p.bag[id] || 0) > 0 ? max : 0 };
 }
 
 // Loài nào câu được bằng cần này (dùng cho test và cho mô tả trong shop)

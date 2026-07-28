@@ -1959,6 +1959,10 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   transition: transform .1s, border-color .15s;
 }
 .bag-cell:active { transform: scale(.95); border-color: var(--accent); }
+/* Độ bền còn lại của cần câu — chấm nhỏ góc trái trên, đối xứng với ×N */
+.bag-wear { position: absolute; left: 5px; top: 5px; font-size: 10px; font-weight: 700;
+  line-height: 1.5; color: var(--gold); background: rgba(0, 0, 0, .5);
+  border: 1px solid rgba(240, 180, 41, .45); border-radius: 999px; padding: 0 6px; }
 .bag-art { display: flex; align-items: center; justify-content: center; height: 40px; }
 /* Tên vật phẩm dài thì xuống tối đa 2 dòng rồi cắt, để mọi ô cao bằng nhau */
 .bag-name {

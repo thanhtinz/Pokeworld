@@ -8,7 +8,7 @@ import {
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal, displayName } from '../engine/monster.js';
 import { statusName } from '../engine/status.js';
-import { fish } from '../engine/fishing.js';
+import { fish, wearRod } from '../engine/fishing.js';
 import { isDaytime } from '../engine/daytime.js';
 import { FISHING, isRod } from '../data/fishing.js';
 import { ITEMS } from '../data/items.js';
@@ -312,13 +312,15 @@ export function render(el) {
     return co.sort((a, b) => FISHING[b].trigger - FISHING[a].trigger)[0];
   }
 
-  // Thả câu: mất một cần? Không — cần câu dùng lại được, bản gốc không tiêu hao.
-  // Cắn câu thì vào thẳng trận, không thì báo một câu.
+  // Thả câu. Mỗi lần thả cần mòn một điểm, hết là gãy.
   async function thaCau(rod) {
     busy = true;
     try {
       await playDialog([[{ name: 'Bạn' }, `Quăng ${ITEMS[rod]?.name || 'cần câu'} xuống nước...`]]);
       const r = fish(rod);
+      const mon = wearRod(rod);
+      if (mon.broke) toast(`${ITEMS[rod]?.name || 'Cần câu'} gãy mất rồi!`);
+      else if (mon.left <= 3) toast(`Cần sắp gãy — còn ${mon.left} lần thả.`);
       if (!r.ok) { toast('Chờ mãi mà chẳng con nào cắn...'); return; }
       save();
       cleanup();

@@ -1155,6 +1155,26 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
       lo >= FISHING.neptune.lv[0] && hi <= FISHING.neptune.lv[1], `${lo}-${hi}`);
   }
 
+  // Độ bền cần câu: thả đủ số lần là gãy và biến khỏi túi
+  {
+    const { wearRod, rodLeft } = await import('../js/engine/fishing.js');
+    ok('cần đắt hơn thì bền hơn',
+      FISHING.fishing_rod.uses < FISHING.neptune.uses
+      && FISHING.neptune.uses < FISHING.poseidon.uses);
+    newGame('Ngư Dân');
+    G.p.bag = { fishing_rod: 2 };
+    const ben = FISHING.fishing_rod.uses;
+    ok('cần mới còn nguyên độ bền', rodLeft('fishing_rod') === ben, String(rodLeft('fishing_rod')));
+    for (let k = 0; k < ben - 1; k++) wearRod('fishing_rod');
+    ok('thả gần hết thì còn 1 lần', rodLeft('fishing_rod') === 1, String(rodLeft('fishing_rod')));
+    const r1 = wearRod('fishing_rod');
+    ok('hết độ bền thì gãy', r1.broke === true);
+    ok('gãy thì mất một cái khỏi túi', G.p.bag.fishing_rod === 1, String(G.p.bag.fishing_rod));
+    ok('còn cái nữa thì độ bền về đầy', rodLeft('fishing_rod') === ben, String(rodLeft('fishing_rod')));
+    for (let k = 0; k < ben; k++) wearRod('fishing_rod');
+    ok('gãy cái cuối thì hết cần trong túi', !G.p.bag.fishing_rod);
+  }
+
   // Mặt nước phải được nướng vào bản đồ, không thì không bao giờ câu được
   const nuoc = Object.entries(MAPS).filter(([, m]) => (m.water || []).some(x => x));
   ok('có bản đồ đánh dấu mặt nước', nuoc.length >= 4, String(nuoc.length));
