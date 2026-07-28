@@ -50,6 +50,17 @@ export function render(el) {
     upgradeImages(el);
   }
 
+  // Trái tim thân thiết — ảnh gfx/ui/icons/bond của bản gốc, 4 mức
+  function bondHearts(bond) {
+    const muc = Math.max(1, Math.min(4, Math.ceil((bond || 0) / 25) || 1));
+    let out = '';
+    for (let i = 1; i <= 4; i++) {
+      out += `<img class="bond-ico" src="assets/ui/bond/${i <= muc ? muc : 1}.png"
+        style="opacity:${i <= muc ? 1 : .25}" alt="">`;
+    }
+    return out;
+  }
+
   function drawDetail(m) {
     const box = el.querySelector('#party-detail');
     const spec = SPECIES[m.sp];
@@ -64,7 +75,8 @@ export function render(el) {
             <h2>${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</h2>
             <div>${(spec ? spec.types : []).map(typeBadge).join(' ')}</div>
             <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(tasteText(m))}</small><br>
-            <small>EXP: ${cur}/${need} tới level sau</small>
+            <small>EXP: ${cur}/${need} tới level sau</small><br>
+            <small class="bond-line">Thân thiết ${bondHearts(m.bond ?? 25)} ${m.bond ?? 25}/100</small>
             ${m.lv >= cap ? `<br><small class="cap-note">Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp</small>` : ''}
           </div>
         </div>

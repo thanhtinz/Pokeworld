@@ -65,6 +65,72 @@ def js(v):
 # Tieng dong rieng cho tung chieu: db/sounds/techniques.yaml co bang slug -> tep,
 # con moi chieu ghi san slug trong truong sound.sfx. Ca thu muc chi 500KB nen
 # chep het, danh cho moi chieu dung dung tieng cua no.
+# Tieng keu rieng cua tung loai: db/monster/<slug>.yaml ghi
+#   sounds.combat_call.sfx  (luc ra tran)  va  sounds.faint_call.sfx (luc guc),
+# bang slug -> tep nam o db/sounds/monster_calls.yaml.
+# Ca bo la 4.7 MB nen may tep WAV nang duoc ha xuong mono 22 kHz truoc khi chep.
+def ha_wav(src, dst):
+    """WAV goc 44 kHz stereo 16 bit -> mono 22 kHz, con 1/4 dung luong."""
+    import audioop
+    import wave
+    with wave.open(src, 'rb') as r:
+        kenh, rong, tan, khung = r.getnchannels(), r.getsampwidth(), r.getframerate(), r.getnframes()
+        data = r.readframes(khung)
+    if rong != 2:
+        return False
+    if kenh == 2:
+        data = audioop.tomono(data, 2, 0.5, 0.5)
+    if tan > 22050:
+        data, _ = audioop.ratecv(data, 2, 1, tan, 22050, None)
+        tan = 22050
+    with wave.open(dst, 'wb') as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(tan)
+        w.writeframes(data)
+    return True
+
+
+def chep_tieng_keu(root):
+    import glob
+    import yaml
+    bang_p = os.path.join(root, 'mods/tuxemon/db/sounds/monster_calls.yaml')
+    mon_d = os.path.join(root, 'mods/tuxemon/db/monster')
+    if not os.path.exists(bang_p) or not os.path.isdir(mon_d):
+        return {}, {}
+    bang = {r['slug']: r['file'] for r in (yaml.safe_load(open(bang_p, encoding='utf-8')) or [])
+            if isinstance(r, dict) and r.get('slug') and r.get('file')}
+
+    theo_loai = {}
+    can = set()
+    for f in sorted(glob.glob(os.path.join(mon_d, '*.yaml'))):
+        d = yaml.safe_load(open(f, encoding='utf-8')) or {}
+        am = d.get('sounds') or {}
+        vao = (am.get('combat_call') or {}).get('sfx')
+        guc = (am.get('faint_call') or {}).get('sfx')
+        if vao or guc:
+            theo_loai[d['slug']] = (vao, guc)
+            can.update(x for x in (vao, guc) if x)
+
+    os.makedirs('assets/sfx/cry', exist_ok=True)
+    tep = {}
+    for slug in sorted(can):
+        duong = bang.get(slug)
+        if not duong:
+            continue
+        src = os.path.join(root, 'mods/tuxemon/sounds', duong)
+        if not os.path.exists(src):
+            continue
+        ten = os.path.basename(duong)
+        dst = os.path.join('assets/sfx/cry', ten)
+        if ten.lower().endswith('.wav') and ha_wav(src, dst):
+            pass
+        else:
+            shutil.copyfile(src, dst)
+        tep[slug] = 'assets/sfx/cry/' + ten
+    return tep, theo_loai
+
+
 def chep_tieng_chieu(root):
     import glob
     try:
@@ -136,7 +202,28 @@ def main():
     out.append('};')
     out.append('')
 
+    tieng_keu, keu_loai = chep_tieng_keu(sys.argv[1])
+    out.append('// Tiếng kêu riêng của từng loài (db/sounds/monster_calls.yaml)')
+    out.append('export const CRY_SFX = {')
+    for slug, path in sorted(tieng_keu.items()):
+        total += os.path.getsize(path)
+        out.append('  %s: %s,' % (js(slug), js(path)))
+    out.append('};')
+    out.append('')
+    out.append('// slug loài -> [tiếng lúc ra trận, tiếng lúc gục]')
+    out.append('export const MON_CRY = {')
+    for slug, (vao, guc) in sorted(keu_loai.items()):
+        out.append('  %s: [%s, %s],' % (js(slug), js(vao) if vao else 'null',
+                                        js(guc) if guc else 'null'))
+    out.append('};')
+    out.append('')
+    out.append('''export function cryPath(monSlug, kind = 0) {
+  const c = MON_CRY[monSlug];
+  return (c && CRY_SFX[c[kind]]) || null;
+}''')
+
     open('js/data/sounds.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    print('  (%d tiếng kêu cho %d loài)' % (len(tieng_keu), len(keu_loai)))
     print('  (%d tiếng riêng cho chiêu thức)' % len(tieng_chieu))
     print('OK: %d tiếng động, %d bản nhạc, tổng %.1f MB'
           % (len(SFX) - len([m for m in missing if 'music/' not in m]),

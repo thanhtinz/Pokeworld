@@ -38,6 +38,17 @@ RANGES = ['melee', 'touch', 'ranged', 'reach', 'reliable']
 BUBBLES = ['angry', 'confused', 'dots', 'drop', 'exclamation', 'fireworks',
            'heart', 'money', 'note', 'question', 'sleep', 'tuxeball']
 
+# Icon nho trong gfx/ui/icons: chep nguyen thu muc, doi ten cho de goi
+# party  : cham tron bao con trong doi (trong / khoe / dinh trang thai / da guc)
+# bond   : trai tim do than thiet
+# plusminus: dau + / - khi chi so len xuong trong tran
+ICON_DIRS = {
+    'party': {'party_empty': 'empty', 'party_icon01': 'alive',
+              'party_icon02': 'status', 'party_icon03': 'faint'},
+    'bond': {'bond1': '1', 'bond2': '2', 'bond3': '3', 'bond4': '4'},
+    'plusminus': {'plus': 'plus', 'minus': 'minus'},
+}
+
 # Icon trang thai: chep het theo dung slug ben ban goc (js/data/statuses.js)
 
 
@@ -74,6 +85,20 @@ def main():
             n += 1
         else:
             thieu.append(r)
+
+    for thu_muc, ten_moi in ICON_DIRS.items():
+        d = os.path.join(ui, 'icons', thu_muc)
+        if not os.path.isdir(d):
+            thieu.append(thu_muc)
+            continue
+        os.makedirs('assets/ui/%s' % thu_muc, exist_ok=True)
+        for goc, moi in ten_moi.items():
+            p2 = os.path.join(d, goc + '.png')
+            if os.path.exists(p2):
+                copy_scaled(p2, 'assets/ui/%s/%s.png' % (thu_muc, moi))
+                n += 1
+            else:
+                thieu.append(goc)
 
     os.makedirs('assets/ui/bubble', exist_ok=True)
     for bname in BUBBLES:

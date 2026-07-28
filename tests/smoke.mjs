@@ -26,6 +26,8 @@ import { CAPDEV } from '../js/data/capdev.js';
 import { useItem, canUse, foodBond } from '../js/engine/useitem.js';
 import { escapeChance } from '../js/engine/escape.js';
 import { scoreMove, pickItem } from '../js/engine/ai.js';
+import { SHAPE_VI, STAGE_VI, HOME_VI, TAG_VI } from '../js/data/traits.js';
+import { MON_CRY, CRY_SFX, cryPath } from '../js/data/sounds.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
 import { STATUSES } from '../js/data/statuses.js';
@@ -452,6 +454,34 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const duong = new Set(Object.values(EVOLUTIONS).flat().flatMap(w => w.item || []));
   ok('đá tiến hoá nào cũng mở được ít nhất một đường',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
+}
+
+// Tuxedex: ghi chép, nơi sống, đặc điểm lấy từ db/monster của bản gốc
+{
+  const v = Object.values(SPECIES);
+  ok('gần như loài nào cũng có ghi chép Tuxedex',
+    v.filter(s => s.desc).length >= v.length * 0.9,
+    `${v.filter(s => s.desc).length}/${v.length}`);
+  ok('phần lớn loài có nơi sống', v.filter(s => s.home?.length).length >= 200,
+    String(v.filter(s => s.home?.length).length));
+  ok('nơi sống và đặc điểm đều đã dịch tiếng Việt',
+    v.every(s => (s.home || []).every(h => Object.values(HOME_VI).includes(h))
+      && (s.tags || []).every(t => Object.values(TAG_VI).includes(t))));
+  ok('dáng thân và bậc đều có tên tiếng Việt',
+    v.every(s => SHAPE_VI[s.shape] && STAGE_VI[s.stage]),
+    v.filter(s => !SHAPE_VI[s.shape] || !STAGE_VI[s.stage]).slice(0, 3)
+      .map(s => `${s.slug}:${s.shape}/${s.stage}`).join(' '));
+}
+
+// Tiếng kêu riêng của từng loài (db/sounds/monster_calls.yaml)
+{
+  const co = Object.keys(MON_CRY).length;
+  ok('loài nào cũng có tiếng kêu riêng', co >= 400, String(co));
+  ok('tiếng kêu nào cũng trỏ tới tệp có thật',
+    Object.values(MON_CRY).every(([a, b]) => (!a || CRY_SFX[a]) && (!b || CRY_SFX[b])));
+  const r = Object.values(SPECIES).find(s => s.slug === 'rockitten');
+  ok('gọi được tiếng ra trận và tiếng gục',
+    !!cryPath(r.slug, 0) && !!cryPath(r.slug, 1));
 }
 
 // AI đánh nhau: chấm điểm chiêu theo bản gốc

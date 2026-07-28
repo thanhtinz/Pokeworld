@@ -14,7 +14,7 @@ import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
 import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
 import { textDelay, sfx, getSetting } from '../engine/settings.js';
-import { SFX } from '../data/sounds.js';
+import { SFX, MON_CRY } from '../data/sounds.js';
 import { fxFor } from '../data/vfx.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
 import { uiIcon, rangeIcon } from './icons.js';
@@ -79,13 +79,34 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     </div>`;
   const $enemy = el.querySelector('#bt-enemy');
   const $log = el.querySelector('#bt-log');
+
+  // Tiếng kêu riêng của loài: kind 0 = lúc ra trận, 1 = lúc gục.
+  // Loài nào bản gốc không ghi tiếng thì trả false để chỗ gọi dùng tiếng chung.
+  function keu(mon, kind) {
+    const slug = mon && SPECIES[mon.sp]?.slug;
+    const c = slug && MON_CRY[slug];
+    if (!c || !c[kind]) return false;
+    sfx(c[kind]);
+    return true;
+  }
   const $me = el.querySelector('#bt-me');
   const $act = el.querySelector('#bt-actions');
 
   function log(text) {
     const d = document.createElement('div');
     d.className = 'log-line';
-    d.textContent = text;
+    // Dòng đánh dấu [+] / [-] thì thay bằng icon thật của bản gốc
+    const m = /^\[([+-])\]\s*/.exec(text);
+    if (m) {
+      const ico = document.createElement('img');
+      ico.className = 'pm-ico';
+      ico.src = `assets/ui/plusminus/${m[1] === '+' ? 'plus' : 'minus'}.png`;
+      ico.alt = m[1];
+      d.appendChild(ico);
+      d.appendChild(document.createTextNode(text.slice(m[0].length)));
+    } else {
+      d.textContent = text;
+    }
     $log.appendChild(d);
     while ($log.children.length > 40) $log.firstChild.remove();
     $log.scrollTop = $log.scrollHeight;
@@ -128,7 +149,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const m = eMon();
     if (!m) { $enemy.innerHTML = ''; return; }
     const balls = kind === 'trainer'
-      ? `<span class="tr-balls">${b.sides[1].mons.map(x => `<i class="tr-ball${isFainted(x) ? ' ko' : ''}"></i>`).join('')}</span>` : '';
+      ? `<span class="tr-balls">${b.sides[1].mons.map(x =>
+          `<img class="tr-ball" src="assets/ui/party/${
+            isFainted(x) ? 'faint' : (x.status ? 'status' : 'alive')}.png" alt="">`).join('')}</span>` : '';
     $enemy.innerHTML = `
       <div class="bt-info">
         <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
@@ -341,7 +364,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           break;
         case 'faint': {
           const spr = ev.side === 0 ? $me.querySelector('.bt-sprite') : $enemy.querySelector('.bt-sprite');
-          sfx('faint');
+          // Mỗi loài có tiếng gục riêng (db/monster của bản gốc)
+          keu(b.sides[ev.side].mons[ev.slot], 1) || sfx('faint');
           if (spr) spr.classList.add('faint');
           updateBars();
           await sleep(textDelay(680));
@@ -349,6 +373,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         }
         case 'sendOut':
           if (ev.side === 0) renderMe(); else renderEnemy();
+          keu(b.sides[ev.side].mons[ev.slot], 0);
           await sleep(textDelay(420));
           break;
         case 'exp':
@@ -550,5 +575,6 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
   } else {
     const m = eMon();
     log(`Một ${displayName(m)} hoang dã${m.shiny ? ' (Shiny)' : ''} xuất hiện!`);
+    keu(m, 0);
   }
 }

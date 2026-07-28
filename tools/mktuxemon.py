@@ -42,21 +42,37 @@ def load(path):
 
 
 def load_names(root):
-    """Ten hien thi lay tu file dich en_US cua Tuxemon."""
+    """Ten + mo ta lay tu file dich en_US cua Tuxemon.
+
+    Cau dai duoc .po cat thanh nhieu dong noi tiep nhau, nen phai gom lai —
+    khong gom thi 3/4 so mo ta trong Tuxedex bi mat.
+    """
     po = os.path.join(root, 'mods/tuxemon/l18n/en_US/LC_MESSAGES/base.po')
-    out, key = {}, None
+    out, key, dang_gom, buf = {}, None, False, ''
+
+    def xong():
+        if key and buf:
+            out[key] = buf
+
     for line in open(po, encoding='utf-8'):
         line = line.strip()
         m = re.match(r'^msgid "(.*)"$', line)
         if m:
-            key = m.group(1)
+            xong()
+            key, dang_gom, buf = m.group(1), False, ''
             continue
         m = re.match(r'^msgstr "(.*)"$', line)
-        if m and key:
-            if m.group(1):
-                out[key] = m.group(1)
-            key = None
-    return out
+        if m and key is not None:
+            dang_gom, buf = True, m.group(1)
+            continue
+        m = re.match(r'^"(.*)"$', line)
+        if m and dang_gom:
+            buf += m.group(1)
+            continue
+        xong()
+        key, dang_gom, buf = None, False, ''
+    xong()
+    return {k: v.replace('\\n', ' ').strip() for k, v in out.items()}
 
 
 def js(v):
@@ -73,7 +89,8 @@ def main():
         raise SystemExit('Khong thay %s — dua vao duong dan goc kho Tuxemon.' % db)
 
     names = load_names(root)
-    disp = lambda s: names.get(s, s.replace('_', ' ').title())
+    def disp(s, mac_dinh=None):
+        return names.get(s, s.replace('_', ' ').title() if mac_dinh is None else mac_dinh)
 
     # ==== He ====
     elements = {}
@@ -116,6 +133,7 @@ def main():
     write_statuses(db, names, disp)
     write_types(elements, names)
     write_species(mons, dex, shapes, disp, elements)
+    write_bang_ten()
     write_moves(techs, disp)
     write_learnsets(mons, dex, techs)
     write_evolutions(mons, dex)
@@ -279,13 +297,69 @@ def fmtnum(v):
 
 
 # ==================== Sinh vat ====================
+# Noi song (db/monster: terrains) — ten tieng Viet
+NOI_SONG = {
+    'woodland': 'Rừng thưa', 'grassland': 'Đồng cỏ', 'jungle': 'Rừng rậm',
+    'urban': 'Thành thị', 'mountains': 'Núi non', 'coastal': 'Ven biển',
+    'desert': 'Sa mạc', 'ruins': 'Phế tích', 'sea': 'Biển khơi',
+    'freshwater': 'Nước ngọt', 'extraplanar': 'Cõi khác', 'boreal_snow': 'Băng tuyết',
+    'swamp': 'Đầm lầy', 'underground': 'Lòng đất', 'other': 'Nơi khác',
+    'any': 'Khắp nơi', 'extraterrestrial': 'Ngoài hành tinh',
+}
+
+# Dac diem (db/monster: tags)
+DAC_DIEM = {
+    'amphibian': 'Lưỡng cư', 'bird': 'Chim', 'bite': 'Cắn xé', 'bomber': 'Nổ',
+    'bug': 'Côn trùng', 'calamity': 'Tai ương', 'celestial': 'Thiên thể',
+    'claws': 'Vuốt sắc', 'darkness': 'Bóng tối', 'electricity': 'Điện',
+    'fists': 'Nắm đấm', 'flame': 'Lửa', 'food': 'Đồ ăn', 'freshwater': 'Nước ngọt',
+    'fury': 'Cuồng nộ', 'gadgets': 'Máy móc nhỏ', 'gaze': 'Ánh nhìn',
+    'gemstone': 'Đá quý', 'ghost': 'Hồn ma', 'ground': 'Mặt đất', 'healing': 'Chữa lành',
+    'ice': 'Băng giá', 'leadership': 'Thủ lĩnh', 'light': 'Ánh sáng', 'love': 'Tình cảm',
+    'machine': 'Cỗ máy', 'megafauna': 'Khổng lồ', 'mental': 'Tinh thần',
+    'plant': 'Thực vật', 'pseudopod': 'Chân giả', 'rock': 'Đá', 'shapeshifter': 'Biến hình',
+    'sharp': 'Sắc bén', 'shielded': 'Giáp che', 'soldier': 'Chiến binh', 'speed': 'Tốc độ',
+    'staff': 'Trượng', 'steel': 'Thép', 'summoner': 'Triệu hồi', 'tail': 'Đuôi',
+    'tongue': 'Lưỡi', 'toxic': 'Độc', 'universal': 'Vạn năng', 'water': 'Nước',
+    'weak': 'Yếu ớt', 'weather': 'Thời tiết',
+}
+
+# Dang than hinh (db/shape)
+DANG_THAN = {
+    'blob': 'Khối mềm', 'brute': 'Vạm vỡ', 'dragon': 'Rồng', 'flier': 'Bay lượn',
+    'grub': 'Ấu trùng', 'humanoid': 'Hình người', 'hunter': 'Thợ săn',
+    'landrace': 'Bản địa', 'leviathan': 'Thuỷ quái', 'piscine': 'Cá',
+    'polliwog': 'Nòng nọc', 'serpent': 'Rắn', 'sprite': 'Tinh linh', 'varmint': 'Loài nhỏ',
+}
+
+# Bac tien hoa (db/monster: stage)
+BAC = {'basic': 'Cơ bản', 'stage1': 'Bậc 1', 'stage2': 'Bậc 2', 'standalone': 'Độc lập'}
+
+
+def write_bang_ten():
+    """js/data/traits.js — ten tieng Viet cua dang than, bac, noi song, dac diem."""
+    def bang(ten, d):
+        return ['export const %s = {' % ten] + \
+            ['  %s: %s,' % (js(k), js(v)) for k, v in sorted(d.items())] + ['};', '']
+    out = ['// TuxeWorld H5 | data/traits.js | Tên tiếng Việt của dáng thân, bậc,',
+           '// nơi sống và đặc điểm — TỰ SINH TỪ tools/mktuxemon.py. Đừng sửa tay.', '']
+    out += bang('SHAPE_VI', DANG_THAN)
+    out += bang('STAGE_VI', BAC)
+    out += bang('HOME_VI', NOI_SONG)
+    out += bang('TAG_VI', DAC_DIEM)
+    open('js/data/traits.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+
+
 def write_species(mons, dex, shapes, disp, elements):
     out = ["// TuxeWorld H5 | data/species.js | Sinh vật — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '// base = 6 chỉ số của DÁNG THÂN (4-9), giống hệt bản gốc: chỉ số thật',
            '// tính bằng base * (cấp + 7) + IV + TP. Mọi dáng thân cộng lại đều bằng 36.',
            '// catchRate 0-100, catchLo/catchHi = khoảng kháng bắt ngẫu nhiên mỗi lần ném.',
-           '// height tính bằng mét, weight bằng kg (Tuxemon lưu cm và hg).', '',
+           '// height tính bằng mét, weight bằng kg (Tuxemon lưu cm và hg).',
+           '// desc = ghi chép trong Tuxedex, lấy nguyên văn tiếng Anh của bản gốc',
+           '// (kho Tuxemon chưa có bản dịch tiếng Việt).',
+           '// home = nơi sống (terrains), tags = đặc điểm (tags) — đã dịch.', '',
            'export const SPECIES = {']
     for m in mons:
         i = dex[m['slug']]
@@ -302,10 +376,14 @@ def write_species(mons, dex, shapes, disp, elements):
         # Tuxemon co 13 con "glitched" (ten kieu F7U1T3Ra) — de nguyen thi Tuxedex
         # trang dau toan chu loi nhin nhu hong font, nen danh dau de game an di.
         glitch = ', glitched: true' if m.get('species') == 'glitched' else ''
-        out.append('    height: %s, weight: %s, shape: %s, stage: %s%s },'
+        out.append('    height: %s, weight: %s, shape: %s, stage: %s%s,'
                    % (fmtnum(max(0.1, round((m.get('height') or 100) / 100, 2))),
                       fmtnum(max(0.1, round((m.get('weight') or 100) / 10, 1))),
                       js(shape), js(m.get('stage', 'basic')), glitch))
+        home = [NOI_SONG[t] for t in (m.get('terrains') or []) if t in NOI_SONG]
+        tags = [DAC_DIEM[t] for t in (m.get('tags') or []) if t in DAC_DIEM]
+        out.append('    home: %s, tags: %s, desc: %s },'
+                   % (js(home), js(tags), js(disp(m['slug'] + '_description', ''))))
     out.append('};')
     out.append('''
 export const DEX_MAX = %d;

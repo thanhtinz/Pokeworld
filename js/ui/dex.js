@@ -2,6 +2,7 @@
 import { G, dexCounts } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
+import { SHAPE_VI, STAGE_VI } from '../data/traits.js';
 import { spriteUrl, upgradeImages, esc } from '../util.js';
 import { typeBadge, header, holoStyle } from './kit.js';
 
@@ -83,8 +84,17 @@ export function render(el) {
         <img src="${spriteUrl(id)}" width="128" height="128" alt="${esc(s.name)}" class="dex-big px-icon ${caughtIt ? '' : 'silhouette'}">
         <div>${s.types.map(typeBadge).join(' ')}</div>
         <small>Cao ${s.height ?? '?'} m · Nặng ${s.weight ?? '?'} kg</small>
-        <small class="dex-shape">Dáng thân: ${esc(s.shape || '?')} · Bậc: ${esc(s.stage || '?')}</small>
+        <small class="dex-shape">Dáng thân: ${esc(SHAPE_VI[s.shape] || s.shape || '?')}
+          · Bậc: ${esc(STAGE_VI[s.stage] || s.stage || '?')}</small>
       </div>
+      ${s.desc ? `<div class="card dex-lore"><p>${esc(s.desc)}</p></div>` : ''}
+      ${(s.home?.length || s.tags?.length) ? `
+      <div class="card">
+        ${s.home?.length ? `<div class="dex-tagrow"><span class="dex-tagk">Nơi sống</span>
+          <span class="dex-tags">${s.home.map(h => `<i>${esc(h)}</i>`).join('')}</span></div>` : ''}
+        ${s.tags?.length ? `<div class="dex-tagrow"><span class="dex-tagk">Đặc điểm</span>
+          <span class="dex-tags">${s.tags.map(t => `<i>${esc(t)}</i>`).join('')}</span></div>` : ''}
+      </div>` : ''}
       <div class="card">
         <h3>Chỉ số theo dáng thân</h3>
         ${STAT_ORDER.map(([k, label]) => `

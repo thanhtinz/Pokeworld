@@ -17,6 +17,10 @@ import { removeStatus } from './status.js';
 import { gainExp } from './exp.js';
 import { checkEvolution } from './evolution.js';
 
+// Tên chỉ số hiện trong thông báo
+const STAT_VI = { hp: 'HP', armour: 'Giáp', dodge: 'Né', melee: 'Cận chiến',
+  ranged: 'Tầm xa', speed: 'Tốc độ' };
+
 // Cặp khẩu vị đối nghịch — config_monster.opposite_tastes
 const DOI_NGHICH = {
   peppy: 'mild', mild: 'peppy', salty: 'sweet', sweet: 'salty',
@@ -108,7 +112,7 @@ export function useItem(itemId, mon, ctx = {}) {
       // Trong trận: cộng thẳng vào bảng buff của phe đang cầm con này
       if (ctx.stages && ctx.stages[e.stat] !== undefined) {
         ctx.stages[e.stat] = Math.min(6, ctx.stages[e.stat] + e.step);
-        msgs.push('Chỉ số tăng vọt!');
+        msgs.push(`[+] ${STAT_VI[e.stat] || e.stat} tăng vọt!`);
         ok = true;
       }
     } else if (e.t === 'changeStat') {
@@ -118,7 +122,7 @@ export function useItem(itemId, mon, ctx = {}) {
       if (idx >= 0) {
         const them = Math.max(1, Math.round(stats(mon)[e.stat] * e.n * 100 / Math.max(1, mon.lv)));
         mon.tp[idx] = Math.min(150, (mon.tp[idx] || 0) + them);
-        msgs.push('Chỉ số tăng vĩnh viễn!');
+        msgs.push(`[+] ${STAT_VI[e.stat] || e.stat} tăng vĩnh viễn!`);
         ok = true;
       }
     } else if (e.t === 'food') {
