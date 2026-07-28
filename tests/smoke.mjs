@@ -456,6 +456,17 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
 }
 
+// Khu vực bắt sinh vật: đủ nhiều vùng, cấp tăng dần theo đường đi
+{
+  const co = Object.entries(ZONES).filter(([, z]) => z.encounters.length);
+  ok('có nhiều vùng bắt được sinh vật', co.length >= 12, String(co.length));
+  const loai = new Set(co.flatMap(([, z]) => z.encounters.map(e => e.sp)));
+  ok('bắt được kha khá loài trong game', loai.size >= 90, String(loai.size));
+  ok('vùng nào cấp trên cũng không thấp hơn cấp dưới',
+    co.every(([, z]) => z.encounters.every(e => e.max >= e.min)));
+  ok('vùng đầu game vẫn dễ', ZONES.route1.encounters.every(e => e.min <= 5));
+}
+
 // Thế giới đi bộ: đủ bản đồ, tên nào cũng đặt tay chứ không để máy ghép bừa
 {
   const ids = Object.keys(MAPS);

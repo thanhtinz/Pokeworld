@@ -26,12 +26,24 @@ import yaml
 # Khu vuc -> dia hinh Tuxemon tuong ung + khoang cap
 # Khu vuc = ID ban do do tools/mktmx.py sinh ra. Chi nhung ban do NGOAI TROI
 # moi co bang gap; nha va cua hang thi khong.
+# Khu vuc di bo duoc ngoai troi -> (dia hinh cua Tuxemon, cap thap, cap cao).
+# Dia hinh lay tu truong 'terrains' trong db/monster nen con nao song o dau thi
+# gap o do. Thu tu tu de den kho theo duong di trong game.
 ZONE_TERRAIN = {
     'route1':            (['grassland'], 2, 7),
     'dryadsgrove':       (['woodland', 'jungle'], 5, 11),
     'route1_sanglorian': (['grassland', 'urban'], 6, 12),
+    'route2':            (['woodland', 'grassland'], 8, 14),
     'cotton_town':       (['urban'], 8, 14),
+    'citypark':          (['urban', 'grassland'], 10, 16),
+    'route3':            (['mountains', 'woodland'], 13, 20),
     'leather_town':      (['desert', 'ruins'], 11, 18),
+    'leather_shaft1':    (['underground'], 15, 22),
+    'leather_shaft2':    (['underground', 'ruins'], 17, 24),
+    'flower_city':       (['coastal', 'freshwater'], 19, 26),
+    'taba_ba_passageway_1': (['extraplanar'], 21, 28),
+    'taba_ba_passageway_2': (['swamp', 'boreal_snow'], 23, 30),
+    'taba_ba_passageway_3': (['sea', 'coastal'], 25, 32),
 }
 # Vai con hiem duoc phep xuat hien them o khu vuc khac
 EXTRAPLANAR_ZONE = 'cave_2'
@@ -42,24 +54,36 @@ def load(p):
         return yaml.safe_load(f)
 
 
+def khoi(src, mo_dau):
+    """Cat tep .js da sinh thanh tung khoi mot muc.
+
+    Truoc day cho nay dung regex DOTALL quet ca tep — them mot dong vao species.js
+    la Python quay lui vo tan, chay may phut khong xong. Cat theo moc dong dau
+    thi bao nhieu dong cung khong sao.
+    """
+    moc = [(m.start(), m.group(1)) for m in re.finditer(mo_dau, src, re.M)]
+    for i, (vt, key) in enumerate(moc):
+        het = moc[i + 1][0] if i + 1 < len(moc) else len(src)
+        yield key, src[vt:het]
+
+
 def read_species():
     """Doc lai js/data/species.js da sinh de biet id, slug, he, bac."""
     src = open('js/data/species.js', encoding='utf-8').read()
     out = {}
-    for m in re.finditer(
-            r'^  (\d+): \{ name: "([^"]+)", slug: "([^"]+)", types: (\[[^\]]*\]),', src, re.M):
-        i, name, slug, types = int(m.group(1)), m.group(2), m.group(3), json.loads(m.group(4))
-        out[slug] = {'id': i, 'name': name, 'types': types}
-    for m in re.finditer(r'^  (\d+): \{ name: .*?\n.*?\n.*?\n.*?stage: "(\w+)" \},', src, re.M | re.S):
-        pass
-    # bac tien hoa doc rieng cho chac
-    for m in re.finditer(r'slug: "([^"]+)".*?stage: "(\w+)"', src, re.S):
-        if m.group(1) in out and 'stage' not in out[m.group(1)]:
-            out[m.group(1)]['stage'] = m.group(2)
-    # Con "glitched" cua Tuxemon (ten viet loi) khong cho ra ngoai tu nhien
-    for m in re.finditer(r'slug: "([^"]+)"[^\n]*(?:\n[^\n]*){0,3}glitched: true', src):
-        if m.group(1) in out:
-            out[m.group(1)]['glitched'] = True
+    for sid, than in khoi(src, r'^  (\d+): \{'):
+        m = re.search(r'slug: "([^"]+)"', than)
+        t = re.search(r'types: (\[[^\]]*\])', than)
+        ten = re.search(r'name: "([^"]+)"', than)
+        if not (m and t and ten):
+            continue
+        d2 = {'id': int(sid), 'name': ten.group(1), 'types': json.loads(t.group(1))}
+        st = re.search(r'stage: "(\w+)"', than)
+        if st:
+            d2['stage'] = st.group(1)
+        if 'glitched: true' in than:
+            d2['glitched'] = True
+        out[m.group(1)] = d2
     return out
 
 
@@ -71,12 +95,13 @@ def read_maps():
     """Doc lai js/data/maps.js: ten + cong dich chuyen cua tung ban do."""
     src = open('js/data/maps.js', encoding='utf-8').read()
     out = {}
-    for m in re.finditer(r'^  ([a-z_0-9]+): \{\n    name: "([^"]+)"', src, re.M):
-        out[m.group(1)] = {'name': m.group(2), 'next': set()}
-    for m in re.finditer(r'^  ([a-z_0-9]+): \{(.*?)\n  \},', src, re.M | re.S):
-        for t in re.findall(r'"to":\s*"([a-z_0-9]+)"', m.group(2)):
-            if t in out:
-                out[m.group(1)]['next'].add(t)
+    for slug, than in khoi(src, r'^  ([a-z_0-9]+): \{$'):
+        ten = re.search(r'name: "([^"]+)"', than)
+        out[slug] = {'name': ten.group(1) if ten else slug, 'next': set()}
+    for slug, than in khoi(src, r'^  ([a-z_0-9]+): \{$'):
+        for t in re.findall(r'"to":\s*"([a-z_0-9]+)"', than):
+            if t in out and t != slug:
+                out[slug]['next'].add(t)
     return out
 
 
@@ -132,6 +157,15 @@ DESC = {
     'route1_sanglorian': 'Đoạn đường nối sang thị trấn kế tiếp.',
     'cotton_town': 'Thị trấn buôn bán sầm uất.',
     'leather_town': 'Thị trấn vùng đất khô, gió cát quanh năm.',
+    'route2': 'Đường mòn ven rừng, cỏ mọc cao quá gối.',
+    'citypark': 'Công viên giữa phố, chim chóc và người đi dạo.',
+    'route3': 'Đường đèo lên núi, dốc và lắm đá.',
+    'flower_city': 'Thành phố ven nước, đâu cũng thấy hoa.',
+    'leather_shaft1': 'Tầng trên của hầm mỏ, tối om và ẩm thấp.',
+    'leather_shaft2': 'Tầng sâu của hầm mỏ, ít ai dám xuống tới đây.',
+    'taba_ba_passageway_1': 'Hành lang khu thi đấu, không khí lạ thường.',
+    'taba_ba_passageway_2': 'Hành lang khu thi đấu, sương giá bám tường.',
+    'taba_ba_passageway_3': 'Hành lang khu thi đấu, nghe cả tiếng sóng.',
 }
 
 ZONE_TRAINERS = {
