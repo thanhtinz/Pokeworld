@@ -11,6 +11,17 @@ import { ITEMS } from '../data/items.js';
 import { rng } from '../util.js';
 import { typesOf } from './monster.js';
 
+// Đá nâng cấp trang bị cũng rơi ở đây, nhưng HIẾM hơn nguyên liệu nấu ăn
+// nhiều: đá cường hoá còn gặp được, đá ngôi sao thì đúng nghĩa may mắn. Ai
+// không muốn chờ thì mua thẳng trong màn Trang Bị.
+export const TI_LE_DA_CUONG = 0.06;
+export const TI_LE_DA_SAO = 0.008;
+export function rngDa() {
+  if (rng.roll(TI_LE_DA_SAO)) return 'sao';
+  if (rng.roll(TI_LE_DA_CUONG)) return 'cuong';
+  return null;
+}
+
 /**
  * Bốc một nguyên liệu rơi ra từ con vừa thắng.
  * @param {object} mon con Tuxemon hoang vừa gục

@@ -6,6 +6,9 @@ import { unlocked, requirement, imgOf } from '../data/cosmetics.js';
 import { stats, maxHp, displayName, isFainted, STAT_KEYS,
   heSoThanThiet, coHoiGangGuong, MOC_LI_DON } from '../engine/monster.js';
 import { chuBuaAn } from '../engine/meal.js';
+import * as GR from '../engine/gear.js';
+import { O_TRANG_BI, anhGear } from '../data/gear.js';
+import { GEAR_BY_ID } from '../data/gear.js';
 import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
@@ -15,6 +18,7 @@ import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, header, holoStyle, itemIcon, flairTag } from './kit.js';
 import { rangeIcon, speedIcon, uiIcon } from './icons.js';
 import { openSheet } from './sheet.js';
+import { show } from '../main.js';
 
 // Sáu chỉ số của Tuxemon
 const STAT_VI = { hp: 'HP', armour: 'Giáp', dodge: 'Né tránh', melee: 'Cận chiến',
@@ -116,6 +120,22 @@ export function render(el) {
             ${STAT_KEYS.map((k, i) => `<tr><td>${STAT_VI[k]}</td><td>${m.iv?.[i] ?? 0}</td><td>${m.tp?.[i] ?? 0}</td></tr>`).join('')}
           </table>
         </details>
+        <h3>Trang bị</h3>
+        <div class="tb-grid">
+          ${O_TRANG_BI.map(o => {
+            const v = GR.dangDeo(m, o.id);
+            const g = v && GEAR_BY_ID[v.id];
+            return `<div class="tb-o${v ? ' co' : ''}" title="${esc(o.name)}">
+              ${v ? `<img src="${anhGear(v.id, v.sao)}" width="36" height="36" alt="">`
+                  : '<span class="tb-trong"></span>'}
+              <small>${esc(o.name)}</small>
+              ${v ? `<b class="tb-so">+${GR.giaTri(v)}${v.cuong ? ` <i>+${v.cuong}</i>` : ''}</b>
+                     <small class="tb-sao">${'★'.repeat(v.sao)}</small>` : '<small class="tb-trong-chu">trống</small>'}
+            </div>`;
+          }).join('')}
+        </div>
+        <button class="btn btn-sm" id="d-gear">Mở màn Trang Bị</button>
+
         <h3>Chiêu thức</h3>
         <div class="move-list-sm">
           ${m.moves.map(mv => {
@@ -131,6 +151,8 @@ export function render(el) {
           <button class="btn" id="d-tobox">Gửi vào Box</button>
         </div>
       </div>`;
+
+    box.querySelector('#d-gear').addEventListener('click', () => show('gear'));
 
     box.querySelector('#d-swap').addEventListener('click', async () => {
       const j = await choose('Đổi vị trí với...', G.p.party.map((x, i) => ({

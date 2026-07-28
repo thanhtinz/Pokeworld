@@ -9,7 +9,8 @@ import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '..
 import { expProgress } from '../engine/exp.js';
 import { condTag } from '../engine/status.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
-import { boc as bocDoRoi } from '../engine/drops.js';
+import { boc as bocDoRoi, rngDa } from '../engine/drops.js';
+import * as GR from '../engine/gear.js';
 import { isInside, healSpot } from '../engine/overworld.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
@@ -537,6 +538,13 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
         questToasts(emitQuest('win_battles', {}));
         // Con hoang rơi nguyên liệu nấu ăn theo HỆ của nó — đây là nguồn chính
         // để có mấy thứ tiệm tạp hoá không bán (xem js/engine/drops.js)
+        // Đá nâng cấp trang bị: hiếm hơn nguyên liệu nấu ăn nhiều (engine/gear.js)
+        const da = rngDa();
+        if (da) {
+          GR.themDa(da, 1);
+          floatPop(`+${GR.DA[da].name}`, 'pop-exp', 60);
+          log(`Nhặt được ${GR.DA[da].name} ×1!`);
+        }
         const roi = bocDoRoi(enemy);
         if (roi) {
           addItem(roi.id, roi.n);

@@ -2996,6 +2996,104 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('không có con thì không rơi gì', boc(null) === null);
 }
 
+// ==== Trang bị: đeo, cường hoá, nâng sao ====
+{
+  const GR = await import('../js/engine/gear.js');
+  const { GEAR, GEAR_BY_ID, O_TRANG_BI, anhGear, SAO_TOI_DA }
+    = await import('../js/data/gear.js');
+  const { newTuxemon, stats } = await import('../js/engine/monster.js');
+  const { existsSync } = await import('node:fs');
+
+  ok('có đủ sáu ô trang bị', O_TRANG_BI.length === 6);
+  ok('mỗi ô một chỉ số riêng',
+    new Set(O_TRANG_BI.map(o => o.stat)).size === O_TRANG_BI.length);
+  ok('ô nào cũng có món để đeo',
+    O_TRANG_BI.every(o => GEAR.some(g => g.o === o.id)));
+  // Nâng sao phải ĐỔI HÌNH — nghĩa là mỗi bậc một tệp ảnh riêng và có thật
+  const thieuAnh = [];
+  for (const g of GEAR) {
+    for (let s = 1; s <= SAO_TOI_DA; s++) {
+      const p2 = anhGear(g.id, s);
+      if (!existsSync(new URL('../' + p2, import.meta.url))) thieuAnh.push(p2);
+    }
+  }
+  ok('bậc sao nào cũng có ảnh riêng', thieuAnh.length === 0, thieuAnh.slice(0, 4).join(', '));
+  ok('sao ngoài khoảng thì kẹp lại',
+    anhGear('ao_sat', 0) === anhGear('ao_sat', 1)
+    && anhGear('ao_sat', 99) === anhGear('ao_sat', SAO_TOI_DA));
+
+  const sp = Object.keys(SPECIES)[0];
+  G.p.money = 9999999;
+  G.p.gear = null;
+  G.p.party = [newTuxemon(sp, 25)];
+  const con = G.p.party[0];
+  const mau = GEAR.find(g => g.o === 'ao' && g.ho === 'sat');
+
+  const truoc = stats(con).armour;
+  ok('mua được món đồ', !GR.mua(mau.id)[1]);
+  const v = GR.kho()[0];
+  ok('món mới luôn 1★ +0', v.sao === 1 && v.cuong === 0);
+  ok('chưa đeo thì chỉ số chưa đổi', stats(con).armour === truoc);
+  ok('đeo vào là cộng đúng số ghi trên món', (() => {
+    GR.deo(con, v.u);
+    return stats(con).armour === truoc + mau.base;
+  })());
+  ok('biết món đang nằm trên con nào', GR.aiDangDeo(v.u) === con);
+  ok('tháo ra thì chỉ số về như cũ', (() => {
+    GR.thao(con, 'ao');
+    return stats(con).armour === truoc;
+  })());
+  GR.deo(con, v.u);
+
+  // Cường hoá: hết đá thì không làm được
+  G.p.gear.da.cuong = 0;
+  ok('không có đá thì không cường hoá được', GR.cuongHoa(v.u)[1] !== null);
+  GR.themDa('cuong', 50);
+  ok('ba cấp đầu chắc ăn', GR.tiLeCuong(0) === 1 && GR.tiLeCuong(2) === 1);
+  ok('càng cao càng dễ hỏng', GR.tiLeCuong(10) < GR.tiLeCuong(4));
+  ok('tỉ lệ có sàn, không về 0', GR.tiLeCuong(99) >= 0.3);
+  let dat = 0;
+  for (let i = 0; i < 200 && v.cuong < GR.CUONG_TOI_DA; i++) {
+    const [r] = GR.cuongHoa(v.u);
+    if (r && !r.hong) dat++;
+  }
+  ok('cường hoá được lên kịch trần', v.cuong === GR.CUONG_TOI_DA, String(v.cuong));
+  ok('kịch trần rồi thì báo lỗi', GR.cuongHoa(v.u)[1] !== null);
+  ok('mỗi cấp cường hoá cộng thêm 8% chỉ số gốc', (() => {
+    const cho = { id: mau.id, sao: 1, cuong: 0 };
+    const a = GR.giaTri(cho);
+    cho.cuong = 10;
+    return GR.giaTri(cho) === Math.round(mau.base * (1 + 0.08 * 10)) && a === mau.base;
+  })());
+
+  // Nâng sao
+  G.p.gear.da.sao = 0;
+  ok('không có đá sao thì không nâng được', GR.nangSao(v.u)[1] !== null);
+  GR.themDa('sao', 50);
+  const anh1 = anhGear(v.id, v.sao);
+  ok('nâng sao luôn thành công', !GR.nangSao(v.u)[1] && v.sao === 2);
+  ok('nâng sao xong là đổi ảnh', anhGear(v.id, v.sao) !== anh1);
+  while (v.sao < SAO_TOI_DA) GR.nangSao(v.u);
+  ok('lên tới đủ sao thì dừng', v.sao === SAO_TOI_DA
+    && GR.nangSao(v.u)[1] !== null);
+  ok('đủ sao + kịch cường thì chỉ số lên nhiều',
+    GR.giaTri(v) > mau.base * 3, `${GR.giaTri(v)} vs ${mau.base}`);
+  ok('chỉ số trên con khớp với số ghi trên món',
+    stats(con).armour === truoc + GR.giaTri(v));
+
+  // Một món chỉ nằm trên một con
+  G.p.party.push(newTuxemon(sp, 25));
+  const con2 = G.p.party[1];
+  GR.deo(con2, v.u);
+  ok('đeo cho con khác thì con cũ mất món',
+    GR.aiDangDeo(v.u) === con2 && !con.tb.ao);
+  ok('đang đeo thì không bán được', GR.ban(v.u)[1] !== null);
+  GR.thao(con2, 'ao');
+  const tienTruoc = G.p.money;
+  ok('bán được và có tiền về', !GR.ban(v.u)[1] && G.p.money > tienTruoc);
+  ok('bán rồi thì hết trong kho', !GR.timMon(v.u));
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

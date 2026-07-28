@@ -348,6 +348,41 @@ html, body {
   color: var(--green); font-size: .8rem;
 }
 
+/* ==== Màn Trang Bị ==== */
+.gr-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.gr-head { display: flex; align-items: center; gap: 10px; }
+.gr-img { width: 46px; height: 46px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.gr-mid { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.gr-mid small { color: var(--muted); font-size: .8rem; }
+.gr-sao { color: var(--gold); letter-spacing: 1px; }
+.gr-num { color: var(--green); }
+.gr-plus { color: var(--gold-num); font-family: var(--pix2); font-size: 1.05rem; }
+.gr-deo { color: var(--violet-txt, #b3a4f0); }
+.gr-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.gr-btns .btn { flex: 1 1 30%; min-height: 40px; }
+.gr-da { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.gr-da-o { display: flex; align-items: center; gap: 6px; font-size: .84rem; }
+.gr-da-o img { image-rendering: pixelated; }
+.gr-da-o i { color: var(--gold-num); font-style: normal; font-family: var(--pix2); font-size: 1.05rem; }
+.gr-da-o .btn { min-height: 34px; padding: 0 10px; }
+.gr-note small { color: var(--muted); font-size: .81rem; line-height: 1.45; }
+
+/* Sáu ô trang bị hiện trong màn Đội hình */
+.tb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+.tb-o {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 6px 3px; border: 1px dashed var(--line); border-radius: 10px;
+  background: rgba(0, 0, 0, .18); text-align: center;
+}
+.tb-o.co { border-style: solid; border-color: var(--gold); }
+.tb-o img { image-rendering: pixelated; }
+.tb-o small { color: var(--muted); font-size: .74rem; }
+.tb-trong { width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, .05); }
+.tb-trong-chu { opacity: .6; }
+.tb-so { color: var(--green); font-size: .8rem; }
+.tb-so i { color: var(--gold-num); font-style: normal; }
+.tb-o small.tb-sao { color: var(--gold); letter-spacing: 1px; }
+
 /* ==== Badge hệ / trạng thái ==== */
 .type-badge {
   display: inline-block;
