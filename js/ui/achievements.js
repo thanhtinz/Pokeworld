@@ -11,7 +11,7 @@ import { refresh } from '../main.js';
 
 function quaHtml(q) {
   const ds = [];
-  if (q.tien) ds.push(`<span class="ach-qua">${uiIcon('coin', 15)}${tien(q.tien)}</span>`);
+  if (q.tien) ds.push(`<span class="ach-qua">${uiIcon('coin', 15)}${fmt(q.tien)}</span>`);
   for (const d of q.do || []) {
     ds.push(`<span class="ach-qua">${itemIcon(d.id, '', 18)}${esc(ITEMS[d.id]?.name || d.id)} ×${d.n}</span>`);
   }

@@ -59,6 +59,7 @@ import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
+import * as P from '../js/engine/park.js';
 import { bangThanhTuu, nhanThuong, nhanHet, choNhan } from '../js/engine/achievements.js';
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -536,8 +537,11 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
 {
   const it = Object.entries(ITEMS);
   ok('có đủ bộ vật phẩm', it.length >= 80, String(it.length));
-  // Đồ mang theo không "dùng" mà cho Tuxemon cầm, nên không có eff/inBattle
-  const dung = it.filter(([, x]) => !x.held && x.kind !== 'badge');
+  // Đồ mang theo không "dùng" mà cho Tuxemon cầm, nên không có eff/inBattle.
+  // Bóng Công Viên cũng ngoại lệ: bản gốc để usable_in: [MainParkMenuState] và
+  // hiệu ứng 'park capture' — nó chỉ ném được trong màn Công Viên, không phải
+  // trong trận, nên không có eff/inBattle/inWorld như đồ thường.
+  const dung = it.filter(([, x]) => !x.held && x.kind !== 'badge' && x.kind !== 'park');
   ok('món nào cũng có ít nhất một hiệu ứng', dung.every(([, x]) => x.eff.length > 0));
   ok('món nào cũng dùng được ở đâu đó', dung.every(([, x]) => x.inBattle || x.inWorld));
   ok('có đồ mang theo', it.some(([, x]) => x.held));
@@ -1806,6 +1810,55 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     bt.turn = bt.LUOT_BE_TAC + 1;
     ok('trận trainer bế tắc thì bỏ cuộc được', bt.submit(0, { t: 'run' })[0] === true);
   }
+}
+
+// ==== Công Viên Pepper ====
+{
+  newGame('ParkTester');
+  G.p.money = 100;
+  const [x, e1] = P.vaoCongVien();
+  ok('không đủ tiền thì không vào được', !x && !!e1);
+
+  G.p.money = 50000;
+  const tienCu = G.p.money;
+  const [vao, e2] = P.vaoCongVien();
+  ok('mua vé vào được', !!vao && !e2);
+  ok('vé trừ đúng tiền', G.p.money === tienCu - P.GIA_VE, String(G.p.money));
+  ok('vào là có đủ bước và bóng', P.park.buoc === P.BUOC && P.park.bong === P.SO_BONG);
+  ok('không vào hai lần', P.vaoCongVien()[1] !== null);
+
+  // Đi cho tới khi gặp một con
+  let gap = null;
+  for (let i = 0; i < 400 && !gap; i++) {
+    const ev = P.buocTrongCongVien();
+    if (ev?.t === 'gap') gap = ev;
+    if (ev?.t === 'hetBuoc') break;
+  }
+  ok('đi một lúc thì gặp Tuxemon', !!gap);
+  ok('gặp con nào là ghi vào Tuxedex', !gap || G.p.dex.seen[gap.mon.sp] === true);
+
+  if (gap) {
+    const bongCu = P.park.bong;
+    const r = P.nemBong();
+    ok('ném bóng trừ đúng một quả', P.park.bong === bongCu - 1);
+    ok('ném hụt thì có câu tả bộ dạng', r.bat || !!r.dangVe);
+    ok('bắt được thì con đó vào đội hoặc box',
+      !r.bat || G.p.party.length + G.p.box.length > 0);
+  }
+
+  // Bỏ qua thì hết con trước mặt
+  P.park.gap = P.park.gap || { mon: gap?.mon, luot: 5, chay: 0 };
+  P.boQua();
+  ok('bỏ qua thì con vật đi mất', P.park.gap === null);
+
+  const tk = P.raCong();
+  ok('ra cổng thì hết ở trong công viên', !P.park.dang);
+  ok('tổng kết đếm đúng số lần ném', tk.tong === tk.bat + tk.hut);
+  ok('tổng kết có tỉ lệ bắt hợp lệ', tk.tiLe >= 0 && tk.tiLe <= 1);
+  ok('tổng kết đếm số loài đã gặp', tk.soLoai >= 1, String(tk.soLoai));
+
+  ok('bóng công viên không ném được ngoài trận thường',
+    ITEMS[P.BONG] && ITEMS[P.BONG].kind === 'park' && !ITEMS[P.BONG].inBattle);
 }
 
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

@@ -48,7 +48,7 @@ export function render(el, { shop = null, from = 'home' } = {}) {
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" data-goto="${esc(from)}">‹</button><h1>${
         esc(tiem ? tiem.name : 'Cửa hàng')}</h1></div>
-      <div class="card shop-money">${uiIcon('coin', 20)} <b id="shop-balance">${tien(G.p.money)}</b></div>
+      <div class="card shop-money">${uiIcon('coin', 20)} <b id="shop-balance">${fmt(G.p.money)}</b></div>
       <div class="seg-row">
         <button type="button" class="seg-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
         <button type="button" class="seg-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>

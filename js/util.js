@@ -56,8 +56,10 @@ export const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
 
 // Đơn vị tiền của Tuxemon là ĐÔ LA, ký hiệu đứng TRƯỚC số:
 //   tuxemon/ui/text_formatter.py -> "${{currency}}": lambda: "$"
-// Bản này trước đây dùng ₽ đặt sau số — đó là kiểu của Pokemon.
-// Mọi chỗ hiện tiền đều đi qua đây để sau muốn đổi thì sửa một nơi.
+// (Bản này trước đây dùng ₽ đặt sau số — đó là kiểu của Pokemon.)
+//
+// tien()  dùng cho chữ trần: toast, mô tả, thư... — có ký hiệu để biết là tiền.
+// Chỗ nào ĐÃ CÓ icon đồng tiền đứng cạnh thì dùng thẳng fmt(), khỏi lặp lại.
 export const TIEN = '$';
 export const tien = (n) => `${TIEN}${fmt(n)}`;
 

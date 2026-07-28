@@ -15,6 +15,7 @@ import * as news from './ui/news.js';
 import * as events from './ui/events.js';
 import * as profile from './ui/profile.js';
 import * as achievements from './ui/achievements.js';
+import * as park from './ui/park.js';
 import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
@@ -41,7 +42,7 @@ import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/monster.js';
 import { trainerLevel } from './engine/player.js';
 import { FEATURES, isUnlocked, lockNote } from './engine/unlock.js';
-import { fmt, tien } from './util.js';
+import { fmt } from './util.js';
 import { uiIcon } from './ui/icons.js';
 import { avatarFaceSrc, avatarFrame, upgradeFaces } from './ui/look.js';
 import { playMusic } from './engine/settings.js';
@@ -55,7 +56,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements, park,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
@@ -178,7 +179,8 @@ export function drawTopBar(hide = false) {
   wrap.style.setProperty('--fr', fr.style ? fr.style.replace(/^ style="--fr:/, '').replace(/"$/, '') : '');
   document.getElementById('tb-name').textContent = G.p.name || '';
   document.getElementById('tb-lv').textContent = `Lv.${trainerLevel()}`;
-  document.getElementById('tb-money').textContent = tien(G.p.money || 0);
+  // Cạnh ô này đã có icon đồng tiền nên chỉ hiện con số
+  document.getElementById('tb-money').textContent = fmt(G.p.money || 0);
 }
 
 // Hộp thư / Thông báo trên thanh trên

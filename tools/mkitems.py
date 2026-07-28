@@ -38,7 +38,7 @@ from PIL import Image
 HIEU_UNG = {'capture', 'heal', 'restore', 'gain_xp', 'evolve',
             'statchange', 'change_stat', 'food_preference',
             'learn_tm', 'learn_mm', 'switch_type',
-            'fishing', 'repellent', 'teleport_item', 'bivouac'}
+            'fishing', 'repellent', 'teleport_item', 'bivouac', 'park'}
 
 # category cua ban goc -> nhom o trong tui do
 NHOM = {
@@ -126,7 +126,7 @@ TEN = {
     'tuxeball_hearty': 'Tuxeball Vị Đậm', 'tuxeball_peppy': 'Tuxeball Vị Hăng',
     'tuxeball_refined': 'Tuxeball Vị Tinh', 'tuxeball_salty': 'Tuxeball Vị Mặn',
     'tuxeball_zesty': 'Tuxeball Vị Thanh', 'tuxeball_diurnal': 'Tuxeball Ban Ngày',
-    'tuxeball_nocturnal': 'Tuxeball Ban Đêm',
+    'tuxeball_nocturnal': 'Tuxeball Ban Đêm', 'tuxeball_park': 'Tuxeball Công Viên',
 
     'potion': 'Thuốc Hồi', 'super_potion': 'Thuốc Hồi Lớn',
     'mega_potion': 'Thuốc Hồi Cực Lớn', 'imperial_potion': 'Thuốc Hoàng Gia',
@@ -331,6 +331,8 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
         if m and m > 1:
             return 'Tỉ lệ bắt gấp %s lần Tuxeball thường.' % (
                 ('%.2f' % m).rstrip('0').rstrip('.'))
+        if slug == 'tuxeball_park':
+            return 'Bóng riêng của Công Viên Pepper — chỉ ném được ở trong đó.'
         return 'Tuxeball cơ bản để bắt Tuxemon hoang.'
 
     if cat == 'badge':
@@ -722,6 +724,7 @@ def main():
             'desc': js(mo),
             # Mon tien ich xep rieng mot o, khong lan vao o "Tra"
             'kind': js('held' if mang else
+                       'park' if slug == 'tuxeball_park' else
                        ('tool' if any(e['type'] in ('repellent', 'teleport_item', 'bivouac')
                                       for e in eff) else NHOM[cat])),
             'price': js(int(mua)),
