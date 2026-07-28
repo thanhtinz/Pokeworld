@@ -52,7 +52,9 @@ export function calcDamage(att, def, moveId, ctx = {}) {
   const move = MOVES[moveId];
   if (!move) return { dmg: 0, eff: 1, missed: true };
 
-  if (move.category !== 'damage' || !move.power || move.power <= 0) {
+  // ctx.power: chiêu tiên liệu bung lại mang hệ số riêng (= số lượt đã chờ)
+  const power = ctx.power || move.power;
+  if (move.category !== 'damage' || !power || power <= 0) {
     return { dmg: 0, eff: 1, missed: false };
   }
 
@@ -81,7 +83,7 @@ export function calcDamage(att, def, moveId, ctx = {}) {
 
   // ctx.types: chiêu "mượn hệ" (move_type) đổi hệ theo người dùng hoặc đối thủ
   const eff = typeMultiplier(ctx.types || move.types, typesOf(def));
-  const dmg = Math.floor(strength * (move.power * eff) / resist);
+  const dmg = Math.floor(strength * (power * eff) / resist);
 
   return { dmg: Math.max(eff > 0 ? 1 : 0, dmg), eff, missed: false };
 }

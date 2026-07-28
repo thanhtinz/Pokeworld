@@ -200,6 +200,7 @@ export function catchBonus(mon) {
 
 // Hết trận: chỉ trạng thái bản gốc đánh dấu "còn sau trận" mới giữ lại
 export function afterBattle(mon) {
+  delete mon.outOfRange;   // dấu "đang khuất" của chiêu lặn xuống, chỉ có trong trận
   const s = def(mon.status);
   if (s && !s.keep) cureStatus(mon);
 }

@@ -59,6 +59,10 @@ export class Battle {
     this.winner = null;
     this.pending = [null, null]; // action đã submit theo side idx
     this.caughtMon = null;
+    // Hàng đợi hành động chờ (combat/action_queue.py: _pending_queue). Chiêu
+    // "lặn xuống" và chiêu "tiên liệu" đều đặt một đòn nữa vào đây, tới lượt
+    // ghi trong mục thì đòn đó tự bung ra ở cuối lượt.
+    this.pendingActions = [];
     this.runAttempts = 0;                            // bản gốc: biến run_attempts
     this.escapeMethod = escapeMethod || CONFIG.ESCAPE_METHOD; // default|relative|always|never
     this.sides = sides.map((s) => {
@@ -196,6 +200,7 @@ export class Battle {
   endBattle(winner, ev) {
     this.over = true;
     this.winner = winner;
+    this.pendingActions = [];
     // Bản gốc chỉ giữ lại trạng thái nào đánh dấu "còn sau trận" (độc, bỏng)
     for (const side of this.sides) for (const m of side.mons) afterBattle(m);
     ev.push({ t: 'end', winner });
@@ -275,8 +280,36 @@ export class Battle {
     return true; // hết mon
   }
 
-  // Thực thi 1 move của side i lên side kia. moveIdx = số | 'struggle'
+  // Bung các đòn trong hàng đợi chờ tới hạn ở lượt này
+  buongDonCho(ev) {
+    if (!this.pendingActions.length) return;
+    // Dọn trước: quá hạn, hoặc bên tung / bên nhận đã gục thì huỷ
+    this.pendingActions = this.pendingActions.filter(p => {
+      if (p.turn < this.turn) return false;
+      const u = this.activeMon(p.side), t = this.activeMon(1 - p.side);
+      return u && t && !isFainted(u) && !isFainted(t);
+    });
+    const toi = this.pendingActions.filter(p => p.turn === this.turn);
+    this.pendingActions = this.pendingActions.filter(p => p.turn !== this.turn);
+    for (const p of toi) {
+      if (this.over) break;
+      const oi = 1 - p.side;
+      this.doMove(p.side, { id: p.id, power: p.power }, ev);
+      const foeMon = this.activeMon(oi);
+      if (foeMon && isFainted(foeMon)) {
+        if (this.handleFaint(oi, ev)) { this.endBattle(p.side, ev); break; }
+      }
+      const selfMon = this.activeMon(p.side);
+      if (selfMon && isFainted(selfMon)) {
+        if (this.handleFaint(p.side, ev)) { this.endBattle(oi, ev); break; }
+      }
+    }
+  }
+
+  // Thực thi 1 move của side i lên side kia.
+  // moveIdx = số ô chiêu | 'struggle' | {id, power} (đòn bung ra từ hàng đợi chờ)
   doMove(i, moveIdx, ev) {
+    const cho = (moveIdx && typeof moveIdx === 'object') ? moveIdx : null;
     const mon = this.activeMon(i);
     const oi = 1 - i;
     const foe = this.activeMon(oi);
@@ -294,7 +327,9 @@ export class Battle {
       ev.push({ t: 'msg', text: `${displayName(mon)} phát cuồng, quay ra tự cắn mình!` });
       return;
     }
-    if (moveIdx !== 'struggle' && rangeBlocked(mon, MOVES[mon.moves[moveIdx]?.id]?.range)) {
+    const tamDanh = cho ? MOVES[cho.id]?.range
+      : (moveIdx === 'struggle' ? null : MOVES[mon.moves[moveIdx]?.id]?.range);
+    if (tamDanh && rangeBlocked(mon, tamDanh)) {
       ev.push({ t: 'msg', text: `${displayName(mon)} đang bị ghì, không ra đòn kiểu này được!` });
       return;
     }
@@ -316,7 +351,11 @@ export class Battle {
     }
 
     let mvId, mv;
-    if (moveIdx === 'struggle') {
+    if (cho) {
+      mvId = cho.id;
+      mv = MOVES[mvId];
+      if (!mv) return;
+    } else if (moveIdx === 'struggle') {
       mvId = 'struggle';
       mv = { name: 'Vùng Vẫy', types: ['normal'], range: 'melee', category: 'damage', power: 1, acc: 100 };
     } else {
@@ -333,6 +372,8 @@ export class Battle {
     const ctx = {
       attStage: this.sides[i].stages[uKey] || 0,
       defStage: this.sides[oi].stages[tKey] || 0,
+      // Chiêu tiên liệu bung lại thì hệ số sát thương ĐÚNG BẰNG số lượt đã chờ
+      power: cho && cho.power ? cho.power : undefined,
     };
     // Chiêu "mượn hệ": trước khi tính sát thương, chiêu đổi sang hệ của người
     // dùng (Nội Lực, Ngoại Lực) hoặc của đối thủ (Cướp Sức) — core/effects/move_type.py
@@ -411,7 +452,7 @@ export class Battle {
     }
 
     // Hiệu ứng phụ của chiêu, lấy đúng danh sách effects bên bản gốc
-    if (res.eff !== 0) this.applyEffects(i, oi, mv, res, ev);
+    if (res.eff !== 0) this.applyEffects(i, oi, mv, res, ev, mvId, !!cho);
   }
 
   // give (dính trạng thái) · healing / prop_healing (hồi máu) · prop_damage
@@ -419,7 +460,7 @@ export class Battle {
   // switch / reverse (đổi hệ) · cooldown_modifier (khoá chiêu) ·
   // photogenesis (hồi máu theo giờ) · sacrifice (tự huỷ) · life_swap (đổi máu) ·
   // transfer (đẩy trạng thái sang bên kia)
-  applyEffects(i, oi, mv, res, ev) {
+  applyEffects(i, oi, mv, res, ev, mvId, donCho = false) {
     const mon = this.activeMon(i);
     const foe = this.activeMon(oi);
     const ben = (to) => (to === 'self' ? [i, mon] : [oi, foe]);
@@ -503,6 +544,31 @@ export class Battle {
         foe.hpCur = Math.min(maxHp(foe), a);
         ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount: mon.hpCur - a });
         ev.push({ t: 'msg', text: 'Sinh lực hai bên bị hoán đổi!' });
+      } else if (e.t === 'disappear') {
+        // Lặn xuống / bay vọt lên: cuối lượt này giáng xuống bằng chiêu đi kèm
+        // (core/effects/disappear.py xếp đòn đó vào hàng chờ của ĐÚNG lượt này,
+        // rồi POST_ACTION bung ra). Chiêu bung ra mang hiệu ứng 'appear' để gỡ
+        // dấu "đang khuất".
+        if (MOVES[e.id]) {
+          mon.outOfRange = true;
+          this.pendingActions.push({ turn: this.turn, side: i, id: e.id });
+          ev.push({ t: 'msg', text: `${displayName(mon)} khuất bóng, chờ giáng xuống!` });
+        }
+      } else if (e.t === 'appear') {
+        if (mon.outOfRange) {
+          mon.outOfRange = false;
+          ev.push({ t: 'msg', text: `${displayName(mon)} lao ra!` });
+        }
+      } else if (e.t === 'foresight') {
+        // Tiên liệu: đúng n lượt nữa chiêu tự tung lại, hệ số sát thương bằng
+        // chính n — càng chờ lâu đòn sau càng nặng (core/effects/foresight.py).
+        // CHỖ LỆCH CÓ CHỦ Ý: bản gốc dựng lại nguyên chiêu nên đòn bung ra lại
+        // xếp tiếp một đòn nữa, thành dây vô tận từ một lần bấm. Ở đây đòn bung
+        // ra không xếp tiếp — bấm một lần thì được đúng một đòn trả sau.
+        if (donCho) continue;
+        const n = Math.max(1, e.n || 1);
+        this.pendingActions.push({ turn: this.turn + n, side: i, id: mvId, power: n });
+        ev.push({ t: 'msg', text: `${displayName(mon)} tính trước ${n} lượt cho đòn này!` });
       } else if (e.t === 'plague') {
         // Lây bệnh sang đối thủ theo xác suất spreadness của bản gốc
         const pl = PLAGUES[e.id];
@@ -626,6 +692,11 @@ export class Battle {
         }
       }
     }
+
+    // Cuối lượt: bung những đòn đã xếp hàng chờ đúng lượt này. Bản gốc làm ở
+    // pha POST_ACTION (autoclean_pending rồi from_pending_to_action) — đòn nào
+    // mà người tung hoặc mục tiêu đã gục thì bỏ luôn.
+    if (!this.over) this.buongDonCho(ev);
 
     // Cuối lượt: mọi chiêu đang chờ hồi bớt đi một lượt (Tuxemon dùng recharge
     // thay cho PP — hết lượt chờ là dùng lại được).

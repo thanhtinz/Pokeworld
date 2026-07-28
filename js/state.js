@@ -88,6 +88,7 @@ function vaMons(list) {
     // "shiny" là khái niệm của game khác — bản lưu cũ đổi sang hoa văn 'stars'
     if (m.shiny !== undefined) { if (m.shiny && !m.flair) m.flair = 'stars'; delete m.shiny; }
     if (m.flair && m.flair !== 'stars') m.flair = 'stars';
+    delete m.outOfRange;               // trạng thái chỉ tồn tại trong trận
     if (m.held && !ITEMS[m.held]) delete m.held;   // món cũ đã bỏ khỏi bảng
     // Hệ do quả đổi hệ ghi đè — hệ lạ thì bỏ, để lấy lại hệ gốc của loài
     if (m.types && (!Array.isArray(m.types) || !m.types.every(t => TYPES[t]))) delete m.types;

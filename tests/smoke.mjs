@@ -996,6 +996,54 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     ok('chiêu phủ đầu trượt vẫn ăn nửa đòn', sut > 0, `${id} ${sut}`);
   }
 
+  // disappear/appear: chiêu "lặn xuống" phải giáng được đòn đi kèm, chứ không
+  // phải bấm xong đứng hình. Trước đây 5 chiêu này ra power 0, bấm vào là mất
+  // lượt và khoá 4 lượt hồi chiêu — coi như tự thua.
+  const lan = Object.entries(MOVES).filter(([, m]) => (m.eff || []).some(e => e.t === 'disappear'));
+  ok('có chiêu lặn xuống', lan.length >= 5, String(lan.length));
+  ok('chiêu lặn xuống nào cũng gọi tới một chiêu có thật',
+    lan.every(([, m]) => m.eff.every(e => e.t !== 'disappear' || MOVES[e.id])),
+    lan.filter(([, m]) => m.eff.some(e => e.t === 'disappear' && !MOVES[e.id])).map(([x]) => x).join(' '));
+  ok('chiêu bung ra sau khi lặn đều là chiêu đánh',
+    lan.every(([, m]) => m.eff.every(e => e.t !== 'disappear' || MOVES[e.id].category === 'damage')));
+  {
+    const [id] = lan[0];
+    let sut = 0;
+    for (let k = 0; k < 20 && !sut; k++) {
+      const me = newTuxemon(STARTERS[0].sp, 40);
+      const foe = newTuxemon(STARTERS[2].sp, 40);
+      me.moves = [{ id, cd: 0 }];
+      foe.moves = [{ id: vaHai || 'struggle', cd: 0 }];
+      const b = new Battle({ kind: 'wild',
+        sides: [{ kind: 'player', mons: [me] }, { kind: 'wild', mons: [foe] }] });
+      b.submit(0, { t: 'move', i: 0 });
+      b.resolve();
+      sut = maxHp(foe) - foe.hpCur;
+      ok.chiTiet = `${id} ${sut}`;
+    }
+    ok('lặn xuống rồi giáng đòn ngay trong lượt đó', sut > 0, ok.chiTiet);
+  }
+
+  // foresight: đòn trả sau đúng n lượt, KHÔNG được nối dây vô tận
+  {
+    const me = newTuxemon(STARTERS[0].sp, 40);
+    const foe = newTuxemon(STARTERS[2].sp, 40);
+    const fs = Object.entries(MOVES).find(([, m]) => (m.eff || []).some(e => e.t === 'foresight'));
+    if (fs) {
+      me.moves = [{ id: fs[0], cd: 0 }];
+      foe.moves = [{ id: vaHai || 'struggle', cd: 0 }];
+      const b = new Battle({ kind: 'wild',
+        sides: [{ kind: 'player', mons: [me] }, { kind: 'wild', mons: [foe] }] });
+      b.submit(0, { t: 'move', i: 0 });
+      b.resolve();
+      ok('tiên liệu xếp được một đòn trả sau', b.pendingActions.length === 1);
+      const n = fs[1].eff.find(e => e.t === 'foresight').n;
+      for (let k = 0; k < n; k++) { b.submit(0, { t: 'struggle' }); b.resolve(); }
+      ok('đòn trả sau bung ra rồi thì không nối dây vô tận',
+        b.pendingActions.length === 0, String(b.pendingActions.length));
+    }
+  }
+
   // move_type: chiêu mượn hệ của người dùng thì khắc hệ tính theo hệ đó
   const muon = Object.entries(MOVES).filter(([, m]) => (m.eff || []).some(e => e.t === 'move_type'));
   ok('có chiêu mượn hệ', muon.length >= 2, String(muon.length));

@@ -79,6 +79,20 @@ def js(v):
     return json.dumps(v, ensure_ascii=False)
 
 
+def _disappear_techs(db):
+    """Chieu ma hieu ung 'disappear' goi toi (altitude -> hawk, oven -> fire_ball...)."""
+    out = set()
+    d = os.path.join(db, 'technique')
+    for f in sorted(os.listdir(d)):
+        if not f.endswith('.yaml'):
+            continue
+        y = load(os.path.join(d, f)) or {}
+        for e in y.get('effects') or []:
+            if isinstance(e, dict) and e.get('type') == 'disappear' and e.get('parameters'):
+                out.add(str(e['parameters'][0]))
+    return out
+
+
 def main():
     if len(sys.argv) < 2:
         raise SystemExit(__doc__)
@@ -127,6 +141,9 @@ def main():
     # luc ra don (combat/session.py pre_check) nen van phai co trong bang chieu.
     used.update(_plague_techs(root))
     used.add('struggle')      # chieu vong cuoi, khong nam trong learnset nua
+    # Chieu "lan xuong" (disappear <chieu>) goi tiep mot chieu khac o cuoi luot.
+    # Chieu duoc goi co the khong con nao hoc, van phai co trong bang chieu.
+    used.update(_disappear_techs(db))
     techs = {}
     for slug in sorted(used):
         p = os.path.join(db, 'technique', slug + '.yaml')
@@ -446,7 +463,8 @@ export const speciesBySlug = (slug) => Object.values(SPECIES).find(s => s.slug =
 EFFECT_KEEP = {'give', 'healing', 'prop_healing', 'prop_damage', 'remove', 'money',
                'multiattack', 'switch', 'cooldown_modifier', 'photogenesis',
                'life_share', 'life_swap', 'transfer', 'sacrifice', 'reverse',
-               'plague', 'splash', 'move_type', 'scope'}
+               'plague', 'splash', 'move_type', 'scope',
+               'disappear', 'appear', 'foresight'}
 
 
 def hieu_ung(t):
@@ -494,6 +512,12 @@ def hieu_ung(t):
             row['div'] = int(float(par[0])) if par else 2
         elif kind == 'move_type':
             row['from'] = 'foe' if par and par[0] == 'enemy_monster' else 'self'
+        elif kind == 'disappear':
+            # lan xuong roi cuoi luot giang chieu nay
+            row['id'] = par[0] if par else ''
+        elif kind == 'foresight':
+            # het ngan nay luot thi chieu tu tung lai, he so = so luot cho
+            row['n'] = int(float(par[0])) if par else 1
         elif kind == 'transfer':
             row['id'] = par[0] if par else ''
             row['dir'] = par[1] if len(par) > 1 else 'user_to_target'
