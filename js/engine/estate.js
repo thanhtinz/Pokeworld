@@ -230,6 +230,15 @@ export function oCua() {
 // Trả về một "thing" giống NPC/bảng hiệu để js/engine/overworld.js dùng chung
 // một đường với mọi thứ khác.
 export function vatTheODay(mapId, x, y) {
+  // Trong nhà mình: đứng trước món nào thì bắt được món đó, để còn nằm/ngồi/ăn
+  if (dangTrongNha(mapId)) {
+    const d = monTaiO(x, y);
+    if (d) {
+      const f = FURN_BY_ID[d.id];
+      return { type: 'estate', kind: 'do-noi-that', name: f?.name || 'Đồ đạc', mon: d };
+    }
+    return null;
+  }
   if (mapId === KHU_DAT_MAP) {
     if (x === THO_MOC.x && y === THO_MOC.y) {
       return { type: 'estate', kind: 'tho-moc', name: 'Bác Thợ Mộc' };

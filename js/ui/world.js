@@ -11,6 +11,7 @@ import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
 import { MAPS } from '../data/maps.js';
 import { FURN_BY_ID } from '../data/estate.js';
 import * as ES from '../engine/estate.js';
+import * as TT from '../engine/furniture.js';
 
 // Ảnh nhà giữ lại sau lần tải đầu, không tạo <img> mới mỗi khung hình
 const anhNhaCache = new Map();
@@ -287,8 +288,38 @@ export function render(el) {
     const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
     const px = player.x * size - camX;
     const py = (player.y + 0.5) * size - camY + bob;
-    put(avatarImg(), player.dir, player.moving, px, py);
+    // Đang ngồi thì lún xuống một chút, đang nằm thì xoay ngang — nhìn là biết
+    const tt = TT.tuTheHienTai();
+    // Nằm/ngồi thì vẽ NGAY TRÊN món đồ chứ không phải chỗ đang đứng — đứng
+    // cạnh giường mà nằm thì trông như ngã ra sàn.
+    const mon = TT.monDangNgoi();
+    const fm = mon && FURN_BY_ID[mon.id];
+    const mx = fm ? (mon.x + fm.w / 2) * size - camX : px;
+    const my = fm ? (mon.y + fm.h / 2) * size - camY + chH / 2 - size * 0.34 : py;
+    if (tt === 'nam') {
+      ctx.save();
+      ctx.translate(mx, my - chH / 2 + size * 0.34);
+      ctx.rotate(Math.PI / 2);
+      put(avatarImg(), 'down', false, 0, chH / 2);
+      ctx.restore();
+    } else if (tt === 'ngoi') {
+      put(avatarImg(), player.dir, false, mx, my);
+    } else {
+      put(avatarImg(), player.dir, player.moving, px, py);
+    }
     drawTitle(px, py - chH + size * 0.34);
+
+    // Tắt đèn thì nhà tối đi, chừa một quầng sáng quanh nhân vật
+    if (ES.dangTrongNha(player.mapId) && !TT.denDangBat()) {
+      ctx.save();
+      const g = ctx.createRadialGradient(px, py - size * 0.4, size * 0.4,
+        px, py - size * 0.4, size * 3.2);
+      g.addColorStop(0, 'rgba(8,10,26,.15)');
+      g.addColorStop(1, 'rgba(8,10,26,.82)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
   }
 
   // Icon món đồ rơi trên bản đồ
@@ -416,6 +447,17 @@ export function render(el) {
       drawTopBar();
       return;
     }
+    // Đồ đã kê trong nhà mình: nằm, ngồi, ăn, tắm, nấu, bật đèn
+    if (thing.kind === 'do-noi-that') {
+      const [ra, err] = TT.dung(thing.mon);
+      if (err) { toast(err); return; }
+      if (ra && ra.moMan) {                 // bếp thì mở thẳng màn Chế Tạo
+        cleanup(); show(ra.moMan, { from: 'world' });
+        return;
+      }
+      toast(ra);
+      return;
+    }
     if (thing.kind === 'cua-nha' || thing.kind === 'nha-minh') {
       if (thing.kind === 'nha-minh') {
         const c = ES.oCua();
@@ -504,6 +546,8 @@ export function render(el) {
     if (!busy && !deco) {
       const k = keyVec();
       updateNpcs(dt);
+      // Đang nằm/ngồi mà nhấn hướng thì đứng dậy trước đã
+      if ((vec.x + k.x || vec.y + k.y) && TT.dungDay()) toast('Bạn đứng dậy.');
       const ev = update(dt, vec.x + k.x, vec.y + k.y);
       if (ev?.t === 'warp') {
         el.querySelector('#world-zone').textContent = currentMap().name;

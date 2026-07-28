@@ -876,6 +876,9 @@ img[src*='sprites'] { image-rendering: pixelated; }
   background: rgba(255, 255, 255, .04);
   border: 1px solid var(--line); border-radius: 999px;
 }
+/* Nhiều nhóm quá thì cho xuống hàng, không bóp chữ nát ra */
+.seg-row.seg-wrap { flex-wrap: wrap; border-radius: 16px; }
+.seg-row.seg-wrap .seg-btn { flex: 1 1 30%; border-radius: 12px; }
 .seg-btn {
   flex: 1; min-height: 38px;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;

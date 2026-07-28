@@ -7,7 +7,8 @@ import { G } from '../state.js';
 // từ đầu và tab đang mở bị đặt lại — bấm nút xong là mất chỗ. Chỉ cần vẽ lại
 // thanh trên cho số tiền đúng.
 import { drawTopBar } from '../main.js';
-import { FURNITURE, FURN_BY_ID } from '../data/estate.js';
+import { FURNITURE, FURN_BY_ID, NHOM_DO } from '../data/estate.js';
+import { TEN_TUONG_TAC } from '../engine/furniture.js';
 import {
   muaDo, conTrongKho, tomTat, dangXay, conLaiChu, soMonToiDa,
 } from '../engine/estate.js';
@@ -16,6 +17,7 @@ import * as api from '../net/api.js';
 
 export function render(el, { from = 'menu' } = {}) {
   let tab = 'cho';                       // cho | tinhtrang
+  let nhom = NHOM_DO[0].id;              // nhóm đồ đang xem trong cửa hàng
   let banDoi = null;                     // tên vợ/chồng, chỉ có khi nối máy chủ
 
   // ==== Bảng tình trạng nhà cửa ====
@@ -42,21 +44,29 @@ export function render(el, { from = 'menu' } = {}) {
   }
 
   // ==== Kho + cửa hàng đồ ====
+  // Hơn bảy chục món nên phải chia nhóm, đổ hết một lượt thì cuộn mỏi tay.
   function veCho() {
+    const ds = FURNITURE.filter(f => (f.nhom || 'kho') === nhom);
     return `
-      <div class="card"><p class="es-note">Mua đồ về kho, rồi sang tab
-      <b>Trong nhà</b> để kê. Gỡ ra thì đồ về kho chứ không mất.</p></div>
+      <div class="card"><p class="es-note">Mua đồ về kho, rồi vào nhà bật
+      <b>Trang trí</b> để kê. Gỡ ra thì đồ về kho chứ không mất. Món nào ghi
+      <b>nằm / ngồi</b> thì kê xong vào dùng được.</p></div>
+      <div class="seg-row seg-wrap">
+        ${NHOM_DO.map(n => `<button type="button"
+          class="seg-btn ${nhom === n.id ? 'active' : ''}"
+          data-nhom="${esc(n.id)}">${esc(n.name)}</button>`).join('')}
+      </div>
       <div class="ev-grid">
-        ${FURNITURE.map(f => {
+        ${ds.map(f => {
           const co = conTrongKho(f.id);
+          const t = TEN_TUONG_TAC[f.kind];
           return `<div class="card ev-item">
             <img class="es-shop-img" src="${esc(f.img)}" alt="">
             <b>${esc(f.name)}</b>
-            <small>${f.w}×${f.h} ô</small>
+            <small>${f.w}×${f.h} ô${t ? ` · ${esc(t)}` : ''}</small>
             ${co ? `<small class="ev-limit">Trong kho: ${co}</small>` : ''}
             <button class="btn btn-sm btn-primary es-buy-do" data-id="${esc(f.id)}">
               ${tien(f.price)}</button>
-
           </div>`;
         }).join('')}
       </div>`;
@@ -77,8 +87,11 @@ export function render(el, { from = 'menu' } = {}) {
         ${uiIcon('heart', 16)} Bạn đời <b>${esc(banDoi)}</b> ra vào nhà này thoải mái.
       </div>` : ''}`;
 
-    el.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => {
+    el.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
       tab = b.dataset.tab; draw();
+    }));
+    el.querySelectorAll('[data-nhom]').forEach(b => b.addEventListener('click', () => {
+      nhom = b.dataset.nhom; draw();
     }));
 
 

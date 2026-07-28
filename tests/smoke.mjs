@@ -2204,6 +2204,102 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   }
 }
 
+// ==== Dùng nội thất: nằm, ngồi, ăn, tắm, nấu, bật đèn ====
+{
+  const TT = await import('../js/engine/furniture.js');
+  const { FURNITURE, NHOM_DO } = await import('../js/data/estate.js');
+
+  ok('bộ nội thất đủ nhiều để chọn', FURNITURE.length >= 60, `${FURNITURE.length} món`);
+  ok('món nào cũng có ảnh riêng',
+    new Set(FURNITURE.map(f => f.img)).size === FURNITURE.length);
+  ok('id nội thất không trùng nhau',
+    new Set(FURNITURE.map(f => f.id)).size === FURNITURE.length);
+  ok('giá nội thất trải rộng, không cào bằng',
+    new Set(FURNITURE.map(f => f.price)).size >= 15);
+  const nhomCo = new Set(NHOM_DO.map(n => n.id));
+  ok('món nào cũng thuộc một nhóm có thật',
+    FURNITURE.every(f => nhomCo.has(f.nhom)),
+    FURNITURE.filter(f => !nhomCo.has(f.nhom)).map(f => f.id).join(', '));
+  ok('nhóm nào cũng có hàng',
+    NHOM_DO.every(n => FURNITURE.some(f => f.nhom === n.id)));
+  const kieuCo = new Set(Object.keys(TT.TEN_TUONG_TAC));
+  ok('kiểu tương tác nào cũng có tên tiếng Việt',
+    FURNITURE.every(f => !f.kind || kieuCo.has(f.kind)),
+    FURNITURE.filter(f => f.kind && !kieuCo.has(f.kind)).map(f => f.kind).join(', '));
+  for (const k of ['nam', 'ngoi', 'ban', 'tam', 'nau', 'den']) {
+    ok(`có món để ${TT.TEN_TUONG_TAC[k]}`, FURNITURE.some(f => f.kind === k));
+  }
+
+  // Đặt một bộ đủ kiểu rồi dùng thử
+  newGame('Chủ Nhà');
+  G.p.money = 2000000;
+  G.p.estate = { lot: ES.LOTS[0].id, base: 'nha_da', xongLuc: 1, kho: {}, dat: [] };
+  G.p.party = [newTuxemon(STARTERS[0].sp, 12)];
+  const mon0 = G.p.party[0];
+  const timKieu = (k) => FURNITURE.find(f => f.kind === k);
+
+  {
+    const g = timKieu('nam');
+    const d = { id: g.id, x: 2, y: 2 };
+    mon0.hpCur = 1; mon0.status = 'poison';
+    const [ra, err] = TT.dung(d);
+    ok('nằm ngủ chạy được', !err && !!ra, err || '');
+    ok('ngủ dậy cả đội đầy máu', mon0.hpCur === maxHp(mon0) && !mon0.status);
+    ok('đang nằm thì tư thế là nằm', TT.tuTheHienTai() === 'nam');
+    ok('nằm xong phải chờ mới nằm tiếp', TT.dung(d)[1] !== null);
+    ok('bước một bước là đứng dậy', TT.dungDay() && TT.tuTheHienTai() === '');
+  }
+  {
+    const g = timKieu('ngoi');
+    const d = { id: g.id, x: 4, y: 2 };
+    ok('ngồi xuống được', TT.dung(d)[0] !== null && TT.tuTheHienTai() === 'ngoi');
+    ok('bấm lần nữa thì đứng lên', TT.dung(d)[0] !== null && TT.tuTheHienTai() === '');
+    ok('ghế không có thời gian chờ', TT.dung(d)[0] !== null);
+    TT.dungDay();
+  }
+  {
+    const g = timKieu('ban');
+    const d = { id: g.id, x: 6, y: 2 };
+    mon0.hpCur = 1;
+    const [ra] = TT.dung(d);
+    ok('ăn cơm hồi một phần máu', !!ra && mon0.hpCur > 1 && mon0.hpCur < maxHp(mon0),
+      `${mon0.hpCur}/${maxHp(mon0)}`);
+    ok('ăn xong phải chờ mới ăn tiếp', TT.dung(d)[1] !== null);
+  }
+  {
+    const g = timKieu('tam');
+    const d = { id: g.id, x: 8, y: 2 };
+    mon0.status = 'burn';
+    ok('tắm xong hết trạng thái xấu', TT.dung(d)[0] !== null && !mon0.status);
+  }
+  {
+    const g = timKieu('den');
+    const d = { id: g.id, x: 10, y: 2 };
+    const truoc = TT.denDangBat();
+    TT.dung(d);
+    ok('bật/tắt được đèn', TT.denDangBat() === !truoc);
+    TT.dung(d);
+    ok('bấm lại thì về như cũ', TT.denDangBat() === truoc);
+  }
+  {
+    const g = timKieu('nau');
+    const [ra] = TT.dung({ id: g.id, x: 12, y: 2 });
+    ok('bếp mở thẳng màn chế tạo', ra?.moMan === 'craft');
+  }
+  ok('món chỉ để nhìn thì không dùng được',
+    TT.dung({ id: FURNITURE.find(f => !f.kind).id, x: 1, y: 1 })[1] !== null);
+  ok('món không có thật thì báo lỗi', TT.dung({ id: 'khong_co', x: 1, y: 1 })[1] !== null);
+
+  // Đứng trước đồ trong nhà mình thì nút hành động bắt được
+  {
+    G.p.estate.dat = [{ id: timKieu('nam').id, x: 3, y: 3 }];
+    const noi = ES.mapTrongNha();
+    const t = ES.vatTheODay(noi, 3, 3);
+    ok('trong nhà bấm được vào đồ đã kê', t?.kind === 'do-noi-that', JSON.stringify(t));
+    ok('ô trống trong nhà thì không bắt được gì', ES.vatTheODay(noi, 7, 7) === null);
+  }
+}
+
 // ==== Chế tạo ====
 {
   ok('đọc được công thức từ bản gốc', CR.RECIPES.length >= 20, String(CR.RECIPES.length));
