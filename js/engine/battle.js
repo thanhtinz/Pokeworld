@@ -4,7 +4,7 @@ import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
-import { stats, maxHp, isFainted, displayName, addTp, tryLearn } from './pokemon.js';
+import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn } from './pokemon.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName } from './status.js';
@@ -163,6 +163,7 @@ export class Battle {
     const s = this.sides[i];
     const mon = s.mons[s.active];
     ev.push({ t: 'faint', side: i, slot: s.active });
+    addBond(mon, -10);                  // config_monster.bond_modifiers.fainted
     ev.push({ t: 'msg', text: `${displayName(mon)} đã gục ngã!` });
     // Cho EXP nếu phía kia là người chơi
     const oi = 1 - i;
@@ -170,6 +171,7 @@ export class Battle {
     if (os.kind === 'player' && (s.kind === 'wild' || s.kind === 'trainer')) {
       const winnerMon = this.activeMon(oi);
       if (winnerMon && !isFainted(winnerMon)) {
+        addBond(winnerMon, 3);          // config_monster.bond_modifiers.win_battle
         const amount = expYield(mon, 1, s.kind);
         const levels = gainExp(winnerMon, amount);
         addTp(winnerMon, mon);

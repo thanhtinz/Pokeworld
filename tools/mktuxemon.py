@@ -424,23 +424,72 @@ export function movesUpTo(dexId, lv) {
 
 
 # ==================== Tien hoa ====================
+# Dieu kien tien hoa cua Tuxemon phong phu hon nhieu so voi "du cap": can vat
+# pham, du than thiet (bond), gioi tinh, so sanh hai chi so, biet mot chieu nao
+# do, dang o trong nha... Nhung dieu kien can trang thai the gioi ma game nay
+# khong theo doi (steps, variables, party_conditions, tastes, element) thi bo
+# qua chu khong doan bua.
+# Danh sach vat pham game dang co, doc tu js/data/items.js (do tools/mkitems.py
+# sinh ra truoc do)
+def doc_vat_pham():
+    try:
+        src = open('js/data/items.js', encoding='utf-8').read()
+    except OSError:
+        return set()
+    return set(re.findall(r'^  ([a-z0-9_]+): \{', src, re.M))
+
+
+VAT_PHAM = doc_vat_pham()
+
+
+def dieu_kien(ev, dex):
+    d = {'into': dex[ev['monster_slug']]}
+    if ev.get('at_level'):
+        d['level'] = int(ev['at_level'])
+    if ev.get('item'):
+        it = ev['item']
+        ds = sorted(it) if isinstance(it, dict) else [it]
+        # Chi giu vat pham game co that; het sach thi duong nay bo luon
+        ds = [x for x in ds if x in VAT_PHAM]
+        if not ds:
+            return None
+        d['item'] = ds
+    if ev.get('gender'):
+        d['gender'] = 'f' if ev['gender'] == 'female' else 'm'
+    bond = ev.get('bond')
+    if isinstance(bond, dict) and bond.get('value') is not None:
+        d['bond'] = int(bond['value'])
+    st = ev.get('stats')
+    if isinstance(st, dict) and st.get('stat_type') and st.get('target_stat'):
+        d['stat'] = [st['stat_type'], st['target_stat']]
+    if ev.get('tech'):
+        d['tech'] = ev['tech']
+    # Chi giu dieu kien nao game biet kiem tra
+    return d if len(d) > 1 else None
+
+
 def write_evolutions(mons, dex):
     out = ["// PokeWorld H5 | data/evolutions.js | Chuỗi tiến hoá — TỰ SINH TỪ tools/mktuxemon.py",
-           '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.', '',
+           '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
+           '// Mỗi loài là một mảng các đường tiến hoá; điều kiện có thể là cấp,',
+           '// vật phẩm, giới tính, độ thân thiết, so sánh hai chỉ số, hoặc biết chiêu.', '',
            'export const EVOLUTIONS = {']
     n = 0
     for m in mons:
-        best = None
+        ways = []
         for ev in m.get('evolutions') or []:
             to = ev.get('monster_slug')
-            lv = ev.get('at_level')
-            if not to or to not in dex or not lv:
+            if not to or to not in dex:
                 continue
-            if best is None or lv < best[1]:
-                best = (to, lv)
-        if best:
-            out.append('  %d: { into: %d, method: %s, level: %d },   // %s -> %s'
-                       % (dex[m['slug']], dex[best[0]], js('level'), best[1], m['slug'], best[0]))
+            d = dieu_kien(ev, dex)
+            if d:
+                ways.append(d)
+        if ways:
+            ways.sort(key=lambda d: (d.get('level') or 99, d['into']))
+            out.append('  %d: [%s],   // %s' % (
+                dex[m['slug']],
+                ', '.join('{ ' + ', '.join('%s: %s' % (k, js(v)) for k, v in w.items()) + ' }' for w in ways),
+                m['slug']))
             n += 1
     out.append('};')
     out.append('\nexport const EVOLVED_INTO = new Set(Object.values(EVOLUTIONS).map(e => e.into));')

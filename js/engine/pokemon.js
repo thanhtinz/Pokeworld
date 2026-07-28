@@ -185,6 +185,13 @@ export function replaceMove(mon, idx, moveId) {
   return true;
 }
 
+// Độ thân thiết (bond) — bản gốc: bắt đầu 25, thắng +3, gục -10, tối đa 100.
+// Tiến hoá của vài loài đòi bond đủ cao.
+export function addBond(mon, n) {
+  if (!mon) return;
+  mon.bond = clamp((mon.bond ?? 25) + n, 0, 100);
+}
+
 export function addFriendship(mon, n) {
   mon.friendship = clamp((mon.friendship || 0) + n, 0, 255);
 }

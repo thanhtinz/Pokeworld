@@ -14,7 +14,8 @@ Cụ thể đã lấy:
 | 411 sinh vật: sprite trước, sprite sau, icon | `assets/mon/` |
 | 13 hệ + bảng khắc chế + icon hệ | `js/data/types.js`, `assets/types/` |
 | 256 chiêu thức | `js/data/moves.js` |
-| Bảng học chiêu, chuỗi tiến hoá, chỉ số theo dáng thân | `js/data/learnsets.js`, `js/data/evolutions.js`, `js/data/species.js` |
+| Bảng học chiêu, chỉ số theo dáng thân | `js/data/learnsets.js`, `js/data/species.js` |
+| Chuỗi tiến hoá kèm điều kiện (cấp, vật phẩm, giới tính, thân thiết, chỉ số) | `js/data/evolutions.js` |
 | 50 sprite nhân vật + NPC đi trên bản đồ | `assets/ow/` |
 | 50 ảnh 2D nhân vật + NPC cho trận đấu và hội thoại | `assets/trainers/` |
 | 67 NPC đứng trên bản đồ (vị trí + hướng lấy từ sự kiện của bản đồ gốc) | `js/data/maps.js` |

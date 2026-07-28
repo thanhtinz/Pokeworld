@@ -2,27 +2,32 @@
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
-import { maxHp } from './pokemon.js';
+import { maxHp, stats } from './pokemon.js';
 
-// Kiểm tra điều kiện tiến hóa của mon theo trigger.
-// trigger: 'level' (sau khi lên level) | 'stone' (arg = itemId) | 'friendship'
-// Trả về dex mới nếu đủ điều kiện, null nếu không.
+// Kiểm tra điều kiện tiến hoá theo đúng bảng của bản gốc (js/data/evolutions.js).
+// trigger: 'level' sau khi lên cấp | 'stone' khi dùng vật phẩm (arg = mã món)
+// Điều kiện có thể gộp nhiều thứ: cấp + giới tính, cấp + so sánh chỉ số...
 export function checkEvolution(mon, trigger, arg) {
-  const def = EVOLUTIONS[mon.sp];
-  if (!def) return null;
-  // Hỗ trợ cả 1 entry lẫn mảng nhiều lựa chọn (kiểu Eevee)
-  const options = def.into ? [def] : def;
-  for (const e of options) {
-    if (e.method === 'level' && trigger === 'level' && mon.lv >= (e.level ?? 999)) {
-      return e.into;
+  const ways = EVOLUTIONS[mon.sp];
+  if (!ways) return null;
+  const list = Array.isArray(ways) ? ways : [ways];
+  for (const e of list) {
+    if (!SPECIES[e.into]) continue;
+    // Đường nào cần vật phẩm thì chỉ xét khi đang dùng đúng món đó
+    if (e.item) {
+      if (trigger !== 'stone' || !e.item.includes(arg)) continue;
+    } else if (trigger === 'stone') {
+      continue;
     }
-    if (e.method === 'stone' && trigger === 'stone' && arg === e.item) {
-      return e.into;
+    if (e.level && mon.lv < e.level) continue;
+    if (e.gender && mon.gender !== e.gender) continue;
+    if (e.bond && (mon.bond || 0) < e.bond) continue;
+    if (e.stat) {
+      const st = stats(mon);
+      if (!(st[e.stat[0]] > st[e.stat[1]])) continue;
     }
-    if (e.method === 'friendship' && (trigger === 'friendship' || trigger === 'level')
-        && (mon.friendship || 0) >= (e.min ?? 220)) {
-      return e.into;
-    }
+    if (e.tech && !(mon.moves || []).some(mv => mv.id === e.tech)) continue;
+    return e.into;
   }
   return null;
 }

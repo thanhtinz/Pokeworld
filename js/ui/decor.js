@@ -70,9 +70,9 @@ export function openDecor(startTab) {
       return list;
     }
     const table = tab === 'avatarFrame' ? AVATAR_FRAMES : CHAT_FRAMES;
+    // Ô "none" là ô Trống: bỏ khung / bỏ bong bóng cho về mặc định
     return Object.entries(table)
-      .filter(([id]) => id !== 'none' || p.look[tab] !== 'none')
-      .map(([id, d]) => [id, d, unlocked(d, p, lv)]);
+      .map(([id, d]) => [id, id === 'none' ? { ...d, name: 'Trống' } : d, unlocked(d, p, lv)]);
   }
 
   function anh(id, d) {

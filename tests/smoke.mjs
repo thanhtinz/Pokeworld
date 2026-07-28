@@ -92,7 +92,7 @@ for (const [sp, e] of Object.entries(EVOLUTIONS)) {
   if (!SPECIES[sp]) bad.push(`tiến hoá: loài ${sp}`);
   for (const o of list) {
     if (o.into && !SPECIES[o.into]) bad.push(`tiến hoá ${sp} -> ${o.into}`);
-    if (o.item && !ITEMS[o.item]) bad.push(`tiến hoá ${sp}: đá ${o.item}`);
+    for (const it of o.item || []) if (!ITEMS[it]) bad.push(`tiến hoá ${sp}: đá ${it}`);
   }
 }
 // Cốt truyện: mọi chương phải đánh được và mọi zone mở khoá phải có thật
@@ -237,8 +237,9 @@ G.p.trainer = { level: MAX_TRAINER_LEVEL, exp: 0 };
 
 // Lấy một loài tiến hoá theo cấp ngay trong bảng để test, không cắm cứng mã loài
 const [evoFrom, evoDef] = Object.entries(EVOLUTIONS)
-  .map(([k, v]) => [Number(k), Array.isArray(v) ? v[0] : v])
-  .find(([k, v]) => v.method === 'level' && v.level && SPECIES[k] && SPECIES[v.into]);
+  .map(([k, v]) => [Number(k), (Array.isArray(v) ? v : [v]).find(
+    o => o.level && !o.item && !o.gender && !o.bond && !o.stat && !o.tech)])
+  .find(([k, v]) => v && SPECIES[k] && SPECIES[v.into]);
 const mon = newTuxemon(evoFrom, Math.max(1, evoDef.level - 1));
 gainExp(mon, expForLevel(evoDef.level + 1) - mon.exp + 10);
 ok(`lên cấp qua exp (${SPECIES[evoFrom].name} -> Lv.${mon.lv})`, mon.lv >= evoDef.level);
@@ -308,6 +309,31 @@ ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) ==
   ok('phần lớn chiêu có hiệu ứng riêng', coAnim.length >= 200, String(coAnim.length));
   ok('hiệu ứng của chiêu luôn tìm được ảnh',
     coAnim.every(m => fxFor(m.anim, m.types[0])?.src));
+}
+
+// Điều kiện tiến hoá lấy đủ từ bản gốc, không chỉ mỗi "đủ cấp"
+{
+  const ways = Object.values(EVOLUTIONS).flat();
+  const dem = (k) => ways.filter(w => w[k]).length;
+  ok('có đường tiến hoá cần vật phẩm / giới tính / thân thiết',
+    dem('item') > 0 && dem('gender') > 0 && dem('bond') > 0,
+    `item ${dem('item')} · gender ${dem('gender')} · bond ${dem('bond')}`);
+  // Đường cần vật phẩm thì lên cấp suông không được, dùng đúng món mới được
+  const [sp, list] = Object.entries(EVOLUTIONS).find(([, w]) => w.some(x => x.item));
+  const w = list.find(x => x.item);
+  const m = newTuxemon(Number(sp), 60);
+  ok('cần vật phẩm thì lên cấp suông không tiến hoá', checkEvolution(m, 'level') !== w.into);
+  ok('dùng đúng vật phẩm mới tiến hoá',
+    checkEvolution(m, 'stone', w.item[0]) === w.into && checkEvolution(m, 'stone', 'potion') !== w.into);
+  // Đường cần giới tính thì con khác giới đi đường khác
+  const g = Object.entries(EVOLUTIONS).find(([, w2]) => w2.some(x => x.gender));
+  if (g) {
+    const gw = g[1].find(x => x.gender);
+    const dung = newTuxemon(Number(g[0]), 60, { gender: gw.gender });
+    const sai = newTuxemon(Number(g[0]), 60, { gender: gw.gender === 'f' ? 'm' : 'f' });
+    ok('điều kiện giới tính có tác dụng',
+      checkEvolution(dung, 'level') === gw.into && checkEvolution(sai, 'level') !== gw.into);
+  }
 }
 
 // Chiêu dùng "recharge" chứ không phải PP
