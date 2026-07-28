@@ -1,5 +1,5 @@
 // TuxeWorld H5 | ui/mail.js | Hộp thư: thư quà giftcode / admin / xếp hạng / sự kiện
-import { esc, fmt } from '../util.js';
+import { esc, fmt, tien } from '../util.js';
 import { toast, header, itemIcon } from './kit.js';
 import { ITEMS } from '../data/items.js';
 import { inbox, refreshInbox, claimOne, claimAll, markRead, canInbox } from '../net/inbox.js';
@@ -22,7 +22,7 @@ export function render(el) {
 
   function quaHtml(m) {
     const ds = [];
-    if (m.money > 0) ds.push(`<span class="mail-gift">💰 ${fmt(m.money)}₽</span>`);
+    if (m.money > 0) ds.push(`<span class="mail-gift">💰 ${tien(m.money)}</span>`);
     for (const it of m.items || []) {
       const ten = ITEMS[it.id]?.name || it.id;
       ds.push(`<span class="mail-gift">${itemIcon(it.id, '', 20)}${esc(ten)} ×${it.n}</span>`);
@@ -74,7 +74,7 @@ export function render(el) {
       b.disabled = true;
       const [qua, err] = await claimOne(b.dataset.id);
       if (err) { toast(err); draw(); return; }
-      toast(`Đã nhận${qua.money ? ` ${fmt(qua.money)}₽` : ''}${
+      toast(`Đã nhận${qua.money ? ` ${tien(qua.money)}` : ''}${
         (qua.items || []).length ? ` và ${qua.items.length} món` : ''}!`);
       draw();
     }));

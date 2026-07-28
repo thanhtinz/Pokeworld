@@ -8,7 +8,7 @@
 import { trainerLevel, expToNext, MAX_TRAINER_LEVEL } from '../engine/player.js';
 import { SPECIES } from '../data/species.js';
 import { ITEMS } from '../data/items.js';
-import { esc, fmt } from '../util.js';
+import { esc, fmt, tien } from '../util.js';
 import { itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { titleHtml, myFaceHtml, faceHtml, faceSrcOf, avatarFrame } from './look.js';
@@ -104,7 +104,7 @@ export function cardHtml(p) {
       </div>
 
       ${dongSo([
-        ['Tiền', `${fmt(p.money)}₽`, 'coin'],
+        ['Tiền', `${tien(p.money)}`, 'coin'],
         ['Tuxedex', `${fmt(caught)} bắt · ${fmt(seen)}/${fmt(tong)} gặp`, 'book'],
         ['Số trận thắng', fmt(p.stats?.wins || 0), 'battle'],
         ['Thời gian chơi', gioChoi(p.stats?.playMin), 'walk'],

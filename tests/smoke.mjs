@@ -34,7 +34,7 @@ import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, ALL_KINDS, N
   applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
 import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../js/data/tastes.js';
-import { newTuxemon, stats, maxHp, STAT_KEYS, heal, typesOf } from '../js/engine/monster.js';
+import { newTuxemon, stats, maxHp, STAT_KEYS, heal, typesOf, isFainted } from '../js/engine/monster.js';
 import { PLAGUES } from '../js/data/plagues.js';
 import { expForLevel, expYield, gainExp, movesAtLevel } from '../js/engine/exp.js';
 import { calcDamage, typeMultiplier, RANGE_MAP } from '../js/engine/damage.js';
@@ -1753,6 +1753,59 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('nhận xong thì hết cái chờ nhận', choNhan() === 0);
   ok('bảng thành tựu đánh dấu đã nhận',
     bangThanhTuu().filter(a => a.nhan).length === G.p.ach.length);
+}
+
+// ==== Không trận nào được phép KHÔNG BAO GIỜ KẾT THÚC ====
+// Trận với huấn luyện viên KHÔNG chạy trốn được, nên nếu hai bên đều không hạ
+// nổi nhau thì người chơi kẹt vĩnh viễn, phải xoá bản lưu. Bản gốc lấy 4 chiêu
+// MỚI NHẤT làm bộ chiêu, mà vài loài (medipup Lv.16) 4 chiêu mới nhất đều
+// power 0 — đó là lý do phải quét thật chứ không đoán.
+{
+  const mk = (e) => Array.isArray(e) ? newTuxemon(e[0], e[1]) : newTuxemon(e.sp, e.lv);
+  let ket = 0, tong = 0;
+  const xau = [];
+  for (const [tid, t] of Object.entries(TRAINERS)) {
+    const mau = (t.party || []).map(mk).filter(Boolean);
+    if (!mau.length) continue;
+    const lv = Math.round(mau.reduce((a, m) => a + m.lv, 0) / mau.length) + 2;
+    for (let lan = 0; lan < 4; lan++) {
+      const ta = STARTERS.map(s => newTuxemon(s.sp, lv)).filter(Boolean);
+      G.p.party = ta;
+      const dich = (t.party || []).map(mk).filter(Boolean);
+      const b = new Battle({ kind: 'trainer',
+        sides: [{ mons: ta, kind: 'player' }, { mons: dich, kind: 'trainer', bag: { potion: 3 } }] });
+      let n = 0;
+      while (!b.over && n < 400) {
+        const m = b.sides[0].mons[b.sides[0].active ?? 0];
+        if (!m || isFainted(m)) {
+          const k = b.sides[0].mons.findIndex(x => x && !isFainted(x));
+          if (k < 0) break;
+          b.submit(0, { t: 'switch', slot: k });
+        } else if (b.beTac()) {
+          // Đánh mãi không xong thì người chơi bỏ cuộc — trận phải kết thúc được
+          b.submit(0, { t: 'run' });
+        } else {
+          const u = (m.moves || []).findIndex(x => (x.cd || 0) <= 0);
+          b.submit(0, u >= 0 ? { t: 'move', i: u } : { t: 'struggle' });
+        }
+        b.resolve();
+        n++;
+      }
+      tong++;
+      if (!b.over) { ket++; if (xau.length < 5) xau.push(tid); }
+    }
+  }
+  ok(`mọi trận huấn luyện viên đều kết thúc được (${tong} trận)`, ket === 0, xau.join(', '));
+
+  // Van an toàn: đánh quá lâu thì bỏ cuộc được, kể cả với huấn luyện viên
+  {
+    const bt = new Battle({ kind: 'trainer',
+      sides: [{ mons: [newTuxemon(STARTERS[0].sp, 20)], kind: 'player' },
+        { mons: [newTuxemon(STARTERS[1].sp, 20)], kind: 'trainer' }] });
+    ok('trận trainer bình thường KHÔNG bỏ chạy được', bt.submit(0, { t: 'run' })[0] === false);
+    bt.turn = bt.LUOT_BE_TAC + 1;
+    ok('trận trainer bế tắc thì bỏ cuộc được', bt.submit(0, { t: 'run' })[0] === true);
+  }
 }
 
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

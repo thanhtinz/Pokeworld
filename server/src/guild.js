@@ -7,7 +7,7 @@ import { isOnline, emitToUsers } from './hub.js';
 export const CREATE_COST = 10000;
 export const MAX_LEVEL = 20;
 export const MAX_ICON = 12;
-export const EXP_PER_MONEY = 100;          // 100₽ góp = 1 exp guild
+export const EXP_PER_MONEY = 100;          // góp $100 = 1 exp guild
 export const maxMembersFor = (level) => 20 + level * 2;
 export const expNeededFor = (level) => level * 1000;
 // Bonus cho thành viên: +2% mỗi cấp, tối đa +40%
@@ -110,7 +110,7 @@ export function createGuild(user, { name, tag, desc, icon }) {
   if (find('guilds', g => g.tag === tg)) return [null, 'Tag này đã có bang hội sử dụng.'];
   if (find('guilds', g => g.name.toLowerCase() === nm.toLowerCase())) return [null, 'Tên bang hội đã tồn tại.'];
   if (!user.save) return [null, 'Bạn chưa có dữ liệu game.'];
-  if ((user.save.money || 0) < CREATE_COST) return [null, `Cần ${CREATE_COST}₽ để lập bang hội.`];
+  if ((user.save.money || 0) < CREATE_COST) return [null, `Cần $${CREATE_COST} để lập bang hội.`];
 
   user.save.money -= CREATE_COST;
   const g = insert('guilds', {

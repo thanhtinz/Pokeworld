@@ -14,7 +14,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
-import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
+import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt, tien } from '../util.js';
 import { textDelay, sfx, getSetting, playMusic } from '../engine/settings.js';
 import { SFX, MON_CRY } from '../data/sounds.js';
 import { fxFor } from '../data/vfx.js';
@@ -134,7 +134,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     setTimeout(() => el2.remove(), 700);
   }
 
-  // Popup thưởng "+X₽" / "+X EXP" bay lên rồi mờ dần (chỉ trình bày)
+  // Popup thưởng "+$X" / "+X EXP" bay lên rồi mờ dần (chỉ trình bày)
   function floatPop(text, cls = '', topPct = 46) {
     const wrap = el.querySelector('.battle');
     if (!wrap) return;
@@ -243,7 +243,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       <div class="bt-subrow">
         <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>Túi</button>
         <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>Đổi</button>
-        ${kind === 'wild' ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}>Chạy</button>` : ''}
+        ${kind === 'wild' || b.beTac()
+          ? `<button class="btn" id="bt-run" ${busy ? 'disabled' : ''}
+              >${kind === 'wild' ? 'Chạy' : 'Bỏ cuộc'}</button>` : ''}
       </div>`;
     $act.querySelectorAll('.move-btn').forEach(btn =>
       btn.addEventListener('click', () => playerAct({ t: 'move', i: Number(btn.dataset.mv) })));
@@ -469,8 +471,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           G.p.defeatedTrainers[trainerId] = true;
           if (trainer.rewardMoney) {
             addMoney(trainer.rewardMoney);
-            floatPop(`+${fmt(trainer.rewardMoney)}₽`, '', 40);
-            log(`Nhận ${fmt(trainer.rewardMoney)}₽ tiền thưởng!`);
+            floatPop(`+${tien(trainer.rewardMoney)}`, '', 40);
+            log(`Nhận ${tien(trainer.rewardMoney)} tiền thưởng!`);
           }
           if (trainer.rewardItem) {
             const rid = typeof trainer.rewardItem === 'string' ? trainer.rewardItem : trainer.rewardItem.id;
@@ -510,7 +512,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       const lost = Math.floor(G.p.money * 0.05);
       G.p.money -= lost;
       log('Cả đội đã gục hết...');
-      toast(`Bạn tỉnh dậy ở thị trấn. Mất ${fmt(lost)}₽ viện phí.`);
+      toast(`Bạn tỉnh dậy ở thị trấn. Mất ${tien(lost)} viện phí.`);
     }
 
     // Hỏi thay chiêu khi đã đủ 4 chiêu

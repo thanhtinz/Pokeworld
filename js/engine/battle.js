@@ -56,6 +56,8 @@ export class Battle {
   constructor({ kind = 'wild', sides, escapeMethod }) {
     this.kind = kind;
     this.turn = 1;
+    // Van an toàn chống trận không bao giờ kết thúc — xem beTac() bên dưới
+    this.LUOT_BE_TAC = 80;
     this.over = false;
     this.winner = null;
     this.pending = [null, null]; // action đã submit theo side idx
@@ -97,7 +99,7 @@ export class Battle {
     if (action.t === 'ball' && this.kind !== 'wild') {
       return [false, 'Không thể bắt Tuxemon của huấn luyện viên khác!'];
     }
-    if (action.t === 'run' && this.kind === 'trainer') {
+    if (action.t === 'run' && this.kind === 'trainer' && !this.beTac()) {
       return [false, 'Không thể bỏ chạy khỏi trận đấu với huấn luyện viên!'];
     }
     if ((action.t === 'run' || action.t === 'switch') && isLocked(this.activeMon(sideIdx))) {
@@ -149,6 +151,15 @@ export class Battle {
     if (!foe) return { t: 'move', i: rng.pick(usable) };
     return { t: 'move', i: bestMove(mon, usable, foe) };
   }
+
+  // Trận BẾ TẮC: đánh quá lâu mà không bên nào hạ nổi bên nào.
+  //
+  // Bản gốc không có luật này. Nhưng bản gốc cũng không cho bỏ chạy khỏi trận
+  // huấn luyện viên, mà vài con vừa hồi máu vừa lì đòn (budaye với 'mending')
+  // có thể đỡ ngang đúng lượng sát thương nhận vào. Gặp đúng thế đó thì trận
+  // chạy vô tận và người chơi kẹt luôn, phải xoá bản lưu — nên sau LUOT_BE_TAC
+  // lượt thì mở đường bỏ chạy kể cả với huấn luyện viên.
+  beTac() { return this.turn > this.LUOT_BE_TAC; }
 
   // Đủ action để resolve chưa? (side AI tự điền)
   ready() {

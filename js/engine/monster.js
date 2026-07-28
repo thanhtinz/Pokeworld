@@ -100,6 +100,22 @@ export function defaultMoves(spId, level) {
   for (let i = start; i < learned.length; i++) moves.push({ id: learned[i], cd: 0 });
   // Con nào không có bảng học chiêu thì vẫn phải có gì đó để đánh
   if (moves.length === 0) moves.push({ id: 'struggle', cd: 0 });
+
+  // CHỖ NÀY CỐ Ý KHÁC BẢN GỐC.
+  // Bản gốc lấy đúng 4 chiêu mới nhất (monster/moves.py: eligible_moves[-4:]).
+  // Nhưng vài loài có 4 chiêu mới nhất đều power 0 — medipup Lv.16 là
+  // [revenge_stance, canine, hibernate, mystic_blending], không đòn nào gây sát
+  // thương mà mystic_blending còn hồi máu. Con đó nằm trong đội của võ đường và
+  // của trùm, mà trận huấn luyện viên thì KHÔNG chạy trốn được: hai bên không
+  // hạ nổi nhau là người chơi kẹt vĩnh viễn, phải xoá bản lưu.
+  // Nên: nếu cả bộ không có đòn nào gây sát thương thì đổi chiêu cũ nhất lấy
+  // đòn mạnh nhất mà nó đã học được.
+  const coDon = (id) => (MOVES[id]?.power || 0) > 0;
+  if (moves.length && !moves.some(m => coDon(m.id))) {
+    const donManh = learned.filter(coDon)
+      .sort((a, b) => (MOVES[b].power || 0) - (MOVES[a].power || 0))[0];
+    if (donManh) moves[0] = { id: donManh, cd: 0 };
+  }
   return moves;
 }
 

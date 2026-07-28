@@ -1,6 +1,6 @@
 // TuxeWorld H5 | ui/guild.js | Trang bang hội: lập bang, xin vào, quản lý thành viên
 import { G } from '../state.js';
-import { esc, fmt } from '../util.js';
+import { esc, fmt, tien } from '../util.js';
 import { toast, choose, confirmDlg, header } from './kit.js';
 import { isOnlineMode } from '../net/config.js';
 import * as api from '../net/api.js';
@@ -113,7 +113,7 @@ export function render(el) {
         <button class="btn" id="g-save-set">Lưu thiết lập</button>
       </div>` : ''}
       <div class="card">
-        <label for="g-donate">Góp quỹ bang (tiền trong game — bạn có ${fmt(G.p.money)}₽)</label>
+        <label for="g-donate">Góp quỹ bang (tiền trong game — bạn có ${tien(G.p.money)})</label>
         <input id="g-donate" type="number" min="100" step="100" value="1000">
         <button class="btn" id="g-donate-btn">Góp</button>
         <button class="btn btn-danger" id="g-leave">Rời bang</button>
@@ -126,7 +126,7 @@ export function render(el) {
       if (amount <= 0) { toast('Nhập số tiền hợp lệ.'); return; }
       if ((G.p.money || 0) < amount) { toast('Không đủ tiền.'); return; }
       const r = await api.donateGuild(amount);
-      toast(r.ok ? `Đã góp ${fmt(amount)}₽!` : (r.error || 'Không góp được.'));
+      toast(r.ok ? `Đã góp ${tien(amount)}!` : (r.error || 'Không góp được.'));
       if (r.ok) draw();
     });
     body.querySelector('#g-leave').addEventListener('click', async () => {

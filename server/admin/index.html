@@ -290,7 +290,7 @@ function renderPlayers(d) {
           ${d.rows.map(p => `
           <tr>
             <td><b>${esc(p.username)}</b><br><span class="muted" style="font-size:11px">${esc(p.avatar)}</span></td>
-            <td>${fmt(p.money)}₽</td>
+            <td>$${fmt(p.money)}</td>
             <td>${p.dex}</td>
             <td>${p.badges}</td>
             <td>${p.stats?.pvpWin||0}/${p.stats?.pvpLose||0}</td>
@@ -372,7 +372,7 @@ function renderGuilds(d) {
             <td>[${esc(g.tag)}]</td>
             <td>${g.level}</td>
             <td>${g.members}/${g.maxMembers}</td>
-            <td>${fmt(g.treasury)}₽</td>
+            <td>$${fmt(g.treasury)}</td>
             <td>${esc(g.leader)}</td>
             <td class="muted" style="font-size:12px">${dt(g.createdAt)}</td>
             <td class="row">
@@ -403,7 +403,7 @@ function showGuildMembers(i) {
       <h3>Thành viên — ${esc(g.name)} [${esc(g.tag)}]</h3>
       <table><thead><tr><th>Tên</th><th>Chức vụ</th><th>Cống hiến</th><th>Gia nhập</th></tr></thead><tbody>
       ${g.memberList.map(m => `<tr><td><b>${esc(m.username)}</b></td><td>${ROLE_VI[m.role] || esc(m.role)}</td>
-        <td>${fmt(m.contribution)}₽</td><td class="muted" style="font-size:12px">${dt(m.joinedAt)}</td></tr>`).join('')}
+        <td>$${fmt(m.contribution)}</td><td class="muted" style="font-size:12px">${dt(m.joinedAt)}</td></tr>`).join('')}
       </tbody></table>
     </div>`;
   $('#gmembers').scrollIntoView({ behavior: 'smooth' });
@@ -822,7 +822,7 @@ PAGES.codes = async () => {
       <table><thead><tr><th>Mã</th><th>Quà</th><th>Đã dùng</th><th>Hết hạn</th><th>Ghi chú</th><th></th></tr></thead><tbody>
       ${d.rows.map(c => `<tr>
         <td><b><code style="font-size:14px">${esc(c.code)}</code></b></td>
-        <td>${c.money ? fmt(c.money) + '₽ ' : ''}${(c.items||[]).map(i => `${esc(i.id)}×${i.n}`).join(', ') || (c.money ? '' : '—')}</td>
+        <td>${c.money ? '$' + fmt(c.money) + ' ' : ''}${(c.items||[]).map(i => `${esc(i.id)}×${i.n}`).join(', ') || (c.money ? '' : '—')}</td>
         <td>${c.usedCount}${c.max ? ' / ' + c.max : ''}</td>
         <td class="muted" style="font-size:12px">${c.expires ? dt(c.expires) : 'không hạn'}</td>
         <td class="muted">${esc(c.note || '')}</td>

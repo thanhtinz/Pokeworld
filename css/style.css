@@ -678,7 +678,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
   75% { transform: rotate(22deg) translateX(3px); }
 }
 
-/* Popup thưởng bay lên: "+123₽" / "+45 EXP" */
+/* Popup thưởng bay lên: "+$123" / "+45 EXP" */
 .float-pop {
   position: absolute;
   left: 50%;

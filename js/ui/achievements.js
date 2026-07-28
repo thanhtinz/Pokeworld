@@ -1,7 +1,7 @@
 // TuxeWorld H5 | ui/achievements.js | Màn Thành tựu
 //
 // Chơi offline vẫn dùng được: mọi thứ đọc từ bản lưu trên máy, không cần máy chủ.
-import { esc, fmt } from '../util.js';
+import { esc, fmt, tien } from '../util.js';
 import { toast, header, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { ITEMS } from '../data/items.js';
@@ -11,7 +11,7 @@ import { refresh } from '../main.js';
 
 function quaHtml(q) {
   const ds = [];
-  if (q.tien) ds.push(`<span class="ach-qua">${uiIcon('coin', 15)}${fmt(q.tien)}₽</span>`);
+  if (q.tien) ds.push(`<span class="ach-qua">${uiIcon('coin', 15)}${tien(q.tien)}</span>`);
   for (const d of q.do || []) {
     ds.push(`<span class="ach-qua">${itemIcon(d.id, '', 18)}${esc(ITEMS[d.id]?.name || d.id)} ×${d.n}</span>`);
   }
@@ -63,14 +63,14 @@ export function render(el) {
     el.querySelectorAll('.ach-take').forEach(b => b.addEventListener('click', () => {
       const [q, err] = nhanThuong(b.dataset.id);
       if (err) { toast(err); return; }
-      toast(`Nhận thưởng!${q.tien ? ` +${fmt(q.tien)}₽` : ''}`);
+      toast(`Nhận thưởng!${q.tien ? ` +${tien(q.tien)}` : ''}`);
       refresh();
       draw();
     }));
     el.querySelector('#ach-all')?.addEventListener('click', () => {
       const [q, n] = nhanHet();
       if (!n) { toast('Chưa có thành tựu nào nhận được.'); return; }
-      toast(`Nhận ${n} thành tựu, +${fmt(q.tien)}₽!`);
+      toast(`Nhận ${n} thành tựu, +${tien(q.tien)}!`);
       refresh();
       draw();
     });

@@ -152,7 +152,7 @@ export function requirement(def) {
     badge: `Có ${n} huy hiệu`,
     level: `Trainer Lv.${n}`,
     dex: `Tuxedex đủ ${n} loài`,
-    money: `Có đủ ${n.toLocaleString('vi-VN')}₽`,
+    money: `Có đủ $${n.toLocaleString('vi-VN')}`,
     pvp: `Thắng ${n} trận PvP`,
     days: `Chơi đủ ${n} ngày`,
     guild: 'Đang ở trong một bang hội',

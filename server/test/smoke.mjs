@@ -252,7 +252,7 @@ try {
   ok('lịch sử PvP được lưu', pvpLog.data.rows.length === 1);
 
   // ==== Bang hội ====
-  // AshK vừa bị trừ tiền còn 999999₽; nạp lại mốc tiền cố định để kiểm tra trừ phí chính xác
+  // AshK vừa bị trừ tiền còn $999999; nạp lại mốc tiền cố định để kiểm tra trừ phí chính xác
   await api('/api/save', { method: 'PUT', token: tokenA, body: { name: 'AshK', money: 200000, party: [{ sp: 25, lv: 50, iv: [15, 15, 15, 15, 15, 15], tp: [0, 0, 0, 0, 0, 0], moves: [{ id: 'ram', cd: 0 }], hpCur: 100, exp: 0 }], box: [], bag: {}, badges: [], dex: { seen: { 25: true }, caught: { 25: true } } } });
 
   const gCreate = await api('/api/guild/create', { method: 'POST', body: { name: 'Doi Sam Set', tag: 'zap', desc: 'Bang hoi test', icon: 3 }, token: tokenA });
@@ -260,7 +260,7 @@ try {
   const guildId = gCreate.data.guild?.id;
 
   const afterCreate = await api('/api/me', { token: tokenA });
-  ok('trừ 10000₽ phí lập bang hội', afterCreate.data.save.money === 190000, String(afterCreate.data.save.money));
+  ok('trừ $10000 phí lập bang hội', afterCreate.data.save.money === 190000, String(afterCreate.data.save.money));
 
   const dupTag = await api('/api/guild/create', { method: 'POST', body: { name: 'Bang Khac', tag: 'ZAP' }, token: tokenB });
   ok('chặn tag trùng', dupTag.status === 400, JSON.stringify(dupTag.data));
@@ -299,12 +299,12 @@ try {
   ok('thành viên xem được bang hội của mình', mineB.data.guild?.tag === 'ZAP' && mineB.data.role === 'member');
   ok('bonus guild theo cấp', Math.abs(mineB.data.bonus.expMult - 1.02) < 1e-9, JSON.stringify(mineB.data.bonus));
 
-  // Góp quỹ: 30000₽ -> 300 exp -> lên cấp 2 (cần 1000 exp/cấp thì chưa lên), thử mốc lớn hơn
+  // Góp quỹ: $30000 -> 300 exp -> lên cấp 2 (cần 1000 exp/cấp thì chưa lên), thử mốc lớn hơn
   const don1 = await api('/api/guild/donate', { method: 'POST', body: { amount: 30000 }, token: tokenA });
   ok('góp quỹ thành công', don1.status === 200 && don1.data.treasury === 30000, JSON.stringify(don1.data));
   ok('trừ tiền người góp', don1.data.money === 160000);
   ok('cộng cống hiến', don1.data.contribution === 30000);
-  ok('cộng exp guild (1 exp/100₽)', don1.data.exp === 300 && don1.data.level === 1, JSON.stringify(don1.data));
+  ok('cộng exp guild (1 exp/$100)', don1.data.exp === 300 && don1.data.level === 1, JSON.stringify(don1.data));
 
   const tooMuch = await api('/api/guild/donate', { method: 'POST', body: { amount: 999999 }, token: tokenA });
   ok('chặn góp quá số tiền đang có', tooMuch.status === 400);

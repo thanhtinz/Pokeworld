@@ -78,10 +78,10 @@ export const ACHIEVEMENTS = [
     mo: 'Bắt đủ 100 loài khác nhau.', bien: 'dexCaught', moc: 100,
     qua: { tien: 40000, do: [{ id: 'tuxeball_majestic', n: 5 }] } },
   { id: 'tien_100k', nhom: 'suutam', ico: 'coin', ten: 'Rủng rỉnh',
-    mo: 'Có 100.000₽ trong người.', bien: 'money', moc: 100000,
+    mo: 'Có $100.000 trong người.', bien: 'money', moc: 100000,
     qua: { tien: 10000, do: [] } },
   { id: 'tien_1m', nhom: 'suutam', ico: 'coin', ten: 'Đại gia Tuxe',
-    mo: 'Có 1.000.000₽ trong người.', bien: 'money', moc: 1000000,
+    mo: 'Có $1.000.000 trong người.', bien: 'money', moc: 1000000,
     qua: { tien: 100000, do: [] } },
 ];
 

@@ -54,6 +54,13 @@ export const animSpriteUrl = (dexId, back = false) => monPath(dexId, back);
 
 export const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
 
+// Đơn vị tiền của Tuxemon là ĐÔ LA, ký hiệu đứng TRƯỚC số:
+//   tuxemon/ui/text_formatter.py -> "${{currency}}": lambda: "$"
+// Bản này trước đây dùng ₽ đặt sau số — đó là kiểu của Pokemon.
+// Mọi chỗ hiện tiền đều đi qua đây để sau muốn đổi thì sửa một nơi.
+export const TIEN = '$';
+export const tien = (n) => `${TIEN}${fmt(n)}`;
+
 // Ngày dạng số yyyymmdd (cho daily)
 export const todayNum = () => {
   const d = new Date();

@@ -1,7 +1,7 @@
 // TuxeWorld H5 | ui/quest.js | Danh sách nhiệm vụ: đang làm / hoàn thành
 import { G } from '../state.js';
 import { QUESTS } from '../data/quests.js';
-import { esc, fmt } from '../util.js';
+import { esc, fmt, tien } from '../util.js';
 import { itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 
@@ -11,7 +11,7 @@ export function render(el) {
 
   const rewardText = q => {
     const parts = [];
-    if (q.reward?.money) parts.push(`${fmt(q.reward.money)}₽`);
+    if (q.reward?.money) parts.push(`${tien(q.reward.money)}`);
     for (const it of q.reward?.items || []) parts.push(`${it.id} ×${it.n}`);
     return parts.join(' · ');
   };

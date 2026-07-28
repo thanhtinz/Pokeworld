@@ -2,7 +2,7 @@
 import { G, spend, addMoney, addItem, removeItem, save } from '../state.js';
 import { ITEMS } from '../data/items.js';
 import { SHOPS } from '../data/shops.js';
-import { esc, fmt } from '../util.js';
+import { esc, fmt, tien } from '../util.js';
 import { toast, choose, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 
@@ -48,7 +48,7 @@ export function render(el, { shop = null, from = 'home' } = {}) {
     el.innerHTML = `
       <div class="scr-head"><button class="btn-back" data-goto="${esc(from)}">‹</button><h1>${
         esc(tiem ? tiem.name : 'Cửa hàng')}</h1></div>
-      <div class="card shop-money">${uiIcon('coin', 20)} <b id="shop-balance">${fmt(G.p.money)}</b>₽</div>
+      <div class="card shop-money">${uiIcon('coin', 20)} <b id="shop-balance">${tien(G.p.money)}</b></div>
       <div class="seg-row">
         <button type="button" class="seg-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
         <button type="button" class="seg-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>
@@ -74,8 +74,8 @@ export function render(el, { shop = null, from = 'home' } = {}) {
         ${itemIcon(id)}
         <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
         <span class="item-n">${tab === 'sell'
-          ? `×${G.p.bag[id]} · ${fmt(giaBan(id))}₽`
-          : `${fmt(gia(id))}₽${conLai(id) !== Infinity ? ` <small>(còn ${conLai(id)})</small>`
+          ? `×${G.p.bag[id]} · ${tien(giaBan(id))}`
+          : `${tien(gia(id))}${conLai(id) !== Infinity ? ` <small>(còn ${conLai(id)})</small>`
               : (G.p.bag[id] ? ` <small>(có ${G.p.bag[id]})</small>` : '')}`}</span>
       </button>`;
   }
@@ -87,7 +87,7 @@ export function render(el, { shop = null, from = 'home' } = {}) {
     if (!qtys.length) { toast('Hết hàng rồi!'); return; }
     const i = await choose(`Mua ${it.name}?`, qtys.map(n => ({
       label: `Mua ×${n}`,
-      sub: `${fmt(gia(id) * n)}₽`,
+      sub: `${tien(gia(id) * n)}`,
       disabled: G.p.money < gia(id) * n,
     })));
     if (i === null) return;
@@ -114,14 +114,14 @@ export function render(el, { shop = null, from = 'home' } = {}) {
     ];
     const i = await choose(`Bán ${it.name}?`, opts.map(o => ({
       label: o.label,
-      sub: `${fmt(giaBan(id) * o.n)}₽`,
+      sub: `${tien(giaBan(id) * o.n)}`,
       disabled: o.n <= 0 || o.n > have,
     })));
     if (i === null) return;
     const n = opts[i].n;
     if (!removeItem(id, n)) { toast('Không đủ số lượng!'); return; }
     addMoney(giaBan(id) * n);
-    toast(`Đã bán ${it.name} ×${n}, nhận ${fmt(giaBan(id) * n)}₽!`);
+    toast(`Đã bán ${it.name} ×${n}, nhận ${tien(giaBan(id) * n)}!`);
     draw();
   }
 

@@ -12,7 +12,7 @@ import { playDialog } from './dialog.js';
 import { ZONES } from '../data/zones.js';
 import { enterMap } from '../engine/overworld.js';
 import { TRAINERS } from '../data/trainers.js';
-import { esc, fmt, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages } from '../util.js';
+import { esc, fmt, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, tien } from '../util.js';
 import { toast, choose, hpBar, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { show, refresh } from '../main.js';
@@ -34,7 +34,7 @@ async function chapterDone(ch) {
   if (!ch) return;
   if (ch.outro?.length) await playDialog(ch.outro);
   const parts = [];
-  if (ch.reward?.money) parts.push(`${fmt(ch.reward.money)}₽`);
+  if (ch.reward?.money) parts.push(`${tien(ch.reward.money)}`);
   for (const it of ch.reward?.items || []) parts.push(`${it.id} x${it.n}`);
   toast(`${ch.title} hoàn thành!${parts.length ? ' Nhận: ' + parts.join(', ') : ''}`);
   refresh();
@@ -195,7 +195,7 @@ export function render(el) {
       return {
         html: `${face}${esc(t.name)}${won ? ' <span class="won-pill">ĐÃ THẮNG</span>' : ''}`,
         label: `${t.name}${won ? ' (đã thắng)' : ''}`,
-        sub: t.kind === 'gym' ? `Võ đường — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${fmt(t.rewardMoney)}₽` : ''),
+        sub: t.kind === 'gym' ? `Võ đường — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${tien(t.rewardMoney)}` : ''),
         tid,
       };
     });

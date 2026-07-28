@@ -2,7 +2,7 @@
 //
 // Nội dung màn này KHÔNG nằm trong game — ban quản trị dựng ở trang /admin nên
 // mỗi máy chủ một kiểu. Client chỉ vẽ lại đúng những gì máy chủ trả về.
-import { esc, fmt } from '../util.js';
+import { esc, fmt, tien } from '../util.js';
 import { toast, header, itemIcon } from './kit.js';
 import { ITEMS } from '../data/items.js';
 import {
@@ -11,10 +11,10 @@ import {
 
 const tenMon = (id) => ITEMS[id]?.name || id;
 
-// Mô tả một phần quà: "5.000₽ + Thuốc hồi ×3"
+// Mô tả một phần quà: "$5.000 + Thuốc hồi ×3"
 function quaText(x) {
   const ds = [];
-  if (x.money > 0) ds.push(`${fmt(x.money)}₽`);
+  if (x.money > 0) ds.push(`${tien(x.money)}`);
   if (x.itemId) ds.push(`${tenMon(x.itemId)} ×${x.itemN}`);
   return ds.join(' + ') || '—';
 }
@@ -75,9 +75,9 @@ export function render(el) {
   function veNhiemVu() {
     const ds = mo.tasks || [];
     if (!ds.length) return '<div class="card empty-note">Sự kiện này không có nhiệm vụ.</div>';
-    const tien = Object.fromEntries((st?.tien || []).map(t => [t.id, t]));
+    const tienDo = Object.fromEntries((st?.tien || []).map(t => [t.id, t]));
     return ds.map(t => {
-      const p = tien[t.id] || { lam: 0, need: t.need, xong: false };
+      const p = tienDo[t.id] || { lam: 0, need: t.need, xong: false };
       const pc = Math.min(100, Math.round(p.lam / p.need * 100));
       return `<div class="card ev-task${p.xong ? ' done' : ''}">
         <div class="ev-task-head">

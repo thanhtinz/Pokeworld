@@ -311,7 +311,7 @@ export function adminRouter(io) {
   r.post('/codes', (req, res) => {
     const [c, err] = addCode(req.body || {});
     if (err) return res.status(400).json({ error: err });
-    audit(req.admin, 'code-add', c.code, `${c.money}₽ + ${c.items.length} món`);
+    audit(req.admin, 'code-add', c.code, `$${c.money} + ${c.items.length} món`);
     res.json({ ok: true, item: c });
   });
 

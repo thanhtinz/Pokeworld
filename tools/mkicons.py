@@ -35,6 +35,11 @@ C = {
     'e': (47, 128, 70, 255),
     'P': (155, 123, 255, 255),     # tim
     'p': (106, 79, 208, 255),
+    # Mau dong tien lay thang tu gfx/bubbles/money.png cua Tuxemon
+    'Y': (242, 248, 64, 255),      # vang chanh mat dong
+    'y': (207, 213, 38, 255),      # vang chanh dam
+    'H': (254, 255, 164, 255),     # cham sang
+    'N': (152, 88, 56, 255),       # vien nau cua dong
     'K': (0, 0, 0, 0),             # trong suot
 }
 
@@ -64,16 +69,24 @@ def vien(im, mau='o'):
 # ==== Tung icon: ve bang hinh khoi, toa do tinh tren luoi 16x16 ====
 
 def ve_coin(d):
-    d.ellipse((2, 2, 13, 13), fill=C['G'])
-    d.ellipse((3, 3, 12, 12), outline=C['g'])
-    # Ky hieu tien te ₽: cham tay tung diem cho net khong bi mo o co 16px
-    for x, y in [(6, 4), (7, 4), (8, 4),
-                 (6, 5), (9, 5),
-                 (6, 6), (9, 6),
-                 (6, 7), (7, 7), (8, 7),
-                 (5, 8), (6, 8), (7, 8), (8, 8),
-                 (6, 9), (6, 10), (6, 11)]:
-        d.point((x, y), fill=C['g'])
+    # Dong tien cua Tuxemon: vien nau, ruot vang chanh, mot cham sang.
+    # Tien te ban goc la DO LA ($) chu khong phai ₽ — xem
+    # tuxemon/ui/text_formatter.py: "${{currency}}": lambda: "$"
+    d.ellipse((1, 1, 14, 14), fill=C['N'])
+    d.ellipse((3, 3, 12, 12), fill=C['Y'])
+    d.ellipse((5, 5, 10, 10), fill=C['y'])
+    # chu $ cham tay cho net o co 16px
+    for x, y in [(7, 4), (8, 4), (9, 4),
+                 (6, 5), (10, 5),
+                 (6, 6),
+                 (7, 7), (8, 7), (9, 7),
+                 (10, 8),
+                 (6, 9), (10, 9),
+                 (7, 10), (8, 10), (9, 10),
+                 (8, 3), (8, 11)]:
+        d.point((x, y), fill=C['N'])
+    d.point((5, 4), fill=C['H'])
+    d.point((4, 5), fill=C['H'])
 
 
 def ve_map(d):

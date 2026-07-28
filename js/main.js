@@ -41,7 +41,7 @@ import { wirePvpInvites } from './net/pvpinvite.js';
 import { maxHp } from './engine/monster.js';
 import { trainerLevel } from './engine/player.js';
 import { FEATURES, isUnlocked, lockNote } from './engine/unlock.js';
-import { fmt } from './util.js';
+import { fmt, tien } from './util.js';
 import { uiIcon } from './ui/icons.js';
 import { avatarFaceSrc, avatarFrame, upgradeFaces } from './ui/look.js';
 import { playMusic } from './engine/settings.js';
@@ -178,7 +178,7 @@ export function drawTopBar(hide = false) {
   wrap.style.setProperty('--fr', fr.style ? fr.style.replace(/^ style="--fr:/, '').replace(/"$/, '') : '');
   document.getElementById('tb-name').textContent = G.p.name || '';
   document.getElementById('tb-lv').textContent = `Lv.${trainerLevel()}`;
-  document.getElementById('tb-money').textContent = fmt(G.p.money || 0);
+  document.getElementById('tb-money').textContent = tien(G.p.money || 0);
 }
 
 // Hộp thư / Thông báo trên thanh trên
