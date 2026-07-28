@@ -97,7 +97,7 @@ nhân vật trên bản đồ hoặc tileset.
 
 ### Bộ icon trang bị CC0 (định dùng, chưa tải được)
 
-Trang bị hiện do `tools/mkgear.py` tự vẽ. Mấy bộ dưới đây hợp hơn hẳn nếu sau
+Trang bị hiện do `tools/mkgear.py` tự vẽ (18 món × 5 bậc sao). Mấy bộ dưới đây hợp hơn hẳn nếu sau
 này muốn thay art thật — tất cả đều **CC0** (miễn phí, không cần ghi công, dùng
 được cả cho mục đích thương mại). Máy dựng bản này chặn mạng ra ngoài nên chưa
 tải về được; muốn dùng thì tải tay rồi bỏ vào `assets/gear/` theo đúng tên tệp

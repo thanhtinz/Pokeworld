@@ -30,14 +30,6 @@ export function render(el) {
       <div class="mail-bar">
         <small>${RECIPES.length} công thức · làm được ngay ${lamDuocSo}</small>
       </div>
-      <div class="card cf-note">
-        <b>Nấu để làm gì?</b>
-        <small>Cho Tuxemon ăn món <b>hợp khẩu vị</b> (xem mục Khẩu vị trong
-        Đội hình) thì được cả hai thứ: <b>thân thiết</b> tăng — thân thiết cao
-        thì đánh mạnh hơn, rất thân còn có cửa gắng gượng lại 1 máu — và một
-        <b>bữa no</b> cộng thẳng chỉ số trong 30–60 phút. Món kỵ miệng thì tụt
-        thân thiết và không no.</small>
-      </div>
       ${cacCach.length > 1 ? `
       <div class="seg-row${cacCach.length > 3 ? ' seg-wrap' : ''}">
         ${cacCach.map(c => `<button type="button" class="seg-btn ${c === cach ? 'active' : ''}"

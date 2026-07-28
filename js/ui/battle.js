@@ -11,6 +11,7 @@ import { condTag } from '../engine/status.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
 import { boc as bocDoRoi, rngDa } from '../engine/drops.js';
 import * as GR from '../engine/gear.js';
+import { GEAR_BY_ID } from '../data/gear.js';
 import { isInside, healSpot } from '../engine/overworld.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
@@ -502,6 +503,15 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       // không mở nổi Nhiệm vụ (Lv.2) hay Cửa hàng (Lv.3).
       grantTrainerRewards('catch', mon.lv);
     } else if (winner === 0) {
+      if (kind === 'boss') {
+        // Hạ boss thì chắc chắn rơi trang bị, và đồ xịn hơn hẳn thú hoang
+        const tb = GR.bocRoi('boss');
+        if (tb) {
+          const mm = GEAR_BY_ID[tb.id];
+          floatPop(`+${mm.name}`, '', 80);
+          log(`${mm.name} 1★ rơi ra từ boss! (xem trong Túi đồ)`);
+        }
+      }
       if (kind === 'trainer' && trainer) {
         log(`${trainer.name}: "${trainer.lose || 'Thua rồi...'}"`);
         await sleep(500);
@@ -544,6 +554,12 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           GR.themDa(da, 1);
           floatPop(`+${GR.DA[da].name}`, 'pop-exp', 60);
           log(`Nhặt được ${GR.DA[da].name} ×1!`);
+        }
+        const tb = GR.bocRoi('hoang');
+        if (tb) {
+          const mm = GEAR_BY_ID[tb.id];
+          floatPop(`+${mm.name}`, '', 80);
+          log(`Nhặt được ${mm.name} 1★! (xem trong Túi đồ)`);
         }
         const roi = bocDoRoi(enemy);
         if (roi) {

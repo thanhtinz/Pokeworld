@@ -15,7 +15,7 @@
 // Tệp này KHÔNG import monster.js: monster.js phải gọi ngược sang đây trong
 // stats(), có vòng import là vỡ.
 import { G, save } from '../state.js';
-import { GEAR_BY_ID, O_TRANG_BI, SAO_TOI_DA } from '../data/gear.js';
+import { GEAR, GEAR_BY_ID, O_TRANG_BI, SAO_TOI_DA } from '../data/gear.js';
 import { rng } from '../util.js';
 
 export const CUONG_TOI_DA = 15;
@@ -132,17 +132,51 @@ export function chiSoThem(mon) {
 // để người chơi nhìn số trên món là biết ngay được thêm bao nhiêu.
 export const congTrangBi = (mon, key) => chiSoThem(mon)[key] || 0;
 
-// ==== Mua món mới ====
-export function mua(id) {
-  const m = GEAR_BY_ID[id];
+// ==== Kiếm trang bị ====
+// KHÔNG BÁN trang bị ở bất cứ đâu. Muốn có thì phải đi đánh: thú hoang rơi ít,
+// boss rơi chắc và đồ xịn hơn, đi đường thì thi thoảng nhặt được một món tầm
+// thường. Mua được bằng tiền thì đi săn chẳng còn nghĩa gì.
+const NGUON = {
+  hoang: { ti: 0.04, ho: { vai: 70, sat: 27, rong: 3 } },
+  boss: { ti: 1, ho: { vai: 20, sat: 55, rong: 25 } },
+  duong: { ti: 1, ho: { vai: 85, sat: 14, rong: 1 } },
+};
+
+// Mỗi bước đi ngoài trời có ngần này cơ hội nhặt được một món bên vệ đường
+export const TI_LE_NHAT_DUONG = 1 / 900;
+
+function bocHo(bang) {
+  const ds = Object.entries(bang);
+  const tong = ds.reduce((n, [, w]) => n + w, 0);
+  let r = rng.float() * tong;
+  for (const [ho, w] of ds) { r -= w; if (r <= 0) return ho; }
+  return ds[0][0];
+}
+
+/**
+ * Bốc một món trang bị rơi ra. Trả món vừa thêm vào kho, hoặc null.
+ * @param {'hoang'|'boss'|'duong'} nguon
+ */
+export function bocRoi(nguon = 'hoang') {
+  const n = NGUON[nguon];
   const g = duLieu();
-  if (!m || !g) return [null, 'Không có món này.'];
-  if ((G.p.money || 0) < m.gia) return [null, 'Không đủ tiền.'];
-  G.p.money -= m.gia;
-  const v = { u: g.uid++, id, sao: 1, cuong: 0 };
+  if (!n || !g) return null;
+  if (n.ti < 1 && !rng.roll(n.ti)) return null;
+  const ho = bocHo(n.ho);
+  const cung = GEAR.filter(x => x.ho === ho);
+  if (!cung.length) return null;
+  const m = cung[Math.floor(rng.float() * cung.length)];
+  const v = { u: g.uid++, id: m.id, sao: 1, cuong: 0 };
   g.kho.push(v);
   save();
-  return [`Mua ${m.name} 1★.`, null];
+  return v;
+}
+
+// Mỗi bước chân ngoài trời — engine/overworld.js gọi
+export function moiBuoc() {
+  if (!G.p) return null;
+  if (!rng.roll(TI_LE_NHAT_DUONG)) return null;
+  return bocRoi('duong');
 }
 
 export function muaDa(loai, n = 1) {
@@ -207,26 +241,43 @@ export function nangSao(uid) {
   return [`${m.name} lên ${v.sao}★ — đổi hẳn hình dạng! Chỉ số ${truoc} → ${giaTri(v)}.`, null];
 }
 
-// ==== Bán lại ====
-export const giaBan = (v) => {
+// ==== Thu hồi ====
+// Đánh mãi thì đồ trùng chất đống. Thu hồi món thừa lấy lại Đá Cường Hoá —
+// vừa dọn kho vừa đổ ngược vào món đang dùng, không phải đồ bỏ đi.
+const DIEM_HO = { vai: 1, sat: 2, rong: 4 };
+
+export function daThuHoi(v) {
   const m = mauMon(v);
   if (!m) return 0;
-  // Trả lại một nửa tiền món gốc cộng một nửa tiền đá đã đổ vào
-  let n = m.gia / 2;
-  for (let s = 1; s < (v.sao || 1); s++) n += (giaSao(s) + DA.sao.gia * daSaoCan(s)) / 2;
-  n += (v.cuong || 0) * (300 + DA.cuong.gia) / 2;
-  return Math.round(n);
-};
+  let n = DIEM_HO[m.ho] || 1;
+  n += ((v.sao || 1) - 1) * 2;          // mỗi bậc sao đã nâng trả thêm 2 viên
+  n += Math.floor((v.cuong || 0) / 2);  // cứ hai cấp cường hoá trả một viên
+  return n;
+}
 
-export function ban(uid) {
+export function thuHoi(uid) {
   const g = duLieu();
   const v = timMon(uid);
   if (!g || !v) return [null, 'Không có món này.'];
-  const chu = aiDangDeo(uid);
-  if (chu) return [null, 'Đang có Tuxemon đeo — tháo ra đã.'];
-  const tien = giaBan(v);
+  if (aiDangDeo(uid)) return [null, 'Đang có Tuxemon đeo — tháo ra đã.'];
+  const n = daThuHoi(v);
   g.kho = g.kho.filter(x => x.u !== uid);
-  G.p.money = (G.p.money || 0) + tien;
+  themDa('cuong', n);
   save();
-  return [`Bán ${mauMon(v).name} được ${tien} vàng.`, null];
+  return [`Thu hồi ${mauMon(v).name}, nhận ${n} ${DA.cuong.name}.`, null];
+}
+
+/** Thu hồi hàng loạt món đang rảnh từ bậc sao này trở xuống. */
+export function thuHoiHangLoat(saoToiDa = 1) {
+  const g = duLieu();
+  if (!g) return [null, 'Chưa có kho.'];
+  const ds = g.kho.filter(v => (v.sao || 1) <= saoToiDa && !aiDangDeo(v.u));
+  if (!ds.length) return [null, 'Không có món nào rảnh để thu hồi.'];
+  let n = 0;
+  for (const v of ds) n += daThuHoi(v);
+  const bo = new Set(ds.map(v => v.u));
+  g.kho = g.kho.filter(v => !bo.has(v.u));
+  themDa('cuong', n);
+  save();
+  return [`Thu hồi ${ds.length} món, nhận ${n} ${DA.cuong.name}.`, null];
 }

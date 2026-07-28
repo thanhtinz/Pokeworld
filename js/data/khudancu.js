@@ -15,6 +15,8 @@ export const LOTS = [
 export const THO_MOC = { x: 11, y: 21 };
 // Cô bán quà tặng đứng ở đây
 export const TIEM_QUA = { x: 8, y: 21 };
+// Bác thợ rèn bán đá nâng cấp trang bị đứng ở đây
+export const LO_REN = { x: 14, y: 21 };
 // Ô cổng ra thị trấn — dùng để chỉ đường cho người chơi
 export const CONG_RA = { x: 9, y: 25 };
 

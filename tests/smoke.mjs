@@ -3030,8 +3030,18 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   const mau = GEAR.find(g => g.o === 'ao' && g.ho === 'sat');
 
   const truoc = stats(con).armour;
-  ok('mua được món đồ', !GR.mua(mau.id)[1]);
-  const v = GR.kho()[0];
+  // Trang bị KHÔNG mua được ở đâu — chỉ rơi ra khi đánh hoặc nhặt trên đường
+  ok('không có đường nào mua trang bị bằng tiền', typeof GR.mua === 'undefined');
+  ok('boss chắc chắn rơi một món', !!GR.bocRoi('boss'));
+  const chuoi = [];
+  for (let i = 0; i < 2000; i++) { const x = GR.bocRoi('hoang'); if (x) chuoi.push(x); }
+  ok('thú hoang có rơi nhưng thưa', chuoi.length > 40 && chuoi.length < 160,
+    `${chuoi.length}/2000`);
+  ok('nhặt trên đường thì hiếm hơn hẳn', GR.TI_LE_NHAT_DUONG < 0.005);
+  // Dọn sạch rồi tự thêm đúng món cần cho các bài dưới
+  G.p.gear.kho = [];
+  const v = { u: G.p.gear.uid++, id: mau.id, sao: 1, cuong: 0 };
+  G.p.gear.kho.push(v);
   ok('món mới luôn 1★ +0', v.sao === 1 && v.cuong === 0);
   ok('chưa đeo thì chỉ số chưa đổi', stats(con).armour === truoc);
   ok('đeo vào là cộng đúng số ghi trên món', (() => {
@@ -3087,11 +3097,46 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   GR.deo(con2, v.u);
   ok('đeo cho con khác thì con cũ mất món',
     GR.aiDangDeo(v.u) === con2 && !con.tb.ao);
-  ok('đang đeo thì không bán được', GR.ban(v.u)[1] !== null);
+  ok('đang đeo thì không thu hồi được', GR.thuHoi(v.u)[1] !== null);
   GR.thao(con2, 'ao');
-  const tienTruoc = G.p.money;
-  ok('bán được và có tiền về', !GR.ban(v.u)[1] && G.p.money > tienTruoc);
-  ok('bán rồi thì hết trong kho', !GR.timMon(v.u));
+  // Thu hồi trả về ĐÁ CƯỜNG HOÁ chứ không phải tiền — đồ trùng đổ ngược vào
+  // món đang dùng, không thành tiền lẻ.
+  const daTruoc = GR.soDa('cuong');
+  const traVe = GR.daThuHoi(v);
+  ok('món càng xịn thu hồi càng nhiều đá',
+    traVe > GR.daThuHoi({ id: GEAR.find(g => g.ho === 'vai').id, sao: 1, cuong: 0 }));
+  ok('thu hồi được và đá tăng đúng số',
+    !GR.thuHoi(v.u)[1] && GR.soDa('cuong') === daTruoc + traVe);
+  ok('thu hồi rồi thì hết trong kho', !GR.timMon(v.u));
+  ok('thu hồi hàng loạt gom hết món rảnh', (() => {
+    G.p.gear.kho = [];
+    for (let i = 0; i < 5; i++) GR.bocRoi('duong');
+    const n = GR.kho().length;
+    GR.deo(con, GR.kho()[0].u);
+    const [msg, err] = GR.thuHoiHangLoat(1);
+    // Món đang đeo phải ở lại
+    return !err && GR.kho().length === 1 && n === 5 && String(msg).includes('4');
+  })());
+}
+
+// ==== Lò rèn là chỗ DUY NHẤT bán đá, và không bán trang bị ====
+{
+  const ES2 = await import('../js/engine/estate.js');
+  const { LO_REN, THO_MOC, TIEM_QUA, KHU_DAT_MAP } = await import('../js/data/khudancu.js');
+  ok('lò rèn có chỗ đứng riêng trong khu dân cư',
+    LO_REN && Number.isInteger(LO_REN.x) && Number.isInteger(LO_REN.y));
+  ok('ba quầy không đứng chồng lên nhau', (() => {
+    const k = [THO_MOC, TIEM_QUA, LO_REN].map(c => `${c.x},${c.y}`);
+    return new Set(k).size === 3;
+  })());
+  ok('bấm đúng ô lò rèn thì ra bác Thép',
+    ES2.vatTheODay(KHU_DAT_MAP, LO_REN.x, LO_REN.y)?.kind === 'lo-ren');
+  ok('ô cạnh lò rèn không phải bác Thép',
+    ES2.vatTheODay(KHU_DAT_MAP, LO_REN.x + 1, LO_REN.y)?.kind !== 'lo-ren');
+  ok('lò rèn đứng trên ô đi được', (() => {
+    const m = MAPS[KHU_DAT_MAP];
+    return !m.solid[LO_REN.y * m.w + LO_REN.x];
+  })());
 }
 
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài

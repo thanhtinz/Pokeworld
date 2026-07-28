@@ -359,13 +359,19 @@ html, body {
 .gr-plus { color: var(--gold-num); font-family: var(--pix2); font-size: 1.05rem; }
 .gr-deo { color: var(--violet-txt, #b3a4f0); }
 .gr-btns { display: flex; flex-wrap: wrap; gap: 6px; }
-.gr-btns .btn { flex: 1 1 30%; min-height: 40px; }
+.gr-btns .btn { flex: 1 1 30%; min-height: 40px; white-space: nowrap; padding: 0 8px; }
+.gr-tom { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 4px 10px; }
+.gr-tom b { color: var(--gold-num); font-family: var(--pix2); font-size: 1.15rem; }
+.gr-tom small { color: var(--muted); font-size: .8rem; }
 .gr-da { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
 .gr-da-o { display: flex; align-items: center; gap: 6px; font-size: .84rem; }
 .gr-da-o img { image-rendering: pixelated; }
 .gr-da-o i { color: var(--gold-num); font-style: normal; font-family: var(--pix2); font-size: 1.05rem; }
 .gr-da-o .btn { min-height: 34px; padding: 0 10px; }
-.gr-note small { color: var(--muted); font-size: .81rem; line-height: 1.45; }
+/* Ô trang bị nằm trong Túi đồ */
+.bag-cell.tb-cell { cursor: default; }
+.bag-cell.tb-cell.dang-deo { border-color: var(--gold); }
+.bag-sao { color: var(--gold); font-size: .68rem; letter-spacing: 1px; }
 
 /* Sáu ô trang bị hiện trong màn Đội hình */
 .tb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }

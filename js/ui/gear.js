@@ -1,39 +1,36 @@
-// TuxeWorld H5 | ui/gear.js | Màn Trang Bị: kho đồ, lò rèn, cửa hàng
+// TuxeWorld H5 | ui/gear.js | Màn Trang Bị: kho đồ + lò rèn
 //
-// Ba việc gom một màn cho khỏi nhảy qua nhảy lại: xem/đeo đồ đang có, cường
-// hoá và nâng sao ngay tại chỗ, và mua món mới.
-import { G, save } from '../state.js';
+// Trang bị KHÔNG bán ở đâu cả — chỉ rơi từ Tuxemon hoang, từ boss, và thi
+// thoảng nhặt được bên vệ đường. Ở đây chỉ có việc dùng đồ đã kiếm được: đeo,
+// cường hoá, nâng sao, thu hồi món thừa.
+//
+// Đá nâng cấp thì mua ở LÒ RÈN trong Khu Dân Cư (bác Thép). Vào màn này bằng
+// tham số tab:'da' là chỉ hiện đúng quầy đá của bác ấy.
+import { G } from '../state.js';
 import * as GR from '../engine/gear.js';
-import { GEAR, GEAR_BY_ID, O_TRANG_BI, O_BY_ID, anhGear, SAO_TOI_DA }
-  from '../data/gear.js';
-import { HO_TRANG_BI } from '../data/gear.js';
+import { GEAR_BY_ID, anhGear, SAO_TOI_DA } from '../data/gear.js';
 import { displayName } from '../engine/monster.js';
 import { monImg } from '../engine/monskin.js';
-import { esc, fmt, tien, tienChu } from '../util.js';
+import { esc, tien, tienChu } from '../util.js';
 import { toast, choose, header, confirmDlg } from './kit.js';
-import { show, refresh } from '../main.js';
+import { show } from '../main.js';
 
 const TEN_CHI_SO = { hp: 'HP', armour: 'Giáp', dodge: 'Né tránh',
   melee: 'Cận chiến', ranged: 'Tầm xa', speed: 'Tốc độ' };
 
 const sao = (n) => '★'.repeat(n) + '☆'.repeat(SAO_TOI_DA - n);
 
-export function render(el, { tab = 'kho' } = {}) {
+export function render(el, { tab = 'kho', from = 'menu' } = {}) {
   GR.duLieu();
-  let cua = tab;
-
-  // Ảnh một món trong kho, đúng bậc sao của nó
-  function anh(v, size = 46) {
-    return `<img class="gr-img" src="${anhGear(v.id, v.sao)}" width="${size}"
-      height="${size}" alt="" loading="lazy">`;
-  }
+  const quayDa = tab === 'da';
 
   function dongKho(v) {
     const m = GEAR_BY_ID[v.id];
     const chu = GR.aiDangDeo(v.u);
-    return `<div class="card gr-row" data-u="${v.u}">
+    return `<div class="card gr-row">
       <div class="gr-head">
-        ${anh(v)}
+        <img class="gr-img" src="${anhGear(v.id, v.sao)}" width="46" height="46"
+             alt="" loading="lazy">
         <div class="gr-mid">
           <b>${esc(m.name)} ${v.cuong ? `<span class="gr-plus">+${v.cuong}</span>` : ''}</b>
           <small class="gr-sao">${sao(v.sao)}</small>
@@ -48,70 +45,49 @@ export function render(el, { tab = 'kho' } = {}) {
           ${v.cuong >= GR.CUONG_TOI_DA ? 'disabled' : ''}>Cường hoá</button>
         <button class="btn btn-sm btn-primary gr-nang" data-u="${v.u}"
           ${v.sao >= SAO_TOI_DA ? 'disabled' : ''}>Nâng sao</button>
-        ${chu ? '' : `<button class="btn btn-sm gr-ban" data-u="${v.u}">Bán</button>`}
-      </div>
-    </div>`;
-  }
-
-  function dongTiem(m) {
-    return `<div class="card gr-row">
-      <div class="gr-head">
-        <img class="gr-img" src="${anhGear(m.id, 1)}" width="46" height="46" alt="">
-        <div class="gr-mid">
-          <b>${esc(m.name)}</b>
-          <small class="gr-sao">${sao(1)}</small>
-          <small>${TEN_CHI_SO[m.stat]} <b class="gr-num">+${m.base}</b> · ${esc(HO_TRANG_BI[m.ho].name)}</small>
-        </div>
-      </div>
-      <div class="gr-btns">
-        <button class="btn btn-sm btn-primary gr-mua" data-id="${esc(m.id)}">${tien(m.gia)}</button>
+        ${chu ? '' : `<button class="btn btn-sm gr-thu" data-u="${v.u}">Thu hồi</button>`}
       </div>
     </div>`;
   }
 
   function ve() {
     const ds = GR.kho();
-    el.innerHTML = `
-      ${header('Trang Bị', 'menu')}
-      <div class="seg-row">
-        <button type="button" class="seg-btn ${cua === 'kho' ? 'active' : ''}" data-tab="kho">Kho đồ (${ds.length})</button>
-        <button type="button" class="seg-btn ${cua === 'tiem' ? 'active' : ''}" data-tab="tiem">Cửa hàng</button>
+    const raSo = ds.filter(v => !GR.aiDangDeo(v.u) && (v.sao || 1) === 1).length;
+    el.innerHTML = quayDa ? `
+      ${header('Lò Rèn Bác Thép', from)}
+      ${quayDaHtml()}`
+      : `
+      ${header('Trang Bị', from)}
+      <div class="gr-tom">
+        ${Object.entries(GR.DA).map(([k, d]) => `<span class="gr-da-o">
+          <img src="${d.img}" width="24" height="24" alt=""><b>${GR.soDa(k)}</b>
+          <small>${esc(d.name)}</small></span>`).join('')}
       </div>
-
-      <div class="card gr-da">
-        ${Object.entries(GR.DA).map(([k, d]) => `
-          <span class="gr-da-o">
-            <img src="${d.img}" width="26" height="26" alt="">
-            <b>${esc(d.name)}</b><i>×${GR.soDa(k)}</i>
-            <button class="btn btn-sm gr-mua-da" data-loai="${k}">${tien(d.gia)}</button>
-          </span>`).join('')}
-      </div>
-
-      ${cua === 'kho' ? (ds.length ? `
-        <div class="card gr-note">
-          <small>Sáu ô: ${O_TRANG_BI.map(o => `${esc(o.name)} → ${TEN_CHI_SO[o.stat]}`).join(' · ')}.
-          <b>Cường hoá</b> rẻ nhưng càng cao càng dễ hỏng (hỏng thì giữ nguyên cấp,
-          không tụt). <b>Nâng sao</b> chắc chắn được và đổi hẳn hình dạng món đồ.</small>
-        </div>
+      ${ds.length ? `
+        ${raSo > 1 ? `<button class="btn btn-sm" id="gr-thu-all">Thu hồi ${raSo} món 1★ đang rảnh</button>` : ''}
         ${ds.map(dongKho).join('')}`
-        : '<div class="card empty-note">Chưa có món nào. Sang Cửa hàng sắm một bộ đi.</div>')
-      : GEAR.map(dongTiem).join('')}
+        : `<div class="card empty-note">Chưa nhặt được món nào.
+             Trang bị rơi từ Tuxemon hoang, từ boss, và thi thoảng nằm bên vệ đường —
+             không nơi nào bán.</div>`}
     `;
 
-    el.querySelectorAll('[data-tab]').forEach(b =>
-      b.addEventListener('click', () => { cua = b.dataset.tab; ve(); }));
+    if (quayDa) {
+      el.querySelectorAll('.gr-mua-da').forEach(b => b.addEventListener('click', () => {
+        const [ok, err] = GR.muaDa(b.dataset.loai, Number(b.dataset.n) || 1);
+        toast(err || ok);
+        ve();
+      }));
+      return;
+    }
 
-    el.querySelectorAll('.gr-mua-da').forEach(b => b.addEventListener('click', () => {
-      const [ok, err] = GR.muaDa(b.dataset.loai, 1);
+    const btnAll = el.querySelector('#gr-thu-all');
+    if (btnAll) btnAll.addEventListener('click', async () => {
+      if (!await confirmDlg(`Thu hồi hết ${raSo} món 1★ đang không ai đeo?\n`
+        + 'Đổi lại lấy Đá Cường Hoá.', 'Thu hồi')) return;
+      const [ok, err] = GR.thuHoiHangLoat(1);
       toast(err || ok);
       ve();
-    }));
-
-    el.querySelectorAll('.gr-mua').forEach(b => b.addEventListener('click', () => {
-      const [ok, err] = GR.mua(b.dataset.id);
-      toast(err || ok);
-      ve();
-    }));
+    });
 
     el.querySelectorAll('.gr-deo-btn').forEach(b => b.addEventListener('click', async () => {
       const uid = Number(b.dataset.u);
@@ -131,55 +107,64 @@ export function render(el, { tab = 'kho' } = {}) {
     el.querySelectorAll('.gr-thao').forEach(b => b.addEventListener('click', () => {
       const uid = Number(b.dataset.u);
       const chu = GR.aiDangDeo(uid);
-      const m = GEAR_BY_ID[GR.timMon(uid).id];
-      const [ok, err] = GR.thao(chu, m.o);
+      const [ok, err] = GR.thao(chu, GEAR_BY_ID[GR.timMon(uid).id].o);
       toast(err || ok);
       ve();
     }));
 
     el.querySelectorAll('.gr-cuong').forEach(b => b.addEventListener('click', async () => {
-      const uid = Number(b.dataset.u);
-      const v = GR.timMon(uid);
+      const v = GR.timMon(Number(b.dataset.u));
       if (!v) return;
       const ti = Math.round(GR.tiLeCuong(v.cuong) * 100);
-      const dong = await confirmDlg(
-        `Cường hoá +${v.cuong} → +${v.cuong + 1}?\n`
+      if (!await confirmDlg(`Cường hoá +${v.cuong} → +${v.cuong + 1}?\n`
         + `Tốn ${tienChu(GR.giaCuong(v.cuong))} + 1 ${GR.DA.cuong.name}.\n`
-        + `Tỉ lệ thành công ${ti}% — hỏng thì mất đá và tiền nhưng giữ nguyên cấp.`,
-        'Cường hoá');
-      if (!dong) return;
-      const [kq, err] = GR.cuongHoa(uid);
+        + `Tỉ lệ ${ti}% — hỏng thì mất đá và tiền nhưng giữ nguyên cấp.`,
+      'Cường hoá')) return;
+      const [kq, err] = GR.cuongHoa(v.u);
       toast(err || kq.msg);
       ve();
     }));
 
     el.querySelectorAll('.gr-nang').forEach(b => b.addEventListener('click', async () => {
-      const uid = Number(b.dataset.u);
-      const v = GR.timMon(uid);
+      const v = GR.timMon(Number(b.dataset.u));
       if (!v) return;
-      const dong = await confirmDlg(
-        `Nâng ${v.sao}★ → ${v.sao + 1}★?\n`
+      if (!await confirmDlg(`Nâng ${v.sao}★ → ${v.sao + 1}★?\n`
         + `Tốn ${tienChu(GR.giaSao(v.sao))} + ${GR.daSaoCan(v.sao)} ${GR.DA.sao.name}.\n`
-        + 'Chắc chắn thành công, và món đồ sẽ đổi hẳn hình dạng.',
-        'Nâng sao');
-      if (!dong) return;
-      const [ok, err] = GR.nangSao(uid);
+        + 'Chắc chắn được, và món đồ đổi hẳn hình dạng.', 'Nâng sao')) return;
+      const [ok, err] = GR.nangSao(v.u);
       toast(err || ok);
       ve();
     }));
 
-    el.querySelectorAll('.gr-ban').forEach(b => b.addEventListener('click', async () => {
-      const uid = Number(b.dataset.u);
-      const v = GR.timMon(uid);
+    el.querySelectorAll('.gr-thu').forEach(b => b.addEventListener('click', async () => {
+      const v = GR.timMon(Number(b.dataset.u));
       if (!v) return;
-      const dong = await confirmDlg(
-        `Bán món này được lại ${tienChu(GR.giaBan(v))}.\n`
-        + 'Bán rồi là mất luôn cấp cường hoá và bậc sao.', 'Bán');
-      if (!dong) return;
-      const [ok, err] = GR.ban(uid);
+      if (!await confirmDlg(`Thu hồi món này lấy ${GR.daThuHoi(v)} ${GR.DA.cuong.name}?\n`
+        + 'Món đồ mất luôn cùng cấp cường hoá và bậc sao.', 'Thu hồi')) return;
+      const [ok, err] = GR.thuHoi(v.u);
       toast(err || ok);
       ve();
     }));
+  }
+
+  // Quầy của bác Thép: chỉ bán đá, không bán trang bị
+  function quayDaHtml() {
+    return Object.entries(GR.DA).map(([k, d]) => `
+      <div class="card gr-row">
+        <div class="gr-head">
+          <img class="gr-img" src="${d.img}" width="46" height="46" alt="">
+          <div class="gr-mid">
+            <b>${esc(d.name)}</b>
+            <small>Đang có <b class="gr-num">${GR.soDa(k)}</b></small>
+            <small>${k === 'cuong' ? 'Dùng để cường hoá +1 mỗi lần.'
+                                   : 'Dùng để nâng sao — món đồ đổi hình dạng.'}</small>
+          </div>
+        </div>
+        <div class="gr-btns">
+          <button class="btn btn-sm gr-mua-da" data-loai="${k}" data-n="1">×1 · ${tien(d.gia)}</button>
+          <button class="btn btn-sm btn-primary gr-mua-da" data-loai="${k}" data-n="10">×10 · ${tien(d.gia * 10)}</button>
+        </div>
+      </div>`).join('');
   }
 
   ve();
