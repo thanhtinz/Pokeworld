@@ -44,6 +44,15 @@ NHOM = {
     'none': 'tea',
 }
 
+# Do MANG THEO (behaviors.holdable ben ban goc). Ban goc co 12 mon holdable
+# nhung 10 mon khong khai hieu ung gi (modifiers rong) — chi lay hai mon that
+# su co tac dung trong ma nguon: xp_transmitter va xp_feeder.
+MANG_THEO = {
+    'xp_transmitter': ('Máy Truyền EXP', 4000,
+                       'Con nào mang theo thì sau mỗi trận cả đội cùng nhận EXP: '
+                       'một nửa cho con ra trận, một nửa chia đều cho những con còn lại.'),
+}
+
 # Chi so: slug ban goc -> ten tieng Viet
 CHI_SO = {'hp': 'HP', 'armour': 'Giáp', 'dodge': 'Né', 'melee': 'Cận chiến',
           'ranged': 'Tầm xa', 'speed': 'Tốc độ'}
@@ -391,14 +400,17 @@ def main():
             continue
         d = yaml.safe_load(open(os.path.join(db, f), encoding='utf-8')) or {}
         eff = [e for e in (d.get('effects') or []) if isinstance(e, dict)]
-        if not eff or not (set(e['type'] for e in eff) & HIEU_UNG):
-            continue
-        # Bo mon hieu ung phu tro chua chay duoc (learn_tm, switch_type...)
-        if any(e['type'] not in HIEU_UNG for e in eff):
-            continue
+        mang_theo = d['slug'] in MANG_THEO and (d.get('behaviors') or {}).get('holdable')
+        if not mang_theo:
+            if not eff or not (set(e['type'] for e in eff) & HIEU_UNG):
+                continue
+            # Bo mon hieu ung phu tro chua chay duoc (learn_tm, switch_type...)
+            if any(e['type'] not in HIEU_UNG for e in eff):
+                continue
         slug = d['slug']
         cat = d.get('category') or 'none'
-        if cat not in NHOM:
+        mang = slug in MANG_THEO and (d.get('behaviors') or {}).get('holdable')
+        if cat not in NHOM and not mang:
             continue
         # Mon co hai am (bite_of_despair...) khong ban trong shop, bo qua
         if any(e['type'] == 'heal' and float((e.get('parameters') or ['0'])[0]) < 0
@@ -426,18 +438,21 @@ def main():
         # chua rai duoc do khap ban do nen cho ban trong shop, khong thi ca
         # dong duong tien hoa thanh vo nghia.
         mac_dinh = 2000 if cat == 'morph' else 0
+        if mang:
+            mac_dinh = MANG_THEO[slug][1]
         mua, ban = gia_goc.get(slug, (d.get('cost') or mac_dinh,
                                       round((d.get('cost') or mac_dinh) * 0.5)))
         trong_tran = 'MainCombatMenuState' in (d.get('usable_in') or [])
         ngoai_tran = 'WorldState' in (d.get('usable_in') or [])
         rows.append((slug, obj({
-            'name': js(TEN.get(slug) or ten_anh.get(slug) or slug),
-            'desc': js(mo_ta(slug, cat, eff, capdev, tien_hoa)),
-            'kind': js(NHOM[cat]),
+            'name': js(MANG_THEO[slug][0] if mang else (TEN.get(slug) or ten_anh.get(slug) or slug)),
+            'desc': js(MANG_THEO[slug][2] if mang else mo_ta(slug, cat, eff, capdev, tien_hoa)),
+            'kind': js('held' if mang else NHOM[cat]),
             'price': js(int(mua)),
             'sell': js(int(ban)),
-            'inBattle': js(bool(trong_tran)),
-            'inWorld': js(bool(ngoai_tran)),
+            'inBattle': js(bool(trong_tran) and not mang),
+            'inWorld': js(bool(ngoai_tran) and not mang),
+            'held': js(bool(mang)),
             'eff': '[%s]' % ', '.join(hieu_ung_js(slug, eff, d)),
             'cond': '[%s]' % ', '.join(dieu_kien_js(d.get('conditions'))),
         })))
@@ -446,7 +461,7 @@ def main():
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '//',
            "// kind: 'ball' bắt | 'medicine' hồi phục | 'stone' tiến hoá |",
-           "//       'food' món ăn | 'stat' rèn chỉ số | 'tea' cho EXP",
+           "//       'food' món ăn | 'stat' rèn chỉ số | 'tea' cho EXP | 'held' mang theo",
            "// eff:  hiệu ứng khi dùng, giữ đúng tên bên bản gốc (js/engine/useitem.js chạy)",
            "// cond: điều kiện dùng được, cũng lấy từ bản gốc",
            'export const ITEMS = {']

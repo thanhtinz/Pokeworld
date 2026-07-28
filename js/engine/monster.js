@@ -72,7 +72,6 @@ export function newTuxemon(spId, level, opts = {}) {
     status: null,
     statusTurns: 0,
     bond: 25,                     // config_monster.starting_bond
-    held: null,
   };
   mon.hpCur = maxHp(mon);
   return mon;

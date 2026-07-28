@@ -416,8 +416,31 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
 {
   const it = Object.entries(ITEMS);
   ok('có đủ bộ vật phẩm', it.length >= 80, String(it.length));
-  ok('món nào cũng có ít nhất một hiệu ứng', it.every(([, x]) => x.eff.length > 0));
-  ok('món nào cũng dùng được ở đâu đó', it.every(([, x]) => x.inBattle || x.inWorld));
+  // Đồ mang theo không "dùng" mà cho Tuxemon cầm, nên không có eff/inBattle
+  const dung = it.filter(([, x]) => !x.held);
+  ok('món nào cũng có ít nhất một hiệu ứng', dung.every(([, x]) => x.eff.length > 0));
+  ok('món nào cũng dùng được ở đâu đó', dung.every(([, x]) => x.inBattle || x.inWorld));
+  ok('có đồ mang theo', it.some(([, x]) => x.held));
+
+  // Máy Truyền EXP: con dự bị cũng lên EXP sau trận
+  {
+    const ra = newTuxemon(STARTERS[0].sp, 30);
+    const duBi = newTuxemon(STARTERS[1].sp, 10);
+    ra.held = 'xp_transmitter';
+    const dich = newTuxemon(STARTERS[2].sp, 5);
+    dich.hpCur = 1;
+    const truoc = duBi.exp;
+    const bt = new Battle({ kind: 'wild',
+      sides: [{ kind: 'player', mons: [ra, duBi] }, { kind: 'wild', mons: [dich] }] });
+    let n = 0;
+    while (!bt.over && n < 40) {
+      const u = ra.moves.findIndex(m => (m.cd || 0) <= 0);
+      bt.submit(0, u >= 0 ? { t: 'move', i: u } : { t: 'struggle' });
+      bt.resolve(); n++;
+    }
+    ok('Máy Truyền EXP chia EXP cho con dự bị', duBi.exp > truoc,
+      `${truoc} -> ${duBi.exp}`);
+  }
 
   // Thuốc hồi máu: đúng số HP ghi trong mô tả
   const mon = newTuxemon(STARTERS[0].sp, 20);
@@ -455,6 +478,60 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const duong = new Set(Object.values(EVOLUTIONS).flat().flatMap(w => w.item || []));
   ok('đá tiến hoá nào cũng mở được ít nhất một đường',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
+}
+
+// Tiến hoá: mấy điều kiện nhìn ra ngoài bản thân con vật
+{
+  const ways = Object.entries(EVOLUTIONS).flatMap(([sp, w]) => w.map(x => [Number(sp), x]));
+  const co = (k) => ways.filter(([, w]) => w[k] !== undefined);
+  ok('có đường tiến hoá theo khẩu vị / hệ / trong nhà / đội hình',
+    co('tasteWarm').length && co('element').length
+    && co('inside').length && co('party').length,
+    `taste ${co('tasteWarm').length} element ${co('element').length} `
+    + `inside ${co('inside').length} party ${co('party').length}`);
+
+  // Khẩu vị: đúng vị mới đi được đường đó
+  {
+    const [sp, w] = co('tasteWarm')[0];
+    const dung = newTuxemon(sp, 60, { tasteWarm: w.tasteWarm });
+    const sai = newTuxemon(sp, 60, { tasteWarm: w.tasteWarm === 'salty' ? 'peppy' : 'salty' });
+    ok('điều kiện khẩu vị có tác dụng',
+      checkEvolution(dung, 'level') === w.into && checkEvolution(sai, 'level') !== w.into);
+  }
+
+  // Trong nhà: ngoài trời thì không đi được đường đó.
+  // Cấp phải thấp hơn mấy đường "đủ cấp" đứng trước, vì bản gốc lấy đường
+  // KHỚP ĐẦU TIÊN (evolution.get_eligible_evolution_slug).
+  {
+    const [sp, w] = co('inside')[0];
+    const capMin = Math.min(...EVOLUTIONS[sp].filter(x => x.level).map(x => x.level), 99);
+    const m2 = newTuxemon(sp, Math.max(1, capMin - 1));
+    ok('điều kiện trong nhà có tác dụng',
+      checkEvolution(m2, 'level', null, { inside: w.inside }) === w.into
+      && checkEvolution(m2, 'level', null, { inside: !w.inside }) !== w.into);
+  }
+
+  // Đội hình: thiếu con kia thì không tiến hoá
+  {
+    const [sp, w] = co('party')[0];
+    const m2 = newTuxemon(sp, 60);
+    const [canSp, canN] = w.party[0];
+    const du = [m2, ...Array.from({ length: canN }, () => newTuxemon(canSp, 10))];
+    ok('điều kiện đội hình có tác dụng',
+      checkEvolution(m2, 'level', null, { party: du }) === w.into
+      && checkEvolution(m2, 'level', null, { party: [m2] }) !== w.into);
+  }
+
+  // Hệ ĐANG mang (chiêu switch đổi được), không phải hệ gốc
+  {
+    const [sp, w] = co('element')[0];
+    const capMin = Math.min(...EVOLUTIONS[sp].filter(x => x.level).map(x => x.level), 99);
+    const m2 = newTuxemon(sp, Math.max(1, capMin - 1));
+    const truoc = checkEvolution(m2, 'level');
+    m2.types = [w.element];
+    ok('điều kiện hệ đọc hệ đang mang',
+      checkEvolution(m2, 'level') === w.into, `trước ${truoc}, cần ${w.into}`);
+  }
 }
 
 // Trạng thái: kiểu tác động nào cũng phải có chỗ xử lý trong engine

@@ -1,7 +1,8 @@
 // TuxeWorld H5 | data/evolutions.js | Chuỗi tiến hoá — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
 // Mỗi loài là một mảng các đường tiến hoá; điều kiện có thể là cấp,
-// vật phẩm, giới tính, độ thân thiết, so sánh hai chỉ số, hoặc biết chiêu.
+// vật phẩm, giới tính, độ thân thiết, so sánh hai chỉ số, biết chiêu,
+// khẩu vị, hệ đang mang, đang ở trong nhà, hoặc trong đội có loài nào.
 
 export const EVOLUTIONS = {
   9: [{ into: 11, level: 32 }, { into: 12, level: 32 }],   // mk01_alpha
@@ -59,7 +60,7 @@ export const EVOLUTIONS = {
   119: [{ into: 298, level: 32 }],   // axolightl
   120: [{ into: 121, level: 32 }],   // capiti
   143: [{ into: 144, item: ["booster_tech"] }, { into: 145, item: ["booster_tech"] }, { into: 146, item: ["booster_tech"] }, { into: 147, item: ["booster_tech"] }, { into: 148, item: ["booster_tech"] }],   // botbot
-  150: [{ into: 153, level: 24, gender: "f" }, { into: 157, level: 24, gender: "m" }, { into: 155, level: 26 }, { into: 151, tech: "salamander" }, { into: 156, item: ["petrified_dung"] }],   // vivipere
+  150: [{ into: 153, level: 24, gender: "f" }, { into: 157, level: 24, gender: "m" }, { into: 155, level: 26 }, { into: 151, tech: "salamander" }, { into: 152, element: "wood" }, { into: 154, inside: true }, { into: 156, item: ["petrified_dung"] }],   // vivipere
   158: [{ into: 159, level: 32 }],   // chloragon
   159: [{ into: 160, level: 54 }],   // sapragon
   167: [{ into: 168, level: 30 }],   // foxfire
@@ -130,7 +131,7 @@ export const EVOLUTIONS = {
   325: [{ into: 326, level: 32, item: ["lima_pie"] }],   // flummby
   327: [{ into: 328, level: 30 }],   // hoarse
   328: [{ into: 329, level: 55 }],   // equill
-  335: [{ into: 336, level: 32 }],   // claymorior
+  335: [{ into: 336, level: 32, tasteWarm: "hearty" }],   // claymorior
   337: [{ into: 338, level: 16 }],   // nebufin
   338: [{ into: 339, level: 32 }],   // galasces
   340: [{ into: 341, level: 18 }],   // hissiorite
@@ -144,8 +145,10 @@ export const EVOLUTIONS = {
   356: [{ into: 357, level: 24 }],   // stomic
   358: [{ into: 359, level: 16 }],   // cackleen
   359: [{ into: 360, level: 30 }],   // brumi
+  361: [{ into: 362, party: [[113, 1]] }],   // duggot
   366: [{ into: 367, level: 18 }],   // poinchin
   368: [{ into: 369, level: 20 }],   // babysnitch
+  370: [{ into: 371, party: [[304, 1]] }, { into: 371, party: [[295, 1]] }],   // weedsea
   373: [{ into: 374, level: 18 }],   // banling
   374: [{ into: 375, level: 36 }],   // bansaken
   383: [{ into: 384, level: 15 }],   // chickadee

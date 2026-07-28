@@ -2135,3 +2135,6 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .speed-ico { image-rendering: pixelated; vertical-align: middle;
   height: 11px !important; width: auto !important; flex: none; }
 .move-btn .speed-ico { height: 10px !important; }
+
+/* Dong "dang cam" trong the doi hinh */
+.held-line { display: inline-flex; align-items: center; gap: 4px; color: var(--gold-num); }

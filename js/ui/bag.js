@@ -3,6 +3,7 @@ import { G, save, removeItem, addItem, markCaught, CONFIG } from '../state.js';
 import { maxHp, displayName, tryLearn, replaceMove } from '../engine/monster.js';
 import { movesAtLevel } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
+import { isInside } from '../engine/overworld.js';
 import { useItem as engineUse, canUse } from '../engine/useitem.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
@@ -19,18 +20,18 @@ const NHOM = [
   ['food', 'Món ăn'],
   ['stat', 'Rèn chỉ số'],
   ['tea', 'Trà'],
-  ['held', 'Vật cầm'],
+  ['held', 'Đồ mang theo'],
 ];
 
 // Câu ghi dưới tên: dùng được ở đâu
 const CACH_DUNG = {
   ball: 'Chỉ ném được trong trận với Tuxemon hoang.',
   stone: 'Dùng cho một Tuxemon để tiến hoá.',
-  held: 'Cho một Tuxemon cầm theo.',
   medicine: 'Dùng cho một Tuxemon trong đội.',
   food: 'Cho một Tuxemon ăn để tăng thân thiết.',
   stat: 'Tăng chỉ số cho một Tuxemon.',
   tea: 'Cho một Tuxemon uống để nhận EXP.',
+  held: 'Cho một Tuxemon cầm theo, có tác dụng cả khi ngồi dự bị.',
 };
 
 export function render(el) {
@@ -80,7 +81,7 @@ export function render(el) {
               <small class="bag-how">${esc(CACH_DUNG[it.kind] || '')}</small>
             </div>
           </div>
-          <button class="btn btn-primary" id="bag-use">${it.kind === 'held' ? 'Cho cầm' : 'Dùng'}</button>`;
+          <button class="btn btn-primary" id="bag-use">${it.held ? 'Cho cầm' : 'Dùng'}</button>`;
         box.querySelector('#bag-use').addEventListener('click', async () => {
           api.close();
           await useItem(id);
@@ -102,16 +103,17 @@ export function render(el) {
     if (!it) return;
     if (G.p.party.length === 0) { toast('Chưa có Tuxemon nào!'); return; }
 
-    if (it.kind === 'held') {
-      const mon = await pickMon(`Cho ai cầm ${it.name}?`);
-      if (!mon) return;
-      if (mon.held) {
-        addItem(mon.held, 1);
-        toast(`Đã lấy lại ${ITEMS[mon.held] ? ITEMS[mon.held].name : mon.held}.`);
+    // Đồ mang theo: đưa cho một con cầm, lấy lại món cũ nếu đang cầm gì đó
+    if (it.held) {
+      const ai = await pickMon(`Cho ai cầm ${it.name}?`);
+      if (!ai) return;
+      if (ai.held) {
+        addItem(ai.held, 1);
+        toast(`Đã lấy lại ${ITEMS[ai.held] ? ITEMS[ai.held].name : ai.held}.`);
       }
-      mon.held = id;
+      ai.held = id;
       removeItem(id, 1);
-      toast(`${displayName(mon)} đang cầm ${it.name}.`);
+      toast(`${displayName(ai)} đang cầm ${it.name}.`);
       save(); draw();
       return;
     }
@@ -120,9 +122,10 @@ export function render(el) {
 
     const mon = await pickMon(`Dùng ${it.name} cho ai?`);
     if (!mon) return;
-    if (!canUse(id, mon, { inBattle: false })) { toast('Không có tác dụng!'); return; }
+    const ctx = { inBattle: false, party: G.p.party, inside: isInside() };
+    if (!canUse(id, mon, ctx)) { toast('Không có tác dụng!'); return; }
 
-    const res = engineUse(id, mon, { inBattle: false });
+    const res = engineUse(id, mon, ctx);
     if (!res.ok) { toast('Không có tác dụng!'); return; }
 
     // Tiến hoá bằng đá: hỏi trước rồi mới đổi loài
@@ -140,7 +143,7 @@ export function render(el) {
     // Cho EXP xong có thể lên cấp -> học chiêu mới, rồi tới lượt tiến hoá theo cấp
     await hocChieuMoi(mon);
     if (!res.evolveTo) {
-      const dex = checkEvolution(mon, 'level');
+      const dex = checkEvolution(mon, 'level', null, ctx);
       if (dex) {
         const to = SPECIES[dex];
         if (await confirmDlg(`${displayName(mon)} muốn tiến hóa thành ${to ? to.name : '?'}!`, 'Tiến hóa!')) {

@@ -27,7 +27,7 @@ Cụ thể đã lấy:
 | Ghi chép Tuxedex của 407 loài (nguyên văn tiếng Anh của bản gốc) | `js/data/species.js` |
 | Nơi sống và đặc điểm của từng loài | `js/data/species.js`, `js/data/traits.js` |
 | 25 loại Tuxeball + hệ số bắt của từng loại | `js/data/capdev.js` |
-| 91 vật phẩm kèm hiệu ứng và điều kiện dùng | `js/data/items.js` |
+| 92 vật phẩm kèm hiệu ứng, điều kiện dùng và đồ mang theo | `js/data/items.js` |
 | 15 hiệu ứng chiêu thức | `assets/vfx/`, `js/data/vfx.js` |
 | 40 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
 | Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |

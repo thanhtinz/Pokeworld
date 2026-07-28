@@ -2,12 +2,14 @@
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
-import { maxHp, stats } from './monster.js';
+import { maxHp, stats, typesOf } from './monster.js';
 
 // Kiểm tra điều kiện tiến hoá theo đúng bảng của bản gốc (js/data/evolutions.js).
 // trigger: 'level' sau khi lên cấp | 'stone' khi dùng vật phẩm (arg = mã món)
 // Điều kiện có thể gộp nhiều thứ: cấp + giới tính, cấp + so sánh chỉ số...
-export function checkEvolution(mon, trigger, arg) {
+// ctx = { party: [...con trong đội], inside: đang ở trong nhà } — vài đường
+// tiến hoá của bản gốc nhìn ra ngoài bản thân con vật.
+export function checkEvolution(mon, trigger, arg, ctx = {}) {
   const ways = EVOLUTIONS[mon.sp];
   if (!ways) return null;
   const list = Array.isArray(ways) ? ways : [ways];
@@ -27,6 +29,17 @@ export function checkEvolution(mon, trigger, arg) {
       if (!(st[e.stat[0]] > st[e.stat[1]])) continue;
     }
     if (e.tech && !(mon.moves || []).some(mv => mv.id === e.tech)) continue;
+    if (e.tasteWarm && mon.tasteWarm !== e.tasteWarm) continue;
+    if (e.tasteCold && mon.tasteCold !== e.tasteCold) continue;
+    // Hệ ĐANG mang, không phải hệ gốc — vài chiêu đổi hệ ngay giữa trận
+    if (e.element && !typesOf(mon).includes(e.element)) continue;
+    if (e.inside !== undefined && !!ctx.inside !== e.inside) continue;
+    // Trong đội phải có đủ số con của loài kia
+    if (e.party) {
+      const doi = ctx.party || [];
+      const du = e.party.every(([sp, n]) => doi.filter(x => x && x.sp === sp).length >= n);
+      if (!du) continue;
+    }
     return e.into;
   }
   return null;

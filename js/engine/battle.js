@@ -210,11 +210,30 @@ export class Battle {
       const winnerMon = this.activeMon(oi);
       if (winnerMon && !isFainted(winnerMon)) {
         addBond(winnerMon, 3);          // config_monster.bond_modifiers.win_battle
-        const amount = expYield(mon, 1, s.kind);
+        const tong = expYield(mon, 1, s.kind);
+        // Máy Truyền EXP (xp_transmitter của bản gốc): con ra trận ăn một nửa,
+        // nửa còn lại chia đều cho những con khác trong đội, kể cả con đang
+        // ngồi dự bị. Không mang thì con ra trận ăn trọn.
+        const chia = os.mons.some(m2 => m2 && m2.held === 'xp_transmitter'
+          && !isFainted(m2)) && os.mons.length > 1;
+        const amount = chia ? Math.floor(tong / 2) : tong;
         const levels = gainExp(winnerMon, amount);
         addTp(winnerMon, mon);
         ev.push({ t: 'exp', side: oi, slot: os.active, amount, levels });
         ev.push({ t: 'msg', text: `${displayName(winnerMon)} nhận được ${amount} EXP!` });
+        if (chia) {
+          const con = os.mons.filter(m2 => m2 && m2 !== winnerMon && !isFainted(m2));
+          const moiCon = Math.floor((tong - amount) / Math.max(1, con.length));
+          for (const m2 of con) {
+            if (moiCon <= 0) break;
+            const lv2 = gainExp(m2, moiCon);
+            for (const lv of lv2) for (const mvId of movesAtLevel(m2.sp, lv)) tryLearn(m2, mvId);
+          }
+          if (con.length && moiCon > 0) {
+            ev.push({ t: 'msg',
+              text: `Máy Truyền EXP chia ${moiCon} EXP cho ${con.length} con còn lại!` });
+          }
+        }
         for (const lv of levels) {
           ev.push({ t: 'msg', text: `${displayName(winnerMon)} đã lên cấp ${lv}!` });
           // Chiêu mới tại các level vừa đạt

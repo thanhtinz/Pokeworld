@@ -578,6 +578,21 @@ def dieu_kien(ev, dex):
         d['stat'] = [st['stat_type'], st['target_stat']]
     if ev.get('tech'):
         d['tech'] = ev['tech']
+    ta = ev.get('tastes')
+    if isinstance(ta, dict):
+        if ta.get('warm'):
+            d['tasteWarm'] = ta['warm']
+        if ta.get('cold'):
+            d['tasteCold'] = ta['cold']
+    if ev.get('element'):
+        d['element'] = ev['element']
+    if ev.get('inside') is not None:
+        d['inside'] = bool(ev['inside'])
+    pc = ev.get('party_conditions')
+    if isinstance(pc, dict) and isinstance(pc.get('monster_slugs'), dict):
+        can = [[dex[k], int(v)] for k, v in sorted(pc['monster_slugs'].items()) if k in dex]
+        if can:
+            d['party'] = can
     # Chi giu dieu kien nao game biet kiem tra
     return d if len(d) > 1 else None
 
@@ -586,7 +601,8 @@ def write_evolutions(mons, dex):
     out = ["// TuxeWorld H5 | data/evolutions.js | Chuỗi tiến hoá — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '// Mỗi loài là một mảng các đường tiến hoá; điều kiện có thể là cấp,',
-           '// vật phẩm, giới tính, độ thân thiết, so sánh hai chỉ số, hoặc biết chiêu.', '',
+           '// vật phẩm, giới tính, độ thân thiết, so sánh hai chỉ số, biết chiêu,',
+           '// khẩu vị, hệ đang mang, đang ở trong nhà, hoặc trong đội có loài nào.', '',
            'export const EVOLUTIONS = {']
     n = 0
     for m in mons:

@@ -8,6 +8,7 @@ import { monImg } from '../engine/monskin.js';
 import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '../engine/monster.js';
 import { expProgress } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
+import { isInside } from '../engine/overworld.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
@@ -521,7 +522,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
 
     // Tiến hóa sau trận
     for (const m of G.p.party) {
-      const dex = checkEvolution(m, 'level');
+      const dex = checkEvolution(m, 'level', null,
+        { party: G.p.party, inside: isInside() });
       if (!dex) continue;
       const to = SPECIES[dex];
       const ok = await confirmDlg(`${displayName(m)} muốn tiến hóa thành ${to ? to.name : '?'}!`, 'Tiến hóa!');

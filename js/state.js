@@ -1,6 +1,7 @@
 // TuxeWorld H5 | state.js | Trạng thái game + save/load localStorage + quest engine
 import { clamp, todayNum } from './util.js';
 import { QUESTS } from './data/quests.js';
+import { ITEMS } from './data/items.js';
 import { loadActiveSave, writeActiveSave, clearActiveSave } from './engine/accounts.js';
 
 // Khoá localStorage đời đầu — giữ nguyên tên để bản lưu cũ không mất.
@@ -83,6 +84,7 @@ function vaMons(list) {
     if (typeof m.bond !== 'number') m.bond = 25;
     delete m.friendship;               // độ thân thiết cũ đã thay bằng bond
     delete m.nature; delete m.ability; // bản gốc không có tính cách / đặc tính
+    if (m.held && !ITEMS[m.held]) delete m.held;   // món cũ đã bỏ khỏi bảng
     return m;
   });
 }

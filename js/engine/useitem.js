@@ -65,14 +65,15 @@ export function canUse(itemId, mon, ctx = {}) {
     } else if (c.t === 'anyStatus') {
       if (!mon || !mon.status) return false;
     } else if (c.t === 'canEvolve') {
-      if (!mon || !checkEvolution(mon, 'stone', itemId)) return false;
+      if (!mon || !checkEvolution(mon, 'stone', itemId, ctx)) return false;
     }
   }
   return true;
 }
 
 // Dùng vật phẩm lên mon. Trả về { ok, msgs, evolveTo }
-// ctx = { inBattle, wild, stages } — stages là bảng buff của phe đang cầm mon.
+// ctx = { inBattle, wild, stages, party, inside } — stages là bảng buff của phe
+// đang cầm mon; party/inside cho mấy đường tiến hoá nhìn ra ngoài con vật.
 export function useItem(itemId, mon, ctx = {}) {
   const it = ITEMS[itemId];
   const msgs = [];
@@ -106,7 +107,7 @@ export function useItem(itemId, mon, ctx = {}) {
       for (const lv of levels) msgs.push(`Lên cấp ${lv}!`);
       ok = true;
     } else if (e.t === 'evolve') {
-      evolveTo = checkEvolution(mon, 'stone', itemId);
+      evolveTo = checkEvolution(mon, 'stone', itemId, ctx);
       if (evolveTo) ok = true;
     } else if (e.t === 'boost') {
       // Trong trận: cộng thẳng vào bảng buff của phe đang cầm con này

@@ -19,6 +19,10 @@ export function currentMap() {
   return MAPS[player.mapId] || MAPS[START_MAP];
 }
 
+// Dang dung trong nha? Bản gốc gọi map_inside — vài loài chỉ tiến hoá khi ở
+// trong nhà. Bản đồ nào môi trường là 'interior' thì tính là trong nhà.
+export const isInside = () => (currentMap().env || '') === 'interior';
+
 export const currentBake = () => bake(player.mapId in MAPS ? player.mapId : START_MAP);
 
 // Đặt người chơi vào một bản đồ (dùng khi vào game / qua cổng)

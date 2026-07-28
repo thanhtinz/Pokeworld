@@ -7,6 +7,7 @@ import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/monst
 import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
+import { ITEMS } from '../data/items.js';
 import { tasteText } from '../data/tastes.js';
 import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle, itemIcon } from './kit.js';
@@ -77,6 +78,8 @@ export function render(el) {
             <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(tasteText(m))}</small><br>
             <small>EXP: ${cur}/${need} tới level sau</small><br>
             <small class="bond-line">Thân thiết ${bondHearts(m.bond ?? 25)} ${m.bond ?? 25}/100</small>
+            ${m.held && ITEMS[m.held] ? `<br><small class="held-line">${
+              itemIcon(m.held, '', 18)} Đang cầm ${esc(ITEMS[m.held].name)}</small>` : ''}
             ${m.lv >= cap ? `<br><small class="cap-note">Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp</small>` : ''}
           </div>
         </div>

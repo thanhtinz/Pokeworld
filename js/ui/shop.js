@@ -19,7 +19,7 @@ export function render(el) {
   let tab = 'buy';
 
   function draw() {
-    const buyIds = Object.keys(ITEMS).filter(id => ITEMS[id].price > 0 && ITEMS[id].kind !== 'held');
+    const buyIds = Object.keys(ITEMS).filter(id => ITEMS[id].price > 0);
     const sellIds = Object.keys(G.p.bag).filter(id => G.p.bag[id] > 0 && ITEMS[id] && ITEMS[id].sell > 0);
     const ids = tab === 'buy' ? buyIds : sellIds;
 
