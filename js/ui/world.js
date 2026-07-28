@@ -146,7 +146,7 @@ export function render(el) {
       const nx = (n.x + (n.ox || 0) + 0.5) * size - camX;
       const ny = (n.y + (n.oy || 0) + 1) * size - camY;
       put(owImage(n.sprite), n.dir || 'down', !!n.moving, nx, ny);
-      if (n.emote > 0) drawEmote(nx, ny - chH + size * 0.2);
+      if (n.emote > 0) drawEmote(n.bubble, nx, ny - chH + size * 0.2);
     }
     const bob = player.moving ? Math.sin(Date.now() / 90) * 2 : 0;
     const px = player.x * size - camX;
@@ -155,21 +155,22 @@ export function render(el) {
     drawTitle(px, py - chH + size * 0.34);
   }
 
-  // Dấu "!" khi NPC vừa trông thấy người chơi
-  function drawEmote(cx, topY) {
-    const w = 14, h = 16;
-    ctx.fillStyle = 'rgba(255,255,255,.92)';
-    ctx.strokeStyle = 'rgba(20,10,40,.9)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(Math.round(cx - w / 2), Math.round(topY - h), w, h, 4);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#e3350d';
-    ctx.font = 'bold 12px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('!', Math.round(cx), Math.round(topY - h / 2) + 1);
+  // Bong bóng cảm xúc trên đầu NPC — ảnh gfx/bubbles của bản gốc
+  const bubbleCache = {};
+  function bubbleImg(kind) {
+    if (!bubbleCache[kind]) {
+      const im = new Image();
+      im.src = `assets/ui/bubble/${kind}.png`;
+      bubbleCache[kind] = im;
+    }
+    return bubbleCache[kind];
+  }
+
+  function drawEmote(kind, cx, topY) {
+    const im = bubbleImg(kind || 'exclamation');
+    if (!im.complete || !im.naturalWidth) return;
+    const s = 20;
+    ctx.drawImage(im, Math.round(cx - s / 2), Math.round(topY - s), s, s);
   }
 
   // Danh hiệu đang mặc, hiện ngay trên đầu nhân vật

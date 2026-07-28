@@ -8,6 +8,7 @@ export const TILE_SIZE = 16;
 export const MAPS = {
   taba_town: {
     name: "Thị Trấn Taba", w: 64, h: 60, cols: 32, music: "field",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_town.png",
     spawn: { x: 43, y: 46 },
     layers: [
@@ -23,6 +24,7 @@ export const MAPS = {
   },
   player_house_downstairs: {
     name: "Player Nhà Downstairs", w: 9, h: 7, cols: 32, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/player_house_downstairs.png",
     spawn: { x: 0, y: 2 },
     layers: [
@@ -38,6 +40,7 @@ export const MAPS = {
   },
   maple_house: {
     name: "Maple Nhà", w: 13, h: 11, cols: 32, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/maple_house.png",
     spawn: { x: 6, y: 9 },
     layers: [
@@ -53,6 +56,7 @@ export const MAPS = {
   },
   route1: {
     name: "Đường Số 1", w: 59, h: 42, cols: 32, music: "field",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/route1.png",
     spawn: { x: 50, y: 12 },
     layers: [
@@ -68,6 +72,7 @@ export const MAPS = {
   },
   professor_lab: {
     name: "Professor Lab", w: 13, h: 18, cols: 32, music: "town",
+    env: "interior", envNight: "night_interior",
     atlas: "assets/maps/professor_lab.png",
     spawn: { x: 6, y: 16 },
     layers: [
@@ -83,6 +88,7 @@ export const MAPS = {
   },
   healing_center: {
     name: "Healing Trung Tâm", w: 13, h: 11, cols: 31, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/healing_center.png",
     spawn: { x: 6, y: 9 },
     layers: [
@@ -98,6 +104,7 @@ export const MAPS = {
   },
   tuxe_mart_taba: {
     name: "Tuxe Mart Taba", w: 13, h: 11, cols: 32, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/tuxe_mart_taba.png",
     spawn: { x: 6, y: 9 },
     layers: [
@@ -114,6 +121,7 @@ export const MAPS = {
   },
   taba_house1: {
     name: "Taba Nhà1", w: 9, h: 7, cols: 26, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_house1.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -129,6 +137,7 @@ export const MAPS = {
   },
   taba_house2: {
     name: "Taba Nhà2", w: 9, h: 7, cols: 32, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_house2.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -144,6 +153,7 @@ export const MAPS = {
   },
   taba_house3: {
     name: "Taba Nhà3", w: 12, h: 7, cols: 26, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_house3.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -159,6 +169,7 @@ export const MAPS = {
   },
   taba_house4: {
     name: "Taba Nhà4", w: 12, h: 7, cols: 28, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_house4.png",
     spawn: { x: 7, y: 5 },
     layers: [
@@ -174,6 +185,7 @@ export const MAPS = {
   },
   dryadsgrove: {
     name: "Dryadsgrove", w: 40, h: 20, cols: 32, music: "grove",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/dryadsgrove.png",
     spawn: { x: 0, y: 8 },
     layers: [
@@ -189,6 +201,7 @@ export const MAPS = {
   },
   player_house_bedroom: {
     name: "Player Nhà Bedroom", w: 9, h: 7, cols: 32, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/player_house_bedroom.png",
     spawn: { x: 4, y: 3 },
     layers: [
@@ -204,6 +217,7 @@ export const MAPS = {
   },
   maple_bedroom: {
     name: "Maple Bedroom", w: 9, h: 7, cols: 28, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/maple_bedroom.png",
     spawn: { x: 4, y: 3 },
     layers: [
@@ -219,6 +233,7 @@ export const MAPS = {
   },
   route1_sanglorian: {
     name: "Đường1 Sanglorian", w: 40, h: 20, cols: 22, music: "field",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/route1_sanglorian.png",
     spawn: { x: 10, y: 1 },
     layers: [
@@ -234,6 +249,7 @@ export const MAPS = {
   },
   taba_ba_foyer: {
     name: "Taba Ba Foyer", w: 5, h: 10, cols: 19, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_ba_foyer.png",
     spawn: { x: 2, y: 8 },
     layers: [
@@ -249,6 +265,7 @@ export const MAPS = {
   },
   taba_house2_upstairs: {
     name: "Taba Nhà2 Upstairs", w: 9, h: 7, cols: 12, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_house2_upstairs.png",
     spawn: { x: 8, y: 3 },
     layers: [
@@ -264,6 +281,7 @@ export const MAPS = {
   },
   taba_house3_upstairs: {
     name: "Taba Nhà3 Upstairs", w: 12, h: 7, cols: 14, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_house3_upstairs.png",
     spawn: { x: 7, y: 2 },
     layers: [
@@ -279,6 +297,7 @@ export const MAPS = {
   },
   cotton_town: {
     name: "Thị Trấn Bông", w: 40, h: 40, cols: 32, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/cotton_town.png",
     spawn: { x: 10, y: 38 },
     layers: [
@@ -294,6 +313,7 @@ export const MAPS = {
   },
   leather_town: {
     name: "Thị Trấn Da", w: 40, h: 40, cols: 32, music: "town",
+    env: "grass", envNight: "night_grass",
     atlas: "assets/maps/leather_town.png",
     spawn: { x: 39, y: 33 },
     layers: [

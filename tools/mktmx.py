@@ -337,6 +337,9 @@ def parse_map(path, tsx_cache):
     # va cham + su kien
     solid = [0] * (w * h)
     warps, talks, encs, nhac = [], [], set(), [None]
+    # Nen tran dau: ban goc dat bang "set_environment <slug>", ban do nao cung
+    # co mot canh ban ngay va mot canh ban dem.
+    moi_truong = [None, None]
     npcs = {}
     for og in root.findall('objectgroup'):
         gname = (og.get('name') or '').lower()
@@ -374,6 +377,13 @@ def parse_map(path, tsx_cache):
                 m = re.match(r'random_encounter\s+([a-z0-9_]+)', a)
                 if m:
                     encs.add(m.group(1))
+                m = re.match(r'set_environment\s+([a-z0-9_]+)', a)
+                if m:
+                    slug = m.group(1)
+                    if slug.startswith('night_'):
+                        moi_truong[1] = moi_truong[1] or slug
+                    else:
+                        moi_truong[0] = moi_truong[0] or slug
                 m = re.match(r'play_music\s+([a-z0-9_]+)', a)
                 if m and not nhac[0]:
                     nhac[0] = MUSIC_MAP.get(m.group(1), 'town')
@@ -385,6 +395,7 @@ def parse_map(path, tsx_cache):
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
             'solid': solid, 'warps': warps, 'talks': talks, 'encs': sorted(encs),
             'music': nhac[0] or 'town',
+            'env': moi_truong[0], 'envNight': moi_truong[1],
             'npcs': xep_cho(ds, solid, warps, w, h)}
 
 
@@ -570,6 +581,7 @@ def main():
             'npcs': m['npcs'],
             'encs': m['encs'],
             'music': m['music'],
+            'env': m.get('env'), 'envNight': m.get('envNight'),
         }
 
     write_js(out_maps, want)
@@ -708,6 +720,9 @@ def write_js(maps, want):
         out.append('  %s: {' % slug)
         out.append('    name: %s, w: %d, h: %d, cols: %d, music: %s,'
                    % (js(m['name']), m['w'], m['h'], m['cols'], js(m.get('music') or 'town')))
+        out.append('    env: %s, envNight: %s,'
+                   % (js(m.get('env') or 'grass'),
+                      js(m.get('envNight') or 'night_' + (m.get('env') or 'grass'))))
         out.append('    atlas: %s,' % js('assets/maps/%s.png' % slug))
         out.append('    spawn: { x: %d, y: %d },' % spawn)
         out.append('    layers: [')

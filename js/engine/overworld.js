@@ -93,6 +93,19 @@ function huongToi(n, x, y) {
   return dy > 0 ? 'down' : 'up';
 }
 
+// Bong bong cam xuc theo tinh cach NPC — anh lay tu gfx/bubbles cua ban goc
+const BUBBLE_RANH = {
+  stand: ['dots', 'sleep', 'note'],
+  watch: ['dots', 'question', 'exclamation'],
+  patrol: ['dots', 'note', 'money'],
+  wander: ['note', 'heart', 'confused', 'tuxeball'],
+};
+
+function keu(n, kind, giay) {
+  n.bubble = kind;
+  n.emote = giay;
+}
+
 export function updateNpcs(dt) {
   const map = currentMap();
   const baked = currentBake();
@@ -106,7 +119,10 @@ export function updateNpcs(dt) {
       n.step = n.ai === 'patrol' ? PATROL_DIRS[Math.floor(Math.random() * 2)] : null;
       n.way = 1;
     }
-    if (n.emote > 0) n.emote -= dt;
+    if (n.emote > 0) {
+      n.emote -= dt;
+      if (n.emote <= 0) n.bubble = null;
+    }
 
     // Trượt dần sang ô đích
     if (n.moving) {
@@ -125,7 +141,7 @@ export function updateNpcs(dt) {
     const gan = Math.abs(px - n.x) + Math.abs(py - n.y) <= NOTICE_RANGE;
     if (gan) {
       n.dir = huongToi(n, px, py);
-      if (!n.seen) { n.seen = true; n.emote = 1.2; }
+      if (!n.seen) { n.seen = true; keu(n, 'exclamation', 1.2); }
       n.wait = Math.max(n.wait, 0.5);
       continue;
     }
@@ -133,6 +149,12 @@ export function updateNpcs(dt) {
 
     n.wait -= dt;
     if (n.wait > 0) continue;
+
+    // Thỉnh thoảng nghĩ ngợi một cái cho đỡ đơ
+    if (!n.emote && Math.random() < 0.12) {
+      const ds = BUBBLE_RANH[n.ai] || BUBBLE_RANH.wander;
+      keu(n, ds[Math.floor(Math.random() * ds.length)], 1.6);
+    }
 
     if (n.ai === 'stand') {
       n.dir = DIRS[Math.floor(Math.random() * DIRS.length)][0];

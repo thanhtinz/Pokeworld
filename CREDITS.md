@@ -19,8 +19,11 @@ Cụ thể đã lấy:
 | 50 sprite nhân vật + NPC đi trên bản đồ | `assets/ow/` |
 | 50 ảnh 2D nhân vật + NPC cho trận đấu và hội thoại | `assets/trainers/` |
 | 67 NPC đứng trên bản đồ (vị trí + hướng lấy từ sự kiện của bản đồ gốc) | `js/data/maps.js` |
-| 20 vật phẩm + icon (tuxeball, thuốc, đá tiến hoá) | `js/data/items.js`, `assets/items/` |
-| Nền trận đấu (ghép lại cho màn dọc) | `assets/arena/` |
+| Icon vật phẩm | `assets/items/` |
+| 40 nền trận đấu theo môi trường, có cả cảnh đêm (ghép lại cho màn dọc) | `assets/arena/`, `js/data/arenas.js` |
+| 12 bong bóng cảm xúc trên đầu NPC | `assets/ui/bubble/` |
+| 25 loại Tuxeball + hệ số bắt của từng loại | `js/data/capdev.js` |
+| 91 vật phẩm kèm hiệu ứng và điều kiện dùng | `js/data/items.js` |
 | 15 hiệu ứng chiêu thức | `assets/vfx/`, `js/data/vfx.js` |
 | 20 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
 | Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |
@@ -34,7 +37,8 @@ Cụ thể đã lấy:
 | 136 hiệu ứng hình riêng của chiêu thức | `assets/vfx/tech/`, `js/data/vfx.js` |
 
 Cả **luật chơi** cũng lấy theo bản gốc: công thức sát thương theo tầm đánh,
-chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt, khẩu vị thay cho tính
+chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt và chạy trốn, hiệu ứng
+vật phẩm, khẩu vị thay cho tính
 cách, bảng trạng thái và hiệu ứng phụ của chiêu — xem `js/engine/damage.js`,
 `js/engine/monster.js`, `js/engine/exp.js`, `js/engine/catchmon.js`,
 `js/engine/status.js`, `js/engine/escape.js`, mỗi tệp có ghi rõ lấy từ đâu bên

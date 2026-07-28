@@ -34,6 +34,10 @@ MENU = {
 # Tam danh cua chieu (gfx/ui/icons/range)
 RANGES = ['melee', 'touch', 'ranged', 'reach', 'reliable']
 
+# Bong bong cam xuc tren dau NPC (gfx/bubbles) — chep het, ban do dung nhieu loai
+BUBBLES = ['angry', 'confused', 'dots', 'drop', 'exclamation', 'fireworks',
+           'heart', 'money', 'note', 'question', 'sleep', 'tuxeball']
+
 # Icon trang thai: chep het theo dung slug ben ban goc (js/data/statuses.js)
 
 
@@ -70,6 +74,15 @@ def main():
             n += 1
         else:
             thieu.append(r)
+
+    os.makedirs('assets/ui/bubble', exist_ok=True)
+    for bname in BUBBLES:
+        p = os.path.join(root, 'mods/tuxemon/gfx/bubbles', bname + '.png')
+        if os.path.exists(p):
+            copy_scaled(p, 'assets/ui/bubble/%s.png' % bname)
+            n += 1
+        else:
+            thieu.append(bname)
 
     for f in sorted(os.listdir(os.path.join(ui, 'icons/status'))):
         if not f.startswith('icon_') or not f.endswith('.png'):

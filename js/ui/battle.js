@@ -66,7 +66,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
 
   // ==== Khung DOM ====
   // Nền trận đấu đổi theo khu vực đang đứng
-  const arena = arenaFor(G.p.zone);
+  const arena = arenaFor(G.p.pos?.map || G.p.zone);
   el.innerHTML = `
     <div class="battle" style="--arena-bg:url(${arena.bg})">
       <div class="bt-enemy" id="bt-enemy"></div>

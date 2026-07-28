@@ -52,7 +52,7 @@ export function render(el, ctx = {}) {
   let busy = false;
   let finished = false;
 
-  const arena = arenaFor(G.p.zone);
+  const arena = arenaFor(G.p.pos?.map || G.p.zone);
   el.innerHTML = `
     ${header(`PvP · ${esc(opponent.username)}`)}
     <div class="battle" style="--arena-bg:url(${arena.bg})">
