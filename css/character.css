@@ -283,6 +283,17 @@
 }
 .fa-card { display: flex; flex-direction: column; gap: 10px; }
 .fa-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+/* Chưa có món nào: một khung viền đứt ghi "— trống —", thay cho việc bày một
+   thẻ to đùng chỉ để nói rằng không có gì. */
+.slot-empty {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 76px; padding: 14px;
+  border: 1px dashed rgba(190, 165, 255, .35); border-radius: 12px;
+  background: rgba(255, 255, 255, .02);
+  color: var(--muted); font-size: .9rem; letter-spacing: .04em;
+}
 .fa-cell {
   position: relative;
   display: flex;

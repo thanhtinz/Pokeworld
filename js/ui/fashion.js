@@ -32,6 +32,10 @@ export function render(el, { tab: startTab } = {}) {
     // Ô đầu tiên luôn là ô "Trống" — tháo hết ra thì mặc lại ô này
     const items = Object.entries(cur.data)
       .map(([id, d]) => [id, id === NONE_ID[tab] ? { ...d, name: 'Trống' } : d]);
+    // Chưa có món nào thật thì chỉ còn mỗi ô "Trống" — bày một thẻ to đùng ghi
+    // chữ "Trống" nhìn rất kỳ. Lúc đó thay bằng một khung nhỏ báo chưa có gì.
+    const thuc = items.filter(([id]) => id !== NONE_ID[tab]);
+    const rong = thuc.length === 0;
 
     el.innerHTML = `
       ${header('Thời trang', 'character')}
@@ -51,9 +55,11 @@ export function render(el, { tab: startTab } = {}) {
       <div class="card fa-card">
         <div class="inv-head">
           <b>${esc(cur.name)}</b>
-          <small>${items.filter(([, d]) => unlocked(d, p, lv)).length}/${items.length} đã mở</small>
+          <small>${rong ? 'chưa có món nào'
+            : `${thuc.filter(([, d]) => unlocked(d, p, lv)).length}/${thuc.length} đã mở`}</small>
         </div>
 
+        ${rong ? '<div class="slot-empty">— trống —</div>' : `
         <div class="fa-grid">
           ${items.map(([id, d]) => {
             const ok = unlocked(d, p, lv);
@@ -66,7 +72,7 @@ export function render(el, { tab: startTab } = {}) {
               <small class="fa-req">${ok ? (worn ? '✓' : 'Bấm để mặc') : requirement(d)}</small>
             </button>`;
           }).join('')}
-        </div>
+        </div>`}
       </div>`;
 
     upgradeFaces(el);

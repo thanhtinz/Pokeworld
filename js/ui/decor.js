@@ -102,7 +102,12 @@ export function openDecor(startTab) {
       sel = list.some(([id]) => id === dangMac) ? dangMac : (list[0]?.[0] ?? null);
     }
 
-    $('.decor-grid').innerHTML = list.length
+    // Tab nào chỉ còn mỗi ô "Trống" thì đừng bày thẻ to ghi chữ "Trống" — thay
+    // bằng một khung nhỏ báo chưa có gì, nhìn cho gọn.
+    const rong = list.every(([id]) => id === 'none');
+    $('.decor-grid').innerHTML = rong
+      ? '<div class="slot-empty">— trống —</div>'
+      : list.length
       ? list.map(([id, d, ok]) => `
         <button type="button" class="decor-cell${id === sel ? ' sel' : ''}${ok ? '' : ' locked'}"
                 data-id="${esc(id)}" ${ok ? '' : 'disabled'}>
@@ -111,11 +116,12 @@ export function openDecor(startTab) {
         </button>`).join('')
       : '';
 
-    const cur = list.find(([id]) => id === sel);
+    const cur = rong ? null : list.find(([id]) => id === sel);
     const [id, d, ok] = cur || [];
     $('.decor-prev').innerHTML = cur ? anh(id, d) : '';
-    $('.decor-prev-name').textContent = cur ? d.name : '—';
-    $('.decor-prev-note').textContent = !cur ? ''
+    $('.decor-prev-name').textContent = cur ? d.name : '— trống —';
+    $('.decor-prev-note').textContent = rong ? 'Chưa có món nào'
+      : !cur ? ''
       : id === dangMac ? 'Đang dùng'
         : ok ? 'Bấm Sử dụng để đổi' : requirement(d);
     const use = $('.decor-use');

@@ -230,6 +230,11 @@ ok('bốn loại thời trang', ALL_KINDS.length === 4
   && ALL_KINDS.every(k => k.data[NONE_ID[k.id]]));
 ok('ô "không mặc gì" luôn mở sẵn',
   ALL_KINDS.every(k => unlocked(k.data[NONE_ID[k.id]], p0, 1)));
+// Máy chưa nối server thì chưa có món nào ngoài ô "không mặc gì" — đó chính là
+// lúc giao diện phải bày khung "— trống —" thay vì một thẻ to ghi chữ "Trống".
+ok('mới cài đặt thì loại nào cũng rỗng',
+  ALL_KINDS.every(k => Object.keys(k.data).filter(id => id !== NONE_ID[k.id]).length === 0),
+  ALL_KINDS.map(k => `${k.id}:${Object.keys(k.data).length}`).join(' '));
 
 // Giả lập máy chủ trả về kho thời trang admin đã tải lên
 applyRemote([
