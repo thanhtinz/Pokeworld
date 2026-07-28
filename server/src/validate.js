@@ -50,10 +50,13 @@ function cleanMon(mon, warn, where) {
     hpCur: clamp(Math.round(Number(mon.hpCur) || 0), 0, 99999),
     bond: clamp(Math.round(Number(mon.bond) ?? 25), 0, BOND_MAX),
     nick: typeof mon.nick === 'string' ? mon.nick.slice(0, 12) : null,
-    shiny: !!mon.shiny,
+    // Hoa văn hiếm — client dùng 'stars' (db/flair của Tuxemon). Bản lưu đời cũ
+    // ghi cờ shiny (khái niệm của game khác) thì quy về 'stars'.
+    flair: (mon.flair === 'stars' || mon.shiny) ? 'stars' : null,
   };
   // Field của schema đời cũ, bản gốc không có
   delete out.ev; delete out.nature; delete out.ability; delete out.friendship;
+  delete out.shiny;
   return out;
 }
 

@@ -111,7 +111,7 @@ export function attemptCatch(mon, ballId) {
 
   const catchCheck = (3 * max - 2 * cur) * rate
     * statusModifier(ballId, mon) * ballModifier(ballId, mon) / (3 * max);
-  if (catchCheck <= 0) return { caught: false, shakes: 0, crit: false };
+  if (catchCheck <= 0) return { caught: false, shakes: 0 };
 
   const lo = spec?.catchLo ?? 1, hi = spec?.catchHi ?? 1;
   const resist = lo + Math.random() * Math.max(0, hi - lo);
@@ -121,8 +121,8 @@ export function attemptCatch(mon, ballId) {
 
   for (let i = 0; i < TOTAL_SHAKES; i++) {
     if (rng.int(0, SHAKE_DIVISOR) > Math.floor(shakeCheck)) {
-      return { caught: false, shakes: i + 1, crit: false };
+      return { caught: false, shakes: i + 1 };
     }
   }
-  return { caught: true, shakes: TOTAL_SHAKES, crit: false };
+  return { caught: true, shakes: TOTAL_SHAKES };
 }

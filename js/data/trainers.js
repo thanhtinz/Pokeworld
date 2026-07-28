@@ -86,7 +86,7 @@ export const TRAINERS = {
     rewardMoney: 1200,
     intro: "Ta là chủ võ đường đầu tiên. Cho ta xem cậu tiến bộ tới đâu!",
     lose: "Cậu xứng đáng với huy hiệu này.",
-    badge: "badge_boulder", badgeName: "Huy Hiệu Đá",
+    badge: "shaft_badge", badgeName: "Huy Hiệu Hầm Mỏ",
   },
   vo_duong_nuoc: {
     sprite: "vo_su_nuoc", name: "Thuỷ — Võ Đường Nước", kind: "gym", zone: "cotton_town",
@@ -94,7 +94,7 @@ export const TRAINERS = {
     rewardMoney: 2000,
     intro: "Nước mềm nhưng bào mòn được cả đá đấy!",
     lose: "Được lắm, huy hiệu là của cậu.",
-    badge: "badge_cascade", badgeName: "Huy Hiệu Thác",
+    badge: "scoop_badge", badgeName: "Huy Hiệu Kem",
   },
   rival_1: {
     sprite: "rogue", name: "Vũ", kind: "rival", zone: "route1",

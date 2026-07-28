@@ -290,7 +290,7 @@ export class Battle {
     const cuong = wildRampage(mon);
     if (cuong > 0) {
       mon.hpCur = Math.max(0, mon.hpCur - cuong);
-      ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: cuong, crit: false, eff: 1 });
+      ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: cuong, eff: 1 });
       ev.push({ t: 'msg', text: `${displayName(mon)} phát cuồng, quay ra tự cắn mình!` });
       return;
     }
@@ -348,7 +348,7 @@ export class Battle {
       // struggle không nằm trong bảng chiêu: tính tay theo đúng công thức Tuxemon
       const stA = stats(mon), stD = stats(foe);
       const dmg = Math.floor(stA.melee * (7 + mon.lv) * 1 / Math.max(1, stD.armour));
-      res = { dmg: Math.max(1, dmg), crit: false, eff: 1, missed: false };
+      res = { dmg: Math.max(1, dmg), eff: 1, missed: false };
     }
 
     // Chiêu "phủ đầu" (splash): bản gốc vẫn tính sát thương rồi CHIA cho divisor
@@ -384,23 +384,22 @@ export class Battle {
         ev.push({ t: 'msg', text: `${displayName(foe)} lì đòn, vẫn còn 1 máu!` });
       }
       ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: res.dmg,
-                crit: res.crit, eff: res.eff, moveType: (mv.types || ['normal'])[0],
+                eff: res.eff, moveType: (mv.types || ['normal'])[0],
                 sfx: mv.sfx || '', anim: mv.anim || '' });
-      if (res.crit) ev.push({ t: 'msg', text: 'Đòn chí mạng!' });
       const et = effText(res.eff);
       if (et) ev.push({ t: 'msg', text: et });
       // Gai / phản đòn / khiên nguyên tố đâm ngược người ra đòn
       const gai = thornDamage(foe, mon, mv.range);
       if (gai > 0) {
         mon.hpCur = Math.max(0, mon.hpCur - gai);
-        ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: gai, crit: false, eff: 1 });
+        ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: gai, eff: 1 });
         ev.push({ t: 'msg', text: `${displayName(mon)} bị dội ngược!` });
       }
       // Đáp trả / báo thù: giáng lại đúng số sát thương vừa ăn
       const dap = counterDamage(foe, mv.range, res.dmg);
       if (dap) {
         mon.hpCur = Math.max(0, mon.hpCur - dap.dmg);
-        ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: dap.dmg, crit: false, eff: 1 });
+        ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: dap.dmg, eff: 1 });
         ev.push({ t: 'msg', text: `${displayName(foe)} đáp trả nguyên đòn vừa rồi!` });
         if (dap.hut && !isFainted(foe)) {
           const truoc = foe.hpCur;
@@ -450,7 +449,7 @@ export class Battle {
         if (!target || isFainted(target)) continue;
         const d = Math.max(1, Math.floor(maxHp(target) * (e.n || 0.25)));
         target.hpCur = Math.max(0, target.hpCur - d);
-        ev.push({ t: 'dmg', side: si, slot: this.sides[si].active, dmg: d, crit: false, eff: 1 });
+        ev.push({ t: 'dmg', side: si, slot: this.sides[si].active, dmg: d, eff: 1 });
       } else if (e.t === 'remove') {
         const [, target] = ben(e.to);
         if (target && removeStatus(target, e.cat)) {
@@ -495,7 +494,7 @@ export class Battle {
         const d = Math.max(1, Math.floor(mon.hpCur * (e.n ?? 1)));
         mon.hpCur = 0;
         foe.hpCur = Math.max(0, foe.hpCur - d);
-        ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: d, crit: false, eff: 1 });
+        ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: d, eff: 1 });
         ev.push({ t: 'msg', text: `${displayName(mon)} tự huỷ để giáng một đòn!` });
       } else if (e.t === 'life_swap') {
         if (!foe || isFainted(foe) || isFainted(mon)) continue;
@@ -568,7 +567,7 @@ export class Battle {
         const lao = raSan ? swapDamage(raSan) : 0;
         if (lao > 0) {
           raSan.hpCur = Math.max(0, raSan.hpCur - lao);
-          ev.push({ t: 'dmg', side: i, slot: s.active, dmg: lao, crit: false, eff: 1 });
+          ev.push({ t: 'dmg', side: i, slot: s.active, dmg: lao, eff: 1 });
           ev.push({ t: 'msg', text: `${displayName(raSan)} bị lao giật khi rút lui!` });
         }
         s.active = a.slot;
@@ -596,7 +595,7 @@ export class Battle {
         const foeMon = this.activeMon(oi);
         ev.push({ t: 'msg', text: `Ném ${(ITEMS[a.id] && ITEMS[a.id].name) || a.id}!` });
         const res = attemptCatch(foeMon, a.id);
-        ev.push({ t: 'catch', caught: res.caught, shakes: res.shakes, crit: res.crit });
+        ev.push({ t: 'catch', caught: res.caught, shakes: res.shakes });
         if (res.caught) {
           foeMon.ball = a.id;
           // Vài loại bóng còn sửa con vừa bắt: kẹo +1 cấp, bóng khẩu vị đổi vị
@@ -647,7 +646,7 @@ export class Battle {
             if (r.msg) ev.push({ t: 'msg', text: r.msg });
           }
           if (r.dmg > 0) {
-            ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: r.dmg, crit: false, eff: 1 });
+            ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: r.dmg, eff: 1 });
             if (r.msg) ev.push({ t: 'msg', text: r.msg });
             if (isFainted(mon) && !survives(mon)) {
               if (this.handleFaint(i, ev)) this.endBattle(1 - i, ev);

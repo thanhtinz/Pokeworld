@@ -133,7 +133,7 @@ router.get('/config', (req, res) => {
   const c = getDb().config;
   res.json({
     serverName: c.serverName, motd: c.motd,
-    expMult: c.expMult, moneyMult: c.moneyMult, shinyMult: c.shinyMult,
+    expMult: c.expMult, moneyMult: c.moneyMult, flairMult: c.flairMult,
     online: global.__pwOnlineCount || 0,
   });
 });
@@ -146,6 +146,6 @@ router.get('/player/:username', (req, res) => {
     username: u.username, avatar: u.avatar, lastSeen: u.lastSeen,
     stats: u.stats, badges: u.save?.badges || [],
     dexCaught: Object.keys(u.save?.dex?.caught || {}).length,
-    party: (u.save?.party || []).map(m => ({ sp: m.sp, lv: m.lv, shiny: !!m.shiny, nick: m.nick })),
+    party: (u.save?.party || []).map(m => ({ sp: m.sp, lv: m.lv, flair: m.flair || null, nick: m.nick })),
   });
 });

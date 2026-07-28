@@ -737,6 +737,15 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .party-slot .hpbar { width: 100%; }
 .ps-mid { width: 100%; display: flex; flex-direction: column; gap: 5px; align-items: center; position: relative; z-index: 1; }
 .ps-name { max-width: 100%; }
+/* Hoa văn hiếm: dán góc thẻ, không chen vào tên cho khỏi cắt cụt tên */
+/* Hoa văn hiếm (db/flair của bản gốc): lấp lánh phủ lên sprite, đặt riêng ra
+   ngoài tên cho khỏi chen chỗ làm cắt cụt tên con vật */
+.party-slot img.flair-corner, img.flair-corner {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  width: 76px; height: 76px; pointer-events: none; z-index: 2;
+  image-rendering: pixelated; opacity: .85;
+  filter: drop-shadow(0 0 5px rgba(240, 180, 41, .8));
+}
 .ps-hp { color: #ddd5f5; font-family: var(--pix2); font-size: .95rem; line-height: 1; text-shadow: 0 1px 0 rgba(0,0,0,.6); }
 .party-empty-note { grid-column: 1 / -1; }
 .detail-card { margin-top: 10px; animation: pop .18s; }
@@ -1122,7 +1131,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .modal-opt .item-ico, .modal-opt .zone-ico, .modal-opt .asset-ico { margin-right: 6px; }
 
 /* Nhan chu thay cho emoji */
-.shiny-tag, .won-pill, .done-pill {
+.flair-tag, .won-pill, .done-pill {
   display: inline-block;
   padding: 1px 6px;
   border-radius: 999px;
@@ -1132,7 +1141,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
   letter-spacing: .5px;
   vertical-align: middle;
 }
-.shiny-tag { background: rgba(240, 180, 41, .2); color: var(--gold); border: 1px solid rgba(240, 180, 41, .5); }
+.flair-tag { display:inline-flex; align-items:center; gap:3px; background: rgba(240, 180, 41, .2); color: var(--gold); border: 1px solid rgba(240, 180, 41, .5); }
 .won-pill { background: rgba(81, 207, 102, .18); color: #b2f2bb; border: 1px solid rgba(81, 207, 102, .5); }
 .done-pill { background: rgba(81, 207, 102, .18); color: #b2f2bb; border: 1px solid rgba(81, 207, 102, .5); margin-left: 6px; }
 .login-lock { color: var(--muted); font-size: .68rem; white-space: nowrap; }

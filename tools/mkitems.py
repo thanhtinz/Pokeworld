@@ -47,6 +47,7 @@ NHOM = {
     'food': 'food',
     'stats': 'stat',
     'none': 'tea',
+    'badge': 'badge',         # huy hieu vo duong
     'technique': 'tm',        # dia day chieu (TM/MM)
     'elements': 'element',    # qua doi he
 }
@@ -134,6 +135,10 @@ TEN = {
     'tm_surf': 'Đĩa Chiêu: Lướt Sóng', 'tm_vorpal': 'Đĩa Chiêu: Chém Đứt',
     'mm_earth': 'Đĩa Hệ Đất', 'mm_fire': 'Đĩa Hệ Lửa', 'mm_metal': 'Đĩa Hệ Kim',
     'mm_water': 'Đĩa Hệ Nước', 'mm_wood': 'Đĩa Hệ Gỗ',
+
+    'shaft_badge': 'Huy Hiệu Hầm Mỏ', 'scoop_badge': 'Huy Hiệu Kem',
+    'omnichannel_badge': 'Huy Hiệu Thương Trường', 'greenwash_badge': 'Huy Hiệu Xanh',
+    'nimrod_badge': 'Huy Hiệu Thợ Săn',
 
     'cosmic_berry': 'Quả Vũ Trụ', 'earth_berry': 'Quả Đất', 'fire_berry': 'Quả Lửa',
     'frost_berry': 'Quả Băng', 'heroic_berry': 'Quả Anh Hùng',
@@ -289,6 +294,9 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
             return 'Tỉ lệ bắt gấp %s lần Tuxeball thường.' % (
                 ('%.2f' % m).rstrip('0').rstrip('.'))
         return 'Tuxeball cơ bản để bắt Tuxemon hoang.'
+
+    if cat == 'badge':
+        return 'Vật chứng thắng một võ đường. Giữ đủ huy hiệu mới đi tiếp được.'
 
     phan = []
     for e in eff:
@@ -467,7 +475,10 @@ def main():
         d = yaml.safe_load(open(os.path.join(db, f), encoding='utf-8')) or {}
         eff = [e for e in (d.get('effects') or []) if isinstance(e, dict)]
         mang_theo = d['slug'] in MANG_THEO and (d.get('behaviors') or {}).get('holdable')
-        if not mang_theo:
+        # Huy hieu vo duong khong co hieu ung gi — no la vat chung minh da thang,
+        # giu lai de lay ten + icon that cua Tuxemon thay cho huy hieu tu che.
+        huy_hieu = (d.get('category') or '') == 'badge'
+        if not mang_theo and not huy_hieu:
             if not eff or not (set(e['type'] for e in eff) & HIEU_UNG):
                 continue
             # Bo mon hieu ung phu tro chua chay duoc (learn_tm, switch_type...)
@@ -487,6 +498,7 @@ def main():
         if any(e['type'] == 'heal' and float((e.get('parameters') or ['0'])[0]) < 0
                for e in eff):
             continue
+
 
         # Duong dan anh nam ngay trong tep item (nhieu mon dung chung mot anh)
         if slug in ANH:
@@ -515,6 +527,11 @@ def main():
                                       round((d.get('cost') or mac_dinh) * 0.5)))
         trong_tran = 'MainCombatMenuState' in (d.get('usable_in') or [])
         ngoai_tran = 'WorldState' in (d.get('usable_in') or [])
+        if huy_hieu:
+            # Huy hieu khong "dung" duoc, khong ban duoc — chi de trung bay
+            trong_tran = ngoai_tran = False
+            eff = []
+            d = dict(d, conditions=[])
         rows.append((slug, obj({
             'name': js(MANG_THEO[slug][0] if mang else (TEN.get(slug) or ten_anh.get(slug) or slug)),
             'desc': js(MANG_THEO[slug][2] if mang else mo_ta(slug, cat, eff, capdev, tien_hoa)),

@@ -91,7 +91,7 @@ export const CHAPTERS = [
     dialog: [
       ['sys', 'Võ đường nằm ngay giữa Thị Trấn Taba. Thạch — bậc thầy hệ Đất — đang chờ người dám thách đấu.'],
     ],
-    goal: { t: 'earn_badge', id: 'badge_boulder' },
+    goal: { t: 'earn_badge', id: 'shaft_badge' },
     outro: [
       ['prof', 'Huy hiệu Đất! Cháu đúng là có tố chất. Giờ thì ra Đường1 Sanglorian chặn Team Xero thôi!'],
     ],
@@ -134,7 +134,7 @@ export const CHAPTERS = [
       ['sys', 'Hai thử thách cuối cùng: Võ Đường Nước, và... người bạn đối thủ.'],
     ],
     goal: { t: 'defeat_trainer', id: 'rival_2' },
-    require: { badge: 'badge_cascade' }, // cần badge nước trước khi rival_2 xuất hiện
+    require: { badge: 'scoop_badge' }, // cần badge nước trước khi rival_2 xuất hiện
     outro: [
       ['rival', 'Thua tâm phục khẩu phục... Cậu xứng đáng là Nhà Vô Địch. Nhưng tớ chưa bỏ cuộc đâu!'],
       ['prof', 'Cháu đi được một chặng dài rồi. Từ hôm nay cháu là NHÀ VÔ ĐỊCH của vùng — và là bằng chứng sống rằng lệnh cấm kia sai.'],

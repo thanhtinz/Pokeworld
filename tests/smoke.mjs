@@ -1,6 +1,23 @@
 // TuxeWorld H5 | tests/smoke.mjs | Smoke test chạy bằng node (không cần trình duyệt)
 // Kiểm tra data + engine: import sạch, số liệu khớp chéo, battle chạy trọn trận.
 // Test này CHẶN DEPLOY: hỏng là GitHub Actions không đẩy được bản mới lên web.
+// engine/overworld.js kéo theo mapbake.js, mà mapbake dựng đối tượng Image để
+// vẽ. Node không có Image — cắm một cái giả vào cho import chạy trót lọt; test
+// này chỉ đụng tới bảng va chạm chứ không vẽ gì.
+globalThis.Image = class { constructor() { this.complete = false; this.naturalWidth = 0; } };
+
+// engine/accounts.js lưu vào localStorage. Node không có — cắm bản giả bằng Map
+// để chạy được đường save -> load -> vá bản lưu cũ.
+{
+  const kho = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (kho.has(k) ? kho.get(k) : null),
+    setItem: (k, v) => kho.set(k, String(v)),
+    removeItem: (k) => kho.delete(k),
+    clear: () => kho.clear(),
+  };
+}
+
 import { SPECIES } from '../js/data/species.js';
 import { MOVES } from '../js/data/moves.js';
 import { LEARNSETS } from '../js/data/learnsets.js';
@@ -158,6 +175,45 @@ for (const [id, mp] of Object.entries(MAPS)) {
 }
 ok('NPC đứng cách nhau, không tụ thành đám', npcBad.length === 0, npcBad.slice(0, 3).join(' | '));
 
+// NPC PHẢI ĐI ĐƯỢC THẬT. Bản trước đặt hai luật tự nghĩ ra trong npcCanWalk —
+// cấm bước lên ô có ít hơn ba lối ra, và cấm đứng cách NPC khác một ô — kết quả
+// là NPC trong nhà và trong hẻm đứng chôn chân, còn NPC ngoài trời dồn hết về
+// mấy khoảng đất trống. Test này chạy thẳng vòng lặp thật của game.
+{
+  const { player, updateNpcs } = await import('../js/engine/overworld.js');
+  const dungYen = [];
+  let dong = 0, tong = 0;
+  for (const [id, mp] of Object.entries(MAPS)) {
+    const diDuoc = (mp.npcs || []).filter(n => n.ai === 'wander' || n.ai === 'patrol');
+    if (!diDuoc.length) continue;
+    player.mapId = id;
+    player.x = -50; player.y = -50;              // đẩy người chơi ra xa
+    for (const n of mp.npcs) delete n.home;
+    const goc = new Map(diDuoc.map(n => [n, `${n.x},${n.y}`]));
+    const daDi = new Set();
+    for (let i = 0; i < 60 * 60; i++) {          // 60 giây
+      updateNpcs(1 / 60);
+      for (const n of diDuoc) if (`${n.x},${n.y}` !== goc.get(n)) daDi.add(n);
+    }
+    tong += diDuoc.length;
+    dong += daDi.size;
+    for (const n of diDuoc) if (!daDi.has(n)) dungYen.push(`${id}:${n.sprite}@${goc.get(n)}`);
+  }
+  ok('NPC kiểu đi lại thì đi được thật', dong === tong,
+    `${dong}/${tong} · kẹt: ${dungYen.slice(0, 5).join(' ')}`);
+
+  // Đang bị nhìn thẳng mặt thì đứng yên, không thì lát sau bấm nói chuyện hụt
+  const mp = MAPS.taba_town;
+  const ai = (mp.npcs || []).find(n => n.ai === 'wander');
+  player.mapId = 'taba_town';
+  for (const n of mp.npcs) delete n.home;
+  player.x = ai.x + 0.5; player.y = ai.y - 1 + 0.5; player.dir = 'down';
+  const cho = `${ai.x},${ai.y}`;
+  for (let i = 0; i < 60 * 10; i++) updateNpcs(1 / 60);
+  ok('NPC đang bị nhìn thẳng thì đứng yên cho bấm nói chuyện',
+    `${ai.x},${ai.y}` === cho, `${cho} -> ${ai.x},${ai.y}`);
+}
+
 ok('khắc hệ: nước đánh lửa = 2', typeEff('water', ['fire']) === 2);
 ok('khắc hệ: lửa đánh nước = 0.5', typeEff('fire', ['water']) === 0.5);
 ok('khắc hệ: hệ lạ trả về 1', typeEff('khong_co', ['fire']) === 1);
@@ -299,7 +355,8 @@ ok(`đòn khắc hệ ${mvId} có hệ số > 1 (hoặc trượt)`, dmg.missed |
     return v >= 0.25 && v <= 4;
   }));
   // Bản gốc không có STAB và không có chí mạng
-  ok('không có đòn chí mạng', calcDamage(att, def, entry ? entry[0] : 'ram', {}).crit === false);
+  ok('không có đòn chí mạng',
+    calcDamage(att, def, entry ? entry[0] : 'ram', {}).crit === undefined);
 }
 
 // EXP: tổng exp để lên cấp N = N^3, hạ một con cấp L cho L^2 (nêm theo loại trận)
@@ -471,7 +528,7 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const it = Object.entries(ITEMS);
   ok('có đủ bộ vật phẩm', it.length >= 80, String(it.length));
   // Đồ mang theo không "dùng" mà cho Tuxemon cầm, nên không có eff/inBattle
-  const dung = it.filter(([, x]) => !x.held);
+  const dung = it.filter(([, x]) => !x.held && x.kind !== 'badge');
   ok('món nào cũng có ít nhất một hiệu ứng', dung.every(([, x]) => x.eff.length > 0));
   ok('món nào cũng dùng được ở đâu đó', dung.every(([, x]) => x.inBattle || x.inWorld));
   ok('có đồ mang theo', it.some(([, x]) => x.held));
@@ -602,6 +659,69 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   quet('css', ['.css']);
   ok('đường dẫn ảnh/âm thanh viết cứng nào cũng có tệp thật',
     thieu.length === 0, thieu.slice(0, 5).join(' | '));
+
+  // itemIcon('x') mà x không có trong bảng vật phẩm thì hàm trả về chuỗi rỗng —
+  // không lỗi, không 404, chỉ là chỗ đó trống trơn và chẳng ai phát hiện. Giao
+  // diện từng gọi hai mã vật phẩm chìa khoá của game khác (fame_checker,
+  // vs_recorder) suốt một thời gian dài đúng vì thế.
+  const lac = [];
+  const doIcon = (thuMuc) => {
+    for (const f of readdirSync(join(goc, thuMuc), { withFileTypes: true })) {
+      const p2 = join(thuMuc, f.name);
+      if (f.isDirectory()) { doIcon(p2); continue; }
+      if (!f.name.endsWith('.js')) continue;
+      const src = readFileSync(join(goc, p2), 'utf8');
+      for (const m of src.matchAll(/itemIcon\(\s*['"]([a-z_0-9]+)['"]/g)) {
+        if (!ITEMS[m[1]]) lac.push(`${p2}: ${m[1]}`);
+        else if (!existsSync(join(goc, `assets/items/${m[1]}.png`))) lac.push(`${p2}: thiếu ảnh ${m[1]}`);
+      }
+    }
+  };
+  doIcon('js');
+  ok('mã vật phẩm giao diện gọi tới đều có thật', lac.length === 0, lac.join(' | '));
+}
+
+// Hoa văn hiếm: Tuxemon không có shiny, chỉ có db/flair
+{
+  const goc2 = new URL('..', import.meta.url).pathname;
+  const m = newTuxemon(STARTERS[0].sp, 5, { flair: 'stars' });
+  ok('con hiếm mang hoa văn stars', m.flair === 'stars' && m.shiny === undefined);
+  ok('con thường không có hoa văn', newTuxemon(STARTERS[0].sp, 5, { flair: null }).flair === null);
+  ok('có ảnh hoa văn của bản gốc', existsSync(join(goc2, 'assets/ui/flair/stars.png')));
+}
+
+// Bản lưu đời cũ mở lên phải tự đổi sang mã mới, không mất tiến trình
+{
+  const { register } = await import('../js/engine/accounts.js');
+  const { load, save } = await import('../js/state.js');
+  await register('tester_va', '123456');
+  newGame('Tester');
+  G.p.badges = ['badge_boulder', 'badge_cascade'];
+  G.p.defeatedTrainers = { gym_brock: true };
+  G.p.party = [{ ...newTuxemon(STARTERS[0].sp, 10), shiny: true, flair: undefined }];
+  save();
+  G.p = null;
+  ok('nạp lại được bản lưu', load() === true);
+  ok('huy hiệu cũ đổi sang bộ của Tuxemon',
+    G.p.badges.join() === 'shaft_badge,scoop_badge', G.p.badges.join());
+  ok('mã huấn luyện viên cũ vẫn tính là đã thắng', G.p.defeatedTrainers.vo_duong_dat === true);
+  ok('cờ shiny cũ đổi thành hoa văn stars',
+    G.p.party[0].flair === 'stars' && G.p.party[0].shiny === undefined);
+}
+
+// Huy hiệu: dùng đúng bộ của Tuxemon, không phải huy hiệu vùng Kanto
+{
+  const hh = Object.entries(ITEMS).filter(([, x]) => x.kind === 'badge');
+  ok('có bộ huy hiệu của Tuxemon', hh.length === 5, String(hh.length));
+  ok('huy hiệu không bán, không dùng được',
+    hh.every(([, x]) => !x.price && !x.inBattle && !x.inWorld));
+  const gym = Object.values(TRAINERS).filter(t => t.badge);
+  ok('võ đường nào cũng trao huy hiệu có thật trong bảng',
+    gym.length > 0 && gym.every(t => ITEMS[t.badge]?.kind === 'badge'),
+    gym.map(t => t.badge).join(' '));
+  const kanto = /badge_(boulder|cascade|thunder|rainbow|soul|marsh|volcano|earth)/;
+  const dinh = [...Object.keys(ITEMS), ...gym.map(t => t.badge)].filter(x => kanto.test(x));
+  ok('không còn huy hiệu đặt tên theo game khác', dinh.length === 0, dinh.join(' '));
 }
 
 // Mã huấn luyện viên không còn đặt theo hạng huấn luyện viên của game khác

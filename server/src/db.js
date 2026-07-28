@@ -47,10 +47,15 @@ export function loadDb() {
     motd: 'Chào mừng đến TuxeWorld Online!',
     expMult: 1,
     moneyMult: 1,
-    shinyMult: 1,
+    flairMult: 1,
     serverName: 'TuxeWorld',
     ...db.config,
   };
+  // Cấu hình đời cũ đặt tên theo khái niệm shiny của game khác
+  if (db.config.shinyMult !== undefined) {
+    db.config.flairMult = db.config.shinyMult;
+    delete db.config.shinyMult;
+  }
   return db;
 }
 

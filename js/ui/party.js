@@ -10,7 +10,7 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { tasteText } from '../data/tastes.js';
 import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
-import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, header, holoStyle, itemIcon } from './kit.js';
+import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, header, holoStyle, itemIcon, flairTag } from './kit.js';
 import { rangeIcon, speedIcon } from './icons.js';
 import { openSheet } from './sheet.js';
 
@@ -30,9 +30,10 @@ export function render(el) {
           <button class="holo-card party-slot ${sel === i ? 'sel' : ''} ${isFainted(m) ? 'ko' : ''}" data-i="${i}"
                   style="${holoStyle(SPECIES[m.sp] ? SPECIES[m.sp].types : [])}">
             <span class="lv-chip">Lv.${m.lv}</span>
+            ${m.flair ? '<img class="flair-corner" src="assets/ui/flair/stars.png" width="18" height="18" alt="hiếm" title="Hoa văn hiếm">' : ''}
             <img class="holo-sprite px-icon" src="${monImg(m)}" width="72" height="72" alt="">
             <div class="ps-mid">
-              <span class="holo-name ps-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</span>
+              <span class="holo-name ps-name">${esc(displayName(m))}</span>
               ${statusTag(m.status)}${plagueTag(m.plague)}
               ${hpBar(m.hpCur, maxHp(m))}
               <small class="ps-hp">${m.hpCur}/${maxHp(m)}</small>
@@ -73,7 +74,7 @@ export function render(el) {
         <div class="detail-top">
           <img src="${monImg(m)}" width="96" height="96" alt="" class="detail-sprite px-icon">
           <div>
-            <h2>${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</h2>
+            <h2>${esc(displayName(m))}${flairTag(m)}</h2>
             <div>${(spec ? spec.types : []).map(typeBadge).join(' ')}</div>
             <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(tasteText(m))}</small><br>
             <small>EXP: ${cur}/${need} tới level sau</small><br>
@@ -182,7 +183,7 @@ export function render(el) {
   async function openBox() {
     if (G.p.box.length === 0) { toast('Box trống!'); return; }
     const i = await choose(`Box (${G.p.box.length}/${CONFIG.BOX_SIZE})`, G.p.box.map(m => ({
-      label: `${displayName(m)} Lv.${m.lv}${m.shiny ? ' (Shiny)' : ''}`,
+      label: `${displayName(m)} Lv.${m.lv}${m.flair ? ' ★' : ''}`,
       sub: `HP ${m.hpCur}/${maxHp(m)}`,
     })));
     if (i === null) return;

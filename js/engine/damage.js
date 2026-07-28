@@ -45,18 +45,20 @@ export function typeMultiplier(moveTypes, defTypes) {
 }
 
 // Tính sát thương 1 đòn. ctx = { attStage, defStage }
-// Trả về: { dmg, crit, eff (hệ số khắc hệ), missed }
+// Trả về: { dmg, eff (hệ số khắc hệ), missed }
+// KHÔNG có đòn chí mạng: Tuxemon không có khái niệm đó, sát thương chỉ do chỉ
+// số, cấp, hệ số chiêu và khắc hệ quyết định.
 export function calcDamage(att, def, moveId, ctx = {}) {
   const move = MOVES[moveId];
-  if (!move) return { dmg: 0, crit: false, eff: 1, missed: true };
+  if (!move) return { dmg: 0, eff: 1, missed: true };
 
   if (move.category !== 'damage' || !move.power || move.power <= 0) {
-    return { dmg: 0, crit: false, eff: 1, missed: false };
+    return { dmg: 0, eff: 1, missed: false };
   }
 
   const acc = move.acc;
   if (!ctx.boQuaDoTrung && acc && acc < 100 && !rng.roll(acc / 100)) {
-    return { dmg: 0, crit: false, eff: 1, missed: true };
+    return { dmg: 0, eff: 1, missed: true };
   }
 
   const [userKey, targetKey] = RANGE_MAP[move.range] || RANGE_MAP.melee;
@@ -81,7 +83,7 @@ export function calcDamage(att, def, moveId, ctx = {}) {
   const eff = typeMultiplier(ctx.types || move.types, typesOf(def));
   const dmg = Math.floor(strength * (move.power * eff) / resist);
 
-  return { dmg: Math.max(eff > 0 ? 1 : 0, dmg), crit: false, eff, missed: false };
+  return { dmg: Math.max(eff > 0 ? 1 : 0, dmg), eff, missed: false };
 }
 
 export function effText(eff) {

@@ -21,7 +21,7 @@ export const COEFF_STATS = 7;      // config_monster.coeff_stats của bản g�
 const FALLBACK_SPEC = { name: '???', types: ['normal'],
   base: { hp: 6, armour: 6, dodge: 6, melee: 6, ranged: 6, speed: 6 } };
 
-// Tạo một con mới. opts = { iv, tasteCold, tasteWarm, gender, shiny, ball, moves }
+// Tạo một con mới. opts = { iv, tasteCold, tasteWarm, gender, flair, ball, moves }
 export function newTuxemon(spId, level, opts = {}) {
   const spec = SPECIES[spId];
   if (!spec) {
@@ -49,11 +49,13 @@ export function newTuxemon(spId, level, opts = {}) {
     else gender = 'f';
   }
 
-  // Shiny: 1/SHINY_DENOM
-  let shiny = opts.shiny;
-  if (shiny === undefined || shiny === null) {
-    shiny = rng.roll(1 / CONFIG.SHINY_DENOM);
-  }
+  // Hoa văn hiếm (flair). Tuxemon KHÔNG có shiny — cái bản game này từng gọi là
+  // shiny là khái niệm của game khác. Bản gốc có db/flair: hoa văn cosmetic vẽ
+  // đè lên sprite, nhóm 'common' hiện mới có mỗi 'stars'. Dùng luôn cái đó làm
+  // dấu hiệu con hiếm; tỉ lệ FLAIR_DENOM là lựa chọn của bản web, bản gốc không
+  // ràng buộc gì.
+  let flair = opts.flair !== undefined ? opts.flair : (opts.shiny ? 'stars' : undefined);
+  if (flair === undefined) flair = rng.roll(1 / CONFIG.FLAIR_DENOM) ? 'stars' : null;
 
   const mon = {
     sp: spId,
@@ -65,7 +67,7 @@ export function newTuxemon(spId, level, opts = {}) {
     tasteCold,
     tasteWarm,
     gender,
-    shiny: !!shiny,
+    flair: flair || null,
     ball: opts.ball || 'tuxeball',
     moves: opts.moves || defaultMoves(spId, lv),
     hpCur: 0,

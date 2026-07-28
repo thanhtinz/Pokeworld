@@ -138,6 +138,17 @@ def main():
         else:
             thieu.append(bname)
 
+    # Hoa van hiem (flair) cua ban goc — db/flair/flairs.yaml. Ban nay dung
+    # 'stars' lam dau hieu con hiem, thay cho nhan SHINY tu che.
+    os.makedirs('assets/ui/flair', exist_ok=True)
+    for fl in ('stars',):
+        p_fl = os.path.join(root, 'mods/tuxemon/gfx/sprites/flairs/common', fl + '.png')
+        if os.path.exists(p_fl):
+            copy_scaled(p_fl, 'assets/ui/flair/%s.png' % fl)
+            n += 1
+        else:
+            thieu.append('flair:' + fl)
+
     for f in sorted(os.listdir(os.path.join(ui, 'icons/status'))):
         if not f.startswith('icon_') or not f.endswith('.png'):
             continue

@@ -68,6 +68,13 @@ export function itemIcon(itemId, _legacy = '', size = 26) {
     onerror="this.style.visibility='hidden'"></span>`;
 }
 
+// Nhãn hoa văn hiếm — ảnh gfx/sprites/flairs/common/stars.png của bản gốc
+export function flairTag(mon) {
+  return mon && mon.flair
+    ? ' <span class="flair-tag"><img src="assets/ui/flair/stars.png" width="14" height="14" alt=""> HIẾM</span>'
+    : '';
+}
+
 // Chèn ảnh asset local, tự ẩn khi lỗi (không bao giờ rơi về emoji)
 export function assetIcon(path, size = 22, alt = '') {
   return `<span class="asset-ico"><img src="${path}" width="${size}" height="${size}" alt="${esc(alt)}"

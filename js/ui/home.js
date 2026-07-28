@@ -84,7 +84,7 @@ export function render(el) {
 
     ${ch ? `
     <button class="card story-card" id="btn-story">
-      <span class="story-badge">${itemIcon('fame_checker', '', 18)} ${prog.done}/${prog.total}</span>
+      <span class="story-badge">${itemIcon('shaft_badge', '', 18)} ${prog.done}/${prog.total}</span>
       <span class="story-body"><b>${esc(ch.title)}</b><small>${esc(ch.desc)}</small></span>
       ${needIntro() ? '<span class="story-new" title="Mới"></span>' : ''}
     </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="" onerror="this.style.visibility='hidden'"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Tuxedex!</div>` : '')}

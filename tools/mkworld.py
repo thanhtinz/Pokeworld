@@ -286,10 +286,10 @@ TRAINERS_META = [
      'Tôi đang đo địa chấn, đừng làm phiền!', 'Số liệu của tôi sai ở đâu đó rồi...', None, None),
     ('vo_duong_dat', 'vo_su_dat', 'Thạch — Võ Đường Đất', 'gym', 'taba_town', 3, 1200,
      'Ta là chủ võ đường đầu tiên. Cho ta xem cậu tiến bộ tới đâu!',
-     'Cậu xứng đáng với huy hiệu này.', 'badge_boulder', 'Huy Hiệu Đá'),
+     'Cậu xứng đáng với huy hiệu này.', 'shaft_badge', 'Huy Hiệu Hầm Mỏ'),
     ('vo_duong_nuoc', 'vo_su_nuoc', 'Thuỷ — Võ Đường Nước', 'gym', 'cotton_town', 4, 2000,
      'Nước mềm nhưng bào mòn được cả đá đấy!',
-     'Được lắm, huy hiệu là của cậu.', 'badge_cascade', 'Huy Hiệu Thác'),
+     'Được lắm, huy hiệu là của cậu.', 'scoop_badge', 'Huy Hiệu Kem'),
     # Huan luyen vien cua cot truyen — id phai khop js/data/story.js
     # kind 'rival': doi hinh sinh o engine/story.js theo starter nguoi choi
     ('rival_1', 'rogue', 'Vũ', 'rival', 'route1', 1, 500,

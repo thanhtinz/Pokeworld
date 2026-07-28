@@ -157,12 +157,12 @@ export function adminRouter(io) {
   // Cấu hình live (MOTD, hệ số sự kiện)
   r.put('/config', (req, res) => {
     const c = getDb().config;
-    const { motd, expMult, moneyMult, shinyMult, serverName } = req.body || {};
+    const { motd, expMult, moneyMult, flairMult, serverName } = req.body || {};
     if (motd !== undefined) c.motd = String(motd).slice(0, 300);
     if (serverName !== undefined) c.serverName = String(serverName).slice(0, 40);
     if (expMult !== undefined) c.expMult = Math.max(1, Math.min(10, Number(expMult) || 1));
     if (moneyMult !== undefined) c.moneyMult = Math.max(1, Math.min(10, Number(moneyMult) || 1));
-    if (shinyMult !== undefined) c.shinyMult = Math.max(1, Math.min(50, Number(shinyMult) || 1));
+    if (flairMult !== undefined) c.flairMult = Math.max(1, Math.min(50, Number(flairMult) || 1));
     markDirty();
     io.emit('config:update', c);
     audit(req.admin, 'config', '-', JSON.stringify(c));

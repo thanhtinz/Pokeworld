@@ -18,7 +18,7 @@ import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeI
 import { textDelay, sfx, getSetting, playMusic } from '../engine/settings.js';
 import { SFX, MON_CRY } from '../data/sounds.js';
 import { fxFor } from '../data/vfx.js';
-import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, itemIcon } from './kit.js';
+import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, itemIcon, flairTag } from './kit.js';
 import { uiIcon, rangeIcon, speedIcon } from './icons.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
@@ -156,7 +156,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
             isFainted(x) ? 'faint' : (x.status ? 'status' : 'alive')}.png" alt="">`).join('')}</span>` : '';
     $enemy.innerHTML = `
       <div class="bt-info">
-        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}${plagueTag(m.plague)}</div>
+        <div class="bt-name">${esc(displayName(m))}${flairTag(m)} <small>Lv.${m.lv}</small> ${statusTag(m.status)}${plagueTag(m.plague)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
@@ -183,7 +183,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
              data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
       </span>
       <div class="bt-info">
-        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}${plagueTag(m.plague)}</div>
+        <div class="bt-name">${esc(displayName(m))}${flairTag(m)} <small>Lv.${m.lv}</small> ${statusTag(m.status)}${plagueTag(m.plague)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, mx)}</div>
         <div class="bt-hpnum"><span class="hp-txt">${m.hpCur}/${mx}</span></div>
         <div class="bt-row"><span class="bt-lab">EXP</span><div class="expbar"><div class="expbar-fill" style="width:${expPct}%"></div></div></div>
@@ -427,7 +427,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       caught = true;
       sfx('catch');
       ball.classList.add('caught');
-      log(ev.crit ? 'Bắt được! (Bắt chí mạng!)' : 'Bắt được!');
+      log('Bắt được!');
       await sleep(750);
     } else {
       ball.remove();
@@ -584,7 +584,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     }
   } else {
     const m = eMon();
-    log(`Một ${displayName(m)} hoang dã${m.shiny ? ' (Shiny)' : ''} xuất hiện!`);
+    log(`Một ${displayName(m)} hoang dã${m.flair ? ' (hiếm!)' : ''} xuất hiện!`);
     keu(m, 0);
   }
 }

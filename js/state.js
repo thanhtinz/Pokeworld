@@ -11,7 +11,7 @@ export const SAVE_VERSION = 1;
 
 export const CONFIG = {
   MAX_LEVEL: 100,
-  SHINY_DENOM: 1024,       // web chơi casual: shiny 1/1024 cho vui hơn bản gốc 1/4096
+  FLAIR_DENOM: 1024,       // 1/1024 con mang hoa văn hiếm (db/flair của bản gốc)
   // CHỖ LỆCH CÓ CHỦ Ý so với bản gốc: công thức sát thương của Tuxemon rất nặng
   // đòn — hai con cùng cấp thường hạ nhau trong 1-3 lượt, đánh xong chưa kịp
   // nghĩ gì. Bản web nhân máu tối đa lên ngần này để một trận kéo dài cỡ 6-10
@@ -85,6 +85,9 @@ function vaMons(list) {
     if (typeof m.bond !== 'number') m.bond = 25;
     delete m.friendship;               // độ thân thiết cũ đã thay bằng bond
     delete m.nature; delete m.ability; // bản gốc không có tính cách / đặc tính
+    // "shiny" là khái niệm của game khác — bản lưu cũ đổi sang hoa văn 'stars'
+    if (m.shiny !== undefined) { if (m.shiny && !m.flair) m.flair = 'stars'; delete m.shiny; }
+    if (m.flair && m.flair !== 'stars') m.flair = 'stars';
     if (m.held && !ITEMS[m.held]) delete m.held;   // món cũ đã bỏ khỏi bảng
     // Hệ do quả đổi hệ ghi đè — hệ lạ thì bỏ, để lấy lại hệ gốc của loài
     if (m.types && (!Array.isArray(m.types) || !m.types.every(t => TYPES[t]))) delete m.types;
@@ -106,6 +109,16 @@ const MA_CU = {
   rocket_1: 'xero_1', rocket_2: 'xero_2', rocket_boss: 'xero_boss',
 };
 
+// Huy hiệu đời đầu đặt tên theo huy hiệu vùng Kanto của game khác. Tuxemon có
+// bộ huy hiệu riêng (shaft, scoop, omnichannel, greenwash, nimrod) kèm icon,
+// nên đổi sang mã đó; bảng này chuyển bản lưu cũ để không mất huy hiệu đã ăn.
+const HUY_HIEU_CU = { badge_boulder: 'shaft_badge', badge_cascade: 'scoop_badge' };
+
+function doiHuyHieu(data) {
+  if (!Array.isArray(data.badges)) return;
+  data.badges = [...new Set(data.badges.map(b => HUY_HIEU_CU[b] || b))];
+}
+
 function doiMaTrainer(data) {
   const cu = data.defeatedTrainers;
   if (!cu) return;
@@ -125,6 +138,7 @@ export function load() {
     data.party = vaMons(data.party);
     data.box = vaMons(data.box);
     doiMaTrainer(data);
+    doiHuyHieu(data);
     G.p = data;
     return true;
   } catch (e) {
