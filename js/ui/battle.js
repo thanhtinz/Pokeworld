@@ -45,7 +45,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     const party = trainer.kind === 'rival' ? rivalTeam(trainerId) : (trainer.party || []);
     const mons = party.map(e =>
       Array.isArray(e) ? newTuxemon(e[0], e[1]) : newTuxemon(e.sp, e.lv, e.opts || {}));
-    enemySide = { mons: mons.filter(Boolean), kind: 'trainer' };
+    // Túi thuốc của huấn luyện viên: máy dùng theo luật mods/ai_items.yaml.
+    // Đội càng đông thì mang càng nhiều thuốc.
+    enemySide = { mons: mons.filter(Boolean), kind: 'trainer',
+      bag: trainer.bag ? { ...trainer.bag } : { potion: Math.min(3, mons.length) } };
     for (const m of enemySide.mons) markSeen(m.sp);
   } else {
     if (!enemy) { show(from); return; }
@@ -203,8 +206,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
               (mv.cd || 0) > 0 ? `Chờ ${mv.cd} lượt` : `Hồi ${def ? def.recharge : 0} lượt`}</small></span>
           </button>`;
         }).join('')}
-        ${m.moves.length === 0 ? '<div class="log-line">Không còn chiêu nào!</div>' : ''}
       </div>
+      ${m.moves.every(mv => (mv.cd || 0) > 0) ? `
+        <button class="btn btn-primary" id="bt-struggle" ${busy ? 'disabled' : ''}>
+          Gắng sức <small>(chiêu nào cũng đang hồi)</small></button>` : ''}
       <div class="bt-subrow">
         <button class="btn" id="bt-bag" ${busy ? 'disabled' : ''}>Túi</button>
         <button class="btn" id="bt-switch" ${busy ? 'disabled' : ''}>Đổi</button>
@@ -212,6 +217,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       </div>`;
     $act.querySelectorAll('.move-btn').forEach(btn =>
       btn.addEventListener('click', () => playerAct({ t: 'move', i: Number(btn.dataset.mv) })));
+    const gs = $act.querySelector('#bt-struggle');
+    if (gs) gs.addEventListener('click', () => playerAct({ t: 'struggle' }));
     $act.querySelector('#bt-bag').addEventListener('click', openBag);
     $act.querySelector('#bt-switch').addEventListener('click', openSwitch);
     const run = $act.querySelector('#bt-run');

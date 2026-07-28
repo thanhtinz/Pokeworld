@@ -25,6 +25,7 @@ import { attemptCatch, ballModifier, statusModifier, applyBallEffects,
 import { CAPDEV } from '../js/data/capdev.js';
 import { useItem, canUse, foodBond } from '../js/engine/useitem.js';
 import { escapeChance } from '../js/engine/escape.js';
+import { scoreMove, pickItem } from '../js/engine/ai.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
 import { STATUSES } from '../js/data/statuses.js';
@@ -451,6 +452,52 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const duong = new Set(Object.values(EVOLUTIONS).flat().flatMap(w => w.item || []));
   ok('đá tiến hoá nào cũng mở được ít nhất một đường',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
+}
+
+// AI đánh nhau: chấm điểm chiêu theo bản gốc
+{
+  const me = newTuxemon(STARTERS[0].sp, 20);
+  // Chiêu khắc hệ phải được chấm cao hơn chiêu vô dụng cùng sức mạnh
+  const foe = newTuxemon(STARTERS[2].sp, 20);
+  const list = Object.keys(MOVES).filter(id => MOVES[id].power > 0 && MOVES[id].acc === 100);
+  const khac = list.find(id => typeMultiplier(MOVES[id].types, SPECIES[foe.sp].types) > 1);
+  const thuong = list.find(id => typeMultiplier(MOVES[id].types, SPECIES[foe.sp].types) === 1
+    && MOVES[id].power === MOVES[khac].power && MOVES[id].range === MOVES[khac].range);
+  if (khac && thuong) {
+    ok('AI chấm chiêu khắc hệ cao hơn chiêu thường',
+      scoreMove(me, khac, foe) > scoreMove(me, thuong, foe));
+  }
+  // Chiêu hồi máu: sắp gục thì đáng dùng, đầy máu thì không
+  const hoi = Object.keys(MOVES).find(id => (MOVES[id].heal || 0) > 0);
+  if (hoi) {
+    const yeu = newTuxemon(STARTERS[0].sp, 20); yeu.hpCur = 1;
+    const khoe = newTuxemon(STARTERS[0].sp, 20);
+    ok('AI chỉ hồi máu khi sắp gục', scoreMove(yeu, hoi, foe) > scoreMove(khoe, hoi, foe));
+  }
+  // Huấn luyện viên dùng thuốc đúng khoảng máu của mods/ai_items.yaml
+  const t = newTuxemon(STARTERS[1].sp, 20);
+  t.hpCur = Math.floor(maxHp(t) * 0.5);
+  ok('máu nửa vời thì trainer uống thuốc', pickItem(t, { potion: 2 }) === 'potion');
+  t.hpCur = maxHp(t);
+  ok('máu đầy thì không uống', pickItem(t, { potion: 2 }) === null);
+
+  // Trận thật: trainer mang thuốc phải dùng được và trận vẫn kết thúc
+  const b = new Battle({ kind: 'trainer',
+    sides: [{ kind: 'player', mons: [newTuxemon(STARTERS[0].sp, 30)] },
+      { kind: 'trainer', mons: [newTuxemon(STARTERS[2].sp, 25)], bag: { potion: 3 } }] });
+  let n = 0;
+  let uong = false;
+  while (!b.over && n < 80) {
+    // Chiêu nào cũng đang hồi thì gắng sức, đúng như nút trong game
+    const me2 = b.activeMon(0);
+    const co = me2.moves.findIndex(mv => (mv.cd || 0) <= 0);
+    b.submit(0, co >= 0 ? { t: 'move', i: co } : { t: 'struggle' });
+    const r = b.resolve();
+    if (r.events.some(e => e.t === 'msg' && e.text.includes('Thuốc Hồi'))) uong = true;
+    n++;
+  }
+  ok('trận với trainer vẫn kết thúc', b.over, `${n} lượt`);
+  ok('trainer có uống thuốc khi máu xuống thấp', uong);
 }
 
 // ==== Bảng gặp Tuxemon hoang lấy từ db/encounter ====

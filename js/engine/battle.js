@@ -12,6 +12,7 @@ import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch, applyBallEffects, keepOnFail, keepOnCatch } from './catchmon.js';
 import { attemptEscape } from './escape.js';
 import { useItem } from './useitem.js';
+import { bestMove, pickItem } from './ai.js';
 
 // Tên chỉ số tiếng Việt (cho thông báo tăng/giảm chỉ số) — 6 chỉ số của Tuxemon
 const STAT_VI = {
@@ -42,6 +43,7 @@ export class Battle {
         mons: s.mons,
         id: s.id,
         kind: s.kind || 'player',
+        bag: s.bag || null,             // túi thuốc của huấn luyện viên (nếu có)
         active: null,
         stages: freshStages(), // stage của con đang ra sân
         mustSwitch: false,
@@ -90,28 +92,30 @@ export class Battle {
     return [true, null];
   }
 
+  // Máy đánh — theo tuxemon/ai: chấm điểm từng chiêu rồi chọn cái cao nhất.
+  // Huấn luyện viên xét dùng thuốc trước, con hoang thì chỉ biết đánh.
   aiAction(i) {
     const mon = this.activeMon(i);
     if (!mon) return { t: 'pass' };
-    // Chọn chiêu đã hồi xong; trainer ưu tiên chiêu khắc hệ
+    const s = this.sides[i];
+    const foe = this.activeMon(1 - i);
+
+    if (s.kind === 'trainer' && s.bag) {
+      const id = pickItem(mon, s.bag);
+      if (id) {
+        s.bag[id] -= 1;
+        if (s.bag[id] <= 0) delete s.bag[id];
+        return { t: 'item', id, targetSlot: s.active };
+      }
+    }
+
     const usable = [];
     for (let idx = 0; idx < mon.moves.length; idx++) {
       if ((mon.moves[idx].cd || 0) <= 0) usable.push(idx);
     }
     if (usable.length === 0) return { t: 'struggle' };
-    if (this.sides[i].kind === 'trainer') {
-      const foe = this.activeMon(1 - i);
-      let best = null, bestEff = -1;
-      for (const idx of usable) {
-        const mv = MOVES[mon.moves[idx].id];
-        if (mv && mv.power) {
-          const eff = typeMultiplier(mv.types, SPECIES[foe.sp].types);
-          if (eff > bestEff) { best = idx; bestEff = eff; }
-        }
-      }
-      if (best !== null) return { t: 'move', i: best };
-    }
-    return { t: 'move', i: rng.pick(usable) };
+    if (!foe) return { t: 'move', i: rng.pick(usable) };
+    return { t: 'move', i: bestMove(mon, usable, foe) };
   }
 
   // Đủ action để resolve chưa? (side AI tự điền)
