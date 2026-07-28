@@ -1383,8 +1383,14 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   G.p.party = [con];
   enterMap('taba_town');
   const truoc = con.hpCur;
+  // NPC của bản đồ là biến chung, các test khác cho họ đi lang thang nên có lần
+  // một người đứng chắn ngay lối, người chơi không nhích được ô nào và test này
+  // đỏ oan. Tạm dọn NPC đi cho phần đường thông thoáng.
+  const npcCu = MAPS.taba_town.npcs;
+  MAPS.taba_town.npcs = [];
   // đi tới đi lui cho đủ bước; mỗi lần sang ô mới tính một bước
   for (let k = 0; k < 400; k++) update(0.05, (k % 20 < 10) ? 1 : -1, 0);
+  MAPS.taba_town.npcs = npcCu;
   ok('đi bộ khi trúng độc thì mất máu dần', con.hpCur < truoc, `${truoc} -> ${con.hpCur}`);
   ok('nhưng không gục hẳn ngoài bản đồ', con.hpCur >= 1, String(con.hpCur));
 }
@@ -2413,3 +2419,48 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
 process.exit(fails === 0 ? 0 : 1);
+
+// ==== Quà tặng + điểm thân mật ====
+{
+  const { GIFTS, GIFT_BY_ID, MOC_KET_HON, QUA_MOI_NGAY } = await import('../js/data/gifts.js');
+  const { existsSync } = await import('node:fs');
+
+  ok('có đủ loại quà để chọn', GIFTS.length >= 6, `${GIFTS.length} món`);
+  ok('id quà không trùng nhau', new Set(GIFTS.map(q => q.id)).size === GIFTS.length);
+  ok('quà càng đắt càng nhiều điểm',
+    GIFTS.every((q, i) => i === 0
+      || (q.price > GIFTS[i - 1].price && q.diem > GIFTS[i - 1].diem)));
+  ok('món đắt nhất đủ một mình chạm mốc cưới',
+    GIFTS[GIFTS.length - 1].diem >= MOC_KET_HON);
+  ok('mốc kết hôn đúng 10.000 điểm như yêu cầu', MOC_KET_HON === 10000);
+  ok('có giới hạn số quà tính điểm mỗi ngày', QUA_MOI_NGAY > 0 && QUA_MOI_NGAY <= 50);
+  ok('món nào cũng có ảnh trên đĩa',
+    GIFTS.every(q => existsSync(new URL('../' + q.img, import.meta.url))),
+    GIFTS.filter(q => !existsSync(new URL('../' + q.img, import.meta.url))).map(q => q.id).join(', '));
+  ok('tra được quà theo id', GIFT_BY_ID[GIFTS[0].id]?.name === GIFTS[0].name);
+
+  // Bảng của máy chủ phải khớp từng con số với bảng của client
+  {
+    const sv = await import('../server/src/gifts.data.js');
+    ok('bảng quà hai bên khớp nhau',
+      sv.MOC_KET_HON === MOC_KET_HON && sv.QUA_MOI_NGAY === QUA_MOI_NGAY
+      && sv.GIFTS.length === GIFTS.length
+      && sv.GIFTS.every((q, i) => q.id === GIFTS[i].id && q.diem === GIFTS[i].diem
+        && q.price === GIFTS[i].price));
+  }
+
+  // Cô bán quà phải đứng ở ô đi tới được và không trùng chỗ bác thợ mộc
+  {
+    const m = MAPS[ES.KHU_DAT_MAP];
+    const q = ES.TIEM_QUA;
+    ok('cô bán quà đứng trong bản đồ khu dân cư',
+      q.x >= 0 && q.y >= 0 && q.x < m.w && q.y < m.h);
+    ok('cô bán quà không đứng trùng bác thợ mộc',
+      q.x !== ES.THO_MOC.x || q.y !== ES.THO_MOC.y);
+    ok('đứng cạnh cô bán quà thì bấm được',
+      ES.vatTheODay(ES.KHU_DAT_MAP, q.x, q.y)?.kind === 'tiem-qua');
+    ok('có ô trống cạnh cô bán quà để đứng',
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) =>
+        !m.solid[(q.y + dy) * m.w + (q.x + dx)]));
+  }
+}

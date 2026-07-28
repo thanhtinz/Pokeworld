@@ -122,3 +122,9 @@ export const postWall = (username, text) =>
 export const deleteWall = (postId) => call(`/home/wall/${encodeURIComponent(postId)}`, { method: 'DELETE' });
 export const likeWall = (postId) => call(`/home/wall/${encodeURIComponent(postId)}/like`, { method: 'POST' });
 export const setWallMode = (che) => call('/home/tuong/chedo', { method: 'POST', body: { che } });
+
+// ==== Quà tặng + điểm thân mật ====
+export const fetchGiftShop = () => call('/gift', { auth: false });
+export const fetchIntimacy = () => call('/gift/thanmat');
+export const sendGift = (username, giftId) =>
+  call('/gift/tang', { method: 'POST', body: { username, giftId } });

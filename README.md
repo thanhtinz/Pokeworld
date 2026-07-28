@@ -62,6 +62,8 @@ python3 tools/mkarena.py /tmp/Tuxemon      # nền trận đấu theo môi trư�
 python3 tools/mkworld.py /tmp/Tuxemon      # khu vực, bảng gặp, huấn luyện viên
 python3 tools/mkestate.py /tmp/Tuxemon     # mẫu nhà + 73 món nội thất
 python3 tools/mkmounts.py /tmp/Tuxemon     # sprite phương tiện bốn hướng
+python3 tools/mkgifts.py                   # quà tặng (tự vẽ, không cần kho gốc)
+python3 tools/mkicons.py                   # icon giao diện pixel (tự vẽ)
 ```
 
 Deploy client: push `main` → CI test + tự đồng bộ nhánh `gh-pages` (GitHub Pages).

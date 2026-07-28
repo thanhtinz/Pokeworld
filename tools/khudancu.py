@@ -63,6 +63,7 @@ DUONG_NGANG = (12, 13)          # hai hang duong da chay ngang
 DUONG_DOC = (9, 10)             # hai cot duong da chay xuong cong
 HO = (24, 3, 28, 5)             # ho nuoc: x0, y0, x1, y1 (bao gom hai dau)
 THO_MOC = (11, 21)              # bac tho moc dung day, quay mat ra duong
+TIEM_QUA = (8, 21)              # co ban hoa dung ben kia duong, ban qua tang
 CONG = (DUONG_DOC[0], H - 1)    # o cong o canh duoi ban do
 
 
@@ -224,9 +225,10 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
                 don(x, y)
         don(lx + 1, ly + 3)                       # loi vao cua truoc nha
         don(lx + 1, ly + 4)
-    don(THO_MOC[0], THO_MOC[1])
-    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-        don(THO_MOC[0] + dx, THO_MOC[1] + dy)
+    for cho in (THO_MOC, TIEM_QUA):
+        don(cho[0], cho[1])
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            don(cho[0] + dx, cho[1] + dy)
 
     # --- nguoi trong khu ---
     npcs = [
@@ -236,7 +238,7 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
         {'x': 24, 'y': 11, 'dir': 'down', 'sprite': 'cooldude', 'name': 'Anh Bảy',
          'lines': ['Xây nhà là phải chờ. Sốt ruột thì đưa thêm tiền, thợ làm nhanh cho.'],
          'ai': 'stand'},
-        {'x': 16, 'y': 22, 'dir': 'up', 'sprite': 'florist', 'name': 'Chị Lan',
+        {'x': 16, 'y': 22, 'dir': 'up', 'sprite': 'lady', 'name': 'Chị Lan',
          'lines': ['Trong nhà kê được kha khá đồ đấy. Nhà to thì kê được nhiều hơn.'],
          'ai': 'wander'},
         {'x': 27, 'y': 21, 'dir': 'left', 'sprite': 'bob', 'name': 'Chú Tám',
@@ -250,6 +252,8 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
          'text': 'KHU DÂN CƯ TABA — đất nền đã chia lô, mời bà con vào xem.'},
         {'x': THO_MOC[0], 'y': THO_MOC[1] - 1, 'name': 'Biển Xưởng Mộc',
          'text': 'Xưởng mộc bác Tư — nhận đóng bàn ghế giường tủ.'},
+        {'x': TIEM_QUA[0], 'y': TIEM_QUA[1] - 1, 'name': 'Biển Tiệm Quà',
+         'text': 'Tiệm quà cô Hoa — hoa tươi, sô-cô-la, nhẫn cưới.'},
     ]
     talks = [t for t in talks if not solid[idx(t['x'], t['y'])]]
 
@@ -335,6 +339,8 @@ def viet_js(lo, tho_moc, duong):
         '];',
         '// Bác thợ mộc bán nội thất đứng ở đây',
         'export const THO_MOC = { x: %d, y: %d };' % tho_moc,
+        '// Cô bán quà tặng đứng ở đây',
+        'export const TIEM_QUA = { x: %d, y: %d };' % TIEM_QUA,
         '// Ô cổng ra thị trấn — dùng để chỉ đường cho người chơi',
         'export const CONG_RA = { x: %d, y: %d };' % duong,
         '',

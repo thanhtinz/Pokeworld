@@ -17,8 +17,8 @@ import { BASE_BY_ID, FURN_BY_ID, HOUSE_BASES } from '../data/estate.js';
 // Các lô đất nằm trong KHU DÂN CƯ — một bản đồ riêng, đi hết ngõ phía bắc Thị
 // Trấn Taba là tới. Toạ độ lô, chỗ bác thợ mộc đứng và bản thân bản đồ đều do
 // tools/khudancu.py sinh ra một lượt, nên nền đất luôn khớp với lô đất.
-import { KHU_DAT_MAP, LOTS, THO_MOC, CONG_RA } from '../data/khudancu.js';
-export { KHU_DAT_MAP, LOTS, THO_MOC, CONG_RA };
+import { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, CONG_RA } from '../data/khudancu.js';
+export { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, CONG_RA };
 export const LOT_BY_ID = Object.fromEntries(LOTS.map(l => [l.id, l]));
 
 // Bên trong nhà mượn mấy bản đồ TRỐNG HẲN của bản gốc (không NPC, không cổng).
@@ -242,6 +242,9 @@ export function vatTheODay(mapId, x, y) {
   if (mapId === KHU_DAT_MAP) {
     if (x === THO_MOC.x && y === THO_MOC.y) {
       return { type: 'estate', kind: 'tho-moc', name: 'Bác Thợ Mộc' };
+    }
+    if (x === TIEM_QUA.x && y === TIEM_QUA.y) {
+      return { type: 'estate', kind: 'tiem-qua', name: 'Cô Hoa' };
     }
     const e = nha();
     for (const l of LOTS) {

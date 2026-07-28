@@ -1,7 +1,15 @@
 // TuxeWorld server | src/social.js | Hệ thống bạn bè + kết hôn
 import { find, filter, insert, remove, markDirty, uid } from './db.js';
 
-const pairKey = (a, b) => [a, b].sort().join('|');
+export const pairKey = (a, b) => [a, b].sort().join('|');
+
+// Điểm thân mật của một cặp. Bản ghi do src/gifts.js tạo và cộng, nhưng hàm
+// đọc để ở đây để tránh hai tệp import vòng qua nhau.
+export const diemThanMat = (aId, bId) =>
+  find('intimacy', x => x.key === pairKey(aId, bId))?.diem || 0;
+
+// Ngưỡng điểm mới cầu hôn được — cùng con số với src/gifts.data.js
+export const MOC_KET_HON = 10000;
 
 // ==== Bạn bè ====
 export function friendshipBetween(aId, bId) {
@@ -78,6 +86,11 @@ export function proposeMarriage(fromUser, toUser) {
   if (marriageOf(toUser.id)) return [null, `${toUser.username} đã kết hôn với người khác.`];
   const fr = friendshipBetween(fromUser.id, toUser.id);
   if (!fr || fr.status !== 'accepted') return [null, 'Phải là bạn bè trước khi cầu hôn.'];
+  // Quen biết đủ sâu mới cưới: tặng quà cho nhau đủ MOC_KET_HON điểm thân mật
+  const diem = diemThanMat(fromUser.id, toUser.id);
+  if (diem < MOC_KET_HON) {
+    return [null, `Điểm thân mật mới ${diem}/${MOC_KET_HON}. Tặng quà cho nhau thêm đã.`];
+  }
   const existing = find('marriages', m => m.pending && ((m.a === fromUser.id && m.b === toUser.id) || (m.a === toUser.id && m.b === fromUser.id)));
   if (existing) return [null, 'Đã có lời cầu hôn đang chờ.'];
   const doc = insert('marriages', {

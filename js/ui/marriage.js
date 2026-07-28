@@ -1,7 +1,8 @@
 // TuxeWorld H5 | ui/marriage.js | Trang kết hôn: cầu hôn, trả lời, ly hôn
 // Máy chủ bắt buộc phải là bạn bè trước khi cầu hôn, nên trang này luôn
 // chỉ đường sang trang Bạn bè khi chưa có ai để cầu hôn.
-import { esc } from '../util.js';
+import { esc, fmt } from '../util.js';
+import { MOC_KET_HON } from '../data/gifts.js';
 import { toast, confirmDlg, header } from './kit.js';
 import { isOnlineMode } from '../net/config.js';
 import * as api from '../net/api.js';
@@ -93,26 +94,34 @@ export function render(el) {
       return;
     }
 
-    // Chưa có gì: cho chọn trong danh sách bạn bè
-    const fr = await api.fetchFriends();
-    const friends = fr.ok ? (fr.data?.friends || []) : [];
+    // Chưa có gì: cho chọn trong danh sách bạn bè, kèm điểm thân mật của từng
+    // người — chưa đủ mốc thì máy chủ từ chối, nên phải nói trước cho rõ.
+    const tm = await api.fetchIntimacy();
+    const ds = tm.ok ? (tm.data?.ds || []) : [];
+    const moc = tm.ok ? (tm.data?.mocKetHon || MOC_KET_HON) : MOC_KET_HON;
     body.innerHTML = `
       <div class="card">
         <b>Cầu hôn</b>
-        <small class="empty-note">Chỉ cầu hôn được người đã là bạn bè.</small>
+        <small class="empty-note">Chỉ cầu hôn được người đã là bạn bè và có đủ
+        <b>${fmt(moc)}</b> điểm thân mật. Tặng quà cho nhau thì điểm lên.</small>
+        <button class="btn" id="mr-qua">Sang Tiệm Quà</button>
       </div>
       <div class="card">
-        ${friends.length ? friends.map(f => `
+        ${ds.length ? ds.map(f => `
           <div class="guild-row">
-            <span>${esc(f.username)}</span>
-            <button class="btn-mini" data-ask="${esc(f.username)}">Cầu hôn</button>
+            <span>${esc(f.username)}<br><small class="mr-diem">${esc(f.capDo)}
+              · ${fmt(f.diem)}/${fmt(moc)}</small></span>
+            ${f.cuoiDuoc
+              ? `<button class="btn-mini" data-ask="${esc(f.username)}">Cầu hôn</button>`
+              : '<span class="gr-khong">chưa đủ thân mật</span>'}
           </div>`).join('')
         : '<div class="empty-note">Chưa có bạn nào.</div>'}
-        ${friends.length ? '' : '<button class="btn" id="mr-friends">Sang trang Bạn bè</button>'}
+        ${ds.length ? '' : '<button class="btn" id="mr-friends">Sang trang Bạn bè</button>'}
       </div>`;
 
     const toFriends = body.querySelector('#mr-friends');
     if (toFriends) toFriends.addEventListener('click', () => show('friends'));
+    body.querySelector('#mr-qua').addEventListener('click', () => show('gifts', { from: 'marriage' }));
     body.querySelectorAll('[data-ask]').forEach(b => b.addEventListener('click', async () => {
       if (!await confirmDlg(`Cầu hôn ${b.dataset.ask}?`, 'Cầu hôn')) return;
       const res = await api.proposeMarriage(b.dataset.ask);

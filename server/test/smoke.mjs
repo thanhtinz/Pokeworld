@@ -136,9 +136,40 @@ try {
   const flist = await api('/api/friends', { token: tokenA });
   ok('danh sách bạn bè có 1 người', flist.data.friends.length === 1 && flist.data.friends[0].username === 'MistyW');
 
+  // ==== Quà tặng + điểm thân mật ====
+  {
+    const shop = await api('/api/gift');
+    ok('lấy được bảng quà', shop.status === 200 && (shop.data.gifts || []).length >= 6);
+    ok('bảng quà có mốc kết hôn', shop.data.mocKetHon === 10000);
+
+    const bay = await api('/api/gift/tang', { method: 'POST', token: tokenA, body: { username: 'MistyW', giftId: 'khong_co_mon_nay' } });
+    ok('món quà không có thật thì từ chối', bay.status === 400);
+
+    const tuMinh = await api('/api/gift/tang', { method: 'POST', token: tokenA, body: { username: 'AshK', giftId: 'hoa_hong' } });
+    ok('không tự tặng mình', tuMinh.status === 400);
+
+    const q1 = await api('/api/gift/tang', { method: 'POST', token: tokenA, body: { username: 'MistyW', giftId: 'hoa_hong' } });
+    ok('tặng được quà cho bạn', q1.status === 200 && q1.data.cong === 50 && q1.data.diem === 50,
+      JSON.stringify(q1.data));
+
+    const tm = await api('/api/gift/thanmat', { token: tokenB });
+    ok('bên kia thấy đúng điểm thân mật',
+      (tm.data.ds || []).some(x => x.username === 'AshK' && x.diem === 50),
+      JSON.stringify(tm.data));
+
+    // Chưa đủ điểm thì chưa cưới được
+    const som = await api('/api/marriage/propose', { method: 'POST', body: { username: 'MistyW' }, token: tokenA });
+    ok('chưa đủ thân mật thì chưa cầu hôn được', som.status === 400,
+      JSON.stringify(som.data));
+
+    const q2 = await api('/api/gift/tang', { method: 'POST', token: tokenA, body: { username: 'MistyW', giftId: 'nhan_kim_cuong' } });
+    ok('nhẫn kim cương cộng thẳng 10000 điểm', q2.data.diem === 10050 && q2.data.cuoiDuoc === true,
+      JSON.stringify(q2.data));
+  }
+
   // ==== Kết hôn ====
   const prop = await api('/api/marriage/propose', { method: 'POST', body: { username: 'MistyW' }, token: tokenA });
-  ok('cầu hôn (đã là bạn bè)', prop.status === 200, JSON.stringify(prop.data));
+  ok('cầu hôn (đã là bạn bè, đủ thân mật)', prop.status === 200, JSON.stringify(prop.data));
 
   const mInfo = await api('/api/marriage', { token: tokenB });
   ok('nhận lời cầu hôn', !!mInfo.data.pendingIncoming);

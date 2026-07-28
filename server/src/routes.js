@@ -10,6 +10,7 @@ import {
 import { guildRouter, guildOf } from './guild.js';
 import { chatRouter } from './chat.js';
 import { homeRouter } from './homes.js';
+import { giftRouter } from './gifts.js';
 import { publicCosmetics, cosmeticsOf } from './cosmetics.js';
 import {
   listMail, readMail, claimMail, claimAllMail, deleteReadMail,
@@ -24,6 +25,8 @@ router.use('/guild', guildRouter);
 router.use('/chat', chatRouter);
 // Thăm nhà bạn + tường nhà
 router.use('/home', homeRouter);
+// Quà tặng + điểm thân mật
+router.use('/gift', giftRouter);
 
 const byName = (name) => {
   const lower = String(name || '').trim().toLowerCase();

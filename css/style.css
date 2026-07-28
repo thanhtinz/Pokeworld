@@ -2552,3 +2552,16 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .hm-bai-nut { display: flex; gap: 6px; }
 .hm-che { display: flex; flex-direction: column; gap: 6px; }
 .hm-che .seg-row { margin-bottom: 0; }
+
+/* ==== Tiệm quà + điểm thân mật ==== */
+.qu-img { width: 56px; height: 56px; image-rendering: pixelated; }
+.qu-mo { color: var(--muted); line-height: 1.35; }
+.qu-gia { color: var(--gold-num); font-weight: 700; }
+.qu-ban { display: flex; flex-direction: column; gap: 6px; }
+.qu-ban-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.qu-ban-top small { color: var(--muted); }
+.qu-ban-duoi { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.qu-ban-duoi small { color: var(--muted); }
+.qu-thanh { height: 8px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+.qu-thanh i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); }
+.mr-diem { color: var(--muted); font-size: .72rem; }

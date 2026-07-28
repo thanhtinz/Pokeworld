@@ -253,10 +253,13 @@ export function render(el) {
         ctx.fillText('BÁN', Math.round(bx + bw / 2), Math.round(by - size * 0.3));
         ctx.restore();
       }
-      // Bác thợ mộc bán nội thất
-      const tm = ES.THO_MOC;
-      const im2 = owImage('nurse');
-      if (owReady(im2)) put(im2, 'down', false, (tm.x + 0.5) * size - camX, (tm.y + 1) * size - camY);
+      // Bác thợ mộc bán nội thất và cô bán quà đứng cố định hai bên ngõ
+      for (const [cho, spr] of [[ES.THO_MOC, 'nurse'], [ES.TIEM_QUA, 'florist']]) {
+        const im2 = owImage(spr);
+        if (owReady(im2)) {
+          put(im2, 'down', false, (cho.x + 0.5) * size - camX, (cho.y + 1) * size - camY);
+        }
+      }
     }
 
     // Căn nhà người chơi đã dựng trên lô đất của mình
@@ -428,6 +431,12 @@ export function render(el) {
   async function nhaDat(thing) {
     const BAC = { name: 'Bác Thợ Mộc', ow: 'nurse' };
     const BIEN = { name: 'Biển Bán Đất' };
+    if (thing.kind === 'tiem-qua') {
+      await playDialog([[{ name: 'Cô Hoa', ow: 'florist' },
+        'Hoa tươi, sô-cô-la, nhẫn cưới — tặng ai thì người ta quý mình hơn đấy.']]);
+      cleanup(); show('gifts', { from: 'world' });
+      return;
+    }
     if (thing.kind === 'tho-moc') {
       await playDialog([[BAC, 'Bàn ghế giường tủ, thiếu gì tôi cũng có. Ghé xem đi!']]);
       cleanup(); show('estate', { tab: 'cho', from: 'world' });
