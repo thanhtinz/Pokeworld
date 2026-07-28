@@ -9,11 +9,11 @@ Game **đi bộ bắt sinh vật + cốt truyện** chạy trên trình duyệt,
 ### Client (chơi được ngay, offline)
 - 🔑 Tài khoản trên máy: đăng ký/đăng nhập, chọn nhân vật, nhiều hồ sơ 1 máy
 - 📖 **Cốt truyện nhiều chương** — cutscene chân dung nhân vật, hộp thoại, khoá khu vực theo tiến trình
-- 🗺️ **40 bản đồ** dựng từ tệp `.tmx` gốc của Tuxemon (ưu tiên bản chiến dịch Spyder, đông dân hơn hẳn): 157 NPC có AI theo `WanderBehavior` của bản gốc (đứng canh, đi tuần, dạo quanh, bong bóng cảm xúc), cổng dịch chuyển, 14 vùng bắt được 98 loài, NPC đổi Tuxemon
+- 🗺️ **100 bản đồ** dựng từ tệp `.tmx` gốc của Tuxemon (đi theo đúng chiến dịch Spyder): 369 NPC có AI theo `WanderBehavior` của bản gốc (đứng canh, đi tuần, dạo quanh, bong bóng cảm xúc), 383 cổng dịch chuyển, 23 bảng gặp lấy thẳng từ bản gốc + 14 vùng bắt, tổng 137 loài bắt được ngoài thiên nhiên, NPC đổi Tuxemon
 - 🎒 Túi đồ dạng ô với **143 vật phẩm** của bản gốc: 25 loại Tuxeball (theo hệ, giới tính, giờ giấc, đỏ đen...), thuốc, đá tiến hoá, món ăn đổi thân thiết, trà cho EXP, 14 đĩa chiêu + 5 đĩa hệ dạy chiêu mới, 13 quả đổi hệ, 8 bùa hộ mệnh chặn trạng thái, Máy Truyền EXP chia cho cả đội
 - ⚔️ Chiến đấu **đúng công thức bản gốc**: 13 hệ, 6 chỉ số (HP/Giáp/Né/Cận chiến/Tầm xa/Tốc), IV 0–15, TP thay EV, khẩu vị thay tính cách, tầm đánh melee/touch/ranged/reach/reliable, hồi chiêu (recharge) thay PP, tốc độ chiêu quyết định thứ tự ra đòn, 33 trạng thái (có loại nối máu hai bên, có loại bào máu cả lúc đi bộ), bệnh dịch lây qua chiêu, chạy trốn theo `attempt_escape`, AI chấm điểm chiêu và biết uống thuốc
 - 🎣 **Câu cá**: đứng quay mặt ra mặt nước rồi thả câu — 3 loại cần theo `mods/fishing.yaml`, cần càng xịn thì tỉ lệ cắn càng cao, cá càng to, càng bền, và chỉ cần xịn nhất mới câu được thuỷ quái. Cần mòn dần theo số lần thả, hết là gãy. Kèm bình xịt xua đuổi, chìa khoá thoát hiểm về chỗ nghỉ, lều trại hồi cả đội
-- ⚪ Bắt sinh vật theo công thức rung của bản gốc; **Tuxedex 407 loài** có ghi chép, nơi sống, đặc điểm, tìm và lọc theo hệ; shop, nhiệm vụ, điểm danh chuỗi ngày
+- ⚪ Bắt sinh vật theo công thức rung của bản gốc; **Tuxedex 411 loài** có ghi chép, nơi sống, đặc điểm, tìm và lọc theo hệ; shop, nhiệm vụ, điểm danh chuỗi ngày
 - 🎨 Asset thật của Tuxemon: sprite sinh vật, chân dung NPC, icon giao diện, hiệu ứng chiêu, 40 nền trận đấu (có cảnh đêm), 10 bản nhạc, tiếng động từng chiêu và **tiếng kêu riêng cho từng loài**
 - 🎀 Trang trí: skin nhân vật, danh hiệu, avatar, khung avatar, bong bóng chat, skin sinh vật
 - 🔓 Mở khoá tính năng theo cấp huấn luyện viên

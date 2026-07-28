@@ -37,7 +37,7 @@ MAX_ATLAS_COLS = 32
 # Lay ca cum 75 ban do thi du lieu phinh to ma nguoi choi khong di het noi,
 # nen chi lay nhung ban do gan diem xuat phat.
 START = 'taba_town'
-MAX_MAPS = 40
+MAX_MAPS = 100
 
 # Ten tieng Viet cho nhung ban do quen thuoc; con lai suy tu slug.
 VI_NAME = {
@@ -49,6 +49,17 @@ VI_NAME = {
     'timber_town': 'Thị Trấn Gỗ',
     'candy_town': 'Thị Trấn Kẹo',
     'flower_city': 'Thành Phố Hoa',
+    # Ban do cua chien dich Spyder — dat ten tay cho ra tieng Viet tu te
+    'routea': 'Đường Ven Biển', 'routec': 'Đường Rừng Thông',
+    'routed': 'Đường Đồng Cỏ', 'routee': 'Đường Sương Mù',
+    'brideswood': 'Rừng Cô Dâu', 'greenwash': 'Thị Trấn Xanh',
+    'omnichannel1': 'Toà Thương Trường — Tầng 1',
+    'omnichannel2': 'Toà Thương Trường — Tầng 2',
+    'omnichannel3': 'Toà Thương Trường — Tầng 3',
+    'downstairs': 'Nhà Dân — Tầng Trệt', 'citypark_house1': 'Nhà Bên Công Viên',
+    'mansion': 'Dinh Thự Cổ', 'tunnel': 'Đường Hầm Xuyên Núi',
+    'scoop1': 'Tiệm Kem Đầu Phố', 'dragonscave': 'Hang Rồng',
+    'dojo1': 'Võ Đường Thứ Nhất', 'dojo2': 'Võ Đường Thứ Hai',
     'citypark': 'Công Viên Thành Phố',
     'route1': 'Đường Số 1',
     'route2': 'Đường Số 2',
@@ -93,15 +104,64 @@ VI_NAME = {
 }
 
 
+# Ten dia danh ghep tu HAI phan: vung dat + cong trinh.
+# Ban do Tuxemon dat ten kieu <vung>_<cong trinh><so>, vi du cotton_house1,
+# paper_daycare, greenwash_level2 — dich hai phan roi ghep lai thi ten nao cung
+# doc duoc, khong con kieu "Cotton Nhà1".
+VUNG = {
+    'taba': 'Taba', 'cotton': 'Bông', 'leather': 'Da', 'flower': 'Hoa',
+    'candy': 'Kẹo', 'paper': 'Giấy', 'timber': 'Gỗ', 'greenwash': 'Xanh',
+    'nimrod': 'Thợ Săn', 'omnichannel': 'Thương Trường', 'wayfarer': 'Lữ Khách',
+    'spyder': 'Nhện', 'dragonscave': 'Hang Rồng', 'mansion': 'Dinh Thự',
+    'sanglorian': 'Sanglorian', 'dryadsgrove': 'Rừng Nữ Thần',
+}
+
+CONG_TRINH = [
+    ('rival_downstairs', 'Nhà Đối Thủ'), ('rival_upstairs', 'Nhà Đối Thủ (Gác)'),
+    ('walledgarden', 'Vườn Tường'), ('greenhouse', 'Nhà Kính'),
+    ('daycare', 'Nhà Trẻ'), ('petshop', 'Tiệm Thú Cưng'), ('artshop', 'Tiệm Tranh'),
+    ('museum', 'Bảo Tàng'), ('hospital', 'Bệnh Viện'), ('tunnel', 'Đường Hầm'),
+    ('stairwell', 'Cầu Thang'), ('passageway', 'Hành Lang'),
+    ('basement', 'Tầng Hầm'), ('upstairs', 'Gác'), ('downstairs', 'Tầng Trệt'),
+    ('center', 'Trung Tâm Hồi Phục'), ('scoop', 'Tiệm Kem'), ('cafe', 'Quán Cà Phê'),
+    ('manor', 'Dinh Thự'), ('bottom', 'Tầng Dưới'), ('middle', 'Tầng Giữa'),
+    ('top', 'Tầng Trên'), ('level', 'Tầng'), ('room', 'Phòng'), ('foyer', 'Tiền Sảnh'),
+    ('main', 'Đại Sảnh'), ('port', 'Bến Cảng'), ('inn', 'Quán Trọ'),
+    ('house', 'Nhà'), ('shop', 'Cửa Hàng'), ('mart', 'Siêu Thị'), ('lab', 'Phòng Thí Nghiệm'),
+    ('bedroom', 'Phòng Ngủ'), ('gym', 'Võ Đường'), ('dojo', 'Võ Đường'),
+    ('cave', 'Hang'), ('park', 'Công Viên'), ('town', 'Thị Trấn'), ('city', 'Thành Phố'),
+    ('br', 'Phòng Nghỉ'),
+]
+
+
 def vi_name(slug):
     if slug in VI_NAME:
         return VI_NAME[slug]
-    s = slug.replace('_', ' ').title()
-    for a, b in (('House', 'Nhà'), ('Shop', 'Cửa Hàng'), ('Center', 'Trung Tâm'),
-                 ('Town', 'Thị Trấn'), ('City', 'Thành Phố'), ('Route', 'Đường'),
-                 ('Cave', 'Hang'), ('Gym', 'Võ Đường'), ('Hall', 'Hội Trường')):
-        s = s.replace(a, b)
-    return s
+    con = slug
+    vung = ''
+    for k, v in sorted(VUNG.items(), key=lambda x: -len(x[0])):
+        if con == k or con.startswith(k + '_'):
+            vung = v
+            con = con[len(k):].lstrip('_')
+            break
+    # so thu tu o cuoi (house1 -> Nha 1)
+    m = re.match(r'^(.*?)(\d+)$', con)
+    so = ''
+    if m:
+        con, so = m.group(1).rstrip('_'), ' ' + m.group(2)
+    phan = []
+    for k, v in CONG_TRINH:
+        if not con:
+            break
+        if con == k or con.startswith(k + '_') or con.endswith('_' + k):
+            phan.append(v)
+            con = (con.replace(k, '', 1)).strip('_')
+    if not phan and con:
+        phan.append(con.replace('_', ' ').title())
+    ten = ' '.join(phan) + so
+    if vung and ten:
+        return '%s %s' % (ten.strip(), vung)
+    return (ten or vung).strip()
 
 
 # ==== NPC ====
@@ -154,7 +214,8 @@ NPC_VI = {
 # mot con Volcoli lam thu cung). Khong co sprite di lai cho may thu do nen bo —
 # de lai chi thanh o trong nhap nhay giua ban do.
 NPC_SKIP_SPRITE = {'boulder', 'tuxeball_green', 'tuxeball_red', 'tuxeball_yellow', 'rock',
-                   'box', 'sign', 'volcoli',
+                   'box', 'sign', 'volcoli', 'drokoro', 'log', 'screen',
+                   'p_one', 'p_two', 'p_three', 'p_four', 'p_five',
                    'statue_blue', 'statue_green', 'statue_grey', 'statue_orange', 'statue_red'}
 
 # Cach cu xu tren ban do (js/engine/overworld.js doc truong 'ai'):
@@ -812,21 +873,32 @@ MUSIC_MAP = {
 }
 
 
+# Ban do cua chinh tac gia de thu nghiem, khong phai dat trong game
+BO_QUA_MAP = {'test_map', 'debug', 'template'}
+
+
 def pick_maps(mdir):
-    """Di theo cong dich chuyen tu diem xuat phat, lay toi da MAX_MAPS ban do."""
+    """Di theo cong dich chuyen tu diem xuat phat, lay toi da MAX_MAPS ban do.
+
+    Phai di bang DUNG TEP se dung (chon_tep, tuc ban Spyder neu dong dan hon) —
+    di bang ban cu thi lac sang mot the gioi khac, bo lo han may thi tran ma
+    chien dich that su dan toi.
+    """
     import collections
     order, seen = [], {START}
     q = collections.deque([START])
     while q and len(order) < MAX_MAPS:
         cur = q.popleft()
-        p = os.path.join(mdir, cur + '.tmx')
-        if not os.path.exists(p):
+        p = chon_tep(mdir, cur)
+        if not p or cur in BO_QUA_MAP:
             continue
         order.append(cur)
         src = open(p, encoding='utf-8', errors='ignore').read()
         for m in re.finditer(r'transition_teleport\s+player,\s*([^,]+)\.tmx', src):
-            nxt = m.group(1).strip()
-            if nxt not in seen and os.path.exists(os.path.join(mdir, nxt + '.tmx')):
+            nxt = re.sub(r'^spyder_', '', m.group(1).strip())
+            if nxt in seen or nxt in BO_QUA_MAP:
+                continue
+            if chon_tep(mdir, nxt):
                 seen.add(nxt)
                 q.append(nxt)
     return order
