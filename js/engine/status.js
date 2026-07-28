@@ -7,7 +7,7 @@
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { STATUSES, statusName } from '../data/statuses.js';
-import { maxHp } from './monster.js';
+import { maxHp, typesOf } from './monster.js';
 
 export { statusName };
 export const STATUS_NAMES = Object.fromEntries(
@@ -19,7 +19,7 @@ const so = (v, mac) => { const n = Number(v); return Number.isFinite(n) && n > 0
 export function applyStatus(mon, id) {
   const s = def(id);
   if (!s) return false;
-  const spec = SPECIES[mon.sp];
+  const spec = { types: typesOf(mon) };
   if ((s.immune || []).some(t => (spec?.types || []).includes(t))) return false;
   const cu = def(mon.status);
   if (cu && cu.cat !== s.cat) return false;

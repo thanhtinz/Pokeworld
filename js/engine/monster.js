@@ -125,6 +125,14 @@ export function maxHp(mon) {
   return Math.max(1, Math.floor(stats(mon).hp * CONFIG.HP_SCALE));
 }
 
+// Hệ hiện tại của một con. Vài chiêu của bản gốc (switch) đổi hệ ngay giữa
+// trận, chiêu 'reverse' trả về hệ gốc — nên chỗ nào tính khắc hệ cũng phải
+// hỏi qua đây chứ không đọc thẳng SPECIES.
+export function typesOf(mon) {
+  if (mon && Array.isArray(mon.types) && mon.types.length) return mon.types;
+  return SPECIES[mon?.sp]?.types || ['normal'];
+}
+
 // Tên hiển thị: nickname > tên loài
 export function displayName(mon) {
   if (mon.nick) return mon.nick;

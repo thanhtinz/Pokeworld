@@ -45,8 +45,8 @@ chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt và ch�
 vật phẩm, khẩu vị thay cho tính
 cách, bảng trạng thái và hiệu ứng phụ của chiêu — xem `js/engine/damage.js`,
 `js/engine/monster.js`, `js/engine/exp.js`, `js/engine/catchmon.js`,
-`js/engine/status.js`, `js/engine/escape.js`, mỗi tệp có ghi rõ lấy từ đâu bên
-bản gốc.
+`js/engine/status.js`, `js/engine/escape.js`, `js/engine/useitem.js`,
+`js/engine/ai.js`, mỗi tệp có ghi rõ lấy từ đâu bên bản gốc.
 
 Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py`,
 `tools/mksprites.py`, `tools/mkitems.py`, `tools/mkarena.py`, `tools/mksounds.py`,

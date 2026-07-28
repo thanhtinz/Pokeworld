@@ -16,7 +16,7 @@ import { rng, clamp } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { typeEff } from '../data/types.js';
-import { stats } from './monster.js';
+import { stats, typesOf } from './monster.js';
 import { statMult } from './status.js';
 
 // Hệ số buff/debuff trong trận (-6..+6) — phần này game giữ lại cho dễ chơi
@@ -77,7 +77,7 @@ export function calcDamage(att, def, moveId, ctx = {}) {
     ? 1
     : Math.max(1, defStats[targetKey] * statMult(def, targetKey) * stageMult(ctx.defStage));
 
-  const eff = typeMultiplier(move.types, SPECIES[def.sp]?.types || []);
+  const eff = typeMultiplier(move.types, typesOf(def));
   const dmg = Math.floor(strength * (move.power * eff) / resist);
 
   return { dmg: Math.max(eff > 0 ? 1 : 0, dmg), crit: false, eff, missed: false };

@@ -456,6 +456,86 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
 }
 
+// Hiệu ứng phụ của chiêu: những loại engine chạy được thì phải chạy thật
+{
+  const loai = {};
+  for (const mv of Object.values(MOVES)) for (const e of mv.eff || []) loai[e.t] = (loai[e.t] || 0) + 1;
+  ok('có đủ các loại hiệu ứng của bản gốc',
+    ['give', 'healing', 'multiattack', 'switch', 'cooldown_modifier',
+      'photogenesis', 'sacrifice', 'life_swap'].every(k => loai[k] > 0),
+    JSON.stringify(loai));
+
+  // Đánh thử một chiêu. Cho đối thủ dùng chiêu 0 sát thương và ra đòn sau,
+  // để kết quả chỉ phản ánh đúng hiệu ứng đang kiểm tra.
+  const vaHai = Object.entries(MOVES).find(([, m]) => !m.power && !(m.eff || []).length
+    && m.category !== 'damage')?.[0];
+  const danh = (mvId, sua) => {
+    const me = newTuxemon(STARTERS[0].sp, 30, { iv: [15, 15, 15, 15, 15, 15] });
+    const foe = newTuxemon(STARTERS[2].sp, 30, { iv: [0, 0, 0, 0, 0, 0] });
+    me.moves = [{ id: mvId, cd: 0 }];
+    foe.moves = [{ id: vaHai || 'struggle', cd: 0 }];
+    if (sua) sua(me, foe);
+    const bt = new Battle({ kind: 'wild',
+      sides: [{ kind: 'player', mons: [me] }, { kind: 'wild', mons: [foe] }] });
+    bt.submit(0, { t: 'move', i: 0 });
+    bt.submit(1, { t: 'move', i: 0 });
+    const ev = bt.resolve().events;
+    return { me, foe, ev, truot: ev.some(e => e.t === 'msg' && /đánh trượt/.test(e.text)) };
+  };
+
+  // switch: đổi hệ đối thủ -> con đó mang đúng hệ mới
+  const mvSwitch = Object.entries(MOVES).find(([, m]) =>
+    (m.eff || []).some(e => e.t === 'switch' && e.el !== 'random' && e.to === 'foe'))[0];
+  {
+    const he = MOVES[mvSwitch].eff.find(e => e.t === 'switch').el;
+    const r = danh(mvSwitch);
+    ok(`chiêu ${mvSwitch} đổi hệ đối thủ sang ${he}`,
+      r.truot || r.foe.types?.includes(he), JSON.stringify(r.foe.types));
+  }
+
+  // cooldown_modifier: khoá chiêu đối thủ
+  const mvCd = Object.entries(MOVES).find(([, m]) =>
+    (m.eff || []).some(e => e.t === 'cooldown_modifier' && e.to === 'foe' && e.cd > 0));
+  if (mvCd) {
+    const r = danh(mvCd[0]);
+    const cd = mvCd[1].eff.find(e => e.t === 'cooldown_modifier').cd;
+    ok('chiêu khoá chiêu làm đối thủ phải chờ',
+      r.truot || r.ev.some(e => e.t === 'msg' && /bị khoá chiêu/.test(e.text)),
+      `cd=${cd}`);
+  }
+
+  // sacrifice: người dùng cạn máu, đối thủ ăn đòn
+  const mvSac = Object.entries(MOVES).find(([, m]) =>
+    (m.eff || []).some(e => e.t === 'sacrifice'));
+  if (mvSac) {
+    const r = danh(mvSac[0]);
+    ok('chiêu tự huỷ rút cạn máu người dùng', r.truot || r.me.hpCur === 0);
+  }
+
+  // life_swap: đổi máu hai bên
+  const mvSwap = Object.entries(MOVES).find(([, m]) =>
+    (m.eff || []).some(e => e.t === 'life_swap'));
+  if (mvSwap) {
+    const r = danh(mvSwap[0], (me) => { me.hpCur = Math.floor(maxHp(me) / 4); });
+    ok('chiêu hoán đổi sinh lực kéo máu mình lên',
+      r.truot || r.ev.some(e => e.t === 'msg' && /hoán đổi/.test(e.text)),
+      String(r.me.hpCur));
+  }
+
+  // multiattack: đánh nhiều đòn thì sát thương cao hơn một đòn đơn cùng chiêu
+  const mvMulti = Object.entries(MOVES).find(([, m]) =>
+    (m.eff || []).some(e => e.t === 'multiattack') && m.acc === 100 && m.power > 0);
+  if (mvMulti) {
+    const me = newTuxemon(STARTERS[0].sp, 30);
+    const foe = newTuxemon(STARTERS[2].sp, 30);
+    const mot = calcDamage(me, foe, mvMulti[0], {}).dmg;
+    const r = danh(mvMulti[0]);
+    const tong = maxHp(r.foe) - r.foe.hpCur;
+    ok('chiêu đánh nhiều đòn gây sát thương gấp bội',
+      r.truot || tong > mot, `${tong} vs ${mot}`);
+  }
+}
+
 // Khu vực bắt sinh vật: đủ nhiều vùng, cấp tăng dần theo đường đi
 {
   const co = Object.entries(ZONES).filter(([, z]) => z.encounters.length);

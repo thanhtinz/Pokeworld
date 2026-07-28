@@ -4,7 +4,9 @@ import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
-import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn } from './monster.js';
+import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn,
+  typesOf } from './monster.js';
+import { TYPES, TYPE_NAMES } from '../data/types.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName } from './status.js';
@@ -21,6 +23,20 @@ const STAT_VI = {
 };
 
 const freshStages = () => ({ armour: 0, dodge: 0, melee: 0, ranged: 0, speed: 0 });
+
+// Hệ số hồi máu theo giờ — formula.calculate_time_based_multiplier của bản gốc.
+// Càng gần giờ đỉnh càng mạnh, ngoài khung giờ thì bằng 0.
+function heSoTheoGio(gio, dinh, batDau, ketThuc) {
+  let h = gio, d = dinh, e2 = ketThuc;
+  if (e2 < batDau) e2 += 24;
+  if (h < batDau) h += 24;
+  if (d < batDau) d += 24;
+  if (!(batDau <= h && h < e2)) return 0;
+  const nua = (e2 - batDau) / 2;
+  let xa = Math.abs(h - d);
+  if (xa > nua) xa = (e2 - batDau) - xa;
+  return Math.max(0, 1 - (xa / nua) ** 2);
+}
 
 // mods/config_combat.yaml — hệ số tính thứ tự ra đòn
 const SPEED_FACTOR = 0.25;
@@ -281,6 +297,20 @@ export class Battle {
       return;
     }
 
+    // Chiêu "đánh nhiều đòn": tung lại tối đa n lần, trượt phát nào dừng phát đó
+    // (bản gốc core/effects/multiattack.py). Cộng dồn rồi trừ máu một lần.
+    const nhieu = (mv.eff || []).find(e => e.t === 'multiattack');
+    if (nhieu && res.dmg > 0) {
+      let lan = 1;
+      for (let k = 1; k < (nhieu.n || 2); k++) {
+        const them = calcDamage(mon, foe, mvId, ctx);
+        if (them.missed) break;
+        res.dmg += them.dmg;
+        lan++;
+      }
+      if (lan > 1) ev.push({ t: 'msg', text: `Trúng liên tiếp ${lan} đòn!` });
+    }
+
     if (res.dmg > 0) {
       foe.hpCur = Math.max(0, foe.hpCur - res.dmg);
       if (foe.hpCur <= 0 && survives(foe)) {
@@ -306,7 +336,10 @@ export class Battle {
   }
 
   // give (dính trạng thái) · healing / prop_healing (hồi máu) · prop_damage
-  // (mất máu theo phần) · remove (gỡ trạng thái) · money (nhặt tiền)
+  // (mất máu theo phần) · remove (gỡ trạng thái) · money (nhặt tiền) ·
+  // switch / reverse (đổi hệ) · cooldown_modifier (khoá chiêu) ·
+  // photogenesis (hồi máu theo giờ) · sacrifice (tự huỷ) · life_swap (đổi máu) ·
+  // transfer (đẩy trạng thái sang bên kia)
   applyEffects(i, oi, mv, res, ev) {
     const mon = this.activeMon(i);
     const foe = this.activeMon(oi);
@@ -345,6 +378,61 @@ export class Battle {
         }
       } else if (e.t === 'money') {
         this.moneyBonus = (this.moneyBonus || 0) + 20 * mon.lv;
+      } else if (e.t === 'switch') {
+        // Đổi hệ của mục tiêu; 'random' thì bốc một hệ bất kỳ
+        const [, target] = ben(e.to);
+        if (!target || isFainted(target)) continue;
+        const he = e.el === 'random' ? rng.pick(TYPES) : e.el;
+        if (!TYPES.includes(he) || typesOf(target).includes(he)) continue;
+        target.types = [he];
+        ev.push({ t: 'msg', text: `${displayName(target)} đổi sang hệ ${TYPE_NAMES[he] || he}!` });
+      } else if (e.t === 'reverse') {
+        // Trả cả hai bên về hệ gốc
+        for (const m2 of [mon, foe]) if (m2) delete m2.types;
+        ev.push({ t: 'msg', text: 'Hệ của cả hai bên trở lại như cũ!' });
+      } else if (e.t === 'cooldown_modifier') {
+        const [, target] = ben(e.to);
+        if (!target) continue;
+        for (const m2 of target.moves || []) m2.cd = Math.max(m2.cd || 0, e.cd);
+        ev.push({ t: 'msg',
+          text: e.cd > 0 ? `${displayName(target)} bị khoá chiêu ${e.cd} lượt!`
+            : `${displayName(target)} hồi chiêu tức thì!` });
+      } else if (e.t === 'photogenesis') {
+        // Hồi máu theo giờ trong ngày, mạnh nhất đúng giờ đỉnh
+        if (cantHeal(mon)) continue;
+        const [batDau, dinh, ketThuc] = e.h || [6, 12, 18];
+        const k = heSoTheoGio(new Date().getHours(), dinh, batDau, ketThuc);
+        if (k <= 0) { ev.push({ t: 'msg', text: 'Nhưng không có gì xảy ra...' }); continue; }
+        const max = maxHp(mon);
+        const amount = Math.floor((7 + mon.lv) * (mv.heal || 1) * k);
+        const truoc = mon.hpCur;
+        mon.hpCur = Math.min(max, mon.hpCur + Math.max(1, amount));
+        ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount: mon.hpCur - truoc });
+        ev.push({ t: 'msg', text: `${displayName(mon)} hấp thụ ánh sáng và hồi phục!` });
+      } else if (e.t === 'sacrifice') {
+        // Tự rút cạn máu mình để giáng vào đối thủ
+        if (!foe || isFainted(foe)) continue;
+        const d = Math.max(1, Math.floor(mon.hpCur * (e.n ?? 1)));
+        mon.hpCur = 0;
+        foe.hpCur = Math.max(0, foe.hpCur - d);
+        ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: d, crit: false, eff: 1 });
+        ev.push({ t: 'msg', text: `${displayName(mon)} tự huỷ để giáng một đòn!` });
+      } else if (e.t === 'life_swap') {
+        if (!foe || isFainted(foe) || isFainted(mon)) continue;
+        const a = mon.hpCur, b2 = foe.hpCur;
+        mon.hpCur = Math.min(maxHp(mon), b2);
+        foe.hpCur = Math.min(maxHp(foe), a);
+        ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount: mon.hpCur - a });
+        ev.push({ t: 'msg', text: 'Sinh lực hai bên bị hoán đổi!' });
+      } else if (e.t === 'transfer') {
+        // Đẩy một trạng thái từ bên này sang bên kia
+        const [tu, den] = e.dir === 'user_to_target' ? [mon, foe] : [foe, mon];
+        if (!tu || !den || tu.status !== e.id) continue;
+        removeStatus(tu, 'all');
+        if (applyStatus(den, e.id)) {
+          ev.push({ t: 'msg',
+            text: `${statusName(e.id)} bị đẩy sang ${displayName(den)}!` });
+        }
       }
     }
   }

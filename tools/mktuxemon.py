@@ -400,7 +400,12 @@ export const speciesBySlug = (slug) => Object.values(SPECIES).find(s => s.slug =
 # Nhung hieu ung cua chieu ma game nay chay duoc (xem js/engine/battle.js).
 # Cai khong nam trong day (multiattack phuc tap, swap doi hinh, forfeit...) thi
 # bo qua chu khong bia ra hieu ung khac.
-EFFECT_KEEP = {'give', 'healing', 'prop_healing', 'prop_damage', 'remove', 'money', 'multiattack'}
+# Hieu ung game chay duoc. Nhung loai chi co nghia trong tran doi (splash,
+# disappear, appear, empty, scope) hoac can he thong chua co (plague, foresight,
+# move_type) thi bo qua.
+EFFECT_KEEP = {'give', 'healing', 'prop_healing', 'prop_damage', 'remove', 'money',
+               'multiattack', 'switch', 'cooldown_modifier', 'photogenesis',
+               'life_share', 'life_swap', 'transfer', 'sacrifice', 'reverse'}
 
 
 def hieu_ung(t):
@@ -425,6 +430,25 @@ def hieu_ung(t):
         elif kind == 'remove':
             row['cat'] = par[0] if par else 'negative'
             row['to'] = 'self' if len(par) > 1 and par[1] == 'own_monster' else 'foe'
+        elif kind == 'switch':
+            # doi he cua muc tieu; 'random' = boc mot he bat ky
+            row['to'] = 'self' if par and 'own' in par[0] else 'foe'
+            row['el'] = par[1] if len(par) > 1 else 'random'
+        elif kind == 'reverse':
+            row['to'] = 'both'
+        elif kind == 'cooldown_modifier':
+            row['to'] = 'self' if par and 'own' in par[0] else 'foe'
+            row['cd'] = int(float(par[1])) if len(par) > 1 else 2
+        elif kind == 'photogenesis':
+            # gio bat dau, gio dinh, gio ket thuc
+            row['h'] = [int(float(x)) for x in par[:3]] or [6, 12, 18]
+        elif kind == 'sacrifice':
+            row['n'] = float(par[0]) if par else 1.0
+        elif kind == 'life_share':
+            row['dir'] = par[0] if par else 'target_to_user'
+        elif kind == 'transfer':
+            row['id'] = par[0] if par else ''
+            row['dir'] = par[1] if len(par) > 1 else 'user_to_target'
         out.append(row)
     return out
 
@@ -447,7 +471,11 @@ def write_moves(techs, disp):
         types = t.get('types') or ['normal']
         rng = t.get('range', 'melee')
         kinds = {e.get('type') for e in (t.get('effects') or []) if isinstance(e, dict)}
-        is_dmg = 'damage' in kinds and rng in DAMAGE_RANGES
+        # Chieu co hieu ung 'multiattack' TU no tinh sat thuong (ban goc goi
+        # simple_damage_calculate ngay trong effect), khong khai them 'damage'.
+        # Truoc day cong cu chi xet 'damage' nen 6 chieu danh nhieu don bi coi
+        # la chieu ho tro, power ve 0, danh khong mat mieng nao.
+        is_dmg = ('damage' in kinds or 'multiattack' in kinds) and rng in DAMAGE_RANGES
         heal = float(t.get('healing_power') or 0)
         cat = 'damage' if is_dmg else ('healing' if heal > 0 else 'status')
         power = round(float(t.get('power') or 0), 2) if is_dmg else 0
