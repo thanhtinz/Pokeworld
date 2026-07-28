@@ -7,7 +7,7 @@ export const ZONES = {
     name: "Thị Trấn Taba", kind: "town", icon: "town", iconSp: null, iconItem: null,
     desc: "Thị trấn quê nhà, nơi hành trình bắt đầu.",
     encounters: [],
-    trainers: ["gym_brock"],
+    trainers: ["vo_duong_dat"],
     next: ["dryadsgrove", "healing_center", "maple_house", "player_house_downstairs", "professor_lab", "route1", "taba_house1", "taba_house2", "taba_house3", "taba_house4", "tuxe_mart_taba"],
   },
   player_house_downstairs: {
@@ -36,7 +36,7 @@ export const ZONES = {
       { sp: 310, w: 30, min: 2, max: 7 },   // Devidin (basic)
       { sp: 57, w: 30, min: 2, max: 7 },   // Elofly (basic)
     ],
-    trainers: ["youngster_minh", "lass_lan", "rival_1"],
+    trainers: ["nhoc_minh", "be_lan", "rival_1"],
     next: ["route1_sanglorian", "taba_ba_foyer", "taba_town"],
   },
   professor_lab: {
@@ -100,7 +100,7 @@ export const ZONES = {
       { sp: 174, w: 30, min: 5, max: 11 },   // Flacono (basic)
       { sp: 229, w: 30, min: 5, max: 11 },   // Fordin (basic)
     ],
-    trainers: ["bugcatcher_tung", "lass_rainbow", "rocket_1"],
+    trainers: ["bat_bo_tung", "da_ngoai_hanh", "xero_1"],
     next: ["cotton_town", "leather_town", "taba_town"],
   },
   player_house_bedroom: {
@@ -129,7 +129,7 @@ export const ZONES = {
       { sp: 325, w: 30, min: 6, max: 12 },   // Flummby (basic)
       { sp: 99, w: 30, min: 6, max: 12 },   // Hatchling (basic)
     ],
-    trainers: ["camper_route3", "sailor_route3", "rocket_2"],
+    trainers: ["cam_trai_liem", "thuy_thu_marina", "xero_2"],
     next: ["cotton_town", "route1"],
   },
   taba_ba_foyer: {
@@ -165,7 +165,7 @@ export const ZONES = {
       { sp: 243, w: 30, min: 8, max: 14 },   // Snock (basic)
       { sp: 268, w: 30, min: 8, max: 14 },   // Woodoor (basic)
     ],
-    trainers: ["gym_thuy", "rocket_grunt_3", "rocket_boss"],
+    trainers: ["vo_duong_nuoc", "xero_grunt_3", "xero_boss"],
     next: ["cotton_cafe", "cotton_cathedral", "cotton_daycare", "cotton_misa_house", "cotton_scoop", "dryadsgrove", "route1_sanglorian", "route2"],
   },
   leather_town: {
@@ -180,7 +180,7 @@ export const ZONES = {
       { sp: 219, w: 30, min: 11, max: 18 },   // Altie (standalone)
       { sp: 79, w: 30, min: 11, max: 18 },   // Anu (standalone)
     ],
-    trainers: ["camper_victory", "channeler_unknown", "swimmer_light", "rival_2"],
+    trainers: ["leo_nui_marcos", "nghien_cuu_mio", "boi_douglas", "rival_2"],
     next: ["citypark", "dryadsgrove", "flower_city", "leather_scoop", "leather_shaft1", "leather_shaft2", "route3"],
   },
   taba_ba_main: {

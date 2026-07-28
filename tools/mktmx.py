@@ -167,7 +167,8 @@ NPC_AI = {
 
 # Dan thuong de thay khi trung nhau: sprite, ten, cau noi
 EXTRA_SPRITES = ['bob', 'homemaker', 'cooldude', 'fashionista', 'heroine', 'lady', 'florist',
-                 'hiker', 'camper', 'camper_f', 'picnicker', 'sailor', 'beachcomber', 'ninja',
+                 'miner_blue', 'adventurer_green', 'heroine_brown', 'picnicker',
+                 'riverboatcaptain', 'beachcomber', 'ninja',
                  'kid', 'kid2', 'childactor', 'girl1', 'disciple', 'rogue', 'scientist', 'chief']
 EXTRA_NAMES = ['Chú Tám', 'Cô Bảy', 'Anh Hùng', 'Chị Mai', 'Ông Sáu', 'Bà Tư', 'Thằng Tí',
                'Bé Na', 'Chú Ba', 'Cô Lan', 'Anh Dũng', 'Chị Hạnh', 'Ông Chín', 'Bà Năm',

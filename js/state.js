@@ -89,6 +89,28 @@ function vaMons(list) {
   });
 }
 
+// Mã huấn luyện viên đời đầu đặt theo hạng huấn luyện viên của game khác
+// (gym_brock, rocket_boss, lass_lan...). Đã đổi sang mã theo thế giới Tuxemon;
+// bảng này chuyển bản lưu cũ sang mã mới để không mất tiến trình đã đánh.
+const MA_CU = {
+  gym_brock: 'vo_duong_dat', gym_thuy: 'vo_duong_nuoc',
+  youngster_minh: 'nhoc_minh', lass_lan: 'be_lan',
+  bugcatcher_tung: 'bat_bo_tung', hiker_dung: 'leo_nui_dung',
+  camper_route3: 'cam_trai_liem', sailor_route3: 'thuy_thu_marina',
+  lass_rainbow: 'da_ngoai_hanh', rocket_grunt_3: 'xero_grunt_3',
+  swimmer_light: 'boi_douglas', camper_victory: 'leo_nui_marcos',
+  channeler_unknown: 'nghien_cuu_mio',
+  rocket_1: 'xero_1', rocket_2: 'xero_2', rocket_boss: 'xero_boss',
+};
+
+function doiMaTrainer(data) {
+  const cu = data.defeatedTrainers;
+  if (!cu) return;
+  for (const [a, b] of Object.entries(MA_CU)) {
+    if (cu[a]) { cu[b] = true; delete cu[a]; }
+  }
+}
+
 export function load() {
   const data = loadActiveSave();
   if (!data) return false;
@@ -99,6 +121,7 @@ export function load() {
     data.v = SAVE_VERSION;
     data.party = vaMons(data.party);
     data.box = vaMons(data.box);
+    doiMaTrainer(data);
     G.p = data;
     return true;
   } catch (e) {

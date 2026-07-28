@@ -1,7 +1,7 @@
 // TuxeWorld H5 | data/story.js | Cốt truyện chiến dịch 8 chương
 // Mỗi chương: hội thoại mở đầu (dialog), mục tiêu (goal — cùng schema quest),
 // thưởng, zone mở khóa khi hoàn thành, hội thoại kết chương (outro).
-// speaker: 'prof' Giáo sư Taba | 'rival' Kyle | 'rocket' Team Xero | 'omni' Omnichannel
+// speaker: 'prof' Giáo sư Taba | 'rival' Kyle | 'xero' Team Xero | 'omni' Omnichannel
 //          | 'nurse' y tá | 'boss' thủ lĩnh Xero | 'me' người chơi | 'sys' lời dẫn
 //
 // Cốt truyện bám theo bối cảnh gốc của Tuxemon: Omnichannel nắm truyền thông và
@@ -13,7 +13,7 @@ export const SPEAKERS = {
   rival:  { name: 'Kyle',        icon: '😏', img: 'rogue' },
   omni:   { name: 'Omnichannel', icon: '📺', img: 'chief' },
   nurse:  { name: 'Y Tá Trạm Hồi Sức', icon: '👩‍⚕️', img: 'nurse' },
-  rocket: { name: 'Team Xero', icon: '🕶️', img: 'grunt' },
+  xero: { name: 'Team Xero', icon: '🕶️', img: 'grunt' },
   boss:   { name: 'Thủ Lĩnh Xero', icon: '😈', img: 'boss' },
   me:     { name: 'Bạn',           icon: '🧢', img: null }, // avatar tài khoản (red/leaf)
   sys:    { name: '',              icon: '', img: null },
@@ -74,12 +74,12 @@ export const CHAPTERS = [
     id: 'ch4', title: 'Chương 4 — Bóng đen trong rừng',
     desc: 'Điều tra rừng Dryadsgrove. Đánh bại tên Team Xero!',
     dialog: [
-      ['rocket', 'Ê nhóc! Rừng này Team Xero gom hàng rồi. Tuxemon ở đây thuộc về bọn ta hết.'],
-      ['rocket', 'Muốn qua thì thắng Tuxemon của ta đã!'],
+      ['xero', 'Ê nhóc! Rừng này Team Xero gom hàng rồi. Tuxemon ở đây thuộc về bọn ta hết.'],
+      ['xero', 'Muốn qua thì thắng Tuxemon của ta đã!'],
     ],
-    goal: { t: 'defeat_trainer', id: 'rocket_1' },
+    goal: { t: 'defeat_trainer', id: 'xero_1' },
     outro: [
-      ['rocket', 'Khoan... nhóc này mạnh thật! Rút! Nhưng chuyến hàng ngoài sa mạc vẫn chạy đúng hẹn...'],
+      ['xero', 'Khoan... nhóc này mạnh thật! Rút! Nhưng chuyến hàng ngoài sa mạc vẫn chạy đúng hẹn...'],
       ['prof', 'Sa mạc?! Chúng đang moi đá tiến hoá ngoài Đường1 Sanglorian. Nhưng trước hết cháu nên thử sức ở võ đường trong thị trấn.'],
     ],
     reward: { money: 1000 },
@@ -102,11 +102,11 @@ export const CHAPTERS = [
     id: 'ch6', title: 'Chương 6 — Giải cứu hang đá',
     desc: 'Team Xero đang đào trộm đá tiến hoá ngoài Đường1 Sanglorian. Đánh đuổi chúng!',
     dialog: [
-      ['rocket', 'Lại là nhóc đó! Lần này bọn ta đi hai người, xem mày làm gì được.'],
+      ['xero', 'Lại là nhóc đó! Lần này bọn ta đi hai người, xem mày làm gì được.'],
     ],
-    goal: { t: 'defeat_trainer', id: 'rocket_2' },
+    goal: { t: 'defeat_trainer', id: 'xero_2' },
     outro: [
-      ['rocket', 'Không thể tin được! Đại ca ơi, cứu em!'],
+      ['xero', 'Không thể tin được! Đại ca ơi, cứu em!'],
       ['boss', 'Lũ vô dụng... Nhóc con, Thị Trấn Bông mới là mỏ vàng. Con Leviadile dưới hồ ở đó sẽ thuộc về Team Xero.'],
     ],
     reward: { money: 2000, items: [{ id: 'tuxeball_lavish', n: 5 }] },
@@ -119,7 +119,7 @@ export const CHAPTERS = [
       ['omni', 'Nhắc lại lần cuối: dân thường không được nuôi Tuxemon.'],
       ['boss', 'Nghe chưa nhóc? Cả cái đài kia cũng đứng về phía ta. Xem sức mạnh THẬT SỰ của Team Xero đây!'],
     ],
-    goal: { t: 'defeat_trainer', id: 'rocket_boss' },
+    goal: { t: 'defeat_trainer', id: 'xero_boss' },
     outro: [
       ['boss', 'Thua... thua một đứa nhóc?! Team Xero sẽ nhớ mặt mày! RÚT!'],
       ['nurse', 'Cả hồ nước được cứu rồi! Chủ võ đường Thuỷ ở Thị Trấn Bông muốn gặp người hùng đấy.'],

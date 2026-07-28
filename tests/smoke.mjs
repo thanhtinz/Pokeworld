@@ -481,6 +481,20 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
 }
 
+// Mã huấn luyện viên không còn đặt theo hạng huấn luyện viên của game khác
+{
+  const xau = /^(gym_|rocket|youngster|lass|bugcatcher|hiker_|camper_|sailor_|swimmer_|channeler|picnicker)/;
+  const dinh = Object.keys(TRAINERS).filter(id => xau.test(id));
+  ok('mã huấn luyện viên đã đổi hết', dinh.length === 0, dinh.join(' '));
+  const kind = new Set(Object.values(TRAINERS).map(t => t.kind));
+  ok('loại huấn luyện viên chỉ còn trainer/gym/xero/rival',
+    [...kind].every(k => ['trainer', 'gym', 'xero', 'rival'].includes(k)),
+    [...kind].join(' '));
+  // Ảnh 2D của ai cũng phải tồn tại (mksprites kiểm tra khi sinh, đây chốt lại)
+  ok('huấn luyện viên nào cũng có tên sprite',
+    Object.values(TRAINERS).every(t => t.sprite && /^[a-z_0-9]+$/.test(t.sprite)));
+}
+
 // Tuxedex lọc được: dữ liệu phải đủ để tìm theo tên, hệ, nơi sống, đặc điểm
 {
   const v = Object.values(SPECIES).filter(s => !s.glitched);

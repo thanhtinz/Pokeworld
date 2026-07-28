@@ -169,12 +169,12 @@ DESC = {
 }
 
 ZONE_TRAINERS = {
-    'taba_town': ['gym_brock'],
-    'route1': ['youngster_minh', 'lass_lan', 'rival_1'],
-    'dryadsgrove': ['bugcatcher_tung', 'lass_rainbow', 'rocket_1'],
-    'route1_sanglorian': ['camper_route3', 'sailor_route3', 'rocket_2'],
-    'cotton_town': ['gym_thuy', 'rocket_grunt_3', 'rocket_boss'],
-    'leather_town': ['camper_victory', 'channeler_unknown', 'swimmer_light', 'rival_2'],
+    'taba_town': ['vo_duong_dat'],
+    'route1': ['nhoc_minh', 'be_lan', 'rival_1'],
+    'dryadsgrove': ['bat_bo_tung', 'da_ngoai_hanh', 'xero_1'],
+    'route1_sanglorian': ['cam_trai_liem', 'thuy_thu_marina', 'xero_2'],
+    'cotton_town': ['vo_duong_nuoc', 'xero_grunt_3', 'xero_boss'],
+    'leather_town': ['leo_nui_marcos', 'nghien_cuu_mio', 'boi_douglas', 'rival_2'],
 }
 
 
@@ -260,34 +260,34 @@ def write_starters(mons):
 # ==================== Huan luyen vien ====================
 TRAINERS_META = [
     # (id, sprite, ten, kind, zone, so con, thuong, intro, lose, badge, badgeName)
-    ('youngster_minh', 'youngster', 'Nam Nhóc Tì', 'trainer', 'route1', 2, 200,
+    ('nhoc_minh', 'nhoc', 'Nam Nhóc Tì', 'trainer', 'route1', 2, 200,
      'Ê bạn! Mình mới bắt được sinh vật đầu tiên, đấu thử một trận nhé!',
      'Ôi thua rồi... nhưng mình sẽ mạnh lên!', None, None),
-    ('lass_lan', 'lass', 'Bé Lan', 'trainer', 'route1', 2, 240,
+    ('be_lan', 'be_gai', 'Bé Lan', 'trainer', 'route1', 2, 240,
      'Trông dễ thương thôi chứ đánh không hiền đâu nha!',
      'Hức... bạn giỏi thật đấy.', None, None),
-    ('bugcatcher_tung', 'bug_catcher', 'Tùng Bắt Bọ', 'trainer', 'dryadsgrove', 3, 320,
+    ('bat_bo_tung', 'bat_bo', 'Tùng Bắt Bọ', 'trainer', 'dryadsgrove', 3, 320,
      'Rừng này là sân nhà của tớ!', 'Sao lại thua ở chính khu rừng của mình...', None, None),
-    ('hiker_dung', 'camper', 'Dũng Leo Núi', 'trainer', 'route1', 3, 420,
+    ('leo_nui_dung', 'cam_trai', 'Dũng Leo Núi', 'trainer', 'route1', 3, 420,
      'Trong hang tối nhưng ta thuộc từng ngóc ngách!', 'Đường hang khó vậy mà cậu vẫn thắng.', None, None),
-    ('camper_route3', 'camper_f', 'Liêm Cắm Trại', 'trainer', 'route1_sanglorian', 3, 520,
+    ('cam_trai_liem', 'cam_trai_f', 'Liêm Cắm Trại', 'trainer', 'route1_sanglorian', 3, 520,
      'Cắm trại giữa sa mạc mới đã!', 'Nắng quá nên mình mất tập trung...', None, None),
-    ('sailor_route3', 'swimmer_f', 'Thuỷ Thủ Marina', 'trainer', 'route1_sanglorian', 3, 560,
+    ('thuy_thu_marina', 'boi_f', 'Thuỷ Thủ Marina', 'trainer', 'route1_sanglorian', 3, 560,
      'Tớ vừa lên bờ nghỉ chút, đấu một trận nhé!', 'Trên cạn tớ đúng là kém hơn thật.', None, None),
-    ('lass_rainbow', 'picnicker', 'Hạnh Dã Ngoại', 'trainer', 'dryadsgrove', 4, 700,
+    ('da_ngoai_hanh', 'da_ngoai', 'Hạnh Dã Ngoại', 'trainer', 'dryadsgrove', 4, 700,
      'Đi picnic mà gặp đối thủ, vui quá!', 'Thua rồi nhưng hôm nay vẫn vui.', None, None),
-    ('rocket_grunt_3', 'rocket_m', 'Kẻ Áo Đen', 'rocket', 'cotton_town', 4, 900,
+    ('xero_grunt_3', 'xero_m', 'Kẻ Áo Đen', 'xero', 'cotton_town', 4, 900,
      'Ngôi làng này sắp thuộc về bọn ta!', 'Bọn ta sẽ còn quay lại...', None, None),
-    ('swimmer_light', 'swimmer_m', 'Douglas Bơi Lội', 'trainer', 'leather_town', 4, 1000,
+    ('boi_douglas', 'boi_m', 'Douglas Bơi Lội', 'trainer', 'leather_town', 4, 1000,
      'Dưới nước tớ là số một!', 'Lên bờ rồi tớ đuối thật.', None, None),
-    ('camper_victory', 'hiker', 'Marcos Trèo Non', 'trainer', 'leather_town', 5, 1400,
+    ('leo_nui_marcos', 'leo_nui', 'Marcos Trèo Non', 'trainer', 'leather_town', 5, 1400,
      'Leo núi cả đời, chưa sợ ai bao giờ!', 'Cậu khoẻ hơn ta tưởng.', None, None),
-    ('channeler_unknown', 'scientist', 'Nhà Nghiên Cứu Mio', 'trainer', 'leather_town', 5, 1500,
+    ('nghien_cuu_mio', 'scientist', 'Nhà Nghiên Cứu Mio', 'trainer', 'leather_town', 5, 1500,
      'Tôi đang đo địa chấn, đừng làm phiền!', 'Số liệu của tôi sai ở đâu đó rồi...', None, None),
-    ('gym_brock', 'brock', 'Thạch — Võ Đường Đất', 'gym', 'taba_town', 3, 1200,
+    ('vo_duong_dat', 'vo_su_dat', 'Thạch — Võ Đường Đất', 'gym', 'taba_town', 3, 1200,
      'Ta là chủ võ đường đầu tiên. Cho ta xem cậu tiến bộ tới đâu!',
      'Cậu xứng đáng với huy hiệu này.', 'badge_boulder', 'Huy Hiệu Đá'),
-    ('gym_thuy', 'misty', 'Thuỷ — Võ Đường Nước', 'gym', 'cotton_town', 4, 2000,
+    ('vo_duong_nuoc', 'vo_su_nuoc', 'Thuỷ — Võ Đường Nước', 'gym', 'cotton_town', 4, 2000,
      'Nước mềm nhưng bào mòn được cả đá đấy!',
      'Được lắm, huy hiệu là của cậu.', 'badge_cascade', 'Huy Hiệu Thác'),
     # Huan luyen vien cua cot truyen — id phai khop js/data/story.js
@@ -295,13 +295,13 @@ TRAINERS_META = [
     ('rival_1', 'rogue', 'Vũ', 'rival', 'route1', 1, 500,
      'Tới rồi à! Xem Tuxemon của ai mạnh hơn nào.',
      'Hừm! Chỉ là may mắn thôi!', None, None),
-    ('rocket_1', 'rocket_m', 'Team Xero — Tay Chân', 'rocket', 'dryadsgrove', 2, 600,
+    ('xero_1', 'xero_m', 'Team Xero — Tay Chân', 'xero', 'dryadsgrove', 2, 600,
      'Ê nhóc! Chỗ này là địa bàn của Team Xero!',
      'Khoan đã... nhóc này mạnh thật!', None, None),
-    ('rocket_2', 'rocket_f', 'Team Xero — Bộ Đôi', 'rocket', 'route1_sanglorian', 3, 1200,
+    ('xero_2', 'xero_f', 'Team Xero — Bộ Đôi', 'xero', 'route1_sanglorian', 3, 1200,
      'Lại là nhóc đó! Lần này bọn ta đông hơn!',
      'Không thể tin được!', None, None),
-    ('rocket_boss', 'boss', 'Thủ Lĩnh Xero', 'rocket', 'cotton_town', 5, 5000,
+    ('xero_boss', 'boss', 'Thủ Lĩnh Xero', 'xero', 'cotton_town', 5, 5000,
      'Ta sẽ cho mày thấy sức mạnh THẬT SỰ của Team Xero!',
      'Thua... thua một đứa nhóc?!', None, None),
     ('rival_2', 'rogue', 'Vũ — Trận Cuối', 'rival', 'leather_town', 4, 8000,
@@ -314,7 +314,7 @@ def write_trainers(zone_pool, mons):
     by_id = {m['id']: m for m in mons}
     out = ["// TuxeWorld H5 | data/trainers.js | Huấn luyện viên — TỰ SINH TỪ tools/mkworld.py",
            '// Đội hình lấy từ chính bảng gặp của khu vực họ đứng, nên đánh ở đâu gặp sinh vật vùng đó.', '',
-           "// kind: 'trainer' | 'gym' | 'rocket' | 'rival'",
+           "// kind: 'trainer' | 'gym' | 'xero' | 'rival'",
            'export const TRAINERS = {']
     for (tid, sprite, name, kind, zone, n, money, intro, lose, badge, badge_name) in TRAINERS_META:
         pool, lo, hi = zone_pool.get(zone, ([], 3, 8))

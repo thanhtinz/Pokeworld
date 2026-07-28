@@ -15,7 +15,7 @@ export const QUESTS = {
     kind: 'main',
     name: 'Thử Thách Võ Đường Đất',
     desc: 'Đánh bại Thạch ở Thị Trấn Taba để giành Huy Hiệu Đá.',
-    goal: { t: 'defeat_trainer', id: 'gym_brock' },
+    goal: { t: 'defeat_trainer', id: 'vo_duong_dat' },
     reward: { money: 2000, items: [{ id: 'tuxeball_lavish', n: 3 }, { id: 'super_potion', n: 2 }] },
     next: null,
   },
@@ -38,7 +38,7 @@ export const QUESTS = {
     kind: 'side',
     name: 'Vua Côn Trùng',
     desc: 'Đánh bại Tùng Bắt Bọ trong rừng Dryadsgrove để chứng minh ai mới là vua côn trùng.',
-    goal: { t: 'defeat_trainer', id: 'bugcatcher_tung' },
+    goal: { t: 'defeat_trainer', id: 'bat_bo_tung' },
     reward: { money: 600, items: [{ id: 'restoration', n: 3 }] },
   },
   side_magikarp: {

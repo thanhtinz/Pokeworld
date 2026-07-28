@@ -204,7 +204,7 @@ export function render(el) {
     if (allFainted()) { toast('Cả đội đã gục, hồi phục trước đã!'); return; }
     const tid = opts[i].tid;
     const t = TRAINERS[tid];
-    await playDialog([[t.kind === 'gym' ? 'sys' : t.kind === 'rocket' ? 'rocket' : t.kind === 'rival' ? 'rival' : 'sys',
+    await playDialog([[t.kind === 'gym' ? 'sys' : t.kind === 'xero' ? 'xero' : t.kind === 'rival' ? 'rival' : 'sys',
       `${t.name}: "${t.intro || 'Đấu nào!'}"`]]);
     show('battle', { kind: 'trainer', trainerId: tid });
   });
