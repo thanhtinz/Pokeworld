@@ -481,6 +481,19 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
 }
 
+// Tuxedex lọc được: dữ liệu phải đủ để tìm theo tên, hệ, nơi sống, đặc điểm
+{
+  const v = Object.values(SPECIES).filter(s => !s.glitched);
+  ok('loài nào cũng có tên để tìm', v.every(s => s.name && s.name.length > 1));
+  ok('mỗi hệ đều lọc ra được ít nhất một loài',
+    TYPES.every(t => v.some(s => s.types.includes(t))),
+    TYPES.filter(t => !v.some(s => s.types.includes(t))).join(' '));
+  const nha = new Set(v.flatMap(s => s.home || []));
+  const dd = new Set(v.flatMap(s => s.tags || []));
+  ok('có nhiều nơi sống và đặc điểm để lọc', nha.size >= 10 && dd.size >= 20,
+    `${nha.size} nơi sống, ${dd.size} đặc điểm`);
+}
+
 // Bệnh dịch (mods/plagues.yaml): dính chiêu mang bệnh thì có thể lây,
 // con đang bệnh ra đòn lại có lúc lây tiếp thay vì đánh
 {

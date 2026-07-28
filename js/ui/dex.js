@@ -5,6 +5,7 @@ import { EVOLUTIONS } from '../data/evolutions.js';
 import { SHAPE_VI, STAGE_VI } from '../data/traits.js';
 import { spriteUrl, upgradeImages, esc } from '../util.js';
 import { typeBadge, header, holoStyle } from './kit.js';
+import { TYPES, TYPE_NAMES, TYPE_COLORS } from '../data/types.js';
 
 // Sáu chỉ số của dáng thân (Tuxemon): mọi dáng cộng lại đều bằng 36 nên
 // thanh chỉ số cho biết con này thiên về hướng nào chứ không phải mạnh yếu.
@@ -19,13 +20,49 @@ export function render(el) {
     .sort((a, b) => a - b);
   const total = dexIds.length;
 
+  // Bộ lọc: 411 con xếp một lưới thì cuộn mỏi tay, phải tìm được
+  let tim = '';
+  let locHe = '';
+  let locCo = 'all';   // all | seen | caught
+
+  function hopLoc(id) {
+    const s = SPECIES[id];
+    if (locHe && !s.types.includes(locHe)) return false;
+    if (locCo === 'seen' && !G.p.dex.seen[id]) return false;
+    if (locCo === 'caught' && !G.p.dex.caught[id]) return false;
+    if (tim) {
+      const q = tim.toLowerCase();
+      const khop = s.name.toLowerCase().includes(q)
+        || String(id) === q
+        || (s.home || []).some(h => h.toLowerCase().includes(q))
+        || (s.tags || []).some(t => t.toLowerCase().includes(q));
+      if (!khop) return false;
+    }
+    return true;
+  }
+
   function drawList() {
     const [seen, caughtN] = dexCounts();
+    const hien = dexIds.filter(hopLoc);
     el.innerHTML = `
       ${header('Tuxedex')}
       <div class="card dex-count">Đã gặp <b>${seen}</b> — Đã bắt <b>${caughtN}</b> / ${total}</div>
+      <div class="card dex-filter">
+        <input type="search" id="dex-tim" placeholder="Tìm theo tên, số hiệu, nơi sống, đặc điểm"
+               value="${esc(tim)}" autocomplete="off">
+        <div class="dex-chips">
+          <button type="button" class="dex-chip ${locCo === 'all' ? 'on' : ''}" data-co="all">Tất cả</button>
+          <button type="button" class="dex-chip ${locCo === 'seen' ? 'on' : ''}" data-co="seen">Đã gặp</button>
+          <button type="button" class="dex-chip ${locCo === 'caught' ? 'on' : ''}" data-co="caught">Đã bắt</button>
+        </div>
+        <div class="dex-chips">
+          <button type="button" class="dex-chip ${locHe === '' ? 'on' : ''}" data-he="">Mọi hệ</button>
+          ${TYPES.map(t => `<button type="button" class="dex-chip ${locHe === t ? 'on' : ''}"
+            data-he="${esc(t)}" style="--tc:${TYPE_COLORS[t]}">${esc(TYPE_NAMES[t])}</button>`).join('')}
+        </div>
+      </div>
       <div class="dex-grid">
-        ${dexIds.map(id => {
+        ${hien.map(id => {
           const s = SPECIES[id];
           const seenIt = !!G.p.dex.seen[id];
           const caughtIt = !!G.p.dex.caught[id];
@@ -39,9 +76,30 @@ export function render(el) {
             ${caughtIt ? '<span class="dex-check" title="Đã bắt"></span>' : ''}
           </button>`;
         }).join('')}
-      </div>`;
+      </div>
+      ${hien.length === 0 ? '<div class="card empty-note">Không có con nào khớp.</div>' : ''}`;
     el.querySelectorAll('.dex-cell:not(.unknown)').forEach(c =>
       c.addEventListener('click', () => drawDetail(Number(c.dataset.id))));
+
+    const o = el.querySelector('#dex-tim');
+    // Gõ xong mới vẽ lại, không thì mỗi phím một lần dựng 411 ô
+    let cho = null;
+    o.addEventListener('input', () => {
+      clearTimeout(cho);
+      const v = o.value;
+      cho = setTimeout(() => {
+        tim = v;
+        const vt = o.selectionStart;
+        drawList();
+        const moi = el.querySelector('#dex-tim');
+        moi.focus();
+        moi.setSelectionRange(vt, vt);
+      }, 220);
+    });
+    el.querySelectorAll('[data-co]').forEach(b =>
+      b.addEventListener('click', () => { locCo = b.dataset.co; drawList(); }));
+    el.querySelectorAll('[data-he]').forEach(b =>
+      b.addEventListener('click', () => { locHe = b.dataset.he; drawList(); }));
   }
 
   // Tìm chuỗi tiến hóa chứa dex này từ EVOLUTIONS

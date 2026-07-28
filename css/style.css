@@ -2147,3 +2147,27 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   background: rgba(140, 200, 60, .18);
   border: 1px solid #8cc83c; color: #b8e86a;
 }
+
+/* ==== Tuxedex: o tim + chip loc ==== */
+.dex-filter { display: flex; flex-direction: column; gap: 8px; }
+.dex-filter input {
+  width: 100%; padding: 10px 12px;
+  border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card-2); color: var(--text); font-size: .88rem;
+}
+/* Hang chip he co 13 muc — de wrap thi the loc chiem nua man hinh, nen cho
+   truot ngang, chi hang dau (tat ca / da gap / da bat) moi xuong dong. */
+.dex-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;
+  scrollbar-width: none; }
+.dex-chips::-webkit-scrollbar { display: none; }
+.dex-chips > * { flex: none; }
+.dex-chip {
+  font-size: .72rem; font-weight: 600;
+  padding: 5px 11px; border-radius: 999px;
+  background: var(--card-2); border: 1px solid var(--line); color: var(--muted);
+  transition: background .15s, color .15s, border-color .15s;
+}
+.dex-chip.on {
+  background: var(--tc, var(--violet)); border-color: var(--tc, var(--violet));
+  color: #fff;
+}
