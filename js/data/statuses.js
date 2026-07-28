@@ -1,13 +1,14 @@
 // TuxeWorld H5 | data/statuses.js | Trạng thái — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon db/status (CC BY-SA 4.0). Đừng sửa tay.
 // kind = kiểu tác động (xem js/engine/status.js), p = tham số của bản gốc,
-// mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận.
+// mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận,
+// onTech/onItem = dùng chiêu (hoặc dùng đồ) xong thì đổi sang trạng thái nào.
 
 export const STATUSES = {
   "blinded": { name: "Mù", cat: "negative", kind: "statchange", p: [], mods: {"speed": 0.5, "dodge": 0.5}, immune: [] },
   "burn": { name: "Bỏng", cat: "negative", kind: "burnt", p: ["8", "weakest"], mods: {}, immune: ["fire"], keep: true },
-  "chargedup": { name: "Tích lực", cat: "positive", kind: "chargedup", p: [], mods: {"armour": 2, "dodge": 2, "melee": 2, "ranged": 2, "speed": 2}, immune: [] },
-  "charging": { name: "Đang dồn lực", cat: "positive", kind: "charging", p: [], mods: {}, immune: [] },
+  "chargedup": { name: "Tích lực", cat: "positive", kind: "chargedup", p: [], mods: {"armour": 2, "dodge": 2, "melee": 2, "ranged": 2, "speed": 2}, immune: [], onTech: "exhausted" },
+  "charging": { name: "Đang dồn lực", cat: "positive", kind: "charging", p: [], mods: {}, immune: [], onTech: "chargedup", onItem: "chargedup" },
   "charmed": { name: "Mê hoặc", cat: "negative", kind: "charmed", p: ["0.5"], mods: {}, immune: [] },
   "confused": { name: "Rối trí", cat: "negative", kind: "confused", p: ["0.5"], mods: {}, immune: [] },
   "diehard": { name: "Lì đòn", cat: "positive", kind: "diehard", p: ["1"], mods: {}, immune: [] },

@@ -216,6 +216,11 @@ STATUS_SKIP = {'faint', 'eliminated'}
 
 def write_statuses(db, names, disp):
     d = os.path.join(db, 'status')
+    # on_tech_use bi dung cho HAI viec khac nhau trong ban goc:
+    #   · charging/chargedup ghi TEN TRANG THAI se doi sang
+    #   · confused/flinching/noddingoff/wild ghi TEN CHIEU thay the (empty)
+    # Chi lay truong hop dau, nen phai biet truoc danh sach trang thai co that.
+    co_that = {f[:-5] for f in os.listdir(d) if f.endswith('.yaml')}
     rows = []
     for f in sorted(os.listdir(d)):
         if not f.endswith('.yaml'):
@@ -240,17 +245,24 @@ def write_statuses(db, names, disp):
             'mods': mods,
             'immune': imm,
             'keep': bool((st.get('behaviors') or {}).get('persists_after_combat')),
+            # Chuoi trang thai: dung chieu (hoac dung do) xong thi trang thai
+            # nay doi thanh trang thai khac. charging -> chargedup -> exhausted.
+            'onTech': (st.get('on_tech_use') or '') if st.get('on_tech_use') in co_that else '',
+            'onItem': (st.get('on_item_use') or '') if st.get('on_item_use') in co_that else '',
         }))
 
     out = ["// TuxeWorld H5 | data/statuses.js | Trạng thái — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon db/status (CC BY-SA 4.0). Đừng sửa tay.',
            '// kind = kiểu tác động (xem js/engine/status.js), p = tham số của bản gốc,',
-           '// mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận.', '',
+           '// mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận,',
+           '// onTech/onItem = dùng chiêu (hoặc dùng đồ) xong thì đổi sang trạng thái nào.', '',
            'export const STATUSES = {']
     for slug, r in rows:
-        out.append('  %s: { name: %s, cat: %s, kind: %s, p: %s, mods: %s, immune: %s%s },'
+        out.append('  %s: { name: %s, cat: %s, kind: %s, p: %s, mods: %s, immune: %s%s%s%s },'
                    % (js(slug), js(r['name']), js(r['cat']), js(r['kind']), js(r['p']),
-                      js(r['mods']), js(r['immune']), ', keep: true' if r['keep'] else ''))
+                      js(r['mods']), js(r['immune']), ', keep: true' if r['keep'] else '',
+                      (', onTech: %s' % js(r['onTech'])) if r['onTech'] else '',
+                      (', onItem: %s' % js(r['onItem'])) if r['onItem'] else ''))
     out.append('};')
     out.append('')
     out.append('export const statusName = (id) => (STATUSES[id] && STATUSES[id].name) || id;')

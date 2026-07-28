@@ -11,7 +11,7 @@ import { PLAGUES } from '../data/plagues.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName,
-  counterDamage, swapDamage, wildRampage, condBlocked } from './status.js';
+  counterDamage, swapDamage, wildRampage, condBlocked, chainStatus } from './status.js';
 import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch, applyBallEffects, keepOnFail, keepOnCatch } from './catchmon.js';
 import { attemptEscape } from './escape.js';
@@ -453,6 +453,11 @@ export class Battle {
 
     // Hiệu ứng phụ của chiêu, lấy đúng danh sách effects bên bản gốc
     if (res.eff !== 0) this.applyEffects(i, oi, mv, res, ev, mvId, !!cho);
+
+    // Đánh xong thì trạng thái dạng chuỗi mới đẩy đi tiếp — làm SAU cùng để
+    // chính đòn vừa rồi vẫn ăn hệ số của trạng thái cũ, đúng như bản gốc.
+    const doi = chainStatus(mon, 'tech');
+    if (doi) ev.push({ t: 'msg', text: `${displayName(mon)} chuyển sang ${statusName(doi)}!` });
   }
 
   // give (dính trạng thái) · healing / prop_healing (hồi máu) · prop_damage
@@ -656,6 +661,11 @@ export class Battle {
           }
           for (const m of res.msgs) ev.push({ t: 'msg', text: m });
           if (!res.ok) ev.push({ t: 'msg', text: 'Nhưng không có tác dụng!' });
+          // Bản gốc chỉ đẩy chuỗi trạng thái khi món có tác dụng thật
+          if (res.ok) {
+            const doi = chainStatus(target, 'item');
+            if (doi) ev.push({ t: 'msg', text: `${displayName(target)} chuyển sang ${statusName(doi)}!` });
+          }
         }
       } else if (a.t === 'ball') {
         const foeMon = this.activeMon(oi);

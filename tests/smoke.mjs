@@ -996,6 +996,43 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     ok('chiêu phủ đầu trượt vẫn ăn nửa đòn', sut > 0, `${id} ${sut}`);
   }
 
+  // Chuỗi trạng thái dồn lực -> tích lực -> kiệt sức. Trước đây "Đang dồn lực"
+  // không bao giờ chuyển tiếp (đứng đó vô nghĩa) còn "Tích lực" thì nhân đôi
+  // NĂM chỉ số VĨNH VIỄN vì không có gì đẩy nó sang "Kiệt sức".
+  {
+    ok('trạng thái dồn lực có mốc chuyển tiếp',
+      STATUSES.charging?.onTech === 'chargedup' && STATUSES.chargedup?.onTech === 'exhausted');
+    ok('kiệt sức là chặng cuối, không chuyển tiếp nữa', !STATUSES.exhausted?.onTech);
+    // on_tech_use của mấy trạng thái kia trỏ tới TÊN CHIÊU chứ không phải trạng
+    // thái — công cụ sinh data phải lọc bỏ, nếu không là gán trạng thái ma
+    ok('mốc chuyển tiếp nào cũng là trạng thái có thật',
+      Object.values(STATUSES).every(x => (!x.onTech || STATUSES[x.onTech])
+        && (!x.onItem || STATUSES[x.onItem])));
+
+    const me = newTuxemon(STARTERS[0].sp, 40);
+    const foe = newTuxemon(STARTERS[2].sp, 40);
+    const danhId = Object.entries(MOVES).find(([, m]) =>
+      m.category === 'damage' && m.acc === 100 && !m.recharge && !(m.eff || []).length)?.[0]
+      || 'struggle';
+    me.moves = [{ id: danhId, cd: 0 }];
+    foe.moves = [{ id: vaHai || 'struggle', cd: 0 }];
+    applyStatus(me, 'charging');
+    const b = new Battle({ kind: 'wild',
+      sides: [{ kind: 'player', mons: [me] }, { kind: 'wild', mons: [foe] }] });
+    const buoc = [];
+    for (let t = 0; t < 3; t++) {
+      foe.hpCur = maxHp(foe);
+      b.submit(0, { t: 'move', i: 0 });
+      b.resolve();
+      buoc.push([me.status, maxHp(foe) - foe.hpCur]);
+    }
+    ok('dồn lực -> tích lực -> kiệt sức',
+      buoc.map(x => x[0]).join(',') === 'chargedup,exhausted,exhausted',
+      buoc.map(x => x[0]).join(','));
+    ok('đòn lúc tích lực nặng hơn hẳn đòn lúc kiệt sức',
+      buoc[1][1] > buoc[2][1] * 2, buoc.map(x => x[1]).join(' vs '));
+  }
+
   // disappear/appear: chiêu "lặn xuống" phải giáng được đòn đi kèm, chứ không
   // phải bấm xong đứng hình. Trước đây 5 chiêu này ra power 0, bấm vào là mất
   // lượt và khoá 4 lượt hồi chiêu — coi như tự thua.

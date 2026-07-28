@@ -107,6 +107,26 @@ export function condTag(mon, mv) {
   return null;
 }
 
+// Chuỗi trạng thái: dùng chiêu (hoặc dùng đồ) xong thì trạng thái đang mang
+// chuyển sang trạng thái khác — dồn lực → tích lực → kiệt sức.
+// Bản gốc (combat/session.py apply_technique) chạy chiêu TRƯỚC rồi mới đẩy
+// trạng thái đi tiếp, nên chính đòn vừa đánh vẫn ăn hệ số của trạng thái cũ:
+//   lượt 1 bấm chiêu dồn lực   -> mang "Đang dồn lực"
+//   lượt 2 đánh bình thường    -> đánh xong đổi thành "Tích lực"
+//   lượt 3 đánh với chỉ số x2  -> đánh xong đổi thành "Kiệt sức"
+//   lượt 4 trở đi đánh với x0.5 cho tới khi giải trạng thái
+// Trả về id trạng thái mới, hoặc null nếu không đổi gì.
+export function chainStatus(mon, kieu = 'tech') {
+  const s = def(mon.status);
+  const tiep = s && (kieu === 'item' ? s.onItem : s.onTech);
+  if (!tiep || !STATUSES[tiep]) return null;
+  // Bản gốc xoá trạng thái cũ trước rồi mới gán, nên luật "món tốt không đẩy
+  // được món xấu" không chắn đường ở đây.
+  cureStatus(mon);
+  applyStatus(mon, tiep);
+  return mon.status === tiep ? tiep : null;
+}
+
 export const isLocked = (mon) => def(mon.status)?.kind === 'lockdown';
 export const cantHeal = (mon) => def(mon.status)?.kind === 'festering';
 
