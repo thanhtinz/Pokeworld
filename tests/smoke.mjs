@@ -1963,6 +1963,37 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     DC.kho().mons[0].exp === expKhiHetTien && G.p.money === 0);
 }
 
+// ==== Bản đồ: địa hình phải chặn đúng, NPC phải đứng đúng chỗ ====
+{
+  let oNuoc = 0, nuocHo = 0, tongO = 0, oChan = 0;
+  for (const m of Object.values(MAPS)) {
+    tongO += m.solid.length;
+    for (let i = 0; i < m.solid.length; i++) if (m.solid[i]) oChan++;
+    if (!m.water) continue;
+    for (let i = 0; i < m.water.length; i++) {
+      if (!m.water[i]) continue;
+      oNuoc++;
+      if (!m.solid[i]) nuocHo++;
+    }
+  }
+  ok('mặt nước luôn chặn đường, không lội bừa được', nuocHo === 0, `${nuocHo}/${oNuoc} ô hở`);
+  ok('bản đồ có địa hình chặn thật sự (không phải đi đâu cũng được)',
+    oChan / tongO > 0.25, `${(oChan / tongO * 100).toFixed(1)}%`);
+
+  // NPC: người trong nhà thì đứng, ngoài đường mới có người đi lại
+  let trongNhaDi = 0, ngoaiDi = 0, tongNpc = 0;
+  for (const m of Object.values(MAPS)) {
+    for (const n of m.npcs || []) {
+      tongNpc++;
+      if (m.env === 'interior' && n.ai !== 'stand') trongNhaDi++;
+      if (m.env !== 'interior' && n.ai === 'wander') ngoaiDi++;
+    }
+  }
+  ok('NPC trong nhà đứng yên hết', trongNhaDi === 0, String(trongNhaDi));
+  ok('ngoài đường chỉ một số ít người đi lang thang',
+    ngoaiDi / tongNpc < 0.2, `${ngoaiDi}/${tongNpc}`);
+}
+
 // ==== Nhà đất ====
 {
   newGame('EsTester');
@@ -1993,6 +2024,27 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     }
     ok('mọi lô đất nằm trên ô trống, không đè lên gì', xau.length === 0,
       [...new Set(xau)].join(' | '));
+
+    // Đất ở phải là ĐẤT BẰNG: không dựng nhà giữa hồ hay trên vách núi, và
+    // phải có lối đi tới cửa chứ không xây kín trong bụi.
+    const uot = ES.LOTS.filter(l => {
+      for (let dy = 0; dy < 3; dy++) {
+        for (let dx = 0; dx < 3; dx++) {
+          if (m.water && m.water[(l.y + dy) * m.w + (l.x + dx)]) return true;
+        }
+      }
+      return false;
+    });
+    ok('không lô nào nằm dưới nước', uot.length === 0, uot.map(l => l.id).join(', '));
+
+    const kin = ES.LOTS.filter(l => {
+      const c = { x: l.x + 1, y: l.y + 2 };   // ô cửa
+      if (m.solid[c.y * m.w + c.x]) return true;
+      // phải đứng được ở ô ngay dưới cửa mới bấm vào nhà được
+      const d = (c.y + 1) * m.w + c.x;
+      return c.y + 1 >= m.h || m.solid[d];
+    });
+    ok('lô nào cũng có lối đi tới cửa nhà', kin.length === 0, kin.map(l => l.id).join(', '));
   }
 
   G.p.money = 1000;

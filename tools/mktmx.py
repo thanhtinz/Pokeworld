@@ -282,7 +282,7 @@ def load_npc_db(root):
     return _npc_db
 
 
-def build_npc(n):
+def build_npc(n, trong_nha=False):
     """Bo sung sprite + ten + loi thoai cho mot NPC; tra None neu bo qua."""
     slug = n['slug']
     sprite = _npc_db.get(slug)
@@ -305,7 +305,11 @@ def build_npc(n):
         lines = [DEFAULT_LINE.get(sprite, 'Chào cậu! Chúc cậu lên đường may mắn.')]
     out = {'x': n['x'], 'y': n['y'], 'dir': n['dir'], 'slug': slug,
            'sprite': sprite, 'name': n.get('ten') or name, 'lines': lines,
-           'ai': NPC_AI.get(sprite, 'wander')}
+           # MAC DINH LA DUNG YEN. Truoc day mac dinh 'wander' nen 307/369 NPC
+           # di lang thang — nguoi trong nha cung di vong quanh phong khach, ma
+           # ngoai duong thi dong nguoi qua di lai lai roi tum vao mot cho.
+           # Chi sprite nao ghi ro trong NPC_AI moi di.
+           'ai': 'stand' if trong_nha else NPC_AI.get(sprite, 'stand')}
     # NPC doi Tuxemon / ban hang: dung mot cho cho de bam, khong di lang thang
     if n.get('trade'):
         out['trade'] = n['trade']
@@ -316,7 +320,7 @@ def build_npc(n):
     return out
 
 
-def khac_nhau(npcs):
+def khac_nhau(npcs, trong_nha=False):
     """Cung mot ban do ma trung ca sprite lan ten thi doi cho khac di.
 
     Ban goc dat nhieu NPC cung slug kieu bob/bob2 nen qua ham build_npc deu ra
@@ -336,7 +340,9 @@ def khac_nhau(npcs):
             if (spr, ten) not in da_co:
                 n['sprite'], n['name'] = spr, ten
                 n['lines'] = [EXTRA_LINES[(h + k) % len(EXTRA_LINES)]]
-                n['ai'] = NPC_AI.get(spr, 'wander')
+                # Doi sprite cho khoi trung nhau thi phai giu nguyen luat cu:
+                # trong nha van dung yen, ngoai duong mac dinh cung dung yen.
+                n['ai'] = 'stand' if trong_nha else NPC_AI.get(spr, 'stand')
                 da_co.add((spr, ten))
                 break
     for n in npcs:
@@ -624,7 +630,9 @@ def parse_map(path, tsx_cache):
                 npcs[slug]['ten'] = ten.split()[0].capitalize()
                 break
 
-    ds = khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])
+    # Trong nha thi ai cung dung yen — phong be, di lai la dam vao nhau
+    trong_nha = (moi_truong[0] or '') == 'interior'
+    ds = khac_nhau([n for n in (build_npc(n, trong_nha) for n in npcs.values()) if n], trong_nha)
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
             'solid': solid, 'water': water, 'warps': warps, 'talks': talks,
             'trades': trades, 'encs': sorted(encs),
