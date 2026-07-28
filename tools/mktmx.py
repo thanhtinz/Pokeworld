@@ -461,7 +461,7 @@ def parse_map(path, tsx_cache):
     ds = khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
             'solid': solid, 'warps': warps, 'talks': talks, 'encs': sorted(encs),
-            'music': nhac[0] or 'town',
+            'music': nhac[0],          # None = ban do khong tu goi nhac
             'env': moi_truong[0], 'envNight': moi_truong[1],
             'npcs': xep_cho(ds, solid, warps, w, h)}
 
@@ -651,6 +651,23 @@ def main():
             'env': m.get('env'), 'envNight': m.get('envNight'),
         }
 
+    # Ban do nao khong tu goi play_music thi lay nhac cua ban do dan vao no —
+    # di xuyen cua nghe nhac khong doi, dung nhu cam giac ben ban goc. Truoc day
+    # cho nao thieu deu do het ve 'town', 33/40 ban do keu chung mot ban.
+    for slug, ep in MUSIC_RIENG.items():
+        if slug in out_maps:
+            out_maps[slug]['music'] = ep
+    for _ in range(6):                       # lan truyen dan qua cac tang cua
+        for slug, m in out_maps.items():
+            if m['music']:
+                continue
+            for cha, mc in out_maps.items():
+                if mc['music'] and any(w['to'] == slug for w in mc['warps']):
+                    m['music'] = mc['music']
+                    break
+    for m in out_maps.values():
+        m['music'] = m['music'] or 'town'
+
     # Vai cong ben ban goc tro ra NGOAI ban do dich (ban do do lam do dang, vi du
     # leather_town -> flower_city o o 59,0 trong khi ban do chi rong 40). De nguyen
     # thi buoc qua cong la roi ra hu khong, nen keo ve trong bien; luc vao map
@@ -679,6 +696,15 @@ def main():
 
 
 # Ban nhac ban goc goi -> ban nhac game co san (xem tools/mksounds.py)
+# Ban do ban goc khong ghi nhac nhung ro rang thuoc mot khu rieng
+MUSIC_RIENG = {
+    'taba_ba_foyer': 'arena', 'taba_ba_main': 'arena',
+    'taba_ba_passageway_1': 'arena', 'taba_ba_passageway_2': 'arena',
+    'taba_ba_passageway_3': 'arena', 'taba_ba_passageway_4': 'arena',
+    'taba_ba_stairwell_1': 'arena',
+    'leather_shaft1': 'docks', 'leather_shaft2': 'docks',
+}
+
 MUSIC_MAP = {
     'music_chibi_ninja': 'field',
     'music_mystic_island': 'grove',
@@ -686,6 +712,9 @@ MUSIC_MAP = {
     'music_town_theme': 'town',
     'music_home': 'town',
     'music_the_wild_places': 'field',
+    'music_the_princess': 'arena',       # khu thi dau Taba
+    'music_city_park': 'park',           # cong vien thanh pho
+    'music_omnichannel': 'docks',        # tru so Omnichannel
 }
 
 

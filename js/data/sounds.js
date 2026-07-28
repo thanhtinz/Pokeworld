@@ -29,8 +29,12 @@ export const MUSIC = {
   town: 'assets/music/town.ogg',
   field: 'assets/music/field.ogg',
   grove: 'assets/music/grove.ogg',
+  arena: 'assets/music/arena.ogg',
+  park: 'assets/music/park.mp3',
+  docks: 'assets/music/docks.ogg',
   battle: 'assets/music/battle.ogg',
   win: 'assets/music/win.ogg',
+  lose: 'assets/music/lose.ogg',
 };
 
 // Tiếng riêng của từng chiêu (db/sounds/techniques.yaml của bản gốc)

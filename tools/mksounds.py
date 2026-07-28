@@ -49,12 +49,17 @@ SFX = {
 # Chi chep them hai ban nhe nhat trong so do; ban do nao goi ban nhac nang hon
 # thi dung tam 'town' cho khoi phinh dung luong tai ve.
 MUSIC = {
-    'title': 'music/JRPG_goodMorning.ogg',
+    'title': 'music/JRPG_goodMorning.ogg',         # music_goodmorning
     'town': 'music/JRPG_royalCourt_loop.ogg',      # music_cathedral_theme
     'field': 'music/Chibi Ninja.ogg',              # music_chibi_ninja — thi tran + duong
     'grove': 'music/JRPG_mysticIsle.ogg',          # music_mystic_island — rung
-    'battle': 'music/Enter_the_Emperor.ogg',
-    'win': 'music/JRPG_winBattle.ogg',
+    'arena': 'music/JRPG_princess.ogg',            # music_the_princess — khu thi dau
+    'park': 'music/back34.mp3',                    # music_city_park — cong vien
+    'docks': 'music/JRPG_docks_loop.ogg',          # music_omnichannel — tru so Omnichannel
+    'battle': 'music/Enter_the_Emperor.ogg',       # music_the_emperor
+    'win': 'music/JRPG_winBattle.ogg',             # music_winbattle
+    'lose': 'music/JRPG_winBattleBig.ogg',         # thua tran (ban goc goi music_gameover
+                                                   # nhung slug do khong co trong db/music)
 }
 
 

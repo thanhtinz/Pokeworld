@@ -27,7 +27,7 @@ import { useItem, canUse, foodBond } from '../js/engine/useitem.js';
 import { escapeChance } from '../js/engine/escape.js';
 import { scoreMove, pickItem } from '../js/engine/ai.js';
 import { SHAPE_VI, STAGE_VI, HOME_VI, TAG_VI } from '../js/data/traits.js';
-import { MON_CRY, CRY_SFX, cryPath } from '../js/data/sounds.js';
+import { MON_CRY, CRY_SFX, cryPath, MUSIC } from '../js/data/sounds.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
 import { STATUSES } from '../js/data/statuses.js';
@@ -737,8 +737,12 @@ ok('có bảng gặp lấy từ bản gốc', Object.keys(ENCOUNTERS).length >= 
 }
 
 // Mỗi bản đồ mang sẵn tên bản nhạc lấy từ lệnh play_music của bản gốc
-ok('bản đồ nào cũng có nhạc nền hợp lệ',
-  Object.values(MAPS).every(m => ['town', 'field', 'grove'].includes(m.music)));
+ok('bản đồ nào cũng có nhạc nền có thật',
+  Object.values(MAPS).every(m => MUSIC[m.music]),
+  Object.values(MAPS).filter(m => !MUSIC[m.music]).map(m => m.music).join(' '));
+ok('nhạc không dồn hết về một bản',
+  new Set(Object.values(MAPS).map(m => m.music)).size >= 5,
+  [...new Set(Object.values(MAPS).map(m => m.music))].join(' '));
 
 // ==== Trạng thái lấy từ db/status của bản gốc ====
 ok('có bảng trạng thái Tuxemon', Object.keys(STATUSES).length >= 30, String(Object.keys(STATUSES).length));

@@ -118,6 +118,10 @@ export function sfx(name = 'tap') {
 let bgm = null;
 let bgmName = '';
 
+// Nhạc thắng / thua là đoạn ngắn, phát một lần rồi thôi — lặp lại thì thành
+// tra tấn. Mấy bản còn lại là nhạc nền nên vẫn lặp.
+const KHONG_LAP = new Set(['win', 'lose']);
+
 export function playMusic(name) {
   if (!MUSIC[name]) return;
   if (bgmName === name && bgm && !bgm.paused) return;
@@ -126,7 +130,7 @@ export function playMusic(name) {
   if (!cfg.music) return;
   try {
     bgm = clip(MUSIC[name]).cloneNode();
-    bgm.loop = true;
+    bgm.loop = !KHONG_LAP.has(name);
     bgm.volume = Math.max(0, Math.min(1, cfg.volume * 0.55));
     bgm.play().catch(() => {});
   } catch { /* bỏ qua */ }

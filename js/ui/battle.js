@@ -13,7 +13,7 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
 import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt } from '../util.js';
-import { textDelay, sfx, getSetting } from '../engine/settings.js';
+import { textDelay, sfx, getSetting, playMusic } from '../engine/settings.js';
 import { SFX, MON_CRY } from '../data/sounds.js';
 import { fxFor } from '../data/vfx.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
@@ -395,6 +395,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           await sleep(350);
           break;
         case 'end':
+          // Thắng thì nhạc khải hoàn, thua thì nhạc buồn — bản gốc cũng đổi
+          // nhạc theo kết quả (db/environment: victory_music / defeat_music).
+          playMusic(ev.winner === 0 ? 'win' : 'lose');
           break;
       }
     }

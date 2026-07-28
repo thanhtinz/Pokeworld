@@ -39,7 +39,7 @@ export const MAPS = {
     npcs: [{"x": 8, "y": 3, "dir": "right", "sprite": "girl1", "name": "Callie", "lines": ["Mẹ nói hôm nay cả thị trấn phải ra quảng trường đấy."], "ai": "wander"}, {"x": 3, "y": 5, "dir": "down", "sprite": "professor", "name": "Giáo Sư", "lines": ["Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.", "Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé."], "ai": "stand"}],
   },
   maple_house: {
-    name: "Nhà Maple", w: 13, h: 11, cols: 32, music: "town",
+    name: "Nhà Maple", w: 13, h: 11, cols: 32, music: "field",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/maple_house.png",
     spawn: { x: 6, y: 9 },
@@ -71,7 +71,7 @@ export const MAPS = {
     npcs: [{"x": 12, "y": 14, "dir": "down", "sprite": "xerogrunt", "name": "Người Lạ Mặc Đồ Đen", "lines": ["Nhìn gì? Biến đi chỗ khác."], "ai": "watch"}, {"x": 32, "y": 14, "dir": "right", "sprite": "postboy", "name": "Người Dân", "lines": ["Thư từ khắp vùng đều qua tay tôi đấy."], "ai": "patrol"}, {"x": 31, "y": 27, "dir": "up", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}, {"x": 32, "y": 26, "dir": "up", "sprite": "kid", "name": "Chú Ba", "lines": ["Hồi trẻ tôi từng leo tới đỉnh núi đằng kia."], "ai": "wander"}, {"x": 33, "y": 27, "dir": "up", "sprite": "childactor", "name": "Anh Dũng", "lines": ["Đường số 1 nhiều cỏ cao lắm, đi cẩn thận nhé."], "ai": "wander"}, {"x": 34, "y": 28, "dir": "down", "sprite": "disciple", "name": "Ông Chín", "lines": ["Trạm hồi sức miễn phí mà nhiều người vẫn không biết đấy."], "ai": "wander"}, {"x": 31, "y": 24, "dir": "left", "sprite": "heroine", "name": "Liela", "lines": ["Quấy tôi lúc đang hái quả là phải đấu một trận đó nha!"], "ai": "wander"}, {"x": 33, "y": 25, "dir": "left", "sprite": "bob", "name": "Bob", "lines": ["Giá mà nhiều người ghé qua chào hỏi như cậu. À mà, xin chào!"], "ai": "wander"}, {"x": 35, "y": 24, "dir": "left", "sprite": "girl1", "name": "Marissa", "lines": ["Nghe nói Omnichannel sắp thông báo gì đó nữa."], "ai": "wander"}, {"x": 36, "y": 27, "dir": "left", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand"}, {"x": 33, "y": 20, "dir": "up", "sprite": "fashionista", "name": "Misa", "lines": ["Ngoài đường số 1 dạo này lắm người lạ, cẩn thận đấy."], "ai": "wander"}, {"x": 34, "y": 19, "dir": "left", "sprite": "picnicker", "name": "Thằng Tí", "lines": ["Tôi nuôi một con Tuxemon từ hồi nó còn bé xíu."], "ai": "wander"}, {"x": 32, "y": 19, "dir": "down", "sprite": "beachcomber", "name": "Chú Ba", "lines": ["Nghe đâu trong hang có con hiếm lắm, tôi chưa dám vào."], "ai": "wander"}, {"x": 32, "y": 32, "dir": "up", "sprite": "cooldude", "name": "Kyle", "lines": ["Muốn mạnh thì phải đánh nhiều vào, đứng đây nói chuyện hoài sao khá được."], "ai": "wander"}, {"x": 55, "y": 37, "dir": "down", "sprite": "christie", "name": "Christie", "lines": ["Bãi biển phía đông đẹp lắm, khi nào rảnh ghé chơi."], "ai": "wander"}, {"x": 53, "y": 36, "dir": "up", "sprite": "beachcomber", "name": "Speck", "lines": ["Tôi nhặt vỏ sò suốt ngày, nghề của tôi mà."], "ai": "wander"}],
   },
   professor_lab: {
-    name: "Phòng Nghiên Cứu", w: 13, h: 18, cols: 32, music: "town",
+    name: "Phòng Nghiên Cứu", w: 13, h: 18, cols: 32, music: "field",
     env: "interior", envNight: "night_interior",
     atlas: "assets/maps/professor_lab.png",
     spawn: { x: 6, y: 16 },
@@ -87,7 +87,7 @@ export const MAPS = {
     npcs: [{"x": 4, "y": 6, "dir": "down", "sprite": "professor", "name": "Giáo Sư", "lines": ["Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.", "Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé."], "ai": "stand"}, {"x": 6, "y": 15, "dir": "right", "sprite": "omnichannelallie", "name": "Allie", "lines": ["Cậu muốn gì? ... Thôi, chỗ này cậu không vào được đâu."], "ai": "watch"}, {"x": 7, "y": 14, "dir": "down", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}, {"x": 7, "y": 16, "dir": "down", "sprite": "childactor", "name": "Chị Yến", "lines": ["Con nào hợp với mình thì nuôi lâu dài, đừng đổi liên tục."], "ai": "wander"}],
   },
   healing_center: {
-    name: "Trạm Hồi Sức", w: 13, h: 11, cols: 31, music: "town",
+    name: "Trạm Hồi Sức", w: 13, h: 11, cols: 31, music: "field",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/healing_center.png",
     spawn: { x: 6, y: 9 },
@@ -216,7 +216,7 @@ export const MAPS = {
     npcs: [],
   },
   maple_bedroom: {
-    name: "Nhà Maple — Phòng Ngủ", w: 9, h: 7, cols: 28, music: "town",
+    name: "Nhà Maple — Phòng Ngủ", w: 9, h: 7, cols: 28, music: "field",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/maple_bedroom.png",
     spawn: { x: 4, y: 3 },
@@ -248,7 +248,7 @@ export const MAPS = {
     npcs: [],
   },
   taba_ba_foyer: {
-    name: "Khu Thi Đấu Taba — Tiền Sảnh", w: 5, h: 10, cols: 19, music: "town",
+    name: "Khu Thi Đấu Taba — Tiền Sảnh", w: 5, h: 10, cols: 19, music: "arena",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_ba_foyer.png",
     spawn: { x: 2, y: 8 },
@@ -328,7 +328,7 @@ export const MAPS = {
     npcs: [],
   },
   taba_ba_main: {
-    name: "Khu Thi Đấu Taba — Đại Sảnh", w: 19, h: 15, cols: 32, music: "town",
+    name: "Khu Thi Đấu Taba — Đại Sảnh", w: 19, h: 15, cols: 32, music: "arena",
     env: "interior", envNight: "night_interior",
     atlas: "assets/maps/taba_ba_main.png",
     spawn: { x: 9, y: 9 },
@@ -440,7 +440,7 @@ export const MAPS = {
     npcs: [{"x": 5, "y": 4, "dir": "down", "sprite": "granny", "name": "Người Dân", "lines": ["Chào cậu! Chúc cậu lên đường may mắn."], "ai": "wander"}],
   },
   citypark: {
-    name: "Công Viên Thành Phố", w: 40, h: 40, cols: 32, music: "town",
+    name: "Công Viên Thành Phố", w: 40, h: 40, cols: 32, music: "park",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/citypark.png",
     spawn: { x: 11, y: 38 },
@@ -488,7 +488,7 @@ export const MAPS = {
     npcs: [{"x": 3, "y": 5, "dir": "right", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand"}],
   },
   leather_shaft1: {
-    name: "Hầm Mỏ Shaft 1", w: 15, h: 15, cols: 32, music: "town",
+    name: "Hầm Mỏ Shaft 1", w: 15, h: 15, cols: 32, music: "docks",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/leather_shaft1.png",
     spawn: { x: 12, y: 13 },
@@ -504,7 +504,7 @@ export const MAPS = {
     npcs: [],
   },
   leather_shaft2: {
-    name: "Hầm Mỏ Shaft 2", w: 10, h: 10, cols: 32, music: "town",
+    name: "Hầm Mỏ Shaft 2", w: 10, h: 10, cols: 32, music: "docks",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/leather_shaft2.png",
     spawn: { x: 4, y: 8 },
@@ -536,7 +536,7 @@ export const MAPS = {
     npcs: [],
   },
   taba_ba_passageway_1: {
-    name: "Khu Thi Đấu Taba — Hành Lang 1", w: 20, h: 20, cols: 25, music: "town",
+    name: "Khu Thi Đấu Taba — Hành Lang 1", w: 20, h: 20, cols: 25, music: "arena",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_ba_passageway_1.png",
     spawn: { x: 16, y: 1 },
@@ -552,7 +552,7 @@ export const MAPS = {
     npcs: [{"x": 16, "y": 5, "dir": "left", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}],
   },
   taba_ba_passageway_2: {
-    name: "Khu Thi Đấu Taba — Hành Lang 2", w: 20, h: 20, cols: 22, music: "town",
+    name: "Khu Thi Đấu Taba — Hành Lang 2", w: 20, h: 20, cols: 22, music: "arena",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_ba_passageway_2.png",
     spawn: { x: 2, y: 1 },
@@ -568,7 +568,7 @@ export const MAPS = {
     npcs: [{"x": 7, "y": 4, "dir": "left", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}],
   },
   taba_ba_passageway_3: {
-    name: "Khu Thi Đấu Taba — Hành Lang 3", w: 20, h: 20, cols: 24, music: "town",
+    name: "Khu Thi Đấu Taba — Hành Lang 3", w: 20, h: 20, cols: 24, music: "arena",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_ba_passageway_3.png",
     spawn: { x: 9, y: 1 },
@@ -584,7 +584,7 @@ export const MAPS = {
     npcs: [{"x": 1, "y": 11, "dir": "right", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}],
   },
   taba_ba_passageway_4: {
-    name: "Khu Thi Đấu Taba — Hành Lang 4", w: 8, h: 20, cols: 20, music: "town",
+    name: "Khu Thi Đấu Taba — Hành Lang 4", w: 8, h: 20, cols: 20, music: "arena",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_ba_passageway_4.png",
     spawn: { x: 3, y: 1 },
@@ -600,7 +600,7 @@ export const MAPS = {
     npcs: [{"x": 6, "y": 9, "dir": "left", "sprite": "knight", "name": "Vệ Binh", "lines": ["Đi đứng cẩn thận. Ta đang làm nhiệm vụ ở đây."], "ai": "watch"}],
   },
   taba_ba_stairwell_1: {
-    name: "Khu Thi Đấu Taba — Cầu Thang", w: 12, h: 12, cols: 21, music: "town",
+    name: "Khu Thi Đấu Taba — Cầu Thang", w: 12, h: 12, cols: 21, music: "arena",
     env: "grass", envNight: "night_grass",
     atlas: "assets/maps/taba_ba_stairwell_1.png",
     spawn: { x: 0, y: 9 },
