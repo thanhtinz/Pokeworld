@@ -463,6 +463,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       done.push(...emitQuest('catch_species', { sp: mon.sp }));
       done.push(...emitQuest('catch_count', {}));
       questToasts(done);
+      // Bắt được cũng phải cho EXP huấn luyện viên. Trước đây lệnh này nằm
+      // trong nhánh "thắng trận" nên ai chơi kiểu đi bắt là kẹt Lv.1 vĩnh viễn,
+      // không mở nổi Nhiệm vụ (Lv.2) hay Cửa hàng (Lv.3).
+      grantTrainerRewards('catch', mon.lv);
     } else if (winner === 0) {
       if (kind === 'trainer' && trainer) {
         log(`${trainer.name}: "${trainer.lose || 'Thua rồi...'}"`);
@@ -564,10 +568,12 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     if ((pMon()?.lv || 0) >= cap) log(`Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp.`);
   }
 
-  function grantTrainerRewards() {
-    const lv = Math.max(1, eMon()?.lv || 5);
+  function grantTrainerRewards(loai = kind, capDich = null) {
+    const lv = Math.max(1, capDich ?? eMon()?.lv ?? 5);
     const before = trainerLevel();
-    const gained = addTrainerExp(trainerExpFor(kind, lv));
+    const them = trainerExpFor(loai, lv);
+    const gained = addTrainerExp(them);
+    floatPop(`+${them} Trainer EXP`, 'exp', 34);
     if (gained.length) {
       const now = gained[gained.length - 1];
       toast(`Trainer lên Lv.${now}!`);

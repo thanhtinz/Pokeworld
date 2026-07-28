@@ -56,7 +56,8 @@ import { fxFor } from '../js/data/vfx.js';
 import { applyStatus, removeStatus, endOfTurn, statMult, thornDamage,
   counterDamage, swapDamage, wildRampage, condBlocked, condTag, canAct } from '../js/engine/status.js';
 import { G, newGame } from '../js/state.js';
-import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
+import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor, addTrainerExp,
+  trainerLevelFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
 import * as P from '../js/engine/park.js';
@@ -1860,6 +1861,31 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   ok('bóng công viên không ném được ngoài trận thường',
     ITEMS[P.BONG] && ITEMS[P.BONG].kind === 'park' && !ITEMS[P.BONG].inBattle);
+}
+
+// ==== EXP huấn luyện viên: mọi cách kết thúc trận đều phải cho công ====
+// Từng có lỗi: lệnh cộng EXP nằm trong nhánh "thắng trận" nên ai chơi kiểu đi
+// BẮT là kẹt Lv.1 vĩnh viễn, không mở nổi Nhiệm vụ (Lv.2) hay Cửa hàng (Lv.3).
+{
+  for (const loai of ['wild', 'trainer', 'catch']) {
+    ok(`kết thúc kiểu '${loai}' có cho EXP huấn luyện viên`,
+      trainerExpFor(loai, 10) > 0, String(trainerExpFor(loai, 10)));
+  }
+  ok('bắt được cho nhiều EXP hơn đánh gục',
+    trainerExpFor('catch', 10) > trainerExpFor('wild', 10));
+
+  newGame('ExpTester');
+  // Chơi kiểu chỉ đi bắt: đủ số lần thì phải mở được Nhiệm vụ và Cửa hàng
+  let lan = 0;
+  while (trainerLevelFor(0) === 1 && lan < 100) {
+    addTrainerExp(trainerExpFor('catch', 5));
+    lan++;
+    if (G.p.trainer.level >= 3) break;
+  }
+  ok('chỉ đi bắt cũng lên được Trainer Lv.3', G.p.trainer.level >= 3,
+    `sau ${lan} lần bắt mới tới Lv.${G.p.trainer.level}`);
+  ok('lên Lv.3 thì mở được Nhiệm vụ và Cửa hàng',
+    isUnlocked('quest', G.p.trainer.level) && isUnlocked('shop', G.p.trainer.level));
 }
 
 // ==== Nhà Trẻ ====

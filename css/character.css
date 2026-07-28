@@ -402,12 +402,12 @@
   background: rgba(240, 180, 41, .14);
   border: 1px solid var(--line);
   color: var(--gold);
-  font-family: var(--pix2);
-  font-size: 13px;
+  font-size: .74rem;
+  font-weight: 700;
 }
 .unlock-mid { display: flex; flex-direction: column; }
-.unlock-mid b { font-size: 12px; }
-.unlock-mid small { color: var(--muted); font-size: 11px; }
+.unlock-mid b { font-size: .88rem; }
+.unlock-mid small { color: var(--muted); font-size: .78rem; }
 
 /* Xem trước cả bộ đồ ở trang Thời trang: nhân vật đứng nguyên người, không khung */
 .fa-body { width: 96px; height: 96px; }
@@ -442,7 +442,7 @@
   border-bottom: 1px solid var(--line);
 }
 .tcard-label {
-  font-family: var(--pix2); font-size: 12px; letter-spacing: .06em;
+  font-family: var(--pix2); font-size: 17px; letter-spacing: .04em;
   color: var(--gold); text-transform: uppercase;
 }
 .tcard-stars { display: flex; gap: 3px; }
@@ -454,13 +454,13 @@
 .tcard-face .ring-ava-wrap { width: 76px; height: 76px; }
 .tcard-face .ring-ava { width: 72px; height: 72px; }
 .tcard-id {
-  font-family: var(--pix2); font-size: 11px; color: var(--muted);
+  font-size: .7rem; font-weight: 600; color: var(--muted);
   background: rgba(0, 0, 0, .3); border: 1px solid var(--line);
   border-radius: 6px; padding: 1px 7px;
 }
 .tcard-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .tcard-name { font-size: 1.05rem; line-height: 1.2; }
-.tcard-lv { font-family: var(--pix2); font-size: 12px; color: var(--gold); margin-top: 2px; }
+.tcard-lv { font-size: .84rem; font-weight: 700; color: var(--gold); margin-top: 2px; }
 .tcard-info .char-xp { margin: 2px 0 0; }
 .tcard-xp { color: var(--muted); font-size: .72rem; }
 

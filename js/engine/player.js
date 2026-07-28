@@ -19,7 +19,9 @@ export function monLevelCap() {
 // đánh quái hoang, để tiến độ đi theo cốt truyện chứ không theo bụi cỏ.
 export function trainerExpFor(kind, enemyLv = 5) {
   const lv = Math.max(1, enemyLv);
-  return kind === 'trainer' ? 20 + lv * 3 : 5 + lv;
+  if (kind === 'trainer') return 20 + lv * 3;
+  if (kind === 'catch') return 8 + lv * 2;   // bắt được thì công hơn đánh gục
+  return 5 + lv;
 }
 
 // Bảo đảm bản lưu có đủ trường (bản lưu cũ vẫn chạy được)

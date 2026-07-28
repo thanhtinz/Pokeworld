@@ -6,6 +6,7 @@ import { esc, fmt, todayNum, tien } from '../util.js';
 import { toast, header } from './kit.js';
 import { uiIcon } from './icons.js';
 import { net } from '../net/session.js';
+import { isOnlineMode } from '../net/config.js';
 import { trainerLevel } from '../engine/player.js';
 import { isUnlocked, featureLevel } from '../engine/unlock.js';
 import { choNhan } from '../engine/achievements.js';
@@ -14,6 +15,9 @@ import { show, refresh } from '../main.js';
 // Menu chỉ chứa những trang KHÔNG có sẵn trên thanh dưới và nút chat nổi.
 // Bản đồ / Đội / Túi / Nhân vật / Tuxedex đã có nút riêng nên không lặp lại ở đây.
 // 'act' = nút làm việc gì đó tại chỗ, 'to' = nút mở trang.
+// 'on' = chỉ chạy được khi đã nối máy chủ; chơi offline thì ẨN HẲN chứ không
+// hiện ra rồi báo "cần nối máy chủ" — bấm vào chẳng làm được gì thì bày ra
+// chỉ tổ rối.
 const HUB = [
   { act: 'daily',     icon: 'gift',    label: 'Điểm danh' },
   { to: 'quest',      icon: 'quest',   label: 'Nhiệm vụ' },
@@ -21,11 +25,11 @@ const HUB = [
   { to: 'achievements', icon: 'star',   label: 'Thành tựu', badge: 'ach' },
   { to: 'park',       icon: 'walk',    label: 'Công viên' },
   { to: 'daycare',    icon: 'heal',    label: 'Nhà trẻ' },
-  { to: 'events',     icon: 'flag',    label: 'Sự kiện' },
-  { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng' },
-  { to: 'guild',      icon: 'guild',   label: 'Bang hội' },
-  { to: 'friends',    icon: 'friends', label: 'Bạn bè', badge: 'dm' },
-  { to: 'marriage',   icon: 'heart',   label: 'Kết hôn' },
+  { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
+  { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng', on: true },
+  { to: 'guild',      icon: 'guild',   label: 'Bang hội', on: true },
+  { to: 'friends',    icon: 'friends', label: 'Bạn bè', badge: 'dm', on: true },
+  { to: 'marriage',   icon: 'heart',   label: 'Kết hôn', on: true },
   { to: 'settings',   icon: 'gear',    label: 'Cài đặt' },
 ];
 
@@ -45,7 +49,7 @@ export function render(el) {
   el.innerHTML = `
     ${header('Menu')}
     <div class="hub-grid">
-      ${HUB.map(t => {
+      ${HUB.filter(t => !t.on || isOnlineMode()).map(t => {
         const n = t.badge ? badgeCount(t.badge) : 0;
         // Điểm danh còn nhận được thì chấm sáng nhắc người chơi
         const dot = t.act === 'daily' && !claimedToday;

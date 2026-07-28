@@ -44,6 +44,7 @@ import { maxHp } from './engine/monster.js';
 import { trainerLevel } from './engine/player.js';
 import { FEATURES, isUnlocked, lockNote } from './engine/unlock.js';
 import { fmt } from './util.js';
+import { isOnlineMode } from './net/config.js';
 import { uiIcon } from './ui/icons.js';
 import { avatarFaceSrc, avatarFrame, upgradeFaces } from './ui/look.js';
 import { playMusic } from './engine/settings.js';
@@ -111,7 +112,13 @@ export function show(name, params = {}) {
     b.classList.toggle('active', b.dataset.nav === name));
   // Nút chat nổi: ẩn cùng lúc với nav, và ẩn luôn khi đang ở chính trang chat
   const fab = document.getElementById('chat-fab');
-  if (fab) fab.hidden = nav.hidden || name === 'chat' || !isUnlocked('chat');
+  if (fab) fab.hidden = nav.hidden || name === 'chat' || !isUnlocked('chat') || !isOnlineMode();
+  // Hộp thư và Thông báo nằm hẳn trên máy chủ — chơi offline thì ẩn luôn hai
+  // nút đó đi, không để bấm vào rồi báo "cần nối máy chủ".
+  for (const id of ['tb-mail', 'tb-news']) {
+    const b = document.getElementById(id);
+    if (b) b.hidden = !isOnlineMode();
+  }
   // Thanh trên hiện cùng nhịp với thanh dưới
   drawTopBar(nav.hidden);
   // Màn bản đồ lấy nhạc theo đúng lệnh play_music ghi trong bản đồ gốc

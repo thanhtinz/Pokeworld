@@ -31,6 +31,12 @@ table { border-collapse: collapse; }
   --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* LUẬT CHUNG: thẻ nào mang thuộc tính hidden thì KHÔNG được hiện, chấm hết.
+   Không có dòng này thì mọi rule display:flex/grid ở dưới đè mất hidden — đã
+   dính bẫy đó ở nút Hộp thư, ô trống Trang trí và lưới túi đồ. */
+[hidden] { display: none !important; }
+
+
 html, body {
   height: 100%;
   background: #050309;
@@ -140,7 +146,7 @@ html, body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tb-mid small { font-family: var(--pix, monospace); font-size: .5rem; color: var(--gold, #f0b429); }
+.tb-mid small { font-size: .72rem; font-weight: 700; color: var(--gold, #f0b429); }
 .tb-money {
   flex: none;
   display: flex;
@@ -650,7 +656,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Số máu dưới thanh HP. Trước đây khai font-size hai lần, dòng sau (.95rem) đè
    dòng trước nên con số to gần gấp đôi nhãn HP/EXP, nhìn như bị lòi ra ngoài. */
 .bt-hpnum { text-align: right; color: var(--muted); margin-top: 3px;
-  font-family: var(--pix2); font-size: .72rem; line-height: 1; }
+  font-size: .74rem; font-variant-numeric: tabular-nums; line-height: 1; }
 .tr-balls { color: var(--accent); letter-spacing: 3px; font-size: .8rem; display: block; margin-top: 6px; }
 .bt-sprite { image-rendering: pixelated; transition: opacity .6s, transform .6s; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .55)); }
 /* Bề rộng do js/engine/battlesize.js đặt inline theo chiều cao thật của loài */
@@ -1959,9 +1965,9 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   position: absolute;
   right: 6px;
   bottom: 5px;
-  font-size: 10px;
+  font-size: .68rem;
   color: var(--gold);
-  font-family: var(--pix2);
+  font-weight: 700;
 }
 
 /* Nhân vật cả người: ảnh 3x4 thì cắt lấy một khung đứng yên nhìn xuống */
@@ -2025,8 +2031,9 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   position: absolute;
   top: 4px;
   right: 6px;
-  font-family: var(--pix2);
-  font-size: 13px;
+  font-size: .76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--gold-num);
 }
 .bag-detail { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -2359,7 +2366,7 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .ach-mid b { font-size: .88rem; }
 .ach-mid small { color: var(--muted); font-size: .74rem; line-height: 1.4; }
 .ach-mid .ev-prog { margin-top: 3px; }
-.ach-num { font-family: var(--pix2); font-size: 10px; }
+.ach-num { font-size: .74rem; font-variant-numeric: tabular-nums; }
 .ach-quas { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 3px; }
 .ach-qua { display: inline-flex; align-items: center; gap: 3px;
   color: var(--gold); font-size: .72rem; }
@@ -2381,7 +2388,7 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .park-bar > span { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
   padding: 8px 4px; font-size: .78rem; color: var(--muted);
   background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
-.park-bar b { color: var(--gold); font-family: var(--pix2); font-size: 12px; }
+.park-bar b { color: var(--gold); font-size: .86rem; font-variant-numeric: tabular-nums; }
 
 .park-stage { text-align: center; min-height: 190px; display: flex;
   flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
@@ -2442,6 +2449,6 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .tcard-dots { flex: 1; min-width: 8px; height: 1px; align-self: center;
   background-image: radial-gradient(circle, var(--line-soft) 1px, transparent 1px);
   background-size: 4px 2px; background-repeat: repeat-x; }
-.tcard-v { flex: none; font-family: var(--pix2); font-size: 11px; color: var(--text);
-  white-space: nowrap; }
+.tcard-v { flex: none; font-size: .82rem; font-weight: 700; color: var(--text);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
 
