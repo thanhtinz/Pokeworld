@@ -252,6 +252,26 @@ DEFAULT_LINE = {
 }
 
 
+# Chu THAT ghi tren bang hieu: ban goc goi "translated_dialog <ma>", noi dung
+# nam trong tep dich. Dich san sang tieng Viet o day; ma nao chua dich thi bang
+# do chi hien ten chung chung nhu truoc.
+CHU_BANG = {
+    'taba_town_sign': 'Thị Trấn Taba — chốn yên bình',
+    'taba_town_sign_profhouse': 'Nhà của Giáo sư Tuxemon',
+    'taba_town_sign_proflab': 'Phòng nghiên cứu của Giáo sư Tuxemon',
+    'taba_town_sign_tuxecenter': 'Trạm Hồi Sức — chữa trị Tuxemon miễn phí',
+    'taba_town_sign_tuxemart': 'Tuxemart — mua bán vật phẩm',
+    'taba_house1_sign': 'Nhà ông bà Clawbrew',
+    'taba_house2_sign': 'Thư Viện Di Sản',
+    'taba_house3_sign': 'Nhà trọ Lá Trầm Tư',
+    'taba_house4_sign': 'Quán rượu Hải Âu Đáng Kính',
+    'xero_omnichannel_sign': 'Tổng hành dinh Omnichannel: Chúng tôi là An Toàn, '
+                             'là Trật Tự, là Omnichannel',
+    'xero_shaft1_sign': 'Tổng hành dinh Shaft — Ban Khai Khoáng',
+    'xero_shaft2_sign': 'Tổng hành dinh Shaft — Ban Đối Ngoại',
+}
+
+
 # Ten cua doi tuong trong TMX la ten SU KIEN (Talk1, Reading2...) chu khong phai
 # chu ghi tren bang. De nguyen thi trong game hien 'Bang ghi: "Talk1"'.
 def ten_bang(raw):
@@ -388,7 +408,16 @@ def parse_map(path, tsx_cache):
                 if m and not nhac[0]:
                     nhac[0] = MUSIC_MAP.get(m.group(1), 'town')
                 if a.startswith('translated_dialog') or a.startswith('dialog'):
-                    talks.append({'x': ox, 'y': oy, 'name': ten_bang(obj.get('name'))})
+                    # Lay ma dialog dau tien co ban dich tieng Viet
+                    chu = None
+                    for ma in re.findall(r'[a-z0-9_]+', a.split(None, 1)[-1] if ' ' in a else ''):
+                        if ma in CHU_BANG:
+                            chu = CHU_BANG[ma]
+                            break
+                    t = {'x': ox, 'y': oy, 'name': ten_bang(obj.get('name'))}
+                    if chu:
+                        t['text'] = chu
+                    talks.append(t)
                     break
 
     ds = khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])

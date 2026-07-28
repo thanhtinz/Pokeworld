@@ -299,8 +299,10 @@ export function render(el) {
     try {
       // Nói chuyện thì hiện chân dung: ảnh 2D nếu có, không thì phóng to sprite trên bản đồ
       if (thing.type === 'talk') {
-        // Bảng hiệu / bảng thông báo lấy từ sự kiện thoại của bản đồ Tuxemon
-        await playDialog([[{ name: thing.name }, BANG_NOI[thing.name] || 'Không đọc được gì rõ ràng.']]);
+        // Bảng hiệu: chữ thật ghi trong bản đồ gốc (thing.text) mới là nội dung;
+        // bảng nào bản gốc không ghi gì thì nói câu chung theo loại bảng.
+        await playDialog([[{ name: thing.name },
+          thing.text || BANG_NOI[thing.name] || 'Không đọc được gì rõ ràng.']]);
         return;
       }
       // NPC bản đồ mang sẵn vài câu thoại (js/data/maps.js), NPC cũ dùng .text

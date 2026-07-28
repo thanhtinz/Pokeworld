@@ -456,6 +456,14 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
 }
 
+// Bảng hiệu mang chữ thật của bản đồ gốc, không còn nói chung chung
+{
+  const co = Object.values(MAPS).flatMap(m => m.talks || []).filter(t => t.text);
+  ok('có bảng hiệu mang chữ thật', co.length >= 8, String(co.length));
+  ok('chữ trên bảng đã dịch tiếng Việt (không còn ASCII thuần)',
+    co.every(t => /[àáảãạăâđêôơưÀ-ỹ]/.test(t.text)), co.find(t => !/[À-ỹ]/.test(t.text))?.text);
+}
+
 // Tốc độ của chiêu quyết định ai ra đòn trước (formula.speed_monster)
 {
   const v = Object.values(MOVES);
