@@ -113,6 +113,23 @@ html, body {
   background: rgba(0, 0, 0, .3);
 }
 .tb-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+/* Hai nút Hộp thư / Thông báo trên thanh trên, có chấm đỏ báo số chưa xem */
+.tb-icon {
+  position: relative; flex: 0 0 auto;
+  width: 34px; height: 34px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .05);
+}
+.tb-icon:active { transform: scale(.94); }
+.tb-glyph { font-size: 16px; line-height: 1; filter: saturate(.9); }
+.tb-dot {
+  position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px;
+  padding: 0 4px; border-radius: 999px;
+  background: #e5484d; color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 17px; text-align: center;
+  border: 2px solid var(--bg, #140d28);
+}
 .tb-mid b {
   font-size: 13px;
   overflow: hidden;
@@ -2204,3 +2221,49 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   background: var(--tc, var(--violet)); border-color: var(--tc, var(--violet));
   color: #fff;
 }
+
+
+/* ==== Hộp thư · Thông báo · hộp nhập giftcode ==== */
+.modal-note { color: var(--muted); font-size: .82rem; margin: 0 0 10px; text-align: center; }
+.modal-input {
+  width: 100%; padding: 12px 14px; margin-bottom: 12px;
+  border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .06); color: #fff;
+  font-size: 1rem; letter-spacing: .08em; text-align: center;
+}
+.modal-input:focus { outline: none; border-color: var(--accent); }
+
+.mail-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.mail-bar small { color: var(--muted); font-size: .8rem; }
+.btn-sm { padding: 7px 14px; font-size: .82rem; min-height: 34px; width: auto; }
+
+.mail-row { cursor: pointer; }
+.mail-row.unread { border-color: rgba(240, 180, 41, .45); }
+.mail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.mail-head small { color: var(--muted); font-size: .74rem; flex: 0 0 auto; }
+.mail-title { font-size: .95rem; }
+.mail-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gold); margin-right: 6px; vertical-align: middle; }
+.mail-from { color: var(--muted); font-size: .76rem; }
+.mail-body { margin: 8px 0 4px; font-size: .86rem; line-height: 1.5; white-space: pre-wrap; }
+.mail-gifts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.mail-gift {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 9px; border-radius: 999px; font-size: .78rem;
+  background: rgba(255, 255, 255, .06); border: 1px solid var(--line);
+}
+.mail-take { margin-top: 4px; }
+
+.news-row.is-event { border-color: rgba(240, 90, 54, .45); }
+.news-banner { width: 100%; border-radius: 10px; margin-bottom: 10px; display: block; }
+.news-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.news-head small { color: var(--muted); font-size: .74rem; margin-left: auto; }
+.news-tag {
+  padding: 3px 9px; border-radius: 999px; font-size: .7rem; font-weight: 700;
+  background: rgba(150, 120, 230, .25); border: 1px solid rgba(150, 120, 230, .45);
+}
+.news-row.is-event .news-tag { background: rgba(240, 90, 54, .22); border-color: rgba(240, 90, 54, .5); }
+.news-tag.pin { background: rgba(240, 180, 41, .2); border-color: rgba(240, 180, 41, .5); }
+.news-title { display: block; font-size: 1rem; margin-bottom: 4px; }
+.news-body { margin: 0; font-size: .86rem; line-height: 1.55; color: var(--muted); white-space: pre-wrap; }
+.set-note { display: block; color: var(--muted); font-size: .78rem; margin-top: 6px; }

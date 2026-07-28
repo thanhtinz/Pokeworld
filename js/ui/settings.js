@@ -3,10 +3,11 @@
 import { wipeSave } from '../state.js';
 import { logout } from '../engine/accounts.js';
 import { esc } from '../util.js';
-import { toast, confirmDlg, header } from './kit.js';
+import { toast, confirmDlg, header, promptDlg } from './kit.js';
 import { uiIcon } from './icons.js';
 import { settings, setSetting, resetSettings, sfx } from '../engine/settings.js';
 import { isOnlineMode } from '../net/config.js';
+import { dungMa } from '../net/inbox.js';
 import { show } from '../main.js';
 
 const SPEEDS = [['slow', 'Chậm'], ['normal', 'Vừa'], ['fast', 'Nhanh']];
@@ -59,6 +60,12 @@ export function render(el) {
       </div>
 
       <div class="card set-group">
+        <h3>Ưu đãi</h3>
+        <button class="btn btn-primary" id="btn-code">🎁 Nhập Giftcode</button>
+        <small class="set-note">Mã quà tặng do ban quản trị phát. Quà về Hộp thư trên thanh trên.</small>
+      </div>
+
+      <div class="card set-group">
         <h3>Tài khoản</h3>
         <button class="btn" id="btn-server">${uiIcon('server', 20)} Đổi máy chủ</button>
         <button class="btn" id="btn-reset-set">${uiIcon('save', 20)} Khôi phục cài đặt mặc định</button>
@@ -98,6 +105,18 @@ export function render(el) {
       sfx('tap');
       draw();
     }));
+
+    el.querySelector('#btn-code').addEventListener('click', async () => {
+      const ma = await promptDlg('Nhập Giftcode', {
+        placeholder: 'VÍ DỤ: TUXE2026',
+        note: 'Gõ đúng mã ban quản trị phát. Quà sẽ về Hộp thư.',
+        ok: 'Đổi quà', upper: true,
+      });
+      if (!ma) return;
+      const [mail, err] = await dungMa(ma);
+      if (err) { toast(err); return; }
+      toast(`Đổi mã thành công! Xem quà trong Hộp thư: ${mail?.title || ''}`);
+    });
 
     el.querySelector('#btn-server').addEventListener('click', () => show('serverpick'));
 

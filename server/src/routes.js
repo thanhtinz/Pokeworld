@@ -10,6 +10,11 @@ import {
 import { guildRouter } from './guild.js';
 import { chatRouter } from './chat.js';
 import { publicCosmetics, cosmeticsOf } from './cosmetics.js';
+import {
+  listMail, readMail, claimMail, claimAllMail, deleteReadMail,
+  listNews, markNewsSeen, redeemCode,
+} from './inbox.js';
+import { activeEvents, eventState, syncEvent, buyEvent, rollEvent, BIEN_GAME } from './events.js';
 
 export const router = express.Router();
 
@@ -148,4 +153,73 @@ router.get('/player/:username', (req, res) => {
     dexCaught: Object.keys(u.save?.dex?.caught || {}).length,
     party: (u.save?.party || []).map(m => ({ sp: m.sp, lv: m.lv, flair: m.flair || null, nick: m.nick })),
   });
+});
+
+// ==== Hộp thư ====
+router.get('/mail', authRequired, (req, res) => {
+  res.json(listMail(req.user));
+});
+
+router.post('/mail/:id/read', authRequired, (req, res) => {
+  res.json({ ok: readMail(req.user, req.params.id) });
+});
+
+router.post('/mail/:id/claim', authRequired, (req, res) => {
+  const [qua, err] = claimMail(req.user, req.params.id);
+  if (err) return res.status(400).json({ error: err });
+  res.json({ ok: true, qua });
+});
+
+router.post('/mail/claim-all', authRequired, (req, res) => {
+  const [gop, n] = claimAllMail(req.user);
+  res.json({ ok: true, qua: gop, n });
+});
+
+router.post('/mail/clean', authRequired, (req, res) => {
+  res.json({ ok: true, n: deleteReadMail(req.user) });
+});
+
+// ==== Thông báo ====
+router.get('/news', authRequired, (req, res) => {
+  res.json(listNews(req.user));
+});
+
+router.post('/news/seen', authRequired, (req, res) => {
+  markNewsSeen(req.user);
+  res.json({ ok: true });
+});
+
+// ==== Giftcode ====
+router.post('/code', authRequired, (req, res) => {
+  const [mail, err] = redeemCode(req.user, req.body?.code);
+  if (err) return res.status(400).json({ error: err });
+  res.json({ ok: true, mail });
+});
+
+// ==== Sự kiện ====
+router.get('/events', authRequired, (req, res) => {
+  const ds = activeEvents().map(e => ({ ...e, me: eventState(req.user, e) }));
+  res.json({ events: ds, vars: BIEN_GAME });
+});
+
+router.post('/events/:id/sync', authRequired, (req, res) => {
+  const ev = activeEvents().find(e => e.id === req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Sự kiện đã đóng.' });
+  res.json(syncEvent(req.user, ev, req.body?.vars || {}));
+});
+
+router.post('/events/:id/buy', authRequired, (req, res) => {
+  const ev = activeEvents().find(e => e.id === req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Sự kiện đã đóng.' });
+  const [r, err] = buyEvent(req.user, ev, req.body?.shopId);
+  if (err) return res.status(400).json({ error: err });
+  res.json({ ok: true, ...r });
+});
+
+router.post('/events/:id/roll', authRequired, (req, res) => {
+  const ev = activeEvents().find(e => e.id === req.params.id);
+  if (!ev) return res.status(404).json({ error: 'Sự kiện đã đóng.' });
+  const [r, err] = rollEvent(req.user, ev, req.body?.n);
+  if (err) return res.status(400).json({ error: err });
+  res.json({ ok: true, ...r });
 });

@@ -46,6 +46,38 @@ export function choose(title, options, { cancelable = true } = {}) {
   });
 }
 
+// Hộp nhập một dòng chữ. Trả Promise<string|null> (null = bấm Huỷ).
+export function promptDlg(title, { placeholder = '', ok = 'Xác nhận', note = '', value = '', upper = false } = {}) {
+  return new Promise(resolve => {
+    const wrap = document.getElementById('modal-wrap');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal">
+        <div class="modal-title">${esc(title)}</div>
+        ${note ? `<p class="modal-note">${esc(note)}</p>` : ''}
+        <input class="modal-input" type="text" autocomplete="off" autocapitalize="characters"
+               spellcheck="false" placeholder="${esc(placeholder)}" value="${esc(value)}">
+        <div class="modal-opts">
+          <button class="modal-opt modal-ok"><span>${esc(ok)}</span></button>
+        </div>
+        <button class="modal-cancel">Huỷ</button>
+      </div>`;
+    const inp = overlay.querySelector('.modal-input');
+    const close = (val) => { overlay.remove(); resolve(val); };
+    const xong = () => close(inp.value.trim() || null);
+    if (upper) inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') xong(); });
+    overlay.addEventListener('click', e => {
+      if (e.target.closest('.modal-ok')) return xong();
+      if (e.target.closest('.modal-cancel')) return close(null);
+      if (e.target === overlay) return close(null);
+    });
+    wrap.appendChild(overlay);
+    setTimeout(() => inp.focus(), 40);
+  });
+}
+
 // Hộp xác nhận. Trả Promise<boolean>
 export async function confirmDlg(msg, okLabel = 'Đồng ý') {
   const r = await choose(msg, [{ label: okLabel }, { label: 'Hủy' }], { cancelable: true });

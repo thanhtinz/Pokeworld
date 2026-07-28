@@ -7,9 +7,16 @@ import { adminRequired } from './auth.js';
 import { kickUser, onlineCount, emitToUser } from './realtime.js';
 import { guildById, disbandGuildDoc } from './guild.js';
 import {
-  KINDS, HOWS, listCosmetics, upsertCosmetic, removeCosmetic,
+  KINDS, HOWS, HOW_NAMES, listCosmetics, upsertCosmetic, removeCosmetic,
   saveImage, clearImage, publicCosmetics, grantCosmetic, cosmeticsOf,
 } from './cosmetics.js';
+import {
+  sendMail, addNews, listNews, deleteNews, addCode, listCodes, deleteCode,
+} from './inbox.js';
+import {
+  listEvents, saveEvent, deleteEvent, announceEvent, BIEN_GAME,
+} from './events.js';
+import { saveUpload, listUploads, removeUpload } from './uploads.js';
 
 const SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
@@ -242,6 +249,108 @@ export function adminRouter(io) {
 
   r.get('/pvp', (req, res) => {
     res.json({ rows: getDb().pvpHistory.slice(-100).reverse() });
+  });
+
+  // ==== Kho ảnh chung (băng-rôn sự kiện, đồng sự kiện, phần thưởng) ====
+  r.post('/upload',
+    express.raw({ type: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'], limit: '3mb' }),
+    (req, res) => {
+      const [url, err] = saveUpload(req.body, req.headers['content-type'], req.query.name);
+      if (err) return res.status(400).json({ error: err });
+      audit(req.admin, 'upload', url, '');
+      res.json({ ok: true, url });
+    });
+
+  r.get('/uploads', (req, res) => res.json({ rows: listUploads() }));
+
+  r.delete('/upload/:file', (req, res) => {
+    if (!removeUpload(req.params.file)) return res.status(404).json({ error: 'Không thấy tệp.' });
+    audit(req.admin, 'upload-delete', req.params.file, '');
+    res.json({ ok: true });
+  });
+
+  // ==== Gửi thư ====
+  r.post('/mail', (req, res) => {
+    const { to, title, body, items, money, expires } = req.body || {};
+    if (!title) return res.status(400).json({ error: 'Thư phải có tiêu đề.' });
+    const chung = { kind: 'admin', title, body, items, money, expires, from: 'Ban Quản Trị' };
+    let n = 0;
+    if (to === '*' || !to) {
+      for (const u of getDb().users) { if (!u.banned) { sendMail(u.id, chung); n += 1; } }
+    } else {
+      const ds = String(to).split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+      for (const ten of ds) {
+        const u = find('users', x => x.unameLower === ten);
+        if (u) { sendMail(u.id, chung); n += 1; }
+      }
+    }
+    audit(req.admin, 'mail', to || '*', `${title} (${n} người)`);
+    io.emit('mail:new', {});
+    res.json({ ok: true, n });
+  });
+
+  // ==== Tin tức / thông báo ====
+  r.get('/news', (req, res) => res.json(listNews(null)));
+
+  r.post('/news', (req, res) => {
+    const n = addNews(req.body || {});
+    audit(req.admin, 'news', n.kind, n.title);
+    io.emit('news:new', { news: n });
+    res.json({ ok: true, item: n });
+  });
+
+  r.delete('/news/:id', (req, res) => {
+    if (!deleteNews(req.params.id)) return res.status(404).json({ error: 'Không thấy tin.' });
+    audit(req.admin, 'news-delete', req.params.id, '');
+    res.json({ ok: true });
+  });
+
+  // ==== Giftcode ====
+  r.get('/codes', (req, res) => res.json({ rows: listCodes() }));
+
+  r.post('/codes', (req, res) => {
+    const [c, err] = addCode(req.body || {});
+    if (err) return res.status(400).json({ error: err });
+    audit(req.admin, 'code-add', c.code, `${c.money}₽ + ${c.items.length} món`);
+    res.json({ ok: true, item: c });
+  });
+
+  r.delete('/codes/:id', (req, res) => {
+    if (!deleteCode(req.params.id)) return res.status(404).json({ error: 'Không thấy mã.' });
+    audit(req.admin, 'code-delete', req.params.id, '');
+    res.json({ ok: true });
+  });
+
+  // ==== Sự kiện ====
+  r.get('/events', (req, res) => res.json({ rows: listEvents(), vars: BIEN_GAME }));
+
+  r.post('/events', (req, res) => {
+    const [e, err] = saveEvent(req.body || {}, req.body?.id || null);
+    if (err) return res.status(400).json({ error: err });
+    audit(req.admin, 'event-save', e.id, e.name);
+    io.emit('event:update', {});
+    res.json({ ok: true, item: e });
+  });
+
+  r.post('/events/:id/announce', (req, res) => {
+    const e = listEvents().find(x => x.id === req.params.id);
+    if (!e) return res.status(404).json({ error: 'Không thấy sự kiện.' });
+    const n = announceEvent(e);
+    audit(req.admin, 'event-announce', e.id, e.name);
+    io.emit('news:new', { news: n });
+    res.json({ ok: true, item: n });
+  });
+
+  r.delete('/events/:id', (req, res) => {
+    if (!deleteEvent(req.params.id)) return res.status(404).json({ error: 'Không thấy sự kiện.' });
+    audit(req.admin, 'event-delete', req.params.id, '');
+    io.emit('event:update', {});
+    res.json({ ok: true });
+  });
+
+  // Danh sách hằng số cho trang admin dựng form
+  r.get('/meta', (req, res) => {
+    res.json({ kinds: KINDS, hows: HOWS, howNames: HOW_NAMES, vars: BIEN_GAME });
   });
 
   r.post('/flush', (req, res) => { flush(); res.json({ ok: true }); });

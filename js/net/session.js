@@ -71,6 +71,11 @@ function wire() {
 
   // Admin sửa kho thời trang / trao món cho mình -> áp dụng ngay, không cần vào lại
   sock.on('cosmetics:update', d => { applyRemote(d?.items || [], getServerUrl() || ''); changed(); });
+  // Admin gửi thư / đăng tin / mở sự kiện -> nạp lại hộp thư ngay
+  const poke = () => document.dispatchEvent(new CustomEvent('inbox-poke'));
+  sock.on('mail:new', poke);
+  sock.on('news:new', poke);
+  sock.on('event:update', poke);
   sock.on('cosmetics:granted', d => { keepGrants(d?.cosmetics || []); changed(); });
 }
 

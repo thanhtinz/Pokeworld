@@ -9,6 +9,7 @@ import { Server } from 'socket.io';
 import { loadDb, startAutosave, stopAutosave, getDb } from './db.js';
 import { router as apiRouter } from './routes.js';
 import { setupRealtime, onlineCount } from './realtime.js';
+import { EVENT_DIR } from './uploads.js';
 import { adminRouter } from './admin.js';
 import { ensureDir as ensureCosmeticDir, UPLOAD_DIR } from './cosmetics.js';
 
@@ -37,6 +38,7 @@ app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
 // Ảnh thời trang admin tải lên — client tải thẳng từ đây
 ensureCosmeticDir();
 app.use('/uploads/cosmetics', express.static(UPLOAD_DIR, { maxAge: '1h' }));
+app.use('/uploads/events', express.static(EVENT_DIR, { maxAge: '1h' }));
 
 app.get('/', (req, res) => {
   res.json({

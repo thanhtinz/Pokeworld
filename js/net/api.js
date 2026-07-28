@@ -89,3 +89,23 @@ export function startAutoSync(getSave, ms = 30000) {
 export function stopAutoSync() {
   if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
 }
+
+// ==== Hộp thư ====
+export const fetchMail = () => call('/mail');
+export const readMail = (id) => call(`/mail/${encodeURIComponent(id)}/read`, { method: 'POST' });
+export const claimMail = (id) => call(`/mail/${encodeURIComponent(id)}/claim`, { method: 'POST' });
+export const claimAllMail = () => call('/mail/claim-all', { method: 'POST' });
+export const cleanMail = () => call('/mail/clean', { method: 'POST' });
+
+// ==== Thông báo ====
+export const fetchNews = () => call('/news');
+export const seenNews = () => call('/news/seen', { method: 'POST' });
+
+// ==== Giftcode ====
+export const redeemCode = (code) => call('/code', { method: 'POST', body: { code } });
+
+// ==== Sự kiện ====
+export const fetchEvents = () => call('/events');
+export const syncEvent = (id, vars) => call(`/events/${encodeURIComponent(id)}/sync`, { method: 'POST', body: { vars } });
+export const buyEvent = (id, shopId) => call(`/events/${encodeURIComponent(id)}/buy`, { method: 'POST', body: { shopId } });
+export const rollEvent = (id, n = 1) => call(`/events/${encodeURIComponent(id)}/roll`, { method: 'POST', body: { n } });

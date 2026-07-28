@@ -1,7 +1,7 @@
 // TuxeWorld H5 | sw.js | Service worker: nhớ sẵn phần khung để chơi offline
 // ĐỔI SỐ NÀY mỗi khi thay asset hàng loạt: đổi tên kho là máy người chơi xoá
 // sạch bản nhớ cũ, không còn cảnh nửa tệp mới nửa tệp cũ.
-const CACHE = 'tuxeworld-v38';
+const CACHE = 'tuxeworld-v39';
 const SHELL = ['.', 'index.html', 'css/style.css', 'manifest.webmanifest', 'assets/icon.svg'];
 
 self.addEventListener('install', e => {

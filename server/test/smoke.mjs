@@ -485,6 +485,80 @@ try {
   ok('xóa món thì xóa luôn tệp ảnh',
     !fs.existsSync(path.join(DATA_DIR, 'uploads', 'cosmetics', path.basename(upData.item?.img || 'x'))));
 
+  // ==== Hộp thư · Thông báo · Giftcode · Sự kiện ====
+  {
+    // Admin gửi thư cho tất cả
+    const gui = await api('/api/admin/mail', { method: 'POST', token: admToken,
+      body: { to: '*', title: 'Quà khai trương', body: 'Chúc vui vẻ!', money: 500,
+              items: [{ id: 'potion', n: 3 }] } });
+    ok('admin gửi thư cho cả máy chủ', gui.data?.ok && gui.data.n >= 2, JSON.stringify(gui.data));
+
+    const hop = await api('/api/mail', { token: tokenA });
+    ok('người chơi thấy thư', (hop.data?.mail || []).length >= 1, JSON.stringify(hop.data?.unread));
+    ok('thư đếm là chưa đọc và còn quà',
+      hop.data.unread >= 1 && hop.data.unclaimed >= 1);
+
+    const idThu = hop.data.mail[0].id;
+    const nhan = await api(`/api/mail/${idThu}/claim`, { method: 'POST', token: tokenA });
+    ok('nhận được quà trong thư', nhan.data?.qua?.money === 500
+      && nhan.data.qua.items[0].id === 'potion', JSON.stringify(nhan.data));
+    const lai = await api(`/api/mail/${idThu}/claim`, { method: 'POST', token: tokenA });
+    ok('không nhận quà hai lần', lai.status === 400, String(lai.status));
+
+    // Tin tức
+    const tin = await api('/api/admin/news', { method: 'POST', token: admToken,
+      body: { kind: 'news', title: 'Bảo trì tối nay', body: '22h-23h' } });
+    ok('admin đăng được tin', !!tin.data?.item?.id);
+    const doc = await api('/api/news', { token: tokenA });
+    ok('người chơi thấy tin mới', (doc.data?.news || []).length >= 1 && doc.data.unread >= 1);
+    await api('/api/news/seen', { method: 'POST', token: tokenA });
+    const doc2 = await api('/api/news', { token: tokenA });
+    ok('đọc rồi thì hết báo mới', doc2.data.unread === 0, String(doc2.data.unread));
+
+    // Giftcode
+    const ma = await api('/api/admin/codes', { method: 'POST', token: admToken,
+      body: { code: 'tuxe 2026', money: 1000, items: [{ id: 'tuxeball', n: 5 }], max: 1 } });
+    ok('mã được chuẩn hoá về chữ in', ma.data?.item?.code === 'TUXE2026', ma.data?.item?.code);
+    const d1 = await api('/api/code', { method: 'POST', token: tokenA, body: { code: 'tuxe2026' } });
+    ok('nhập mã thì có thư quà', d1.data?.mail?.money === 1000, JSON.stringify(d1.data?.mail?.money));
+    const d2 = await api('/api/code', { method: 'POST', token: tokenA, body: { code: 'TUXE2026' } });
+    ok('không dùng lại mã đã dùng', d2.status === 400, String(d2.status));
+    const d3 = await api('/api/code', { method: 'POST', token: tokenB, body: { code: 'TUXE2026' } });
+    ok('mã hết lượt thì người sau chịu', d3.status === 400, String(d3.status));
+    const sai = await api('/api/code', { method: 'POST', token: tokenA, body: { code: 'KHONGCO' } });
+    ok('mã không tồn tại thì báo lỗi', sai.status === 400);
+
+    // Sự kiện: nhiệm vụ theo biến của game -> đồng -> đổi thưởng
+    const ev = await api('/api/admin/events', { method: 'POST', token: admToken,
+      body: {
+        name: 'Hội Săn Mùa Hè', desc: 'Bắt thật nhiều!', on: true,
+        token: { id: 'sun', name: 'Đồng Nắng' },
+        tasks: [{ id: 't1', var: 'catches', need: 3, reward: 10, name: 'Bắt 3 con' }],
+        shop: [{ id: 's1', name: 'Gói thuốc', cost: 10, limit: 1, itemId: 'potion', itemN: 2 }],
+        gachaCost: 5,
+        gacha: [{ id: 'g1', name: 'Bóng', w: 1, itemId: 'tuxeball', itemN: 1 }],
+      } });
+    ok('admin dựng được sự kiện', !!ev.data?.item?.id, JSON.stringify(ev.data?.error));
+    const evId = ev.data.item.id;
+
+    const ds = await api('/api/events', { token: tokenA });
+    ok('người chơi thấy sự kiện đang mở', (ds.data?.events || []).some(e => e.id === evId));
+    ok('có bảng biến của game để dựng nhiệm vụ', (ds.data?.vars || []).length >= 5);
+
+    await api(`/api/events/${evId}/sync`, { method: 'POST', token: tokenA, body: { vars: { catches: 1 } } });
+    const s2 = await api(`/api/events/${evId}/sync`, { method: 'POST', token: tokenA, body: { vars: { catches: 4 } } });
+    ok('làm đủ mốc thì được đồng sự kiện', s2.data?.token === 10, JSON.stringify(s2.data?.token));
+
+    const mua = await api(`/api/events/${evId}/buy`, { method: 'POST', token: tokenA, body: { shopId: 's1' } });
+    ok('đổi thưởng trừ đúng số đồng', mua.data?.token === 0, JSON.stringify(mua.data));
+    const mua2 = await api(`/api/events/${evId}/buy`, { method: 'POST', token: tokenA, body: { shopId: 's1' } });
+    ok('hết đồng thì không đổi được nữa', mua2.status === 400);
+
+    const thu = await api('/api/mail', { token: tokenA });
+    ok('phần thưởng sự kiện gửi về hộp thư',
+      (thu.data?.mail || []).some(m => m.kind === 'event'));
+  }
+
   // ==== Lưu xuống đĩa ====
   await api('/api/admin/flush', { method: 'POST', token: admToken });
   ok('DB ghi ra file', fs.existsSync(path.join(DATA_DIR, 'db.json')));

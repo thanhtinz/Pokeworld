@@ -1,6 +1,7 @@
 // TuxeWorld H5 | main.js | Router màn hình + khởi động app
 import { G, load, hasSave } from './state.js';
 import { toast } from './ui/kit.js';
+import { inbox, onInbox, refreshInbox } from './net/inbox.js';
 
 // Các màn hình đăng ký render(el, params). Import động để dễ tách file.
 import * as home from './ui/home.js';
@@ -9,6 +10,8 @@ import * as party from './ui/party.js';
 import * as dex from './ui/dex.js';
 import * as bag from './ui/bag.js';
 import * as shop from './ui/shop.js';
+import * as mail from './ui/mail.js';
+import * as news from './ui/news.js';
 import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
@@ -49,7 +52,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
@@ -172,6 +175,35 @@ export function drawTopBar(hide = false) {
   document.getElementById('tb-lv').textContent = `Lv.${trainerLevel()}`;
   document.getElementById('tb-money').textContent = fmt(G.p.money || 0);
 }
+
+// Hộp thư / Thông báo trên thanh trên
+document.getElementById('tb-mail')?.addEventListener('click', () => {
+  if (inBattle()) { toast('Đang trong trận đấu!'); return; }
+  show('mail');
+});
+document.getElementById('tb-news')?.addEventListener('click', () => {
+  if (inBattle()) { toast('Đang trong trận đấu!'); return; }
+  show('news');
+});
+
+// Chấm đỏ trên hai nút đó, cập nhật mỗi khi hộp thư đổi
+function veChamDo() {
+  const dat = (id, n) => {
+    const e = document.getElementById(id);
+    if (!e) return;
+    e.hidden = !n;
+    e.textContent = n > 99 ? '99+' : String(n);
+  };
+  dat('tb-mail-n', inbox.unreadMail + inbox.unclaimed);
+  dat('tb-news-n', inbox.unreadNews);
+}
+onInbox(veChamDo);
+
+// Nạp hộp thư khi vào game rồi thỉnh thoảng ngó lại, và cập nhật ngay khi máy
+// chủ báo có thư/tin mới.
+refreshInbox();
+setInterval(() => { refreshInbox(); }, 60000);
+document.addEventListener('inbox-poke', () => refreshInbox());
 
 // Bấm ảnh đại diện trên thanh trên -> bảng Trang trí
 document.getElementById('tb-ava')?.addEventListener('click', async () => {

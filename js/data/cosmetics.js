@@ -8,9 +8,11 @@
 // chỉ giữ sẵn ô "không mặc gì" của từng loại để người chơi còn tháo ra được;
 // mọi món khác được nạp về khi vào phiên online (xem applyRemote bên dưới).
 
-// Cách mở khoá: how = 'start' có sẵn | 'badge' đủ huy hiệu | 'catch' bắt đủ số
-//               'win' thắng đủ trận | 'level' đủ cấp huấn luyện viên
-//               'manual' không tự mở được — phải được quản trị viên trao tay
+// Cách mở khoá (trường how, mốc cần đạt ở trường n) — khớp HOWS bên máy chủ:
+//   start có sẵn · catch bắt đủ N · win thắng đủ N trận · badge đủ N huy hiệu
+//   level đủ cấp HLV · dex Tuxedex đủ N loài · money đủ N tiền
+//   pvp thắng đủ N trận PvP · days chơi đủ N ngày · guild đang ở trong bang hội
+//   manual không tự mở được — phải được quản trị viên trao tay
 export const TITLES = {
   none: { name: 'Không danh hiệu', color: '#9aa0c3', how: 'start' },
 };
@@ -125,7 +127,19 @@ export function unlocked(def, p, lv) {
   if (def.how === 'win') return (p?.stats?.wins || 0) >= n;
   if (def.how === 'badge') return (p?.badges?.length || 0) >= n;
   if (def.how === 'level') return (lv || 1) >= n;
+  if (def.how === 'dex') return Object.keys(p?.dex?.caught || {}).length >= n;
+  if (def.how === 'money') return (p?.money || 0) >= n;
+  if (def.how === 'pvp') return (p?.stats?.pvpWin || 0) >= n;
+  if (def.how === 'days') return soNgayChoi(p) >= n;
+  if (def.how === 'guild') return !!p?.guild;
   return false;
+}
+
+// Số ngày kể từ lúc bắt đầu chơi
+function soNgayChoi(p) {
+  const t = p?.stats?.playSince;
+  if (!t) return 0;
+  return Math.floor((Date.now() - t) / 86400000) + 1;
 }
 
 // Câu mô tả điều kiện, hiện ở ô còn khoá
@@ -137,6 +151,11 @@ export function requirement(def) {
     win: `Thắng ${n} trận`,
     badge: `Có ${n} huy hiệu`,
     level: `Trainer Lv.${n}`,
+    dex: `Tuxedex đủ ${n} loài`,
+    money: `Có đủ ${n.toLocaleString('vi-VN')}₽`,
+    pvp: `Thắng ${n} trận PvP`,
+    days: `Chơi đủ ${n} ngày`,
+    guild: 'Đang ở trong một bang hội',
     manual: 'Quản trị viên trao tay',
   }[def.how] || '';
 }

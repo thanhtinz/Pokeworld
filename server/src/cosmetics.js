@@ -16,8 +16,22 @@ export const UPLOAD_DIR = path.join(DATA_DIR, 'uploads', 'cosmetics');
 const WEB_DIR = '/uploads/cosmetics';
 
 export const KINDS = ['title', 'avatarFrame', 'chatFrame', 'skin', 'monSkin'];
-// Cách mở khoá: có sẵn | bắt đủ số | thắng đủ trận | đủ huy hiệu | đủ cấp | admin trao tay
-export const HOWS = ['start', 'catch', 'win', 'badge', 'level', 'manual'];
+// Cách mở khoá một món thời trang. Trường 'n' là mốc cần đạt.
+//   start   có sẵn từ đầu            catch  bắt đủ n sinh vật
+//   win     thắng đủ n trận          badge  có đủ n huy hiệu
+//   level   đủ cấp huấn luyện viên   dex    Tuxedex đủ n loài
+//   money   có đủ n tiền             pvp    thắng đủ n trận PvP
+//   days    chơi đủ n ngày           guild  đang ở trong một bang hội
+//   manual  admin trao tay
+export const HOWS = ['start', 'catch', 'win', 'badge', 'level',
+                     'dex', 'money', 'pvp', 'days', 'guild', 'manual'];
+// Tên tiếng Việt cho trang /admin
+export const HOW_NAMES = {
+  start: 'Có sẵn từ đầu', catch: 'Bắt đủ N sinh vật', win: 'Thắng đủ N trận',
+  badge: 'Có đủ N huy hiệu', level: 'Trainer đạt Lv.N', dex: 'Tuxedex đủ N loài',
+  money: 'Có đủ N tiền', pvp: 'Thắng đủ N trận PvP', days: 'Chơi đủ N ngày',
+  guild: 'Đang ở trong bang hội', manual: 'Admin trao tay',
+};
 
 const EXT = {
   'image/png': '.png',
