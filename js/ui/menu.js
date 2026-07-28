@@ -17,6 +17,7 @@ const HUB = [
   { act: 'daily',     icon: 'gift',    label: 'Điểm danh' },
   { to: 'quest',      icon: 'quest',   label: 'Nhiệm vụ' },
   { to: 'shop',       icon: 'shop',    label: 'Cửa hàng' },
+  { to: 'events',     icon: 'flag',    label: 'Sự kiện' },
   { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng' },
   { to: 'guild',      icon: 'guild',   label: 'Bang hội' },
   { to: 'friends',    icon: 'friends', label: 'Bạn bè', badge: 'dm' },

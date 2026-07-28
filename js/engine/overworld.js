@@ -332,6 +332,9 @@ export function update(dt, vx, vy) {
   if (beforeTile === afterTile) return null;   // chưa sang ô mới
 
   G.p.pos = { map: player.mapId, x: player.x, y: player.y };
+  // Tổng số bước cả đời — nhiệm vụ sự kiện đọc biến này (player.steps ở trên
+  // là bộ đếm riêng để tính gặp Tuxemon, cứ gặp một con là bị reset).
+  G.p.stats.steps = (G.p.stats.steps || 0) + 1;
 
   // Đồ rơi trên bản đồ: giẫm lên là nhặt, mỗi món chỉ nhặt được một lần
   // (bản gốc gác bằng biến <tên>:yes trong sự kiện add_item).

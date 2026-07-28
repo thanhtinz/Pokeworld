@@ -12,6 +12,7 @@ import * as bag from './ui/bag.js';
 import * as shop from './ui/shop.js';
 import * as mail from './ui/mail.js';
 import * as news from './ui/news.js';
+import * as events from './ui/events.js';
 import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
@@ -52,7 +53,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };

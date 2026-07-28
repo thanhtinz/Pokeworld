@@ -150,7 +150,7 @@ export function syncEvent(user, ev, vars) {
     }
   }
   if (xong.length) markDirty();
-  return { token: h.token, done: h.done, xong, tien: tienDo(h, ev, v) };
+  return { token: h.token, done: h.done, bought: h.bought, xong, tien: tienDo(h, ev, v) };
 }
 
 // Tiến độ từng nhiệm vụ để client vẽ thanh

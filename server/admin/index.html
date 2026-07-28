@@ -5,55 +5,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TuxeWorld — Quản trị</title>
 <style>
-  :root { --bg:#12141f; --card:#1c1f2e; --line:#2e3244; --text:#e8eaf5; --muted:#8f97b8;
-          --accent:#e3350d; --ok:#3fb950; --warn:#f0b429; }
+  :root { --bg:#0f111a; --card:#1a1d2b; --card2:#151826; --line:#2a2e40; --text:#e8eaf5;
+          --muted:#8f97b8; --accent:#e3350d; --ok:#3fb950; --warn:#f0b429; --blue:#4a7bd4;
+          --side:250px; --top:56px; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:var(--bg); color:var(--text); font:14px/1.5 system-ui,sans-serif; }
+  body { background:var(--bg); color:var(--text); font:14px/1.5 system-ui,-apple-system,sans-serif; }
   a { color:#6ea8fe; }
-  header { display:flex; align-items:center; gap:12px; padding:12px 18px; background:var(--card);
-           border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
-  header h1 { font-size:16px; }
-  header .sp { flex:1; }
-  .wrap { max-width:1200px; margin:0 auto; padding:18px; }
-  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
-  .tab { padding:8px 16px; background:var(--card); border:1px solid var(--line); border-radius:8px; cursor:pointer; }
-  .tab.on { background:var(--accent); border-color:var(--accent); }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; }
+  code { font-size:12px; color:#9fd0ff; }
+  h2 { font-size:19px; }
+  h3 { font-size:15px; }
+
+  /* ==== Khung trang: thanh trên cố định + menu dọc bên trái ==== */
+  .top { position:fixed; inset:0 0 auto 0; height:var(--top); z-index:20;
+         display:flex; align-items:center; gap:12px; padding:0 16px;
+         background:linear-gradient(180deg,#20243a,#1a1d2b); border-bottom:1px solid var(--line); }
+  .top .brand { display:flex; align-items:center; gap:9px; font-weight:700; font-size:15px; }
+  .top .brand i { font-style:normal; font-size:19px; }
+  .top .sp { flex:1; }
+  .top .who { color:var(--muted); font-size:12px; }
+  .burger { display:none; }
+
+  .side { position:fixed; top:var(--top); bottom:0; left:0; width:var(--side); overflow:auto;
+          background:var(--card2); border-right:1px solid var(--line); padding:14px 10px 30px; z-index:15; }
+  .side .grp { color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+               margin:14px 10px 6px; }
+  .side .grp:first-child { margin-top:0; }
+  .nav { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px;
+         cursor:pointer; color:#c9cfe6; user-select:none; }
+  .nav:hover { background:#232840; }
+  .nav.on { background:var(--accent); color:#fff; font-weight:600; }
+  .nav i { font-style:normal; width:20px; text-align:center; }
+  .nav .n { margin-left:auto; background:#333a55; border-radius:99px; font-size:11px; padding:1px 7px; }
+  .nav.on .n { background:#0004; }
+
+  .main { margin:var(--top) 0 0 var(--side); padding:20px 22px 60px; max-width:1250px; }
+  .page-head { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .page-head .sp { flex:1; }
+  .page-head p { color:var(--muted); font-size:12.5px; flex-basis:100%; }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .card > h3 { margin-bottom:12px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
-  .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; text-align:center; }
+  .form { display:grid; gap:11px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); }
+  .form label, .form-1 label { display:block; font-size:12.5px; color:var(--muted); }
+  .form label > input, .form label > select, .form label > textarea { margin-top:4px; }
+  .form-1 { display:grid; gap:11px; max-width:560px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; text-align:center; }
   .stat b { display:block; font-size:26px; color:var(--warn); }
   .stat span { color:var(--muted); font-size:12px; }
+
   table { width:100%; border-collapse:collapse; font-size:13px; }
-  th,td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+  th,td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
   th { color:var(--muted); font-weight:600; }
   tr:hover td { background:rgba(255,255,255,.03); }
+  .scroll { overflow:auto; }
+
   input,select,button,textarea { font:inherit; color:inherit; }
-  input,select,textarea { background:#0e1018; border:1px solid var(--line); border-radius:7px; padding:8px 10px; width:100%; }
-  button { background:#2a2f45; border:1px solid var(--line); border-radius:7px; padding:8px 14px; cursor:pointer; }
+  input,select,textarea { background:#0e1018; border:1px solid var(--line); border-radius:8px; padding:8px 10px; width:100%; }
+  textarea { resize:vertical; }
+  button { background:#2a2f45; border:1px solid var(--line); border-radius:8px; padding:8px 14px; cursor:pointer; }
   button:hover { background:#333a55; }
+  button:disabled { opacity:.45; cursor:default; }
   button.primary { background:var(--accent); border-color:var(--accent); }
   button.danger { background:#5a1f28; border-color:#7c2d3e; color:#ff9aa8; }
   button.ok { background:#1d4429; border-color:#2c6b3f; color:#8ce8a5; }
+  button.sm { padding:5px 10px; font-size:12.5px; }
   .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .row > * { flex:0 0 auto; }
   .muted { color:var(--muted); }
   .badge { display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; }
   .b-ban { background:#5a1f28; color:#ff9aa8; }
   .b-on { background:#1d4429; color:#8ce8a5; }
+  .b-off { background:#3a3f55; color:#b9c0da; }
+  .b-warn { background:#4a3a10; color:#f0b429; }
+
+  /* Hàng con trong trình dựng sự kiện */
+  .sub { border:1px dashed var(--line); border-radius:10px; padding:11px; margin-bottom:9px;
+         display:grid; gap:9px; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); align-items:end; }
+  .sub .del { grid-column:auto; }
+  .thumbs { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; }
+  .thumb { background:#0e1018; border:1px solid var(--line); border-radius:9px; padding:8px; text-align:center; }
+  .thumb img { max-width:100%; height:70px; object-fit:contain; image-rendering:pixelated; }
+  .thumb .u { font-size:10px; color:var(--muted); word-break:break-all; margin:5px 0; }
+
   .login-box { max-width:340px; margin:12vh auto; }
   .login-box input { margin-bottom:10px; }
   #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#000d;
-           padding:10px 20px; border-radius:99px; opacity:0; transition:.25s; pointer-events:none; }
+           padding:10px 20px; border-radius:99px; opacity:0; transition:.25s; pointer-events:none; z-index:50; }
   #toast.show { opacity:1; }
-  pre { background:#0e1018; padding:10px; border-radius:7px; overflow:auto; max-height:340px; font-size:12px; }
   .hide { display:none !important; }
+
+  @media (max-width:900px) {
+    .burger { display:block; }
+    .side { transform:translateX(-100%); transition:transform .2s; }
+    .side.open { transform:none; }
+    .main { margin-left:0; padding:16px 12px 60px; }
+  }
 </style>
 </head>
 <body>
 
 <div id="login" class="login-box">
   <div class="card">
-    <h1 style="margin-bottom:14px">🛡️ TuxeWorld — Quản trị</h1>
+    <h2 style="margin-bottom:14px">🛡️ TuxeWorld — Quản trị</h2>
     <input id="lg-user" placeholder="Tài khoản admin" autocomplete="username">
     <input id="lg-pass" type="password" placeholder="Mật khẩu" autocomplete="current-password">
     <button class="primary" style="width:100%" onclick="doLogin()">Đăng nhập</button>
@@ -62,34 +116,49 @@
 </div>
 
 <div id="app" class="hide">
-  <header>
-    <h1>🛡️ TuxeWorld Admin</h1>
-    <span class="muted" id="server-name"></span>
+  <div class="top">
+    <button class="burger sm" onclick="document.querySelector('.side').classList.toggle('open')">☰</button>
+    <div class="brand"><i>🛡️</i> TuxeWorld Admin</div>
+    <span class="who" id="server-name"></span>
     <span class="sp"></span>
-    <button onclick="loadTab()">⟳ Làm mới</button>
-    <button onclick="doFlush()">💾 Lưu DB</button>
-    <button class="danger" onclick="doLogout()">Thoát</button>
-  </header>
-  <div class="wrap">
-    <div class="tabs">
-      <div class="tab on" data-tab="dash">Tổng quan</div>
-      <div class="tab" data-tab="players">Người chơi</div>
-      <div class="tab" data-tab="guilds">Bang hội</div>
-      <div class="tab" data-tab="cosmetics">Thời trang</div>
-      <div class="tab" data-tab="config">Cấu hình & Sự kiện</div>
-      <div class="tab" data-tab="pvp">Lịch sử PvP</div>
-      <div class="tab" data-tab="audit">Nhật ký</div>
-    </div>
-    <div id="view"></div>
+    <button class="sm" onclick="loadPage()">⟳ Làm mới</button>
+    <button class="sm" onclick="doFlush()">💾 Lưu DB</button>
+    <button class="sm danger" onclick="doLogout()">Thoát</button>
   </div>
+
+  <nav class="side" id="side"></nav>
+  <main class="main" id="view"></main>
 </div>
 
 <div id="toast"></div>
+<input type="file" id="file-pick" accept="image/png,image/jpeg,image/gif,image/webp" class="hide">
 
 <script>
 const $ = s => document.querySelector(s);
 let token = localStorage.getItem('pw_admin_token') || '';
-let tab = 'dash';
+let page = location.hash.slice(1) || 'dash';
+let META = { kinds: [], hows: [], howNames: {}, vars: [] };
+
+const MENU = [
+  { grp: 'Vận hành', items: [
+    { id: 'dash',      icon: '📊', name: 'Tổng quan' },
+    { id: 'players',   icon: '👤', name: 'Người chơi' },
+    { id: 'guilds',    icon: '🏰', name: 'Bang hội' },
+  ]},
+  { grp: 'Nội dung', items: [
+    { id: 'events',    icon: '🎉', name: 'Sự kiện' },
+    { id: 'cosmetics', icon: '👗', name: 'Thời trang' },
+    { id: 'codes',     icon: '🎟️', name: 'Giftcode' },
+    { id: 'mail',      icon: '✉️', name: 'Gửi thư' },
+    { id: 'news',      icon: '🔔', name: 'Tin tức' },
+    { id: 'uploads',   icon: '🖼️', name: 'Kho ảnh' },
+  ]},
+  { grp: 'Hệ thống', items: [
+    { id: 'config',    icon: '⚙️', name: 'Cấu hình' },
+    { id: 'pvp',       icon: '⚔️', name: 'Lịch sử PvP' },
+    { id: 'audit',     icon: '📋', name: 'Nhật ký' },
+  ]},
+];
 
 function toast(msg) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
@@ -98,6 +167,9 @@ function toast(msg) {
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Number(n||0).toLocaleString('vi-VN');
 const dt = ts => ts ? new Date(ts).toLocaleString('vi-VN') : '—';
+// <input type="datetime-local"> <-> mốc thời gian
+const toLocal = ts => { if (!ts) return ''; const d = new Date(ts - new Date().getTimezoneOffset()*60000); return d.toISOString().slice(0,16); };
+const fromLocal = s => s ? new Date(s).getTime() : 0;
 
 async function api(path, opts = {}) {
   const res = await fetch('/api/admin' + path, {
@@ -127,35 +199,55 @@ function doLogout() {
   token = ''; localStorage.removeItem('pw_admin_token');
   $('#app').classList.add('hide'); $('#login').classList.remove('hide');
 }
-function showApp() {
+async function showApp() {
   $('#login').classList.add('hide'); $('#app').classList.remove('hide');
-  loadTab();
+  try { META = await api('/meta'); } catch (e) { /* menu vẫn chạy được */ }
+  drawMenu();
+  loadPage();
 }
 async function doFlush() { await api('/flush', { method: 'POST' }); toast('Đã lưu DB xuống đĩa'); }
 
+function drawMenu() {
+  $('#side').innerHTML = MENU.map(g => `
+    <div class="grp">${g.grp}</div>
+    ${g.items.map(it => `<div class="nav ${it.id === page ? 'on' : ''}" data-page="${it.id}">
+      <i>${it.icon}</i><span>${it.name}</span></div>`).join('')}`).join('');
+}
+
 document.addEventListener('click', e => {
-  const t = e.target.closest('.tab');
-  if (!t) return;
-  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
-  tab = t.dataset.tab;
-  loadTab();
+  const n = e.target.closest('.nav');
+  if (!n) return;
+  page = n.dataset.page;
+  location.hash = page;
+  $('#side').classList.remove('open');
+  drawMenu();
+  loadPage();
+});
+window.addEventListener('hashchange', () => {
+  const p = location.hash.slice(1);
+  if (p && p !== page) { page = p; drawMenu(); loadPage(); }
 });
 
-async function loadTab() {
+const PAGES = {};
+async function loadPage() {
   try {
-    if (tab === 'dash') return renderDash(await api('/stats'));
-    if (tab === 'players') return renderPlayers(await api('/players'));
-    if (tab === 'guilds') return renderGuilds(await api('/guilds'));
-    if (tab === 'cosmetics') return renderCosmetics(await api('/cosmetics'));
-    if (tab === 'config') return renderConfig(await api('/stats'));
-    if (tab === 'pvp') return renderPvp(await api('/pvp'));
-    if (tab === 'audit') return renderAudit(await api('/audit'));
+    const fn = PAGES[page] || PAGES.dash;
+    await fn();
+    window.scrollTo({ top: 0 });
   } catch (e) { toast(e.message); }
 }
 
-function renderDash(s) {
+// Tiêu đề trang dùng chung
+function head(title, note = '', right = '') {
+  return `<div class="page-head"><h2>${title}</h2><span class="sp"></span>${right}
+    ${note ? `<p>${note}</p>` : ''}</div>`;
+}
+
+/* ==================== Tổng quan ==================== */
+PAGES.dash = async () => {
+  const s = await api('/stats');
   $('#server-name').textContent = s.config?.serverName || '';
-  $('#view').innerHTML = `
+  $('#view').innerHTML = head('Tổng quan') + `
     <div class="grid">
       <div class="stat"><b>${fmt(s.users)}</b><span>Tài khoản</span></div>
       <div class="stat"><b style="color:var(--ok)">${fmt(s.online)}</b><span>Đang online</span></div>
@@ -167,13 +259,14 @@ function renderDash(s) {
       <div class="stat"><b style="color:var(--accent)">${fmt(s.banned)}</b><span>Bị khóa</span></div>
     </div>
     <div class="card">
-      <h3 style="margin-bottom:10px">📢 Thông báo toàn server</h3>
+      <h3>📢 Loa toàn máy chủ</h3>
+      <p class="muted" style="margin-bottom:10px">Chỉ hiện ở khung chat cho người đang online. Muốn để lại lâu dài thì đăng ở mục <b>Tin tức</b>.</p>
       <div class="row">
         <input id="bc-text" placeholder="Nội dung gửi tới mọi người chơi đang online" style="flex:1">
         <button class="primary" onclick="doBroadcast()">Gửi</button>
       </div>
     </div>`;
-}
+};
 async function doBroadcast() {
   const text = $('#bc-text').value.trim();
   if (!text) return;
@@ -181,37 +274,39 @@ async function doBroadcast() {
   $('#bc-text').value = ''; toast('Đã gửi thông báo');
 }
 
+/* ==================== Người chơi ==================== */
+PAGES.players = async () => renderPlayers(await api('/players'));
+
 function renderPlayers(d) {
-  $('#view').innerHTML = `
+  $('#view').innerHTML = head('Người chơi', `Tổng ${fmt(d.total)} tài khoản, hiện tối đa 200 dòng.`) + `
     <div class="card">
       <div class="row" style="margin-bottom:12px">
         <input id="q" placeholder="Tìm theo tên..." style="flex:1" oninput="searchPlayers()">
-        <span class="muted">Tổng: ${fmt(d.total)}</span>
       </div>
-      <div style="overflow:auto">
+      <div class="scroll">
       <table>
         <thead><tr><th>Tên</th><th>Tiền</th><th>Dex</th><th>Huy hiệu</th><th>PvP</th><th>Hoạt động</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-        <tbody id="prows">
+        <tbody>
           ${d.rows.map(p => `
           <tr>
-            <td><b>${esc(p.username)}</b><br><span class="muted" style="font-size:11px">${p.avatar}</span></td>
+            <td><b>${esc(p.username)}</b><br><span class="muted" style="font-size:11px">${esc(p.avatar)}</span></td>
             <td>${fmt(p.money)}₽</td>
             <td>${p.dex}</td>
             <td>${p.badges}</td>
             <td>${p.stats?.pvpWin||0}/${p.stats?.pvpLose||0}</td>
             <td class="muted" style="font-size:12px">${dt(p.lastSeen)}</td>
             <td>${p.banned ? `<span class="badge b-ban">KHÓA</span>` : `<span class="badge b-on">OK</span>`}
-                ${p.warnings?.length ? `<span class="badge" style="background:#4a3a10;color:#f0b429" title="${esc(p.warnings.join('\\n'))}">⚠ ${p.warnings.length}</span>` : ''}</td>
+                ${p.warnings?.length ? `<span class="badge b-warn" title="${esc(p.warnings.join('\\n'))}">⚠ ${p.warnings.length}</span>` : ''}</td>
             <td class="row">
-              <button onclick="grant('${p.id}','${esc(p.username)}')">🎁</button>
-              <button title="Trao thời trang" onclick="openGrant('${p.id}','${esc(p.username)}')">🏷</button>
-              <button onclick="resetPass('${p.id}')">🔑</button>
+              <button class="sm" title="Tặng tiền / vật phẩm" onclick="grant('${p.id}','${esc(p.username)}')">🎁</button>
+              <button class="sm" title="Trao thời trang" onclick="openGrant('${p.id}','${esc(p.username)}')">🏷</button>
+              <button class="sm" title="Đổi mật khẩu" onclick="resetPass('${p.id}')">🔑</button>
               ${p.banned
-                ? `<button class="ok" onclick="ban('${p.id}',false)">Mở</button>`
-                : `<button class="danger" onclick="ban('${p.id}',true)">Khóa</button>`}
-              <button class="danger" onclick="delPlayer('${p.id}','${esc(p.username)}')">🗑</button>
+                ? `<button class="sm ok" onclick="ban('${p.id}',false)">Mở</button>`
+                : `<button class="sm danger" onclick="ban('${p.id}',true)">Khóa</button>`}
+              <button class="sm danger" onclick="delPlayer('${p.id}','${esc(p.username)}')">🗑</button>
             </td>
-          </tr>`).join('')}
+          </tr>`).join('') || '<tr><td colspan="8" class="muted">Không có ai khớp.</td></tr>'}
         </tbody>
       </table>
       </div>
@@ -224,24 +319,23 @@ function searchPlayers() {
   searchTimer = setTimeout(async () => {
     const q = $('#q').value;
     const d = await api('/players?q=' + encodeURIComponent(q));
-    const keep = $('#q').value;
     renderPlayers(d);
-    $('#q').value = keep; $('#q').focus();
+    $('#q').value = q; $('#q').focus();
   }, 300);
 }
 async function ban(id, banned) {
-  const reason = banned ? (prompt('Lý do khóa tài khoản:', 'Vi phạm quy định') || '') : '';
+  const reason = banned ? prompt('Lý do khóa tài khoản:', 'Vi phạm quy định') : '';
   if (banned && reason === null) return;
   await api(`/player/${id}/ban`, { method: 'POST', body: JSON.stringify({ banned, reason }) });
-  toast(banned ? 'Đã khóa' : 'Đã mở khóa'); loadTab();
+  toast(banned ? 'Đã khóa' : 'Đã mở khóa'); loadPage();
 }
 async function grant(id, name) {
   const money = Number(prompt(`Tặng tiền cho ${name} (số âm để trừ):`, '10000'));
   if (Number.isNaN(money)) return;
-  const itemId = prompt('ID vật phẩm (bỏ trống nếu không tặng):', 'rare_candy') || '';
+  const itemId = prompt('ID vật phẩm (bỏ trống nếu không tặng):', 'potion') || '';
   const itemQty = itemId ? Number(prompt('Số lượng:', '5')) || 1 : 0;
   await api(`/player/${id}/grant`, { method: 'POST', body: JSON.stringify({ money, itemId, itemQty }) });
-  toast('Đã tặng'); loadTab();
+  toast('Đã tặng'); loadPage();
 }
 async function resetPass(id) {
   const password = prompt('Mật khẩu mới (>= 6 ký tự):');
@@ -253,26 +347,28 @@ async function delPlayer(id, name) {
   if (!confirm(`XÓA VĨNH VIỄN tài khoản ${name}? Không thể hoàn tác!`)) return;
   if (!confirm('Chắc chắn chứ?')) return;
   await api(`/player/${id}`, { method: 'DELETE' });
-  toast('Đã xóa'); loadTab();
+  toast('Đã xóa'); loadPage();
 }
 
+/* ==================== Bang hội ==================== */
 let guildRows = [];
 const ROLE_VI = { leader: 'Hội trưởng', officer: 'Phó hội', member: 'Thành viên' };
+PAGES.guilds = async () => renderGuilds(await api('/guilds'));
+
 function renderGuilds(d) {
   guildRows = d.rows || [];
-  $('#view').innerHTML = `
+  $('#view').innerHTML = head('Bang hội', `Tổng ${fmt(d.total)} bang.`) + `
     <div class="card">
       <div class="row" style="margin-bottom:12px">
         <input id="gq" placeholder="Tìm theo tên hoặc tag..." style="flex:1" oninput="searchGuilds()">
-        <span class="muted">Tổng: ${fmt(d.total)}</span>
       </div>
-      <div style="overflow:auto">
+      <div class="scroll">
       <table>
         <thead><tr><th>Tên</th><th>Tag</th><th>Cấp</th><th>Thành viên</th><th>Quỹ</th><th>Hội trưởng</th><th>Lập ngày</th><th>Thao tác</th></tr></thead>
         <tbody>
           ${guildRows.map((g, i) => `
           <tr>
-            <td><b>${esc(g.name)}</b><br><span class="muted" style="font-size:11px">icon ${g.icon}</span></td>
+            <td><b>${esc(g.name)}</b><br><span class="muted" style="font-size:11px">icon ${esc(g.icon)}</span></td>
             <td>[${esc(g.tag)}]</td>
             <td>${g.level}</td>
             <td>${g.members}/${g.maxMembers}</td>
@@ -280,8 +376,8 @@ function renderGuilds(d) {
             <td>${esc(g.leader)}</td>
             <td class="muted" style="font-size:12px">${dt(g.createdAt)}</td>
             <td class="row">
-              <button onclick="showGuildMembers(${i})">Thành viên</button>
-              <button class="danger" onclick="disbandGuild('${g.id}','${esc(g.name)}')">Giải tán</button>
+              <button class="sm" onclick="showGuildMembers(${i})">Thành viên</button>
+              <button class="sm danger" onclick="disbandGuild('${g.id}','${esc(g.name)}')">Giải tán</button>
             </td>
           </tr>`).join('') || '<tr><td colspan="8" class="muted">Chưa có bang hội nào</td></tr>'}
         </tbody>
@@ -295,8 +391,7 @@ function searchGuilds() {
   clearTimeout(guildSearchTimer);
   guildSearchTimer = setTimeout(async () => {
     const q = $('#gq').value;
-    const d = await api('/guilds?q=' + encodeURIComponent(q));
-    renderGuilds(d);
+    renderGuilds(await api('/guilds?q=' + encodeURIComponent(q)));
     $('#gq').value = q; $('#gq').focus();
   }, 300);
 }
@@ -305,58 +400,66 @@ function showGuildMembers(i) {
   if (!g) return;
   $('#gmembers').innerHTML = `
     <div class="card">
-      <h3 style="margin-bottom:10px">Thành viên — ${esc(g.name)} [${esc(g.tag)}]</h3>
+      <h3>Thành viên — ${esc(g.name)} [${esc(g.tag)}]</h3>
       <table><thead><tr><th>Tên</th><th>Chức vụ</th><th>Cống hiến</th><th>Gia nhập</th></tr></thead><tbody>
       ${g.memberList.map(m => `<tr><td><b>${esc(m.username)}</b></td><td>${ROLE_VI[m.role] || esc(m.role)}</td>
         <td>${fmt(m.contribution)}₽</td><td class="muted" style="font-size:12px">${dt(m.joinedAt)}</td></tr>`).join('')}
       </tbody></table>
     </div>`;
+  $('#gmembers').scrollIntoView({ behavior: 'smooth' });
 }
 async function disbandGuild(id, name) {
   if (!confirm(`Giải tán bang hội ${name}? Không thể hoàn tác!`)) return;
   await api('/guild/' + id, { method: 'DELETE' });
-  toast('Đã giải tán bang hội'); loadTab();
+  toast('Đã giải tán bang hội'); loadPage();
 }
 
-// ==== Thời trang: danh hiệu / khung avatar / khung chat / skin ====
+/* ==================== Thời trang ==================== */
 const KIND_VI = { title:'Danh hiệu', avatarFrame:'Khung avatar', chatFrame:'Khung chat',
                   skin:'Skin nhân vật', monSkin:'Skin Tuxemon' };
-const HOW_VI = { start:'Có sẵn từ đầu', catch:'Bắt đủ N sinh vật', win:'Thắng N trận',
-                 badge:'Có N huy hiệu', level:'Trainer Lv.N', manual:'Admin trao tay' };
+const howName = h => META.howNames?.[h] || h;
 let cosRows = [];
 
 function howText(c) {
   if (c.how === 'start') return 'Có sẵn từ đầu';
   if (c.how === 'manual') return '<b style="color:var(--warn)">Admin trao tay</b>';
-  return esc((HOW_VI[c.how] || c.how).replace('N', c.n));
+  if (c.how === 'guild') return 'Đang ở trong bang hội';
+  return esc(howName(c.how).replace('N', fmt(c.n)));
 }
+
+PAGES.cosmetics = async () => renderCosmetics(await api('/cosmetics'));
 
 function renderCosmetics(d) {
   cosRows = d.rows || [];
-  $('#view').innerHTML = `
+  const kinds = d.kinds || META.kinds || [];
+  const hows = d.hows || META.hows || [];
+  $('#view').innerHTML = head('Thời trang',
+    'Danh hiệu, khung avatar, khung chat và skin. Mỗi món tự đặt <b>điều kiện nhận</b> — người chơi đạt đủ là tự mở khoá, không cần admin trao.') + `
     <div class="card">
-      <h3 style="margin-bottom:10px">👗 Thêm / sửa món thời trang</h3>
-      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-        <label>Loại<select id="co-kind">${(d.kinds||[]).map(k => `<option value="${k}">${KIND_VI[k]||k}</option>`).join('')}</select></label>
+      <h3>Thêm / sửa món</h3>
+      <div class="form">
+        <label>Loại<select id="co-kind">${kinds.map(k => `<option value="${k}">${KIND_VI[k]||k}</option>`).join('')}</select></label>
         <label>Mã món (a-z, 0-9, _)<input id="co-id" placeholder="vd: tet_2026"></label>
         <label>Tên hiển thị<input id="co-name" placeholder="vd: Chúa Tể Mùa Xuân"></label>
         <label>Màu chữ<input id="co-color" type="color" value="#ffd43b" style="height:38px;padding:2px"></label>
-        <label>Điều kiện nhận<select id="co-how">${(d.hows||[]).map(h => `<option value="${h}"${h==='manual'?' selected':''}>${HOW_VI[h]||h}</option>`).join('')}</select></label>
-        <label>Số N (nếu điều kiện cần)<input id="co-n" type="number" min="0" value="0"></label>
+        <label>Điều kiện nhận<select id="co-how" onchange="hintHow()">${hows.map(h => `<option value="${h}"${h==='manual'?' selected':''}>${esc(howName(h))}</option>`).join('')}</select></label>
+        <label>Mốc N<input id="co-n" type="number" min="0" value="0"></label>
         <label>Mã loài (chỉ Skin Tuxemon)<input id="co-sp" type="number" min="0" value="0" placeholder="vd 83 = Anoleaf"></label>
       </div>
-      <p class="muted" style="margin:10px 0">Chọn <b>Admin trao tay</b> nếu món này không có điều kiện tự đạt — khi đó chỉ admin trao ở tab Người chơi mới có.</p>
-      <button class="primary" onclick="saveCosmetic()">Lưu món</button>
-      <span class="muted" style="margin-left:10px">Lưu lại đúng loại + mã cũ để sửa món đã có.</span>
+      <p class="muted" id="co-hint" style="margin:10px 0"></p>
+      <div class="row">
+        <button class="primary" onclick="saveCosmetic()">Lưu món</button>
+        <span class="muted">Lưu lại đúng <b>loại + mã cũ</b> để sửa món đã có.</span>
+      </div>
     </div>
 
     <div class="card">
-      <h3 style="margin-bottom:10px">Kho thời trang (${cosRows.length} món)</h3>
-      <p class="muted" style="margin-bottom:10px">Toàn bộ thời trang trong game là ảnh tải lên ở đây — món <b>chưa có ảnh</b> sẽ hiện trơ tên trong game, nhớ tải ảnh cho từng món. PNG nền trong suốt, tối đa 2MB.<br>
-      Gợi ý cỡ ảnh: khung avatar ~100×100, khung chat ~128×48 (kéo giãn 9 phần), danh hiệu ~96×24, skin ~64×64.<br>
-      Riêng <b>skin nhân vật</b>: ảnh 64×64 chỉ đổi ảnh nhân vật trong giao diện; muốn đổi cả nhân vật đi trên bản đồ thì tải bộ sprite <b>3 cột × 4 hàng</b> (vd 48×128 — hàng xuống/trái/phải/lên).<br>
-      <b>Skin Tuxemon</b>: ảnh 64×64 thay hình một loài trong trận đấu và đội hình — nhớ điền <b>mã loài</b> (số thứ tự trong Tuxedex).</p>
-      <div style="overflow:auto">
+      <h3>Kho thời trang (${cosRows.length} món)</h3>
+      <p class="muted" style="margin-bottom:10px">Toàn bộ thời trang trong game là ảnh tải lên ở đây — món <b>chưa có ảnh</b> sẽ hiện trơ tên trong game. PNG nền trong suốt, tối đa 2MB.<br>
+      Cỡ gợi ý: khung avatar ~100×100, khung chat ~128×48 (kéo giãn 9 phần), danh hiệu ~96×24, skin ~64×64.<br>
+      <b>Skin nhân vật</b>: 64×64 chỉ đổi ảnh trong giao diện; muốn đổi cả nhân vật đi trên bản đồ thì tải bộ sprite <b>3 cột × 4 hàng</b> (vd 48×128 — hàng xuống/trái/phải/lên).<br>
+      <b>Skin Tuxemon</b>: 64×64 thay hình một loài trong trận và đội hình — nhớ điền <b>mã loài</b>.</p>
+      <div class="scroll">
       <table>
         <thead><tr><th>Ảnh</th><th>Loại</th><th>Mã</th><th>Tên</th><th>Điều kiện</th><th>Thao tác</th></tr></thead>
         <tbody>
@@ -370,20 +473,30 @@ function renderCosmetics(d) {
             <td><b style="color:${esc(c.color||'#fff')}">${esc(c.name)}</b></td>
             <td>${howText(c)}</td>
             <td class="row">
-              <button onclick="pickImage('${esc(c.kind)}:${esc(c.id)}')">🖼 Ảnh</button>
-              ${c.img ? `<button onclick="dropImage('${esc(c.kind)}:${esc(c.id)}')">Gỡ ảnh</button>` : ''}
-              <button onclick="editCosmetic(${i})">✏️</button>
-              <button class="danger" onclick="delCosmetic('${esc(c.kind)}:${esc(c.id)}','${esc(c.name)}')">🗑</button>
+              <button class="sm" onclick="pickCosImage('${esc(c.kind)}:${esc(c.id)}')">🖼 Ảnh</button>
+              ${c.img ? `<button class="sm" onclick="dropImage('${esc(c.kind)}:${esc(c.id)}')">Gỡ ảnh</button>` : ''}
+              <button class="sm" onclick="editCosmetic(${i})">✏️</button>
+              <button class="sm danger" onclick="delCosmetic('${esc(c.kind)}:${esc(c.id)}','${esc(c.name)}')">🗑</button>
             </td>
           </tr>`).join('') || '<tr><td colspan="6" class="muted">Chưa có món nào — thêm ở khung trên.</td></tr>'}
         </tbody>
       </table>
       </div>
-    </div>
+    </div>`;
+  hintHow();
+}
 
-    <input type="file" id="co-file" accept="image/png,image/jpeg,image/gif,image/webp" class="hide">`;
-
-  $('#co-file').addEventListener('change', uploadImage);
+// Giải thích điều kiện đang chọn + ẩn ô N khi điều kiện không cần mốc
+function hintHow() {
+  const h = $('#co-how')?.value;
+  if (!h) return;
+  const canN = !['start', 'manual', 'guild'].includes(h);
+  $('#co-n').disabled = !canN;
+  $('#co-hint').innerHTML = canN
+    ? `Người chơi đạt <b>${esc(howName(h).replace('N', 'N'))}</b> là món tự mở khoá — điền mốc <b>N</b> bên trên.`
+    : h === 'manual'
+      ? 'Món này <b>không tự mở</b> được — vào mục Người chơi bấm 🏷 để trao tay.'
+      : `Điều kiện <b>${esc(howName(h))}</b> không cần mốc N.`;
 }
 
 async function saveCosmetic() {
@@ -392,7 +505,7 @@ async function saveCosmetic() {
     color: $('#co-color').value, how: $('#co-how').value, n: $('#co-n').value, sp: $('#co-sp').value,
   };
   await api('/cosmetics', { method: 'POST', body: JSON.stringify(body) });
-  toast('Đã lưu món thời trang'); loadTab();
+  toast('Đã lưu món thời trang'); loadPage();
 }
 function editCosmetic(i) {
   const c = cosRows[i];
@@ -400,38 +513,48 @@ function editCosmetic(i) {
   $('#co-kind').value = c.kind; $('#co-id').value = c.id; $('#co-name').value = c.name;
   $('#co-color').value = c.color || '#ffd43b'; $('#co-how').value = c.how; $('#co-n').value = c.n || 0;
   $('#co-sp').value = c.sp || 0;
+  hintHow();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 async function delCosmetic(key, name) {
   if (!confirm(`Xóa "${name}"? Người đang mặc sẽ mất món này.`)) return;
   await api('/cosmetics/' + encodeURIComponent(key), { method: 'DELETE' });
-  toast('Đã xóa'); loadTab();
+  toast('Đã xóa'); loadPage();
+}
+async function dropImage(key) {
+  await api(`/cosmetics/${encodeURIComponent(key)}/image`, { method: 'DELETE' });
+  toast('Đã gỡ ảnh'); loadPage();
 }
 
-let uploadKey = '';
-function pickImage(key) { uploadKey = key; $('#co-file').value = ''; $('#co-file').click(); }
-async function uploadImage(e) {
+/* ==== Chọn tệp dùng chung: ảnh thời trang và ảnh kho chung ==== */
+let pickMode = null;      // { url, then }
+function pickFile(url, then) {
+  pickMode = { url, then };
+  const f = $('#file-pick');
+  f.value = ''; f.click();
+}
+function pickCosImage(key) {
+  pickFile(`/api/admin/cosmetics/${encodeURIComponent(key)}/image`, () => loadPage());
+}
+$('#file-pick').addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
-  if (!file || !uploadKey) return;
+  if (!file || !pickMode) return;
   if (file.size > 2 * 1024 * 1024) return toast('Ảnh tối đa 2MB');
   try {
     // Gửi thẳng tệp trong body, Content-Type là kiểu ảnh — máy chủ đọc bằng express.raw
-    const res = await fetch(`/api/admin/cosmetics/${encodeURIComponent(uploadKey)}/image`, {
+    const res = await fetch(pickMode.url, {
       method: 'POST',
       headers: { 'Content-Type': file.type, Authorization: 'Bearer ' + token },
       body: file,
     });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(d.error || 'Tải ảnh thất bại');
-    toast('Đã tải ảnh lên'); loadTab();
+    toast('Đã tải ảnh lên');
+    pickMode.then?.(d);
   } catch (err) { toast(err.message); }
-}
-async function dropImage(key) {
-  await api(`/cosmetics/${encodeURIComponent(key)}/image`, { method: 'DELETE' });
-  toast('Đã gỡ ảnh'); loadTab();
-}
+});
 
-// ==== Trao thời trang cho một người chơi ====
+/* ==== Trao thời trang cho một người chơi ==== */
 async function openGrant(id, name) {
   try {
     const [cat, mine] = await Promise.all([api('/cosmetics'), api(`/player/${id}/cosmetics`)]);
@@ -439,21 +562,21 @@ async function openGrant(id, name) {
     const all = cat.rows || [];
     $('#grant-box').innerHTML = `
       <div class="card">
-        <h3 style="margin-bottom:10px">🏷 Trao thời trang — ${esc(name)}</h3>
+        <h3>🏷 Trao thời trang — ${esc(name)}</h3>
         <table><thead><tr><th>Loại</th><th>Món</th><th>Điều kiện</th><th>Trạng thái</th><th></th></tr></thead><tbody>
         ${all.map(c => {
           const key = `${c.kind}:${c.id}`;
           const has = have.has(key);
           return `<tr>
             <td>${KIND_VI[c.kind] || esc(c.kind)}</td>
-            <td><b>${esc(c.name)}</b> <code class="muted">${esc(c.id)}</code></td>
+            <td><b>${esc(c.name)}</b> <code>${esc(c.id)}</code></td>
             <td>${howText(c)}</td>
             <td>${has ? '<span class="badge b-on">ĐÃ TRAO</span>' : '<span class="muted">chưa</span>'}</td>
             <td>${has
-              ? `<button class="danger" onclick="doGrant('${id}','${esc(name)}','${key}',false)">Thu hồi</button>`
-              : `<button class="ok" onclick="doGrant('${id}','${esc(name)}','${key}',true)">Trao</button>`}</td>
+              ? `<button class="sm danger" onclick="doGrant('${id}','${esc(name)}','${key}',false)">Thu hồi</button>`
+              : `<button class="sm ok" onclick="doGrant('${id}','${esc(name)}','${key}',true)">Trao</button>`}</td>
           </tr>`;
-        }).join('') || '<tr><td colspan="5" class="muted">Chưa có món nào — thêm ở tab Thời trang trước.</td></tr>'}
+        }).join('') || '<tr><td colspan="5" class="muted">Chưa có món nào — thêm ở mục Thời trang trước.</td></tr>'}
         </tbody></table>
         <p class="muted" style="margin-top:10px">Người chơi đang online sẽ mở khoá ngay, không cần đăng nhập lại.</p>
       </div>`;
@@ -466,45 +589,433 @@ async function doGrant(id, name, key, give) {
   openGrant(id, name);
 }
 
-function renderConfig(s) {
-  const c = s.config || {};
-  $('#view').innerHTML = `
+/* ==================== Sự kiện ==================== */
+// Trình dựng sự kiện: admin tự khai nhiệm vụ theo biến của game, đổi thưởng và
+// vòng quay. Toàn bộ giữ trong biến EV rồi lưu một lần.
+let evRows = [];
+let EV = null;
+
+const evMoi = () => ({
+  id: '', name: '', desc: '', banner: '', on: true, start: 0, end: 0,
+  token: { id: 'token', name: 'Đồng sự kiện', img: '' },
+  tasks: [], shop: [], gachaCost: 10, gacha: [],
+});
+
+PAGES.events = async () => {
+  const d = await api('/events');
+  evRows = d.rows || [];
+  if (d.vars?.length) META.vars = d.vars;
+  if (!EV) EV = evMoi();
+  drawEvents();
+};
+
+function drawEvents() {
+  const varOpts = (sel) => (META.vars || []).map(v =>
+    `<option value="${v.id}"${v.id === sel ? ' selected' : ''}>${esc(v.name)}</option>`).join('');
+  const T = EV.token;
+
+  $('#view').innerHTML = head('Sự kiện',
+    'Sự kiện do bạn tự dựng: người chơi làm nhiệm vụ theo <b>biến của game</b> để kiếm <b>đồng sự kiện</b>, rồi tiêu vào <b>đổi thưởng</b> hoặc <b>vòng quay</b>. Ảnh đồng và phần thưởng tự tải lên ở mục Kho ảnh (hoặc bấm 🖼 ngay tại đây).',
+    `<button class="sm" onclick="newEvent()">+ Sự kiện mới</button>`) + `
+
     <div class="card">
-      <h3 style="margin-bottom:12px">⚙️ Cấu hình máy chủ</h3>
-      <div style="display:grid;gap:12px;max-width:520px">
+      <h3>${EV.id ? 'Sửa sự kiện' : 'Sự kiện mới'} ${EV.id ? `<code>${esc(EV.id)}</code>` : ''}</h3>
+      <div class="form">
+        <label>Tên sự kiện<input id="ev-name" value="${esc(EV.name)}" placeholder="vd: Lễ hội Mùa Xuân"></label>
+        <label>Bật/tắt<select id="ev-on"><option value="1"${EV.on?' selected':''}>Đang mở</option><option value="0"${EV.on?'':' selected'}>Đang tắt</option></select></label>
+        <label>Bắt đầu<input id="ev-start" type="datetime-local" value="${toLocal(EV.start)}"></label>
+        <label>Kết thúc<input id="ev-end" type="datetime-local" value="${toLocal(EV.end)}"></label>
+      </div>
+      <div class="form-1" style="margin-top:11px;max-width:none">
+        <label>Mô tả<textarea id="ev-desc" rows="3" placeholder="Nội dung hiện trong game và trong thông báo">${esc(EV.desc)}</textarea></label>
+      </div>
+      <div class="form" style="margin-top:11px">
+        <label>Ảnh băng-rôn (đường dẫn)<input id="ev-banner" value="${esc(EV.banner)}" placeholder="/uploads/events/..."></label>
+        <div class="row" style="align-items:flex-end">
+          <button class="sm" onclick="upTo('ev-banner')">🖼 Tải ảnh</button>
+          ${EV.banner ? `<img src="${esc(EV.banner)}" alt="" style="height:38px;border-radius:6px">` : ''}
+        </div>
+      </div>
+
+      <h3 style="margin:16px 0 8px">🪙 Đồng sự kiện</h3>
+      <div class="form">
+        <label>Mã đồng<input id="tk-id" value="${esc(T.id)}" placeholder="token"></label>
+        <label>Tên hiển thị<input id="tk-name" value="${esc(T.name)}" placeholder="Đồng Mùa Xuân"></label>
+        <label>Ảnh đồng<input id="tk-img" value="${esc(T.img)}" placeholder="/uploads/events/..."></label>
+        <div class="row" style="align-items:flex-end">
+          <button class="sm" onclick="upTo('tk-img')">🖼 Tải ảnh</button>
+          ${T.img ? `<img src="${esc(T.img)}" alt="" style="height:34px;image-rendering:pixelated">` : ''}
+        </div>
+      </div>
+
+      <h3 style="margin:16px 0 8px">🎯 Nhiệm vụ — tích đồng</h3>
+      <p class="muted" style="margin-bottom:9px">Mốc tính <b>từ lúc người chơi mở sự kiện lần đầu</b>, không tính thành tích cũ. Mỗi mốc chỉ nhận một lần.</p>
+      <div id="ev-tasks">
+        ${EV.tasks.map((t, i) => `
+          <div class="sub">
+            <label>Tên nhiệm vụ<input data-t="${i}" data-f="name" value="${esc(t.name)}" placeholder="Thắng 10 trận"></label>
+            <label>Biến của game<select data-t="${i}" data-f="var">${varOpts(t.var)}</select></label>
+            <label>Cần đạt<input data-t="${i}" data-f="need" type="number" min="1" value="${t.need}"></label>
+            <label>Thưởng (đồng)<input data-t="${i}" data-f="reward" type="number" min="1" value="${t.reward}"></label>
+            <div class="del"><button class="sm danger" onclick="evDel('tasks',${i})">Xoá</button></div>
+          </div>`).join('') || '<p class="muted">Chưa có nhiệm vụ nào.</p>'}
+      </div>
+      <button class="sm" onclick="evAdd('tasks')">+ Thêm nhiệm vụ</button>
+
+      <h3 style="margin:16px 0 8px">🎁 Đổi thưởng</h3>
+      <p class="muted" style="margin-bottom:9px">Tốn đồng để đổi lấy quà. <b>Giới hạn 0</b> = đổi thoải mái. Quà về Hộp thư của người chơi.</p>
+      <div id="ev-shop">
+        ${EV.shop.map((s, i) => `
+          <div class="sub">
+            <label>Tên phần thưởng<input data-s="${i}" data-f="name" value="${esc(s.name)}"></label>
+            <label>Giá (đồng)<input data-s="${i}" data-f="cost" type="number" min="1" value="${s.cost}"></label>
+            <label>Giới hạn lượt<input data-s="${i}" data-f="limit" type="number" min="0" value="${s.limit}"></label>
+            <label>Mã vật phẩm<input data-s="${i}" data-f="itemId" value="${esc(s.itemId)}" placeholder="potion"></label>
+            <label>Số lượng<input data-s="${i}" data-f="itemN" type="number" min="1" value="${s.itemN}"></label>
+            <label>Kèm tiền<input data-s="${i}" data-f="money" type="number" min="0" value="${s.money}"></label>
+            <label>Ảnh<input data-s="${i}" data-f="img" value="${esc(s.img)}"></label>
+            <div class="del row">
+              <button class="sm" onclick="upToRow('shop',${i},'img')">🖼</button>
+              <button class="sm danger" onclick="evDel('shop',${i})">Xoá</button>
+            </div>
+          </div>`).join('') || '<p class="muted">Chưa có phần thưởng nào.</p>'}
+      </div>
+      <button class="sm" onclick="evAdd('shop')">+ Thêm phần thưởng</button>
+
+      <h3 style="margin:16px 0 8px">🎰 Vòng quay</h3>
+      <div class="form" style="margin-bottom:9px">
+        <label>Giá mỗi lượt (đồng)<input id="ev-gcost" type="number" min="1" value="${EV.gachaCost}"></label>
+      </div>
+      <p class="muted" style="margin-bottom:9px">Trúng theo <b>trọng số</b>: số càng lớn càng dễ ra. Đây là vòng quay bằng <b>đồng sự kiện kiếm trong game</b>, không dính tiền thật.</p>
+      <div id="ev-gacha">
+        ${EV.gacha.map((g, i) => `
+          <div class="sub">
+            <label>Tên giải<input data-g="${i}" data-f="name" value="${esc(g.name)}"></label>
+            <label>Trọng số<input data-g="${i}" data-f="w" type="number" min="1" value="${g.w}"></label>
+            <label>Mã vật phẩm<input data-g="${i}" data-f="itemId" value="${esc(g.itemId)}"></label>
+            <label>Số lượng<input data-g="${i}" data-f="itemN" type="number" min="1" value="${g.itemN}"></label>
+            <label>Kèm tiền<input data-g="${i}" data-f="money" type="number" min="0" value="${g.money}"></label>
+            <label>Ảnh<input data-g="${i}" data-f="img" value="${esc(g.img)}"></label>
+            <div class="del row">
+              <button class="sm" onclick="upToRow('gacha',${i},'img')">🖼</button>
+              <button class="sm danger" onclick="evDel('gacha',${i})">Xoá</button>
+            </div>
+          </div>`).join('') || '<p class="muted">Chưa có giải nào — bỏ trống thì sự kiện không có vòng quay.</p>'}
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button class="sm" onclick="evAdd('gacha')">+ Thêm giải</button>
+      </div>
+
+      <div class="row" style="margin-top:18px">
+        <button class="primary" onclick="saveEvent()">💾 Lưu sự kiện</button>
+        <button onclick="newEvent()">Bỏ, dựng cái mới</button>
+        ${EV.id ? `<button class="ok" onclick="announceEvent('${EV.id}')">📣 Đăng thông báo</button>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Danh sách sự kiện (${evRows.length})</h3>
+      <div class="scroll">
+      <table>
+        <thead><tr><th>Tên</th><th>Trạng thái</th><th>Thời gian</th><th>Nhiệm vụ</th><th>Đổi</th><th>Quay</th><th>Thao tác</th></tr></thead>
+        <tbody>
+        ${evRows.map((e, i) => `<tr>
+          <td><b>${esc(e.name)}</b><br><span class="muted" style="font-size:11px">${esc(e.token?.name || '')}</span></td>
+          <td>${e.on ? '<span class="badge b-on">MỞ</span>' : '<span class="badge b-off">TẮT</span>'}</td>
+          <td class="muted" style="font-size:12px">${e.start ? dt(e.start) : 'từ đầu'}<br>${e.end ? dt(e.end) : 'không hạn'}</td>
+          <td>${(e.tasks||[]).length}</td><td>${(e.shop||[]).length}</td><td>${(e.gacha||[]).length}</td>
+          <td class="row">
+            <button class="sm" onclick="editEvent(${i})">✏️ Sửa</button>
+            <button class="sm ok" onclick="announceEvent('${e.id}')">📣</button>
+            <button class="sm danger" onclick="delEvent('${e.id}','${esc(e.name)}')">🗑</button>
+          </td></tr>`).join('') || '<tr><td colspan="7" class="muted">Chưa có sự kiện nào.</td></tr>'}
+        </tbody>
+      </table>
+      </div>
+    </div>`;
+}
+
+const EV_MAU = {
+  tasks: () => ({ id: '', name: '', var: (META.vars?.[0]?.id) || 'wins', need: 10, reward: 5 }),
+  shop:  () => ({ id: '', name: '', img: '', cost: 20, limit: 1, itemId: '', itemN: 1, money: 0 }),
+  gacha: () => ({ id: '', name: '', img: '', w: 10, itemId: '', itemN: 1, money: 0 }),
+};
+// Gom giá trị đang gõ trên form vào EV trước mỗi lần vẽ lại, kẻo mất công gõ
+function thuEv() {
+  if (!$('#ev-name')) return;
+  EV.name = $('#ev-name').value;
+  EV.desc = $('#ev-desc').value;
+  EV.banner = $('#ev-banner').value;
+  EV.on = $('#ev-on').value === '1';
+  EV.start = fromLocal($('#ev-start').value);
+  EV.end = fromLocal($('#ev-end').value);
+  EV.token = { id: $('#tk-id').value, name: $('#tk-name').value, img: $('#tk-img').value };
+  EV.gachaCost = Number($('#ev-gcost').value) || 10;
+  for (const [key, attr] of [['tasks', 't'], ['shop', 's'], ['gacha', 'g']]) {
+    document.querySelectorAll(`[data-${attr}]`).forEach(el => {
+      const row = EV[key][Number(el.dataset[attr])];
+      if (row) row[el.dataset.f] = el.value;
+    });
+  }
+}
+function evAdd(key) { thuEv(); EV[key].push(EV_MAU[key]()); drawEvents(); }
+function evDel(key, i) { thuEv(); EV[key].splice(i, 1); drawEvents(); }
+function newEvent() { EV = evMoi(); drawEvents(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function editEvent(i) {
+  EV = JSON.parse(JSON.stringify(evRows[i]));
+  EV.token = EV.token || { id: 'token', name: 'Đồng sự kiện', img: '' };
+  for (const k of ['tasks', 'shop', 'gacha']) EV[k] = EV[k] || [];
+  drawEvents();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+async function saveEvent() {
+  thuEv();
+  if (!EV.name.trim()) return toast('Sự kiện phải có tên.');
+  const d = await api('/events', { method: 'POST', body: JSON.stringify(EV) });
+  EV = d.item;
+  toast('Đã lưu sự kiện');
+  loadPage();
+}
+async function delEvent(id, name) {
+  if (!confirm(`Xoá sự kiện "${name}"? Tiến độ của người chơi cũng mất theo.`)) return;
+  await api('/events/' + id, { method: 'DELETE' });
+  if (EV?.id === id) EV = evMoi();
+  toast('Đã xoá'); loadPage();
+}
+async function announceEvent(id) {
+  await api(`/events/${id}/announce`, { method: 'POST' });
+  toast('Đã đăng thông báo cho cả máy chủ');
+}
+// Tải ảnh rồi điền thẳng vào một ô
+function upTo(inputId) {
+  thuEv();
+  pickFile('/api/admin/upload?name=ev', (d) => { $('#' + inputId).value = d.url; thuEv(); drawEvents(); });
+}
+function upToRow(key, i, field) {
+  thuEv();
+  pickFile('/api/admin/upload?name=ev', (d) => { EV[key][i][field] = d.url; drawEvents(); });
+}
+
+/* ==================== Giftcode ==================== */
+PAGES.codes = async () => {
+  const d = await api('/codes');
+  $('#view').innerHTML = head('Giftcode',
+    'Người chơi nhập mã ở <b>Cài đặt ▸ Nhập Giftcode</b>. Mã không phân biệt hoa thường và bỏ qua dấu cách. Quà về Hộp thư, mỗi người dùng được một lần.') + `
+    <div class="card">
+      <h3>Tạo mã mới</h3>
+      <div class="form">
+        <label>Mã<input id="cd-code" placeholder="TUXE2026"></label>
+        <label>Tặng tiền<input id="cd-money" type="number" min="0" value="0"></label>
+        <label>Số lượt tối đa (0 = không giới hạn)<input id="cd-max" type="number" min="0" value="0"></label>
+        <label>Hết hạn<input id="cd-exp" type="datetime-local"></label>
+      </div>
+      <div class="form" style="margin-top:11px">
+        <label>Vật phẩm kèm theo<input id="cd-items" placeholder="potion x5, super_potion x2"></label>
+        <label>Lời nhắn trong thư<input id="cd-note" placeholder="Cảm ơn bạn đã đồng hành!"></label>
+      </div>
+      <p class="muted" style="margin:10px 0">Vật phẩm ghi kiểu <code>mã x số lượng</code>, nhiều món cách nhau bằng dấu phẩy.</p>
+      <button class="primary" onclick="addCode()">Tạo mã</button>
+    </div>
+    <div class="card">
+      <h3>Mã đã tạo (${d.rows.length})</h3>
+      <div class="scroll">
+      <table><thead><tr><th>Mã</th><th>Quà</th><th>Đã dùng</th><th>Hết hạn</th><th>Ghi chú</th><th></th></tr></thead><tbody>
+      ${d.rows.map(c => `<tr>
+        <td><b><code style="font-size:14px">${esc(c.code)}</code></b></td>
+        <td>${c.money ? fmt(c.money) + '₽ ' : ''}${(c.items||[]).map(i => `${esc(i.id)}×${i.n}`).join(', ') || (c.money ? '' : '—')}</td>
+        <td>${c.usedCount}${c.max ? ' / ' + c.max : ''}</td>
+        <td class="muted" style="font-size:12px">${c.expires ? dt(c.expires) : 'không hạn'}</td>
+        <td class="muted">${esc(c.note || '')}</td>
+        <td><button class="sm danger" onclick="delCode('${c.id}','${esc(c.code)}')">🗑</button></td>
+      </tr>`).join('') || '<tr><td colspan="6" class="muted">Chưa có mã nào.</td></tr>'}
+      </tbody></table>
+      </div>
+    </div>`;
+};
+
+// "potion x5, super_potion x2" -> [{id:'potion',n:5},...]
+function docItems(s) {
+  return String(s || '').split(',').map(x => x.trim()).filter(Boolean).map(x => {
+    const m = x.match(/^(\S+)\s*[x*×]\s*(\d+)$/i);
+    return m ? { id: m[1], n: Number(m[2]) } : { id: x.split(/\s+/)[0], n: 1 };
+  });
+}
+
+async function addCode() {
+  await api('/codes', { method: 'POST', body: JSON.stringify({
+    code: $('#cd-code').value, money: $('#cd-money').value, max: $('#cd-max').value,
+    expires: fromLocal($('#cd-exp').value), note: $('#cd-note').value,
+    items: docItems($('#cd-items').value),
+  })});
+  toast('Đã tạo mã'); loadPage();
+}
+async function delCode(id, code) {
+  if (!confirm(`Xoá mã ${code}?`)) return;
+  await api('/codes/' + id, { method: 'DELETE' });
+  toast('Đã xoá'); loadPage();
+}
+
+/* ==================== Gửi thư ==================== */
+PAGES.mail = async () => {
+  $('#view').innerHTML = head('Gửi thư',
+    'Thư về thẳng Hộp thư của người chơi, quà nằm trong thư cho tới khi họ bấm nhận. Dùng để phát quà xin lỗi, thưởng bảng xếp hạng, quà tri ân...') + `
+    <div class="card">
+      <h3>Soạn thư</h3>
+      <div class="form">
+        <label>Gửi cho<input id="ml-to" placeholder="* = tất cả, hoặc tên1, tên2" value="*"></label>
+        <label>Tiêu đề<input id="ml-title" placeholder="Quà tri ân tháng 7"></label>
+        <label>Tặng tiền<input id="ml-money" type="number" min="0" value="0"></label>
+        <label>Hết hạn nhận<input id="ml-exp" type="datetime-local"></label>
+      </div>
+      <div class="form-1" style="margin-top:11px;max-width:none">
+        <label>Nội dung<textarea id="ml-body" rows="3" placeholder="Lời nhắn gửi người chơi"></textarea></label>
+        <label>Vật phẩm<input id="ml-items" placeholder="potion x5, super_potion x2"></label>
+      </div>
+      <p class="muted" style="margin:10px 0">Gửi cho <code>*</code> thì mọi tài khoản chưa bị khoá đều nhận. Tên nhiều người cách nhau bằng dấu phẩy.</p>
+      <button class="primary" onclick="sendMail()">✉️ Gửi thư</button>
+    </div>`;
+};
+async function sendMail() {
+  const title = $('#ml-title').value.trim();
+  if (!title) return toast('Thư phải có tiêu đề.');
+  const to = $('#ml-to').value.trim();
+  if (to === '*' && !confirm('Gửi cho TOÀN BỘ người chơi?')) return;
+  const d = await api('/mail', { method: 'POST', body: JSON.stringify({
+    to, title, body: $('#ml-body').value, money: $('#ml-money').value,
+    expires: fromLocal($('#ml-exp').value), items: docItems($('#ml-items').value),
+  })});
+  toast(`Đã gửi tới ${d.n} người chơi`);
+  $('#ml-title').value = ''; $('#ml-body').value = '';
+}
+
+/* ==================== Tin tức ==================== */
+PAGES.news = async () => {
+  const d = await api('/news');
+  $('#view').innerHTML = head('Tin tức',
+    'Tin đăng ở đây hiện trong nút 🔔 <b>Thông báo</b> trên thanh trên của game. Người chơi chưa đọc sẽ thấy chấm đỏ.') + `
+    <div class="card">
+      <h3>Đăng tin</h3>
+      <div class="form">
+        <label>Tiêu đề<input id="nw-title" placeholder="Bảo trì máy chủ 20/8"></label>
+        <label>Loại<select id="nw-kind"><option value="news">Tin tức</option><option value="event">Sự kiện</option></select></label>
+        <label>Ghim lên đầu<select id="nw-pin"><option value="0">Không</option><option value="1">Có</option></select></label>
+        <label>Tự ẩn lúc<input id="nw-exp" type="datetime-local"></label>
+      </div>
+      <div class="form-1" style="margin-top:11px;max-width:none">
+        <label>Nội dung<textarea id="nw-body" rows="4"></textarea></label>
+      </div>
+      <div class="form" style="margin-top:11px">
+        <label>Ảnh băng-rôn<input id="nw-banner" placeholder="/uploads/events/..."></label>
+        <div class="row" style="align-items:flex-end">
+          <button class="sm" onclick="pickFile('/api/admin/upload?name=news', d => { $('#nw-banner').value = d.url; })">🖼 Tải ảnh</button>
+        </div>
+      </div>
+      <button class="primary" style="margin-top:11px" onclick="addNews()">📣 Đăng</button>
+    </div>
+    <div class="card">
+      <h3>Đã đăng (${d.news.length})</h3>
+      <div class="scroll">
+      <table><thead><tr><th>Loại</th><th>Tiêu đề</th><th>Đăng lúc</th><th>Tự ẩn</th><th></th></tr></thead><tbody>
+      ${d.news.map(n => `<tr>
+        <td>${n.kind === 'event' ? '<span class="badge b-warn">Sự kiện</span>' : '<span class="badge b-off">Tin tức</span>'}
+            ${n.pin ? '<span class="badge b-on">Ghim</span>' : ''}</td>
+        <td><b>${esc(n.title)}</b><br><span class="muted" style="font-size:12px">${esc((n.body||'').slice(0,90))}</span></td>
+        <td class="muted" style="font-size:12px">${dt(n.ts)}</td>
+        <td class="muted" style="font-size:12px">${n.expires ? dt(n.expires) : '—'}</td>
+        <td><button class="sm danger" onclick="delNews('${n.id}')">🗑</button></td>
+      </tr>`).join('') || '<tr><td colspan="5" class="muted">Chưa có tin nào.</td></tr>'}
+      </tbody></table>
+      </div>
+    </div>`;
+};
+async function addNews() {
+  const title = $('#nw-title').value.trim();
+  if (!title) return toast('Tin phải có tiêu đề.');
+  await api('/news', { method: 'POST', body: JSON.stringify({
+    title, body: $('#nw-body').value, kind: $('#nw-kind').value,
+    pin: $('#nw-pin').value === '1', banner: $('#nw-banner').value,
+    expires: fromLocal($('#nw-exp').value),
+  })});
+  toast('Đã đăng tin'); loadPage();
+}
+async function delNews(id) {
+  if (!confirm('Xoá tin này?')) return;
+  await api('/news/' + id, { method: 'DELETE' });
+  toast('Đã xoá'); loadPage();
+}
+
+/* ==================== Kho ảnh ==================== */
+PAGES.uploads = async () => {
+  const d = await api('/uploads');
+  $('#view').innerHTML = head('Kho ảnh',
+    'Ảnh dùng cho băng-rôn, đồng sự kiện và phần thưởng. Bấm vào đường dẫn để chép rồi dán vào ô ảnh tương ứng.',
+    `<button class="sm primary" onclick="pickFile('/api/admin/upload?name=img', () => loadPage())">⬆ Tải ảnh lên</button>`) + `
+    <div class="card">
+      <div class="thumbs">
+      ${d.rows.map(u => `<div class="thumb">
+        <img src="${esc(u.url)}" alt="">
+        <div class="u" onclick="chep('${esc(u.url)}')" title="Bấm để chép">${esc(u.url)}</div>
+        <button class="sm danger" onclick="delUpload('${esc(u.file)}')">Xoá</button>
+      </div>`).join('') || '<p class="muted">Kho trống — bấm “Tải ảnh lên”.</p>'}
+      </div>
+    </div>`;
+};
+function chep(s) {
+  navigator.clipboard?.writeText(s).then(() => toast('Đã chép đường dẫn'), () => toast(s));
+}
+async function delUpload(file) {
+  if (!confirm('Xoá ảnh này? Chỗ nào đang dùng sẽ mất ảnh.')) return;
+  await api('/upload/' + encodeURIComponent(file), { method: 'DELETE' });
+  toast('Đã xoá'); loadPage();
+}
+
+/* ==================== Cấu hình ==================== */
+PAGES.config = async () => {
+  const s = await api('/stats');
+  const c = s.config || {};
+  $('#view').innerHTML = head('Cấu hình máy chủ',
+    'Thay đổi có hiệu lực tức thì với mọi người chơi đang online, không cần khởi động lại.') + `
+    <div class="card">
+      <div class="form-1">
         <label>Tên máy chủ<input id="c-name" value="${esc(c.serverName)}"></label>
         <label>Thông báo chào (MOTD)<textarea id="c-motd" rows="2">${esc(c.motd)}</textarea></label>
         <label>Hệ số EXP (1-10)<input id="c-exp" type="number" min="1" max="10" step="0.5" value="${c.expMult}"></label>
         <label>Hệ số tiền (1-10)<input id="c-money" type="number" min="1" max="10" step="0.5" value="${c.moneyMult}"></label>
-        <label>Hệ số tỉ lệ shiny (1-50)<input id="c-shiny" type="number" min="1" max="50" step="1" value="${c.shinyMult}"></label>
+        <label>Hệ số tỉ lệ hàng hiếm (1-50)<input id="c-flair" type="number" min="1" max="50" step="1" value="${c.flairMult}"></label>
         <button class="primary" onclick="saveConfig()">Lưu & áp dụng ngay</button>
       </div>
-      <p class="muted" style="margin-top:12px">Thay đổi có hiệu lực tức thì với mọi người chơi đang online (không cần khởi động lại).</p>
     </div>`;
-}
+};
 async function saveConfig() {
   await api('/config', { method: 'PUT', body: JSON.stringify({
     serverName: $('#c-name').value, motd: $('#c-motd').value,
-    expMult: $('#c-exp').value, moneyMult: $('#c-money').value, shinyMult: $('#c-shiny').value,
+    expMult: $('#c-exp').value, moneyMult: $('#c-money').value, flairMult: $('#c-flair').value,
   })});
-  toast('Đã áp dụng cấu hình'); loadTab();
+  toast('Đã áp dụng cấu hình'); loadPage();
 }
 
-function renderPvp(d) {
-  $('#view').innerHTML = `<div class="card"><h3 style="margin-bottom:10px">⚔️ Lịch sử PvP (100 trận gần nhất)</h3>
+/* ==================== PvP & Nhật ký ==================== */
+PAGES.pvp = async () => {
+  const d = await api('/pvp');
+  $('#view').innerHTML = head('Lịch sử PvP', '100 trận gần nhất.') + `
+    <div class="card"><div class="scroll">
     <table><thead><tr><th>Thời gian</th><th>Người thắng</th><th>Người thua</th><th></th></tr></thead><tbody>
     ${d.rows.map(r => `<tr><td class="muted">${dt(r.ts)}</td><td><b style="color:var(--ok)">${esc(r.winner||'—')}</b></td>
-      <td>${esc(r.loser||'—')}</td><td>${r.disputed?'<span class="badge b-ban">LỆCH KẾT QUẢ</span>':''}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Chưa có trận nào</td></tr>'}
-    </tbody></table></div>`;
-}
+      <td>${esc(r.loser||'—')}</td><td>${r.disputed?'<span class="badge b-ban">LỆCH KẾT QUẢ</span>':''}</td></tr>`).join('')
+      || '<tr><td colspan="4" class="muted">Chưa có trận nào</td></tr>'}
+    </tbody></table></div></div>`;
+};
 
-function renderAudit(d) {
-  $('#view').innerHTML = `<div class="card"><h3 style="margin-bottom:10px">📋 Nhật ký thao tác admin</h3>
+PAGES.audit = async () => {
+  const d = await api('/audit');
+  $('#view').innerHTML = head('Nhật ký thao tác', '200 thao tác admin gần nhất.') + `
+    <div class="card"><div class="scroll">
     <table><thead><tr><th>Thời gian</th><th>Admin</th><th>Hành động</th><th>Đối tượng</th><th>Chi tiết</th></tr></thead><tbody>
     ${d.rows.map(r => `<tr><td class="muted">${dt(r.ts)}</td><td>${esc(r.admin)}</td>
-      <td><b>${esc(r.action)}</b></td><td>${esc(r.target)}</td><td class="muted">${esc(r.detail||'')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Chưa có</td></tr>'}
-    </tbody></table></div>`;
-}
+      <td><b>${esc(r.action)}</b></td><td>${esc(r.target)}</td><td class="muted">${esc(r.detail||'')}</td></tr>`).join('')
+      || '<tr><td colspan="5" class="muted">Chưa có</td></tr>'}
+    </tbody></table></div></div>`;
+};
 
 $('#lg-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 if (token) showApp();
