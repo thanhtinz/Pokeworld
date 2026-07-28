@@ -456,6 +456,20 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
 }
 
+// Thế giới đi bộ: đủ bản đồ, tên nào cũng đặt tay chứ không để máy ghép bừa
+{
+  const ids = Object.keys(MAPS);
+  ok('thế giới có đủ bản đồ', ids.length >= 40, String(ids.length));
+  // Máy ghép tên sẽ để lại chữ tiếng Anh kiểu "Upstairs", "Scoop", "Lab"
+  const song = /(Upstairs|Downstairs|Bedroom|Scoop|Lab|Foyer|Cathedral|Daycare|Cafe|Passageway|Stairwell|Basement|Nhà\d)/;
+  const xau = ids.filter(id => song.test(MAPS[id].name));
+  ok('không bản đồ nào còn tên ghép máy', xau.length === 0,
+    xau.map(id => MAPS[id].name).slice(0, 4).join(' | '));
+  // Điểm vào không được rơi vào tường
+  const ket = ids.filter(id => MAPS[id].solid[MAPS[id].spawn.y * MAPS[id].w + MAPS[id].spawn.x]);
+  ok('điểm vào bản đồ nào cũng đứng được', ket.length === 0, ket.join(' '));
+}
+
 // Bảng hiệu mang chữ thật của bản đồ gốc, không còn nói chung chung
 {
   const co = Object.values(MAPS).flatMap(m => m.talks || []).filter(t => t.text);

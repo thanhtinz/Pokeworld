@@ -37,10 +37,11 @@ MAX_ATLAS_COLS = 32
 # Lay ca cum 75 ban do thi du lieu phinh to ma nguoi choi khong di het noi,
 # nen chi lay nhung ban do gan diem xuat phat.
 START = 'taba_town'
-MAX_MAPS = 20
+MAX_MAPS = 40
 
 # Ten tieng Viet cho nhung ban do quen thuoc; con lai suy tu slug.
 VI_NAME = {
+    # Thi tran / duong di
     'taba_town': 'Thị Trấn Taba',
     'cotton_town': 'Thị Trấn Bông',
     'leather_town': 'Thị Trấn Da',
@@ -48,10 +49,47 @@ VI_NAME = {
     'timber_town': 'Thị Trấn Gỗ',
     'candy_town': 'Thị Trấn Kẹo',
     'flower_city': 'Thành Phố Hoa',
+    'citypark': 'Công Viên Thành Phố',
     'route1': 'Đường Số 1',
     'route2': 'Đường Số 2',
     'route3': 'Đường Số 3',
     'route4': 'Đường Số 4',
+    'route1_sanglorian': 'Đường Số 1 — Ngã Sanglorian',
+    'dryadsgrove': 'Rừng Dryad',
+    # Nha trong thi tran Taba
+    'player_house_downstairs': 'Nhà Mình — Tầng Trệt',
+    'player_house_bedroom': 'Nhà Mình — Phòng Ngủ',
+    'maple_house': 'Nhà Maple',
+    'maple_bedroom': 'Nhà Maple — Phòng Ngủ',
+    'professor_lab': 'Phòng Nghiên Cứu',
+    'healing_center': 'Trạm Hồi Sức',
+    'tuxe_mart_taba': 'Tuxemart Taba',
+    'taba_house1': 'Nhà Ông Bà Clawbrew',
+    'taba_house2': 'Thư Viện Di Sản',
+    'taba_house2_upstairs': 'Thư Viện Di Sản — Tầng Trên',
+    'taba_house3': 'Nhà Trọ Lá Trầm Tư',
+    'taba_house3_upstairs': 'Nhà Trọ Lá Trầm Tư — Tầng Trên',
+    'taba_house4': 'Quán Rượu Hải Âu Đáng Kính',
+    # Khu thi dau Taba (Taba Battle Area)
+    'taba_ba_foyer': 'Khu Thi Đấu Taba — Tiền Sảnh',
+    'taba_ba_main': 'Khu Thi Đấu Taba — Đại Sảnh',
+    'taba_ba_passageway_1': 'Khu Thi Đấu Taba — Hành Lang 1',
+    'taba_ba_passageway_2': 'Khu Thi Đấu Taba — Hành Lang 2',
+    'taba_ba_passageway_3': 'Khu Thi Đấu Taba — Hành Lang 3',
+    'taba_ba_passageway_4': 'Khu Thi Đấu Taba — Hành Lang 4',
+    'taba_ba_stairwell_1': 'Khu Thi Đấu Taba — Cầu Thang',
+    # Thi tran Bong
+    'cotton_cathedral': 'Thánh Đường Bông',
+    'cotton_scoop': 'Tiệm Tạp Hoá Bông',
+    'cotton_cafe': 'Quán Cà Phê Bông',
+    'cotton_cafe_basement': 'Quán Cà Phê Bông — Tầng Hầm',
+    'cotton_daycare': 'Nhà Trẻ Bông',
+    'cotton_misa_house': 'Nhà Misa',
+    'cotton_misa_house_upstairs': 'Nhà Misa — Tầng Trên',
+    # Thi tran Da
+    'leather_scoop': 'Tiệm Tạp Hoá Da',
+    'leather_shaft1': 'Hầm Mỏ Shaft 1',
+    'leather_shaft2': 'Hầm Mỏ Shaft 2',
 }
 
 
@@ -612,6 +650,24 @@ def main():
             'music': m['music'],
             'env': m.get('env'), 'envNight': m.get('envNight'),
         }
+
+    # Vai cong ben ban goc tro ra NGOAI ban do dich (ban do do lam do dang, vi du
+    # leather_town -> flower_city o o 59,0 trong khi ban do chi rong 40). De nguyen
+    # thi buoc qua cong la roi ra hu khong, nen keo ve trong bien; luc vao map
+    # engine con tu tim o trong gan do (freeSpot).
+    lech = []
+    for slug, m in out_maps.items():
+        for w in m['warps']:
+            d = out_maps.get(w['to'])
+            if not d or w.get('tx') is None:
+                continue
+            tx = max(0, min(d['w'] - 1, w['tx']))
+            ty = max(0, min(d['h'] - 1, w['ty']))
+            if (tx, ty) != (w['tx'], w['ty']):
+                lech.append('%s -> %s (%d,%d)' % (slug, w['to'], w['tx'], w['ty']))
+                w['tx'], w['ty'] = tx, ty
+    if lech:
+        print('Kéo %d cổng lệch về trong bản đồ: %s' % (len(lech), ', '.join(sorted(set(lech)))))
 
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)

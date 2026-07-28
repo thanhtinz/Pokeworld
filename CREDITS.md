@@ -18,7 +18,7 @@ Cụ thể đã lấy:
 | Chuỗi tiến hoá kèm điều kiện (cấp, vật phẩm, giới tính, thân thiết, chỉ số) | `js/data/evolutions.js` |
 | 50 sprite nhân vật + NPC đi trên bản đồ | `assets/ow/` |
 | 50 ảnh 2D nhân vật + NPC cho trận đấu và hội thoại | `assets/trainers/` |
-| 67 NPC đứng trên bản đồ (vị trí + hướng lấy từ sự kiện của bản đồ gốc) | `js/data/maps.js` |
+| 94 NPC đứng trên bản đồ (vị trí + hướng lấy từ sự kiện của bản đồ gốc) | `js/data/maps.js` |
 | Icon vật phẩm | `assets/items/` |
 | 40 nền trận đấu theo môi trường, có cả cảnh đêm (ghép lại cho màn dọc) | `assets/arena/`, `js/data/arenas.js` |
 | 12 bong bóng cảm xúc trên đầu NPC | `assets/ui/bubble/` |
@@ -29,7 +29,7 @@ Cụ thể đã lấy:
 | 25 loại Tuxeball + hệ số bắt của từng loại | `js/data/capdev.js` |
 | 91 vật phẩm kèm hiệu ứng và điều kiện dùng | `js/data/items.js` |
 | 15 hiệu ứng chiêu thức | `assets/vfx/`, `js/data/vfx.js` |
-| 20 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
+| 40 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
 | Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |
 | Icon giao diện: ba lô, nhật ký, đội hình, cài đặt, nhân vật, thoát, lưu | `assets/ui/` |
 | Icon tầm đánh của chiêu (melee/touch/ranged/reach/reliable) | `assets/ui/range/` |
