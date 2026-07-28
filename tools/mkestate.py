@@ -234,10 +234,12 @@ TEN_DO2 = [
 ]
 
 # Ten nhom hien tren tab cua hang
+# Ten nhom phai NGAN de nam gon mot hang nam cot bang nhau tren dien thoai.
+# De "Giuong & ghe" thi hang tab vo ba tren hai duoi, nhin lech het ca.
 NHOM = [
-    ('nghi', 'Giường & ghế'),
-    ('ban_tu', 'Bàn & tủ'),
-    ('bep_tam', 'Bếp & tắm'),
+    ('nghi', 'Nghỉ'),
+    ('ban_tu', 'Bàn tủ'),
+    ('bep_tam', 'Bếp tắm'),
     ('trang_tri', 'Trang trí'),
     ('kho', 'Lặt vặt'),
 ]

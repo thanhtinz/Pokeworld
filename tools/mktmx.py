@@ -442,10 +442,63 @@ def load_tsx(path, cache):
     return info
 
 
+def objs_tu_yaml(path):
+    """Doc su kien ban do trong tep .yaml nam canh tep .tmx.
+
+    Ban Tuxemon moi chuyen su kien ban do tu trong TMX ra mot tep YAML cung
+    ten. Chi doc TMX thi 20 ban do trong nha (Vo Duong Da, Trung Tam Hoi Suc
+    Hoa, Nha Tre Giay, phong ngu nha minh...) mat sach cong ra — vao la ket
+    trong do khong bao gio ra duoc.
+
+    Dung lai thanh <object> gia de dung chung duong parse voi TMX.
+    """
+    if not os.path.exists(path):
+        return []
+    d = doc_yaml(path) or {}
+    # Su kien khong ghi toa do thi chi de chay lenh chung (tao NPC, bat nhac).
+    # Bo nhung lenh AN THEO O dung tren no, khong thi cong va do roi deu bi
+    # dinh het ve goc (0,0).
+    THEO_O = ('transition_teleport', 'add_item')
+    ra = []
+    for ten, ev in (d.get('events') or {}).items():
+        if not isinstance(ev, dict):
+            continue
+        co_o = ev.get('x') is not None and ev.get('y') is not None
+        acts = [str(a) for a in (ev.get('actions') or [])]
+        if not co_o:
+            acts = [a for a in acts if not a.split(' ')[0] in THEO_O]
+        o = ET.Element('object', {
+            'name': str(ten),
+            'x': str(int(ev.get('x') or 0) * TILE),
+            'y': str(int(ev.get('y') or 0) * TILE),
+            'width': str(int(ev.get('width') or 1) * TILE),
+            'height': str(int(ev.get('height') or 1) * TILE),
+        })
+        pr = ET.SubElement(o, 'properties')
+        for i, a in enumerate(acts, 1):
+            ET.SubElement(pr, 'property', {'name': 'act%d' % i, 'value': a})
+        for i, c in enumerate(ev.get('conditions') or [], 1):
+            ET.SubElement(pr, 'property', {'name': 'cond%d' % i, 'value': str(c)})
+        for i, b in enumerate(ev.get('behav') or [], 1):
+            ET.SubElement(pr, 'property', {'name': 'behav%d' % i, 'value': str(b)})
+        ra.append(o)
+    return ra
+
+
 def parse_map(path, tsx_cache):
     root = ET.parse(path).getroot()
     w = int(root.get('width'))
     h = int(root.get('height'))
+
+    # TRONG NHA hay ngoai troi: ban goc ghi bang thuoc tinh <property
+    # name="inside"> ngay o goc tep. KHONG dung duoc map_type/env cho viec nay
+    # — ca chuc can nha deu de map_type="notype" nen quy ve 'grass', nhin vao
+    # tuong nhu dang dung giua bai co.
+    trong = False
+    for props in root.findall('properties'):
+        for p in props.findall('property'):
+            if (p.get('name') or '') == 'inside':
+                trong = (p.get('value') or '').strip().lower() == 'true'
 
     # tileset: firstgid -> thong tin.
     # Tiled cho phep hai kieu: tro toi tep .tsx rieng, HOAC khai bao thang trong
@@ -516,9 +569,14 @@ def parse_map(path, tsx_cache):
     # co mot canh ban ngay va mot canh ban dem.
     moi_truong = [None, None]
     npcs = {}
-    for og in root.findall('objectgroup'):
-        gname = (og.get('name') or '').lower()
-        for obj in og.findall('object'):
+    nhom = [((og.get('name') or '').lower(), list(og.findall('object')))
+            for og in root.findall('objectgroup')]
+    # Su kien nam trong tep .yaml ben canh (ban Tuxemon moi) — xem objs_tu_yaml
+    them = objs_tu_yaml(os.path.splitext(path)[0] + '.yaml')
+    if them:
+        nhom.append(('events', them))
+    for gname, objs in nhom:
+        for obj in objs:
             ox = int(float(obj.get('x') or 0)) // TILE
             oy = int(float(obj.get('y') or 0)) // TILE
             ow = max(1, int(float(obj.get('width') or TILE)) // TILE)
@@ -564,7 +622,11 @@ def parse_map(path, tsx_cache):
             for a in acts:
                 m = re.match(r'set_economy\s+([a-z0-9_]+)\s*,\s*([a-z0-9_]+)', a)
                 if m and m.group(1) in npcs:
-                    npcs[m.group(1)]['shop'] = m.group(2)
+                    ma = re.sub(r'^spyder_', '', m.group(2))
+                    for thu in (m.group(2), ma):
+                        if not TIEM_CO_THAT or thu in TIEM_CO_THAT:
+                            npcs[m.group(1)]['shop'] = thu
+                            break
 
             # Doi Tuxemon voi NPC: ban goc ghi "trading <dua>,<nhan>" kem
             # behav "talk <npc>". Doi mot lan la xong (co bien hastraded).
@@ -646,7 +708,7 @@ def parse_map(path, tsx_cache):
             'items': [d for d in gop_do(do_roi)
                       if 0 <= d['x'] < w and 0 <= d['y'] < h and not solid[d['y'] * w + d['x']]],
             'music': nhac[0],          # None = ban do khong tu goi nhac
-            'env': moi_truong[0], 'envNight': moi_truong[1],
+            'env': moi_truong[0], 'envNight': moi_truong[1], 'trong': trong,
             'npcs': xep_cho(ds, solid, warps, w, h)}
 
 
@@ -668,6 +730,7 @@ def gop_do(ds):
 
 # Ma vat pham game dang co — nap tu js/data/items.js (mkitems.py chay truoc)
 MON_CO_THAT = set()
+TIEM_CO_THAT = set()
 
 
 def nap_mon():
@@ -675,6 +738,19 @@ def nap_mon():
     if not os.path.exists(p):
         return set()
     return set(re.findall(r'^  ([a-z_0-9]+): \{', open(p, encoding='utf-8').read(), re.M))
+
+
+def nap_tiem():
+    """Ma gian hang da sinh duoc, doc tu js/data/shops.js.
+
+    Vai gian hang ben goc chi ban TUXEMON (tiem thu cung Hoa) — game nay khong
+    ban sinh vat nen mkitems.py bo han, con NPC thi van tro toi. Khong loc thi
+    bam vao chu tiem la mo ra man cua hang trong tron.
+    """
+    p = 'js/data/shops.js'
+    if not os.path.exists(p):
+        return set()
+    return set(re.findall(r'^  "([a-z_0-9]+)":', open(p, encoding='utf-8').read(), re.M))
 
 
 def chon_tep(mdir, slug):
@@ -848,8 +924,9 @@ def main():
         raise SystemExit('Khong thay %s' % mdir)
 
     load_npc_db(root)
-    global MON_CO_THAT
+    global MON_CO_THAT, TIEM_CO_THAT
     MON_CO_THAT = nap_mon()
+    TIEM_CO_THAT = nap_tiem()
     tsx_cache = {}
     want = pick_maps(mdir)
     names = {s: vi_name(s) for s in want}
@@ -879,6 +956,7 @@ def main():
             'encs': m['encs'],
             'music': m['music'],
             'env': m.get('env'), 'envNight': m.get('envNight'),
+            'trong': m.get('trong'),
         }
 
     # Ban do nao khong tu goi play_music thi lay nhac cua ban do dan vao no —
@@ -1129,6 +1207,8 @@ def write_js(maps, want):
         out.append('    env: %s, envNight: %s,'
                    % (js(m.get('env') or 'grass'),
                       js(m.get('envNight') or 'night_' + (m.get('env') or 'grass'))))
+        if m.get('trong'):
+            out.append('    trong: true,')
         out.append('    atlas: %s,' % js('assets/maps/%s.png' % slug))
         out.append('    spawn: { x: %d, y: %d },' % spawn)
         out.append('    layers: [')

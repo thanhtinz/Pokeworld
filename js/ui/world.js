@@ -204,6 +204,94 @@ export function render(el) {
 
   // ==== Vẽ ====
 
+  // Trong nhà thì cửa ra chỉ là một ô sàn trông y hệt mấy ô bên cạnh — vào nhà
+  // ai xong đứng loay hoay không biết lối nào ra. Soi sáng mọi ô cổng của bản
+  // đồ trong nhà: quầng sáng nhấp nháy + mũi tên chỉ xuống + chữ "Lối ra".
+  //
+  // Chỉ làm trong nhà. Ngoài trời cổng nhiều (mỗi cửa nhà một cái), soi hết
+  // thì cả thị trấn nhấp nháy như cây thông Nô-en.
+  function veLoiRa(map, size, camX, camY) {
+    if (!isInside()) return;
+    const ds = map.warps || [];
+    if (!ds.length) return;
+    // Nhịp thở 1,6 giây — đủ chậm để không chói mắt
+    const nhip = 0.5 + 0.5 * Math.sin(Date.now() / 1600 * Math.PI * 2);
+    for (const w of ds) {
+      const px = w.x * size - camX, py = w.y * size - camY;
+      if (px < -size || py < -size || px > canvas.clientWidth || py > canvas.clientHeight) continue;
+      ctx.save();
+      ctx.fillStyle = `rgba(240,180,41,${0.16 + 0.2 * nhip})`;
+      ctx.fillRect(Math.round(px), Math.round(py), Math.round(size), Math.round(size));
+      ctx.strokeStyle = `rgba(255,224,130,${0.55 + 0.35 * nhip})`;
+      ctx.lineWidth = Math.max(1, size * 0.09);
+      ctx.strokeRect(Math.round(px) + 1, Math.round(py) + 1,
+        Math.round(size) - 2, Math.round(size) - 2);
+      // Mũi tên chỉ vào ô cửa, nhún lên xuống theo nhịp
+      const mx = px + size / 2, my = py - size * (0.22 + 0.16 * nhip);
+      ctx.fillStyle = `rgba(255,224,130,${0.7 + 0.3 * nhip})`;
+      ctx.beginPath();
+      ctx.moveTo(mx, my + size * 0.3);
+      ctx.lineTo(mx - size * 0.24, my - size * 0.05);
+      ctx.lineTo(mx + size * 0.24, my - size * 0.05);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    // Chữ chỉ ghi cho cái cổng GẦN NHẤT, không thì phòng nhiều cửa chữ chồng chữ
+    let gan = null, xa = Infinity;
+    for (const w of ds) {
+      const d = (w.x - player.x) ** 2 + (w.y - player.y) ** 2;
+      if (d < xa) { xa = d; gan = w; }
+    }
+    if (!gan) return;
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    const cx = gan.x * size - camX + size / 2;
+    const cy = gan.y * size - camY + size / 2;
+    const trongKhung = cx > 0 && cx < W && cy > 0 && cy < H;
+    ctx.save();
+    ctx.font = `${Math.round(size * 0.3)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (trongKhung) {
+      ctx.lineWidth = Math.max(2, size * 0.1);
+      ctx.strokeStyle = 'rgba(10,6,22,.85)';
+      ctx.fillStyle = '#ffe082';
+      const tx = Math.max(size * 1.1, Math.min(W - size * 1.1, cx));
+      const ty = Math.max(size * 0.5, cy - size * 1.1);
+      ctx.strokeText('Lối ra', tx, ty);
+      ctx.fillText('Lối ra', tx, ty);
+    } else {
+      // Cửa nằm ngoài khung nhìn (phòng rộng): dán một cái biển ở mép màn hình
+      // theo đúng hướng của nó. Kẹp trong vùng an toàn để không đè lên cần
+      // điều khiển với nút A ở hai góc dưới.
+      const bx = Math.max(W * 0.16, Math.min(W * 0.84, cx));
+      const by = Math.max(H * 0.14, Math.min(H * 0.62, cy));
+      const chu = 'Lối ra';
+      const rong = ctx.measureText(chu).width + size * 1.15;
+      const cao = size * 0.62;
+      ctx.fillStyle = 'rgba(10,6,22,.82)';
+      ctx.strokeStyle = 'rgba(255,224,130,.75)';
+      ctx.lineWidth = Math.max(1, size * 0.05);
+      ctx.beginPath();
+      ctx.roundRect(bx - rong / 2, by - cao / 2, rong, cao, cao / 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ffe082';
+      ctx.fillText(chu, bx - size * 0.24, by);
+      // Mũi tên nhỏ chỉ về phía cửa
+      const goc = Math.atan2(cy - by, cx - bx);
+      ctx.translate(bx + rong / 2 - size * 0.34, by);
+      ctx.rotate(goc);
+      ctx.beginPath();
+      ctx.moveTo(size * 0.24, 0);
+      ctx.lineTo(-size * 0.12, -size * 0.17);
+      ctx.lineTo(-size * 0.12, size * 0.17);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   // Vẽ NPC + người chơi (cả ngoài trời lẫn trong nhà)
   function drawActors(map, size, camX, camY) {
     // Nhân vật cao gấp đôi ô: rộng bằng 1 ô, cao 2 ô, chân đặt đúng ô đang đứng
@@ -661,6 +749,7 @@ export function render(el) {
       }
     }
 
+    veLoiRa(map, size, camX, camY);
     drawActors(map, size, camX, camY);
 
     // Lớp "Above Player": mái nhà, tán cây — vẽ ĐÈ lên nhân vật

@@ -53,11 +53,46 @@ export function datKhachTro(ds) {
 }
 export const khachTro = () => khach;
 
-// Cắm cổng đi ra cho phòng trọ: bước xuống mép dưới là ra thị trấn đầu game
-export function camCongNhaTro(veMap) {
+// Nhà trọ phải có CỬA THẬT trên bản đồ, không thì đi ra rồi không có đường vào
+// lại — trước đây cổng ra chỉ thả người chơi xuống chỗ xuất phát của thị trấn,
+// bấm vào cửa nào cũng ra nhà của người khác.
+//
+// Quán Rượu Hải Âu Đáng Kính (taba_house4) trong Thị Trấn Taba đóng luôn vai
+// nhà trọ chung: chưa có nhà thì cửa đó dẫn vào phòng trọ, dựng được nhà rồi
+// thì trả lại đúng quán rượu như cũ.
+const CUA = { map: 'taba_town', x: 25, y: 3, ra: { x: 25, y: 4 } };
+export const CUA_TRO = CUA;
+
+let cuaGoc = null;      // đích ban đầu của cửa quán rượu, để còn trả lại
+
+function congCuaTro() {
+  const m = MAPS[CUA.map];
+  return (m?.warps || []).find(w => w.x === CUA.x && w.y === CUA.y) || null;
+}
+
+/**
+ * Bật/tắt việc mượn cửa quán rượu làm cửa nhà trọ.
+ * @param {boolean} lamTro true = chưa có nhà, cửa dẫn vào phòng trọ
+ */
+export function dongBoCuaTro(lamTro) {
+  const w = congCuaTro();
+  if (!w) return null;
+  if (!cuaGoc) cuaGoc = { to: w.to, tx: w.tx, ty: w.ty };
+  const cho = choDay();
+  const dich = lamTro ? { to: MAP_NHA_TRO, tx: cho.x, ty: cho.y } : cuaGoc;
+  w.to = dich.to;
+  w.tx = dich.tx;
+  w.ty = dich.ty;
+  return w;
+}
+
+// Cắm cổng đi ra cho phòng trọ: bước xuống mép dưới là ra ngay trước cửa quán,
+// đúng chỗ vừa đi vào — quay đầu là thấy cửa để vào lại.
+export function camCongNhaTro() {
   const m = MAPS[MAP_NHA_TRO];
   if (!m) return null;
   m.warps = (m.warps || []).filter(w => !w.raTro);
-  m.warps.push({ x: Math.floor(m.w / 2), y: m.h - 1, raTro: true, to: veMap });
+  m.warps.push({ x: Math.floor(m.w / 2), y: m.h - 1, raTro: true,
+    to: CUA.map, tx: CUA.ra.x, ty: CUA.ra.y });
   return choDay();
 }

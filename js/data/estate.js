@@ -18,9 +18,9 @@ export const TOA_BANG = {
 
 // Nhóm đồ — dùng chia tab bên cửa hàng bác thợ mộc
 export const NHOM_DO = [
-  { id: "nghi", name: "Giường & ghế" },
-  { id: "ban_tu", name: "Bàn & tủ" },
-  { id: "bep_tam", name: "Bếp & tắm" },
+  { id: "nghi", name: "Nghỉ" },
+  { id: "ban_tu", name: "Bàn tủ" },
+  { id: "bep_tam", name: "Bếp tắm" },
   { id: "trang_tri", name: "Trang trí" },
   { id: "kho", name: "Lặt vặt" },
 ];

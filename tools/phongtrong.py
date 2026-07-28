@@ -75,6 +75,8 @@ def dung(m_goc, w, h, npcs=None, talks=None):
         'solid': solid, 'water': [0] * (w * h), 'warps': [], 'talks': talks or [],
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'interior', 'envNight': 'interior',
+        'trong': True,                # phong nay o TRONG NHA — man ban do soi
+                                      # cua ra dua vao co nay
         'npcs': npcs or [],
     }
 

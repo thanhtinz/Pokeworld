@@ -2811,6 +2811,56 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('thư mục vật phẩm không rỗng', readdirSync(new URL(thu)).length > 100);
 }
 
+// ==== Nhà trọ có cửa thật, đi ra rồi vào lại được ====
+// Lỗi cũ: cổng ra của phòng trọ chỉ thả người chơi xuống chỗ xuất phát của thị
+// trấn, không có cửa nào dẫn ngược vào — bấm cửa nào cũng lạc sang nhà người
+// khác. Nay mượn cửa Quán Rượu Hải Âu (taba_house4) làm cửa nhà trọ.
+{
+  const INN = await import('../js/engine/inn.js');
+  const cuaO = () => (MAPS[INN.CUA_TRO.map].warps || [])
+    .find(w => w.x === INN.CUA_TRO.x && w.y === INN.CUA_TRO.y);
+  ok('có sẵn một cái cửa ở chỗ định mượn', !!cuaO());
+  const dichGoc = cuaO().to;
+
+  INN.dongBoCuaTro(true);
+  INN.camCongNhaTro();
+  ok('chưa có nhà thì cửa quán dẫn vào phòng trọ', cuaO().to === INN.MAP_NHA_TRO);
+  ok('vào là đứng ngay chỗ chân giường', (() => {
+    const c = INN.choDay();
+    return cuaO().tx === c.x && cuaO().ty === c.y;
+  })());
+  const ra = (MAPS[INN.MAP_NHA_TRO].warps || []).find(w => w.raTro);
+  ok('phòng trọ có cổng ra về đúng trước cửa quán',
+    !!ra && ra.to === INN.CUA_TRO.map
+    && ra.tx === INN.CUA_TRO.ra.x && ra.ty === INN.CUA_TRO.ra.y);
+  ok('cổng ra nằm trong lòng bản đồ phòng trọ', (() => {
+    const m = MAPS[INN.MAP_NHA_TRO];
+    return ra.x >= 0 && ra.x < m.w && ra.y >= 0 && ra.y < m.h;
+  })());
+  // Gọi hai lần thì vẫn chỉ có một cổng ra, không chồng lên nhau
+  INN.camCongNhaTro();
+  ok('gọi lại không nhân đôi cổng ra',
+    (MAPS[INN.MAP_NHA_TRO].warps || []).filter(w => w.raTro).length === 1);
+
+  INN.dongBoCuaTro(false);
+  ok('dựng nhà xong thì cửa trả lại quán rượu', cuaO().to === dichGoc);
+}
+
+// ==== Bản đồ trong nhà phải có cờ `trong` để soi cửa ra ====
+{
+  const trong = Object.entries(MAPS).filter(([, m]) => m.trong);
+  ok('nhận ra được bản đồ trong nhà', trong.length > 40);
+  ok('nhà dân trong Taba là trong nhà', !!MAPS.taba_house1?.trong);
+  ok('phòng trọ là trong nhà', !!MAPS.nha_tro?.trong);
+  ok('thị trấn KHÔNG phải trong nhà', !MAPS.taba_town?.trong);
+  // Trong nhà mà không có cổng nào thì vào là kẹt luôn — trừ mấy phòng nhà
+  // riêng, cổng của chúng do engine/estate.js cắm lúc chạy.
+  const { PHONG_NHA, MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
+  const tuCam = new Set([...Object.values(PHONG_NHA), MAP_NHA_TRO]);
+  const ket = trong.filter(([id, m]) => !tuCam.has(id) && !(m.warps || []).length);
+  ok('trong nhà nào cũng có lối ra', ket.length === 0, ket.map(([id]) => id).join(', '));
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

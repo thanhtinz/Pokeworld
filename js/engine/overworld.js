@@ -6,7 +6,7 @@ import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
 import { vatTheODay, nhaXong, mapTrongNha, camCongVeNha, giuongTrongNha } from './estate.js';
-import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi } from './inn.js';
+import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi, dongBoCuaTro } from './inn.js';
 import { dangTham } from './visit.js';
 import { khoaODay, vatBangDuong } from './bangduong.js';
 import { newTuxemon, maxHp } from './monster.js';
@@ -28,7 +28,11 @@ export function currentMap() {
 
 // Dang dung trong nha? Bản gốc gọi map_inside — vài loài chỉ tiến hoá khi ở
 // trong nhà. Bản đồ nào môi trường là 'interior' thì tính là trong nhà.
-export const isInside = () => (currentMap().env || '') === 'interior';
+// Đang ở trong nhà hay ngoài trời. Cờ `trong` do tools/mktmx.py đọc thẳng
+// thuộc tính <property name="inside"> của tệp gốc — chính xác hơn hẳn `env`,
+// vì cả chục căn nhà bên gốc để map_type="notype" nên env quy về 'grass'.
+export const isInside = () =>
+  !!currentMap().trong || (currentMap().env || '') === 'interior';
 
 export const currentBake = () => bake(player.mapId in MAPS ? player.mapId : START_MAP);
 
@@ -73,7 +77,7 @@ export function nguDay() {
       return tinNguDay;
     }
   }
-  camCongNhaTro(START_MAP);
+  camCongNhaTro();
   const g2 = giuongCuaToi();
   if (g2 && enterMap(MAP_NHA_TRO, g2.x, g2.y)) {
     tinNguDay = { t: 'tro', giuong: g2 };
@@ -84,6 +88,12 @@ export function nguDay() {
 
 // Khôi phục vị trí đã lưu
 export function restorePosition() {
+  // Cửa quán rượu Taba dẫn vào phòng trọ khi chưa có nhà, trả lại quán khi đã
+  // dựng nhà xong. Kiểm mỗi lần mở màn bản đồ vì nhà có thể vừa xây xong ở màn
+  // khác — cắm cổng phòng trọ luôn cho cả hai chiều đều đi được.
+  const chuaCoNha = !nhaXong();
+  dongBoCuaTro(chuaCoNha);
+  if (chuaCoNha) camCongNhaTro();
   // Lần đầu vào bản đồ sau khi mở trang: đưa về chỗ ngủ
   if (!daNguDay && nguDay()) return;
   const pos = G.p?.pos;
