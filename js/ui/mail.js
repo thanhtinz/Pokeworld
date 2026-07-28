@@ -1,5 +1,5 @@
 // TuxeWorld H5 | ui/mail.js | Hộp thư: thư quà giftcode / admin / xếp hạng / sự kiện
-import { esc, fmt, tien } from '../util.js';
+import { esc, fmt, tien, tienChu } from '../util.js';
 import { toast, header, itemIcon } from './kit.js';
 import { ITEMS } from '../data/items.js';
 import { inbox, refreshInbox, claimOne, claimAll, markRead, canInbox } from '../net/inbox.js';
@@ -74,7 +74,7 @@ export function render(el) {
       b.disabled = true;
       const [qua, err] = await claimOne(b.dataset.id);
       if (err) { toast(err); draw(); return; }
-      toast(`Đã nhận${qua.money ? ` ${tien(qua.money)}` : ''}${
+      toast(`Đã nhận${qua.money ? ` ${tienChu(qua.money)}` : ''}${
         (qua.items || []).length ? ` và ${qua.items.length} món` : ''}!`);
       draw();
     }));

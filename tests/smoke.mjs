@@ -2306,10 +2306,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   }
 }
 
-// ==== Phương tiện + cưỡi Tuxemon ====
+// ==== Phương tiện ====
 {
   const MT = await import('../js/engine/mounts.js');
-  const { SPECIES } = await import('../js/data/species.js');
 
   ok('có nhiều mẫu xe để chọn', MT.VEHICLES.length >= 3);
   ok('xe nào cũng đủ bốn hướng',
@@ -2320,10 +2319,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('xe càng đắt càng nhanh',
     MT.VEHICLES.every((v, i) => i === 0
       || (v.price > MT.VEHICLES[i - 1].price && v.speed > MT.VEHICLES[i - 1].speed)));
-  ok('mọi dáng cưỡi được đều có thật trong bảng loài', (() => {
-    const co = new Set(Object.values(SPECIES).map(s => s.shape));
-    return [...MT.DANG_BON_CHAN, ...MT.DANG_BAY].every(d => co.has(d));
-  })());
 
   newGame('Tài Xế');
   G.p.money = 100;
@@ -2335,46 +2330,26 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('lái được chiếc mình có', MT.len({ t: 'xe', id: 'xe_den' })[0] !== null);
   ok('đang lái thì đi nhanh hơn', MT.heSoToc() > 1.2, String(MT.heSoToc()));
   ok('lái xe thì ít gặp hoang hơn', MT.heSoGapHoang() < 1);
-  ok('lái xe không phải là bay', MT.dangBay() === false);
   ok('xuống xe thì về tốc độ thường',
     MT.xuong() && MT.heSoToc() === 1 && MT.heSoGapHoang() === 1);
 
-  // Cưỡi Tuxemon: chọn ra một con bốn chân và một con biết bay có thật
-  // SPECIES lấy id làm KHOÁ chứ không có trường id bên trong
-  const timDang = (ds) => Number(Object.entries(SPECIES)
-    .find(([, s]) => ds.includes(s.shape))[0]);
-  G.p.party = [newTuxemon(timDang(MT.DANG_BON_CHAN), 20),
-               newTuxemon(timDang(MT.DANG_BAY), 20)];
-  ok('nhận ra con bốn chân', MT.kieuCuoi(G.p.party[0]) === 'yen');
-  ok('nhận ra con biết bay', MT.kieuCuoi(G.p.party[1]) === 'bay');
-  ok('chưa có đồ nghề thì chưa cưỡi được', MT.len({ t: 'thu', slot: 0 })[1] !== null);
-  ok('chưa có đồ nghề thì danh sách cưỡi được rỗng', MT.conCuoiDuoc().length === 0);
-  ok('mua được yên cương', MT.muaNghe('yen')[0] !== null);
-  ok('có yên rồi thì cưỡi được con bốn chân', MT.len({ t: 'thu', slot: 0 })[0] !== null);
-  ok('cưỡi thú thì nhanh hơn đi bộ', MT.heSoToc() > 1.2);
-  ok('con bốn chân không bay được', MT.dangBay() === false);
-  ok('có yên vẫn chưa cưỡi được con bay', MT.len({ t: 'thu', slot: 1 })[1] !== null);
-  ok('mua được dây cương bay', MT.muaNghe('bay')[0] !== null);
-  ok('có dây bay thì cưỡi được con bay', MT.len({ t: 'thu', slot: 1 })[0] !== null);
-  ok('cưỡi con bay thì bay được', MT.dangBay() === true);
-  ok('bay nhanh hơn cưỡi bộ', MT.heSoToc() > 1.6);
-  // Con gục thì phải tự xuống, không thì cưỡi cả xác mà chạy
-  G.p.party[1].hpCur = 0;
-  ok('con đang cưỡi mà gục thì tự xuống',
-    MT.kiemTraLai() && MT.dangCuoi() === null && MT.dangBay() === false);
-  G.p.party[1].hpCur = 1;
-  ok('con gục thì không trèo lên được',
-    (G.p.party[0].hpCur = 0, MT.len({ t: 'thu', slot: 0 })[1] !== null));
+  // Bản lưu đời trước còn ghi đang cưỡi Tuxemon — phải tự dọn, không thì mở
+  // game lên là ngồi trên lưng một con vô hình
+  G.p.xe = { co: { xe_den: true }, nghe: { yen: true }, dang: { t: 'thu', slot: 0 } };
+  ok('bản lưu cũ còn cưỡi thú thì dọn sạch',
+    MT.dangCuoi() === null && G.p.xe.nghe === undefined);
+  // Xe bị gỡ khỏi bảng thì cũng tự xuống
+  G.p.xe = { co: {}, dang: { t: 'xe', id: 'xe_khong_co_that' } };
+  ok('xe không còn trong bảng thì tự xuống',
+    MT.kiemTraLai() && MT.dangCuoi() === null);
 
-  // Bay thì qua được mặt nước, đi bộ thì không
+  // Nước vẫn là tường với mọi người — không còn kiểu bay qua nữa
   {
     const { bake, isSolidAt } = await import('../js/engine/mapbake.js');
-    const cong = Object.entries(MAPS).find(([, m]) => (m.water || []).some(v => v));
-    const [mid, m] = cong;
+    const [mid, m] = Object.entries(MAPS).find(([, x]) => (x.water || []).some(v => v));
     const i = m.water.findIndex(v => v);
-    const wx = i % m.w, wy = Math.floor(i / m.w);
-    ok('ô nước vẫn là ô chặn đường khi đi bộ', isSolidAt(bake(mid), wx, wy));
-    ok('bản đồ có nước đánh dấu rõ ràng', m.water[wy * m.w + wx] === 1);
+    ok('ô nước luôn là ô chặn đường',
+      isSolidAt(bake(mid), i % m.w, Math.floor(i / m.w)));
   }
 }
 
@@ -2590,4 +2565,126 @@ process.exit(fails === 0 ? 0 : 1);
     ok('boss thường không có mốc cấp bang',
       BOSSES.filter(b => b.kind !== 'bang').every(b => !b.capBang));
   }
+}
+
+// ==== Tiền: số trước, ảnh đồng tiền sau ====
+{
+  const { tien, tienChu, COIN_IMG } = await import('../js/util.js');
+  const { existsSync } = await import('node:fs');
+  const h = tien(4500);
+  ok('tiền dùng ẢNH đồng tiền, không dùng ký hiệu chữ',
+    h.includes(COIN_IMG) && !h.includes('$') && !h.includes('₽'), h);
+  ok('ảnh đồng tiền nằm SAU con số',
+    h.indexOf('4.500') < h.indexOf('<img'), h);
+  ok('có ảnh đồng tiền trên đĩa', existsSync(new URL('../' + COIN_IMG, import.meta.url)));
+  ok('bản chữ trần không có thẻ HTML nào',
+    !/[<>]/.test(tienChu(4500)) && tienChu(4500).includes('4.500'), tienChu(4500));
+}
+
+// ==== Phòng trong nhà phải TRỐNG, không đè lên đồ vẽ sẵn ====
+{
+  const { PHONG_NHA, MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
+  const { HOUSE_BASES } = await import('../js/data/estate.js');
+
+  ok('mẫu nhà nào cũng có phòng riêng',
+    HOUSE_BASES.every(b => !!PHONG_NHA[b.id]),
+    HOUSE_BASES.filter(b => !PHONG_NHA[b.id]).map(b => b.id).join(', '));
+  ok('mỗi mẫu nhà một phòng khác nhau',
+    new Set(Object.values(PHONG_NHA)).size === Object.keys(PHONG_NHA).length);
+  ok('nhà càng đắt phòng càng rộng', (() => {
+    const o = HOUSE_BASES.map(b => MAPS[PHONG_NHA[b.id]]).map(m => m.w * m.h);
+    return o.every((n, i) => i === 0 || n > o[i - 1]);
+  })());
+
+  for (const [base, mid] of Object.entries(PHONG_NHA)) {
+    const m = MAPS[mid];
+    // Phòng phải trống: chỉ có hai hàng tường trên cùng là chặn, còn lại đi được
+    const chan = m.solid.reduce((a, v) => a + v, 0);
+    ok(`phòng ${base} trống, chỉ có tường trên cùng`, chan === m.w * 2,
+      `${chan} ô chặn / ${m.w * 2} mong đợi`);
+    ok(`phòng ${base} không có NPC hay đồ vẽ sẵn`,
+      (m.npcs || []).length === 0 && (m.items || []).length === 0);
+    // Chỉ một lớp ô: không có lớp đồ đạc phủ lên nền
+    ok(`phòng ${base} chỉ một lớp nền`, m.layers.length === 1 && !m.above);
+  }
+
+  // Nhà trọ chung
+  const tro = MAPS[MAP_NHA_TRO];
+  ok('có bản đồ nhà trọ chung', !!tro);
+  const INN = await import('../js/engine/inn.js');
+  const giuong = INN.cacGiuong();
+  ok('nhà trọ có nhiều giường', giuong.length >= 8, `${giuong.length} giường`);
+  ok('giường nào cũng nằm gọn trong phòng',
+    giuong.every(g => g.x >= 0 && g.y >= 0 && g.x + 1 < tro.w && g.y + 2 < tro.h));
+  ok('giường không đè lên nhau', (() => {
+    const o = new Set();
+    for (const g of giuong) {
+      for (let dy = 0; dy < 2; dy++) {
+        const k = `${g.x},${g.y + dy}`;
+        if (o.has(k)) return false;
+        o.add(k);
+      }
+    }
+    return true;
+  })());
+  ok('giường không nằm trong tường',
+    giuong.every(g => !tro.solid[g.y * tro.w + g.x]));
+  ok('món dùng làm giường trọ là món có thật', !!FURN_BY_ID[INN.ID_GIUONG]);
+  ok('nhận ra bản đồ nhà trọ', INN.laNhaTro(MAP_NHA_TRO) && !INN.laNhaTro('taba_town'));
+  INN.datKhachTro(Array.from({ length: 99 }, (_, i) => ({ username: 'x' + i })));
+  ok('số khách trọ không vượt quá số giường còn lại',
+    INN.khachTro().length === giuong.length - 1);
+  INN.datKhachTro([]);
+}
+
+// ==== Mở game lên thì tỉnh dậy ở giường ====
+{
+  const OW = await import('../js/engine/overworld.js');
+  const { MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
+  const INN = await import('../js/engine/inn.js');
+
+  // nguDay() chỉ chạy một lần cho mỗi lần mở trang, nên test theo đúng thứ tự đó
+  newGame('Người Ngủ');
+  const r = OW.nguDay();
+  ok('chưa có nhà thì tỉnh dậy ở nhà trọ',
+    r?.t === 'tro' && OW.player.mapId === MAP_NHA_TRO, JSON.stringify(r));
+  ok('dậy đúng trên giường của mình', (() => {
+    const g = INN.giuongCuaToi();
+    return Math.floor(OW.player.x) === g.x && Math.floor(OW.player.y) === g.y;
+  })());
+  ok('nhà trọ có cổng đi ra',
+    (MAPS[MAP_NHA_TRO].warps || []).some(w => w.raTro));
+  ok('gọi lần hai thì không kéo về nữa', OW.nguDay() === null);
+}
+
+// ==== Thăm nhà là VÀO HẲN bản đồ nhà người ta ====
+{
+  const VS = await import('../js/engine/visit.js');
+  const { PHONG_NHA } = await import('../js/data/phongtrong.js');
+
+  ok('chưa thăm ai thì không có gì', !VS.dangTham() && VS.doCuaChu().length === 0);
+  const chu = { username: 'HangXom', base: 'nha_ngoi',
+    dat: [{ id: 'giuong_do_doi', x: 3, y: 4 }, { id: 'ban_tron', x: 7, y: 6 }] };
+  const [cho, err] = VS.vaoNhaNguoiKhac(chu, { map: 'taba_town', x: 10, y: 12 });
+  ok('vào được nhà người khác', !err && cho?.map === PHONG_NHA.nha_ngoi, err || '');
+  ok('đang thăm thì biết chủ nhà là ai',
+    VS.dangTham() && VS.chuNha() === 'HangXom' && VS.doCuaChu().length === 2);
+  ok('nhà đang thăm có cổng đi ra về đúng chỗ cũ', (() => {
+    const w = (MAPS[cho.map].warps || []).find(x => x.raTham);
+    return w && w.to === 'taba_town' && w.tx === 10 && w.ty === 12;
+  })());
+  // Là khách thì không đụng được vào đồ của chủ nhà
+  G.p.estate = { lot: ES.LOTS[0].id, base: 'nha_ngoi', xongLuc: 1, kho: {},
+    dat: [{ id: 'giuong_do_doi', x: 3, y: 4 }] };
+  ok('khách không bấm được vào đồ trong nhà người ta',
+    ES.vatTheODay(PHONG_NHA.nha_ngoi, 3, 4) === null);
+  ok('rời nhà thì gỡ sạch cổng tạm', (() => {
+    const okRoi = VS.roiNhaNguoiKhac();
+    return okRoi && !VS.dangTham()
+      && !(MAPS[cho.map].warps || []).some(x => x.raTham);
+  })());
+  ok('về nhà mình thì lại bấm được đồ',
+    ES.vatTheODay(PHONG_NHA.nha_ngoi, 3, 4)?.kind === 'do-noi-that');
+  ok('nhà chưa dựng thì không thăm được',
+    VS.vaoNhaNguoiKhac({ username: 'A', base: null, dat: [] }, null)[1] !== null);
 }

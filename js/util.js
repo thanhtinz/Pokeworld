@@ -54,14 +54,17 @@ export const animSpriteUrl = (dexId, back = false) => monPath(dexId, back);
 
 export const fmt = (n) => Number(n || 0).toLocaleString('vi-VN');
 
-// Đơn vị tiền của Tuxemon là ĐÔ LA, ký hiệu đứng TRƯỚC số:
-//   tuxemon/ui/text_formatter.py -> "${{currency}}": lambda: "$"
-// (Bản này trước đây dùng ₽ đặt sau số — đó là kiểu của Pokemon.)
+// ===== Tiền =====
+// Đã có ảnh đồng tiền riêng (assets/ui/icon/coin.png) thì dùng ảnh, không dùng
+// ký hiệu chữ nữa. Và ảnh đứng SAU số: "4.500 <đồng>", không phải "$4.500".
 //
-// tien()  dùng cho chữ trần: toast, mô tả, thư... — có ký hiệu để biết là tiền.
-// Chỗ nào ĐÃ CÓ icon đồng tiền đứng cạnh thì dùng thẳng fmt(), khỏi lặp lại.
-export const TIEN = '$';
-export const tien = (n) => `${TIEN}${fmt(n)}`;
+//   tien()    -> HTML, dùng ở chỗ chèn bằng innerHTML (nút, thẻ, bảng)
+//   tienChu() -> chữ trần, dùng ở toast / hộp thoại / thư (những chỗ chỉ nhận
+//                text, đổ HTML vào là hiện ra nguyên thẻ <img>)
+export const COIN_IMG = 'assets/ui/icon/coin.png';
+export const tien = (n) =>
+  `<span class="tien">${fmt(n)}<img class="tien-ico" src="${COIN_IMG}" alt="" aria-hidden="true"></span>`;
+export const tienChu = (n) => `${fmt(n)} vàng`;
 
 // Ngày dạng số yyyymmdd (cho daily)
 export const todayNum = () => {

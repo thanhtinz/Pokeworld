@@ -5,12 +5,14 @@ import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
-import { vatTheODay } from './estate.js';
+import { vatTheODay, nhaXong, mapTrongNha, camCongVeNha, giuongTrongNha } from './estate.js';
+import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi } from './inn.js';
+import { dangTham } from './visit.js';
 import { khoaODay, vatBangDuong } from './bangduong.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
-import { heSoToc, dangBay, heSoGapHoang } from './mounts.js';
+import { heSoToc, heSoGapHoang } from './mounts.js';
 
 const SPEED = 3.6;              // ô mỗi giây
 const ENC_STEP_MIN = 8;         // đi ít nhất ngần này ô cỏ mới có thể gặp
@@ -47,8 +49,33 @@ export function enterMap(mapId, tx, ty) {
   return true;
 }
 
+// Mở game lên thì nhân vật đang NGỦ DẬY chứ không đứng nguyên giữa đường như
+// lúc tắt: có nhà thì dậy trong nhà mình, chưa có nhà thì dậy ở nhà trọ chung.
+// Chỉ chạy MỘT LẦN cho mỗi lần mở trang — đi lại trong game không bị kéo về.
+let daNguDay = false;
+export function nguDay() {
+  // Đang sang thăm nhà người khác thì đừng lôi về giường — người chơi vừa bấm
+  // "vào nhà" xong, kéo về nhà trọ là hỏng cả việc
+  if (dangTham()) { daNguDay = true; return null; }
+  if (daNguDay || !G.p) return null;
+  daNguDay = true;
+  if (nhaXong()) {
+    const cua = camCongVeNha();
+    // Có giường thì tỉnh dậy NGAY TRÊN GIƯỜNG, không thì đứng ở cửa
+    const g = giuongTrongNha();
+    const cho = g || cua;
+    if (cho && enterMap(mapTrongNha(), cho.x, cho.y)) return { t: 'nha', giuong: g };
+  }
+  camCongNhaTro(START_MAP);
+  const g2 = giuongCuaToi();
+  if (g2 && enterMap(MAP_NHA_TRO, g2.x, g2.y)) return { t: 'tro', giuong: g2 };
+  return null;
+}
+
 // Khôi phục vị trí đã lưu
 export function restorePosition() {
+  // Lần đầu vào bản đồ sau khi mở trang: đưa về chỗ ngủ
+  if (!daNguDay && nguDay()) return;
   const pos = G.p?.pos;
   // Bản đồ có thể đã đổi từ bản cũ — vị trí lưu cũ có thể rơi vào tường/nhà
   const stuck = (id, x, y) => {
@@ -304,16 +331,10 @@ function npcAt(map, x, y) {
 // bước nhỏ trong khung hình đều bị từ chối -> đứng chôn chân, không đi đâu được.
 function canWalk(baked, map, x, y, cur) {
   const pad = 0.3;
-  const bay = dangBay();
   const pts = [[x - pad, y - pad], [x + pad, y - pad], [x - pad, y + pad], [x + pad, y + pad]];
   for (const [px, py] of pts) {
     if (px < 0 || py < 0 || px >= map.w || py >= map.h) return false;
-    const tx2 = Math.floor(px), ty2 = Math.floor(py);
-    if (!isSolidAt(baked, tx2, ty2)) continue;
-    // Đang cưỡi con biết bay thì mặt nước không còn là tường. Vách đá, nhà cửa
-    // thì vẫn chặn — chỉ riêng ô nước mới bay qua được.
-    if (bay && map.water?.[ty2 * map.w + tx2]) continue;
-    return false;
+    if (isSolidAt(baked, Math.floor(px), Math.floor(py))) return false;
   }
   // Cửa hai khu trong Bang Đường: chưa đủ cấp bang thì đứng ngoài mà nhìn
   if (khoaODay(player.mapId, Math.floor(x), Math.floor(y))) return false;

@@ -2,7 +2,7 @@
 import { G, spend, addMoney, addItem, removeItem, save } from '../state.js';
 import { ITEMS } from '../data/items.js';
 import { SHOPS } from '../data/shops.js';
-import { esc, fmt, tien } from '../util.js';
+import { esc, fmt, tien, tienChu } from '../util.js';
 import { toast, choose, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 
@@ -87,7 +87,7 @@ export function render(el, { shop = null, from = 'home' } = {}) {
     if (!qtys.length) { toast('Hết hàng rồi!'); return; }
     const i = await choose(`Mua ${it.name}?`, qtys.map(n => ({
       label: `Mua ×${n}`,
-      sub: `${tien(gia(id) * n)}`,
+      sub: `${tienChu(gia(id) * n)}`,
       disabled: G.p.money < gia(id) * n,
     })));
     if (i === null) return;
@@ -114,14 +114,14 @@ export function render(el, { shop = null, from = 'home' } = {}) {
     ];
     const i = await choose(`Bán ${it.name}?`, opts.map(o => ({
       label: o.label,
-      sub: `${tien(giaBan(id) * o.n)}`,
+      sub: `${tienChu(giaBan(id) * o.n)}`,
       disabled: o.n <= 0 || o.n > have,
     })));
     if (i === null) return;
     const n = opts[i].n;
     if (!removeItem(id, n)) { toast('Không đủ số lượng!'); return; }
     addMoney(giaBan(id) * n);
-    toast(`Đã bán ${it.name} ×${n}, nhận ${tien(giaBan(id) * n)}!`);
+    toast(`Đã bán ${it.name} ×${n}, nhận ${tienChu(giaBan(id) * n)}!`);
     draw();
   }
 

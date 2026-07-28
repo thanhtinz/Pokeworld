@@ -2,7 +2,7 @@
 //
 // Điểm thân mật là điều kiện để cầu hôn. Tiền trừ ở máy này, còn ĐIỂM thì máy
 // chủ tự tra theo id món — client có sửa số cũng không ăn thua.
-import { esc, fmt, tien } from '../util.js';
+import { esc, fmt, tien, tienChu } from '../util.js';
 import { toast, header, choose } from './kit.js';
 import { G, addMoney } from '../state.js';
 import { isOnlineMode } from '../net/config.js';
@@ -74,7 +74,7 @@ export function render(el, { from = 'menu' } = {}) {
 
   async function moChon(username) {
     const i = await choose(`Tặng gì cho ${username}?`,
-      GIFTS.map(q => ({ label: q.name, sub: `${tien(q.price)} · +${fmt(q.diem)} thân mật` })));
+      GIFTS.map(q => ({ label: q.name, sub: `${tienChu(q.price)} · +${fmt(q.diem)} thân mật` })));
     if (i == null || i < 0) return;
     const q = GIFTS[i];
     if ((G.p.money || 0) < q.price) { toast('Không đủ tiền mua món này.'); return; }

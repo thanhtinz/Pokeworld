@@ -13,6 +13,9 @@
 //   6. Đã kết hôn thì vợ/chồng vào được nhà nhau (cần nối máy chủ).
 import { G, save, addMoney } from '../state.js';
 import { BASE_BY_ID, FURN_BY_ID, HOUSE_BASES } from '../data/estate.js';
+import { PHONG_NHA } from '../data/phongtrong.js';
+import { MAPS } from '../data/maps.js';
+import { dangTham } from './visit.js';
 
 // Các lô đất nằm trong KHU DÂN CƯ — một bản đồ riêng, đi hết ngõ phía bắc Thị
 // Trấn Taba là tới. Toạ độ lô, chỗ bác thợ mộc đứng và bản thân bản đồ đều do
@@ -21,14 +24,11 @@ import { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, CONG_RA } from '../data/khudancu.
 export { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, CONG_RA };
 export const LOT_BY_ID = Object.fromEntries(LOTS.map(l => [l.id, l]));
 
-// Bên trong nhà mượn mấy bản đồ TRỐNG HẲN của bản gốc (không NPC, không cổng).
+// Bên trong nhà là PHÒNG TRỐNG dựng riêng (tools/phongtrong.py), không mượn
+// bản đồ nội thất của bản gốc nữa: mấy bản đồ đó vẽ sẵn quầy, kệ, giường, nên
+// kê thêm đồ của mình vào là đè lên nhau, nhìn như lỗi.
 // Mẫu nhà càng đắt thì mặt bằng càng rộng — đúng nghĩa "nhà to hơn".
-export const MAP_TRONG_NHA = {
-  nha_go: 'flower_house1',      // 10x8
-  nha_khung: 'flower_petshop',  // 14x9
-  nha_ngoi: 'flower_center',    // 13x11
-  nha_da: 'candy_center',       // 20x11
-};
+export const MAP_TRONG_NHA = PHONG_NHA;
 // Mọi bản đồ có thể là nhà của người chơi — dùng để nhận ra đang ở trong nhà
 export const CAC_MAP_NHA = Object.values(MAP_TRONG_NHA);
 export const mapTrongNha = () => MAP_TRONG_NHA[nha().base] || null;
@@ -230,6 +230,8 @@ export function oCua() {
 // Trả về một "thing" giống NPC/bảng hiệu để js/engine/overworld.js dùng chung
 // một đường với mọi thứ khác.
 export function vatTheODay(mapId, x, y) {
+  // Đang là khách trong nhà người ta thì không đụng vào đồ của chủ nhà
+  if (dangTham()) return null;
   // Trong nhà mình: đứng trước món nào thì bắt được món đó, để còn nằm/ngồi/ăn
   if (dangTrongNha(mapId)) {
     const d = monTaiO(x, y);
@@ -334,6 +336,23 @@ export function catVeKho(d) {
   e.kho[d.id] = (e.kho[d.id] || 0) + 1;
   save();
   return true;
+}
+
+// Cắm cổng đi ra cho bản đồ trong nhà. Gọi trước khi đưa người chơi vào nhà —
+// dù là bước qua cửa hay là mở game lên đã nằm sẵn trong đó.
+export function camCongVeNha() {
+  const c = oCua();
+  const noi = MAPS[mapTrongNha()];
+  if (!noi || !c) return null;
+  noi.warps = (noi.warps || []).filter(w => !w.veNha);
+  noi.warps.push({ x: Math.floor(noi.w / 2), y: noi.h - 1, veNha: true,
+    to: KHU_DAT_MAP, tx: c.x, ty: c.y + 1 });
+  return { x: Math.floor(noi.w / 2), y: noi.h - 2 };
+}
+
+// Cái giường đầu tiên đã kê trong nhà — mở game lên thì nằm lên chính nó
+export function giuongTrongNha() {
+  return nha().dat.find(d => FURN_BY_ID[d.id]?.kind === 'nam') || null;
 }
 
 // Đang đứng trong chính nhà mình?

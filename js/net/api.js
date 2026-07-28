@@ -142,3 +142,6 @@ export const claimGuildQuest = (nvId) =>
 export const guildBosses = () => call('/guild/boss');
 export const hitGuildBoss = (bossId, dmg) =>
   call(`/guild/boss/${encodeURIComponent(bossId)}/danh`, { method: 'POST', body: { dmg } });
+
+// ==== Nhà trọ chung ====
+export const fetchInn = () => call('/nhatro');

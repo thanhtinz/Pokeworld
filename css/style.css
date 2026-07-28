@@ -2588,3 +2588,7 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .bs-head small { color: var(--muted); }
 .bs-top10 { display: flex; flex-direction: column; gap: 2px; }
 .bs-top10 small { color: var(--muted); font-size: .72rem; }
+
+/* Tiền: số trước, ảnh đồng tiền sau — không dùng ký hiệu chữ nữa */
+.tien { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.tien-ico { width: 1em; height: 1em; image-rendering: pixelated; flex: none; }

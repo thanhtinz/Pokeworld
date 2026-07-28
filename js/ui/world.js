@@ -14,6 +14,8 @@ import * as ES from '../engine/estate.js';
 import * as TT from '../engine/furniture.js';
 import * as MT from '../engine/mounts.js';
 import * as BD from '../engine/bangduong.js';
+import * as INN from '../engine/inn.js';
+import * as VS from '../engine/visit.js';
 import * as api from '../net/api.js';
 import { isOnlineMode, getToken } from '../net/config.js';
 
@@ -37,7 +39,7 @@ import { ITEMS } from '../data/items.js';
 import { SHOPS } from '../data/shops.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
-import { esc, tien, monPath } from '../util.js';
+import { esc, tien, tienChu } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
 import { show, drawTopBar } from '../main.js';
@@ -68,6 +70,8 @@ let raf = null;
 
 export function render(el) {
   restorePosition();
+  // Vừa mở game lên: nằm sẵn trên giường cho tới khi người chơi nhấn hướng
+  moGameNguDay();
   // Con đang cưỡi có thể đã gục hoặc bị bỏ khỏi đội từ màn khác
   MT.kiemTraLai();
   if (isInside()) MT.xuong();
@@ -76,6 +80,11 @@ export function render(el) {
   if (isOnlineMode() && getToken()) {
     api.myGuild().then(r => BD.datCapBang(r.ok ? (r.data?.guild?.level || 0) : 0))
       .catch(() => {});
+    // Ai đang online mà chưa có nhà thì cùng nằm nhà trọ — lấy danh sách để vẽ
+    if (INN.laNhaTro(player.mapId)) {
+      api.fetchInn().then(r => INN.datKhachTro(r.ok ? (r.data?.ds || []) : []))
+        .catch(() => {});
+    }
   }
 
   el.innerHTML = `
@@ -214,9 +223,10 @@ export function render(el) {
       ctx.drawImage(im, Math.round((it.x + 0.5) * size - camX - s2 / 2),
         Math.round((it.y + 0.55) * size - camY - s2 / 2), s2, s2);
     }
-    // Đồ nội thất kê trong nhà — vẽ ngay trên bản đồ, đúng ô đã đặt
-    if (ES.dangTrongNha(player.mapId)) {
-      for (const d of ES.nha().dat) {
+    // Đồ nội thất kê trong nhà — vẽ ngay trên bản đồ, đúng ô đã đặt.
+    // Đang sang thăm nhà người khác thì vẽ đồ CỦA CHỦ NHÀ.
+    if (trongNhaNao()) {
+      for (const d of doTrongNha()) {
         const f = FURN_BY_ID[d.id];
         if (!f) continue;
         const im = anhTep(f.img);
@@ -239,6 +249,37 @@ export function render(el) {
           ctx.restore();
         }
       }
+    }
+
+    // Nhà trọ chung: vẽ dãy giường, mỗi người online chưa có nhà nằm một cái
+    if (INN.laNhaTro(player.mapId)) {
+      const f = FURN_BY_ID[INN.ID_GIUONG];
+      const im = f && anhTep(f.img);
+      const ds = INN.cacGiuong();
+      const khach = INN.khachTro();
+      ds.forEach((g, i) => {
+        if (im?.complete && im.naturalWidth) {
+          ctx.drawImage(im, Math.round(g.x * size - camX), Math.round(g.y * size - camY),
+            Math.round(size * f.w), Math.round(size * f.h));
+        }
+        // Giường 0 là của mình (vẽ ở phần nhân vật), còn lại cho khách trọ
+        const k = khach[i - 1];
+        if (i === 0 || !k) return;
+        const ava = owImage(k.avatar === 'leaf' ? 'leaf' : 'red');
+        if (owReady(ava)) {
+          ctx.save();
+          ctx.translate((g.x + 0.5) * size - camX, (g.y + 0.8) * size - camY);
+          ctx.rotate(Math.PI / 2);
+          put(ava, 'down', false, 0, chH / 2 - size * 0.34);
+          ctx.restore();
+        }
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,.75)';
+        ctx.font = `${Math.round(size * 0.26)}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(k.username, (g.x + 0.5) * size - camX, (g.y - 0.15) * size - camY);
+        ctx.restore();
+      });
     }
 
     // Biển "BÁN" cắm ở từng lô đất chưa ai mua
@@ -305,30 +346,17 @@ export function render(el) {
     const px = player.x * size - camX;
     const py = (player.y + 0.5) * size - camY + bob;
     // Đang ngồi thì lún xuống một chút, đang nằm thì xoay ngang — nhìn là biết
-    // Đang lái xe / cưỡi Tuxemon thì vẽ cái đang cưỡi thay cho nhân vật
+    // Đang lái xe thì vẽ chiếc xe thay cho nhân vật
     const cuoi = MT.dangCuoi();
-    if (cuoi && !ES.dangTrongNha(player.mapId)) {
-      if (cuoi.t === 'xe') {
-        const im = anhTep(MT.VEHICLE_BY_ID[cuoi.id].img[player.dir] || '');
-        if (im?.complete && im.naturalWidth) {
-          const w2 = size * (player.dir === 'up' || player.dir === 'down' ? 1.05 : 1.55);
-          const h2 = w2 * (im.naturalHeight / im.naturalWidth);
-          ctx.drawImage(im, Math.round(px - w2 / 2), Math.round(py - h2 * 0.72),
-            Math.round(w2), Math.round(h2));
-        }
-        drawTitle(px, py - chH + size * 0.34);
-        return;
-      }
-      // Cưỡi thú: con vật ở dưới, người ngồi lên trên
-      const mon = (G.p.party || [])[cuoi.slot];
-      const im = mon && anhTep(monPath(mon.sp));
+    if (cuoi && !trongNhaNao()) {
+      const im = anhTep(MT.VEHICLE_BY_ID[cuoi.id]?.img[player.dir] || '');
       if (im?.complete && im.naturalWidth) {
-        const s2 = size * 2.1;
-        ctx.drawImage(im, Math.round(px - s2 / 2), Math.round(py + size * 0.34 - s2),
-          Math.round(s2), Math.round(s2));
+        const w2 = size * (player.dir === 'up' || player.dir === 'down' ? 1.05 : 1.55);
+        const h2 = w2 * (im.naturalHeight / im.naturalWidth);
+        ctx.drawImage(im, Math.round(px - w2 / 2), Math.round(py - h2 * 0.72),
+          Math.round(w2), Math.round(h2));
       }
-      put(avatarImg(), player.dir, player.moving, px, py - size * 0.7);
-      drawTitle(px, py - chH - size * 0.36);
+      drawTitle(px, py - chH + size * 0.34);
       return;
     }
 
@@ -343,7 +371,7 @@ export function render(el) {
       ctx.save();
       ctx.translate(mx, my - chH / 2 + size * 0.34);
       ctx.rotate(Math.PI / 2);
-      put(avatarImg(), 'down', false, 0, chH / 2);
+      put(avatarImg(), 'down', false, 0, chH / 2 - size * 0.34);
       ctx.restore();
     } else if (tt === 'ngoi') {
       put(avatarImg(), player.dir, false, mx, my);
@@ -353,7 +381,7 @@ export function render(el) {
     drawTitle(px, py - chH + size * 0.34);
 
     // Tắt đèn thì nhà tối đi, chừa một quầng sáng quanh nhân vật
-    if (ES.dangTrongNha(player.mapId) && !TT.denDangBat()) {
+    if (ES.dangTrongNha(player.mapId) && !VS.dangTham() && !TT.denDangBat()) {
       ctx.save();
       const g = ctx.createRadialGradient(px, py - size * 0.4, size * 0.4,
         px, py - size * 0.4, size * 3.2);
@@ -458,7 +486,7 @@ export function render(el) {
     if (thing.kind === 'lo-ban') {
       const l = thing.lot;
       const i = await choose(l.name, [
-        { label: `Mua ${tien(l.price)}`, sub: `Bạn đang có ${tien(G.p.money)}` },
+        { label: `Mua ${tienChu(l.price)}`, sub: `Bạn đang có ${tienChu(G.p.money)}` },
         { label: 'Thôi để sau' },
       ]);
       if (i !== 0) return;
@@ -470,7 +498,7 @@ export function render(el) {
     }
     if (thing.kind === 'lo-cua-minh') {
       const ds = ES.HOUSE_BASES.map(b => ({
-        label: `${b.name} — ${tien(b.price)}`,
+        label: `${b.name} — ${tienChu(b.price)}`,
         sub: `${ES.THOI_GIAN_XAY[b.id]} phút xây · ${b.o}×${b.o} ô kê đồ`,
         disabled: (G.p.money || 0) < b.price,
       }));
@@ -486,13 +514,13 @@ export function render(el) {
     if (thing.kind === 'dang-xay') {
       const i = await choose('Công trường', [
         { label: `Còn ${ES.conLaiChu()}`, disabled: true },
-        { label: `Giục thợ làm ngay — ${tien(Math.ceil(ES.conLaiMs() / 60000) * 500)}` },
+        { label: `Giục thợ làm ngay — ${tienChu(Math.ceil(ES.conLaiMs() / 60000) * 500)}` },
         { label: 'Để thợ làm tiếp' },
       ]);
       if (i !== 1) return;
       const [gia, err] = ES.xayNhanh();
       if (err) { toast(err); return; }
-      toast(`Đã trả thêm ${tien(gia)} — nhà xong rồi!`);
+      toast(`Đã trả thêm ${tienChu(gia)} — nhà xong rồi!`);
       drawTopBar();
       return;
     }
@@ -515,6 +543,29 @@ export function render(el) {
       }
       vaoNha();
       return;
+    }
+  }
+
+  // Đang ở trong một căn nhà nào đó (nhà mình hay nhà người ta đang thăm)
+  const trongNhaNao = () =>
+    VS.dangTham() ? player.mapId === VS.mapDangTham() : ES.dangTrongNha(player.mapId);
+  // Đồ đang bày trong căn nhà đó
+  const doTrongNha = () => (VS.dangTham() ? VS.doCuaChu() : ES.nha().dat);
+
+  // Vừa mở game lên thì nhân vật đang nằm trên giường — nhà mình hoặc nhà trọ.
+  // Nhấn hướng một cái là đứng dậy (vòng lặp dưới lo việc đó).
+  function moGameNguDay() {
+    if (INN.laNhaTro(player.mapId)) {
+      const g = INN.giuongCuaToi();
+      if (g) TT.datTuThe('nam', { id: INN.ID_GIUONG, x: g.x, y: g.y });
+      toast('Bạn tỉnh dậy ở nhà trọ. Dựng được nhà rồi thì ngủ ở nhà mình.', 3200);
+      return;
+    }
+    if (ES.dangTrongNha(player.mapId)) {
+      // Có kê giường trong nhà thì nằm lên chính cái giường đó
+      const g = ES.nha().dat.find(d => FURN_BY_ID[d.id]?.kind === 'nam');
+      if (g) TT.datTuThe('nam', g);
+      toast('Bạn tỉnh dậy trong nhà mình.', 3000);
     }
   }
 
@@ -543,13 +594,9 @@ export function render(el) {
   // Vào trong nhà: mượn bản đồ nội thất trống của bản gốc, cắm thêm một cổng
   // quay ra đúng chỗ vừa đứng.
   function vaoNha() {
-    const c = ES.oCua();
-    const noi = MAPS[ES.mapTrongNha()];
-    if (!noi || !c) { toast('Chưa vào được.'); return; }
-    noi.warps = (noi.warps || []).filter(w => !w.veNha);
-    noi.warps.push({ x: Math.floor(noi.w / 2), y: noi.h - 1, veNha: true,
-      to: ES.KHU_DAT_MAP, tx: c.x, ty: c.y + 1 });
-    enterMap(ES.mapTrongNha(), Math.floor(noi.w / 2), noi.h - 2);
+    const cho = ES.camCongVeNha();
+    if (!cho) { toast('Chưa vào được.'); return; }
+    enterMap(ES.mapTrongNha(), cho.x, cho.y);
     toast('Về tới nhà rồi. Bấm nút Trang trí để kê đồ.');
   }
 
@@ -626,6 +673,12 @@ export function render(el) {
         toast(`Đã tới ${ev.name}`);
         // Vào trong nhà thì phải xuống xe — chật thế lái vào đâu được
         if (isInside() && MT.xuong()) toast('Bạn xuống xe trước khi vào trong.');
+        // Bước ra khỏi nhà đang thăm thì trả lại mọi thứ như cũ
+        if (VS.dangTham() && player.mapId !== VS.mapDangTham()) {
+          const ten = VS.chuNha();
+          VS.roiNhaNguoiKhac();
+          toast(`Đã rời nhà ${ten}.`);
+        }
       }
       // Tin từ nhà trẻ: mỗi mốc chỉ báo một lần
       const tin = layTinNhaTre();
@@ -659,7 +712,8 @@ export function render(el) {
   const barDeco = el.querySelector('#deco-bar');
 
   function capNhatNutDeco() {
-    const trongNha = ES.dangTrongNha(player.mapId);
+    // Khách thì không được kê lại nhà người ta
+    const trongNha = ES.dangTrongNha(player.mapId) && !VS.dangTham();
     btnDeco.hidden = !trongNha || deco;
     barDeco.hidden = !deco;
     el.querySelector('#joy').hidden = deco;

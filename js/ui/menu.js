@@ -2,7 +2,7 @@
 import { G, claimDaily } from '../state.js';
 import { DAILY_REWARDS } from '../data/quests.js';
 import { ITEMS } from '../data/items.js';
-import { esc, fmt, todayNum, tien } from '../util.js';
+import { esc, fmt, todayNum, tien, tienChu } from '../util.js';
 import { toast, header } from './kit.js';
 import { uiIcon } from './icons.js';
 import { net } from '../net/session.js';
@@ -79,7 +79,7 @@ export function render(el) {
     const r = claimDaily(DAILY_REWARDS);
     if (!r.ok) { toast('Hôm nay đã điểm danh rồi, mai quay lại nhé!'); return; }
     const parts = [];
-    if (r.reward.money) parts.push(`${tien(r.reward.money)}`);
+    if (r.reward.money) parts.push(tienChu(r.reward.money));
     for (const it of r.reward.items || []) parts.push(`${ITEMS[it.id] ? ITEMS[it.id].name : it.id} ×${it.n}`);
     toast(`Ngày ${r.streak}: nhận ${parts.join(' + ') || 'quà'}!`);
     refresh();

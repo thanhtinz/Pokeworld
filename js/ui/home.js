@@ -12,7 +12,7 @@ import { playDialog } from './dialog.js';
 import { ZONES } from '../data/zones.js';
 import { enterMap } from '../engine/overworld.js';
 import { TRAINERS } from '../data/trainers.js';
-import { esc, fmt, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, tien } from '../util.js';
+import { esc, fmt, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, tien, tienChu } from '../util.js';
 import { toast, choose, hpBar, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { show, refresh } from '../main.js';
@@ -195,7 +195,7 @@ export function render(el) {
       return {
         html: `${face}${esc(t.name)}${won ? ' <span class="won-pill">ĐÃ THẮNG</span>' : ''}`,
         label: `${t.name}${won ? ' (đã thắng)' : ''}`,
-        sub: t.kind === 'gym' ? `Võ đường — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${tien(t.rewardMoney)}` : ''),
+        sub: t.kind === 'gym' ? `Võ đường — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${tienChu(t.rewardMoney)}` : ''),
         tid,
       };
     });

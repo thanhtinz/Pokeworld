@@ -790,6 +790,21 @@ try {
       JSON.stringify(som.data));
   }
 
+  // ==== Nhà trọ chung ====
+  {
+    const tro = await api('/api/nhatro', { token: tokenA });
+    ok('lấy được danh sách người ở nhà trọ', tro.status === 200 && Array.isArray(tro.data.ds));
+    ok('không tự liệt kê chính mình',
+      !(tro.data.ds || []).some(x => x.username === 'AshK'));
+    // AshK đã có nhà xây xong ở phần trên -> không được nằm nhà trọ nữa
+    const cuaB = await api('/api/nhatro', { token: tokenB });
+    ok('ai đã có nhà thì không nằm nhà trọ',
+      !(cuaB.data.ds || []).some(x => x.username === 'AshK'),
+      JSON.stringify(cuaB.data));
+    const chuaDangNhap = await api('/api/nhatro');
+    ok('chưa đăng nhập thì không xem được nhà trọ', chuaDangNhap.status === 401);
+  }
+
   // ==== Lưu xuống đĩa ====
   await api('/api/admin/flush', { method: 'POST', token: admToken });
   ok('DB ghi ra file', fs.existsSync(path.join(DATA_DIR, 'db.json')));

@@ -1,7 +1,7 @@
 // TuxeWorld H5 | ui/achievements.js | Màn Thành tựu
 //
 // Chơi offline vẫn dùng được: mọi thứ đọc từ bản lưu trên máy, không cần máy chủ.
-import { esc, fmt, tien } from '../util.js';
+import { esc, fmt, tien, tienChu } from '../util.js';
 import { toast, header, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { ITEMS } from '../data/items.js';
@@ -63,14 +63,14 @@ export function render(el) {
     el.querySelectorAll('.ach-take').forEach(b => b.addEventListener('click', () => {
       const [q, err] = nhanThuong(b.dataset.id);
       if (err) { toast(err); return; }
-      toast(`Nhận thưởng!${q.tien ? ` +${tien(q.tien)}` : ''}`);
+      toast(`Nhận thưởng!${q.tien ? ` +${tienChu(q.tien)}` : ''}`);
       refresh();
       draw();
     }));
     el.querySelector('#ach-all')?.addEventListener('click', () => {
       const [q, n] = nhanHet();
       if (!n) { toast('Chưa có thành tựu nào nhận được.'); return; }
-      toast(`Nhận ${n} thành tựu, +${tien(q.tien)}!`);
+      toast(`Nhận ${n} thành tựu, +${tienChu(q.tien)}!`);
       refresh();
       draw();
     });

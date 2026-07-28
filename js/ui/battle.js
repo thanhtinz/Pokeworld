@@ -14,7 +14,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { TRAINERS } from '../data/trainers.js';
-import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt, tien } from '../util.js';
+import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, esc, sleep, fmt, tien, tienChu } from '../util.js';
 import { textDelay, sfx, getSetting, playMusic } from '../engine/settings.js';
 import { SFX, MON_CRY } from '../data/sounds.js';
 import { fxFor } from '../data/vfx.js';
@@ -507,8 +507,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           G.p.defeatedTrainers[trainerId] = true;
           if (trainer.rewardMoney) {
             addMoney(trainer.rewardMoney);
-            floatPop(`+${tien(trainer.rewardMoney)}`, '', 40);
-            log(`Nhận ${tien(trainer.rewardMoney)} tiền thưởng!`);
+            floatPop(`+${tienChu(trainer.rewardMoney)}`, '', 40);
+            log(`Nhận ${tienChu(trainer.rewardMoney)} tiền thưởng!`);
           }
           if (trainer.rewardItem) {
             const rid = typeof trainer.rewardItem === 'string' ? trainer.rewardItem : trainer.rewardItem.id;
@@ -548,7 +548,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       const lost = Math.floor(G.p.money * 0.05);
       G.p.money -= lost;
       log('Cả đội đã gục hết...');
-      toast(`Bạn tỉnh dậy ở thị trấn. Mất ${tien(lost)} viện phí.`);
+      toast(`Bạn tỉnh dậy ở thị trấn. Mất ${tienChu(lost)} viện phí.`);
     }
 
     // Hỏi thay chiêu khi đã đủ 4 chiêu

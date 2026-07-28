@@ -6,7 +6,8 @@ import { net } from '../net/session.js';
 import * as api from '../net/api.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
 import { BASE_BY_ID, FURN_BY_ID } from '../data/estate.js';
-import { veNha } from './houseview.js';
+import { vaoNhaNguoiKhac } from '../engine/visit.js';
+import { player } from '../engine/overworld.js';
 import { show } from '../main.js';
 
 const gio = (ts) => {
@@ -105,8 +106,11 @@ async function moNha(body, username) {
       <small>${base ? esc(base.name) : 'Chưa dựng nhà'} · ${(d.dat || []).length} món
         · ${d.luotTham} lượt thăm</small>
     </div>
-    ${base ? '<div class="card hm-canvas"><canvas id="hm-nha"></canvas></div>'
-      : '<div class="card empty-note">Chủ nhà chưa dựng gì cả.</div>'}
+    ${base ? `<div class="card">
+      <p class="es-note">Vào hẳn trong nhà xem chủ nhà bày biện thế nào. Đi tới
+      mép dưới căn phòng là ra.</p>
+      <button class="btn btn-primary" id="hm-vao">Vào nhà ${esc(d.username)}</button>
+    </div>` : '<div class="card empty-note">Chủ nhà chưa dựng gì cả.</div>'}
     ${Object.keys(dem).length ? `<div class="card">
       <b>Đồ trong nhà</b>
       <div class="hm-do">${Object.entries(dem).map(([id, n]) => {
@@ -122,7 +126,17 @@ async function moNha(body, username) {
     </div>` : '<div class="card empty-note">Bạn không viết lên tường nhà này được.</div>'}
     <div id="hm-bai"></div>`;
 
-  if (base) veNha(body.querySelector('#hm-nha'), d.base, d.dat || []);
+  const nutVao = body.querySelector('#hm-vao');
+  if (nutVao) nutVao.addEventListener('click', async () => {
+    // Đi ra thì về đúng chỗ mình đang đứng trước khi sang chơi
+    const ve = { map: player.mapId, x: player.x, y: player.y };
+    const [cho, err] = vaoNhaNguoiKhac(d, ve);
+    if (err) { toast(err); return; }
+    const { enterMap } = await import('../engine/overworld.js');
+    enterMap(cho.map, cho.x, cho.y);
+    show('world');
+    toast(`Đang ở nhà ${d.username}. Đi xuống mép dưới là ra.`, 3200);
+  });
 
   let bai = d.bai || [];
   const hop = body.querySelector('#hm-bai');

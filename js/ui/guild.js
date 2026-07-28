@@ -1,6 +1,6 @@
 // TuxeWorld H5 | ui/guild.js | Trang bang hội: lập bang, xin vào, quản lý thành viên
 import { G } from '../state.js';
-import { esc, fmt, tien } from '../util.js';
+import { esc, fmt, tien, tienChu } from '../util.js';
 import { toast, choose, confirmDlg, header } from './kit.js';
 import { isOnlineMode } from '../net/config.js';
 import * as api from '../net/api.js';
@@ -134,7 +134,7 @@ export function render(el, { tab = null, from = 'menu' } = {}) {
       if (amount <= 0) { toast('Nhập số tiền hợp lệ.'); return; }
       if ((G.p.money || 0) < amount) { toast('Không đủ tiền.'); return; }
       const r = await api.donateGuild(amount);
-      toast(r.ok ? `Đã góp ${tien(amount)}!` : (r.error || 'Không góp được.'));
+      toast(r.ok ? `Đã góp ${tienChu(amount)}!` : (r.error || 'Không góp được.'));
       if (r.ok) draw();
     });
     body.querySelector('#g-leave').addEventListener('click', async () => {
@@ -230,7 +230,7 @@ export function render(el, { tab = null, from = 'menu' } = {}) {
     body.querySelectorAll('[data-nhan]').forEach(b => b.addEventListener('click', async () => {
       const r2 = await api.claimGuildQuest(b.dataset.nhan);
       if (!r2.ok) { toast(r2.error); return; }
-      toast(`Bang nhận +${fmt(r2.data.exp)} kinh nghiệm và ${tien(r2.data.quy)} quỹ.`);
+      toast(`Bang nhận +${fmt(r2.data.exp)} kinh nghiệm và ${tienChu(r2.data.quy)} quỹ.`);
       veNhiemVu(g);
     }));
   }

@@ -30,6 +30,7 @@ import xml.etree.ElementTree as ET
 
 import bangduong
 import khudancu
+import phongtrong
 
 TILE = 16
 MAX_ATLAS_COLS = 32
@@ -942,6 +943,17 @@ def main():
             bd['above'] = None
             out_maps[bangduong.SLUG] = bd
             want.append(bangduong.SLUG)
+
+    # Phong trong cho nha nguoi choi + nha tro chung
+    for slug in phongtrong.them_vao(out_maps, parse_map, chon_tep, mdir, tsx_cache):
+        pt = out_maps[slug]
+        remap3, cols3 = build_atlas(pt, 'assets/maps/%s.png' % slug)
+        conv3 = lambda lay: [remap3.get(g, -1) if g > 0 else -1 for g in lay]
+        pt['name'] = pt.pop('_ten')
+        pt['cols'] = cols3
+        pt['layers'] = [conv3(l) for l in pt['layers']]
+        pt['above'] = None
+        want.append(slug)
 
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)

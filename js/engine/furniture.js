@@ -60,6 +60,13 @@ let tuThe = '';
 let monDangDung = null;
 export const tuTheHienTai = () => tuThe;
 export const monDangNgoi = () => monDangDung;
+// Đặt tư thế từ bên ngoài — dùng cho lúc mở game lên đã nằm sẵn trên giường
+// (giường nhà trọ không nằm trong danh sách đồ đã kê nên phải truyền vào).
+export function datTuThe(kieu, mon = null) {
+  tuThe = kieu || '';
+  monDangDung = tuThe ? mon : null;
+}
+
 export function dungDay() {
   if (!tuThe) return false;
   tuThe = '';
