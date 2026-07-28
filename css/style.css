@@ -2031,7 +2031,7 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 }
 
 /* Icon lấy thẳng từ ảnh giao diện của Tuxemon (assets/ui) */
-.ui-ico.ui-art img { width: 100%; height: 100%; object-fit: contain; }
+.ui-ico.ui-art img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
 .range-ico { image-rendering: pixelated; vertical-align: middle; }
 /* Cỡ phải ghi cứng: mấy khung chứa (thẻ đội hình, khung trận) đặt img rộng
    72-96px, không chặn thì icon trạng thái bung to hết cỡ. */

@@ -414,3 +414,77 @@
 .fa-body .ring-ava { width: 92px; height: 92px; }
 .fa-body-img { width: 92px; height: 92px; }
 .fa-body-cell { width: 44px; height: 44px; }
+
+/* ==== Thẻ huấn luyện viên (ui/trainercard.js) ==== */
+.tcard {
+  position: relative;
+  border-radius: 16px;
+  padding: 12px 14px 14px;
+  margin-bottom: 12px;
+  background:
+    linear-gradient(160deg, rgba(240, 90, 54, .16), rgba(0, 0, 0, 0) 45%),
+    linear-gradient(180deg, var(--card), var(--card-2));
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .05);
+  overflow: hidden;
+}
+/* Vệt sáng chéo cho ra chất thẻ nhựa */
+.tcard::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, .05) 50%, transparent 60%);
+  pointer-events: none;
+}
+
+.tcard-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-bottom: 9px; margin-bottom: 11px;
+  border-bottom: 1px solid var(--line);
+}
+.tcard-label {
+  font-family: var(--pix2); font-size: 12px; letter-spacing: .06em;
+  color: var(--gold); text-transform: uppercase;
+}
+.tcard-stars { display: flex; gap: 3px; }
+.tcard-star { image-rendering: pixelated; filter: drop-shadow(0 0 3px rgba(240, 180, 41, .8)); }
+.tcard-star.off { filter: grayscale(1) brightness(.4); opacity: .55; }
+
+.tcard-body { display: flex; gap: 14px; align-items: flex-start; }
+.tcard-face { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: none; }
+.tcard-face .ring-ava-wrap { width: 76px; height: 76px; }
+.tcard-face .ring-ava { width: 72px; height: 72px; }
+.tcard-id {
+  font-family: var(--pix2); font-size: 11px; color: var(--muted);
+  background: rgba(0, 0, 0, .3); border: 1px solid var(--line);
+  border-radius: 6px; padding: 1px 7px;
+}
+.tcard-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.tcard-name { font-size: 1.05rem; line-height: 1.2; }
+.tcard-lv { font-family: var(--pix2); font-size: 12px; color: var(--gold); margin-top: 2px; }
+.tcard-info .char-xp { margin: 2px 0 0; }
+.tcard-xp { color: var(--muted); font-size: .72rem; }
+
+/* Bốn ô số liệu — mỗi ô nhãn nhỏ ở trên, số ở dưới, chia đều bằng grid nên
+   ô nào chữ dài cũng không đẩy lệch mấy ô còn lại. */
+.tcard-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  margin: 12px 0 11px; padding: 10px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.tcard-grid > div { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.tcard-grid small { color: var(--muted); font-size: .68rem; }
+/* So dai (99.999₽) ma de font pixel 12px la tran ra ngoai cot -> ha co xuong
+   va cam xuong dong, bon cot luon deu nhau. */
+.tcard-grid b { font-family: var(--pix2); font-size: 10.5px; color: var(--text);
+  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+.tcard-badges > small { display: block; color: var(--muted); font-size: .7rem; margin-bottom: 7px; }
+.tcard-badge-row { display: flex; gap: 8px; }
+.tcard-badge {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 1; border-radius: 10px;
+  background: rgba(0, 0, 0, .28); border: 1px solid var(--line-soft);
+}
+/* Chưa có thì để ô trống xám, thấy ngay còn thiếu mấy cái */
+.tcard-badge.off { opacity: .45; }
+.tcard-badge.off .item-ico img { filter: grayscale(1) brightness(.5); }

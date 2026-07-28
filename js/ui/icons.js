@@ -50,7 +50,9 @@ const P = {
   flag: '<path d="M6 21V4"/><path d="M6 5h12l-2.5 4L18 13H6"/>',
 };
 
-// Chỗ nào Tuxemon có sẵn ảnh thì DÙNG ẢNH GAME, không có mới vẽ SVG.
+// Chỗ nào Tuxemon có sẵn ảnh thì DÙNG ẢNH GAME, không có mới lấy ảnh pixel tự
+// vẽ (tools/mkicons.py). Icon SVG chỉ còn là lưới an toàn cho tên nào chưa có
+// ảnh — trước đây nét SVG mảnh đặt cạnh art pixel của Tuxemon nhìn lệch tông.
 // Ảnh nằm trong assets/ui, do tools/mkui.py chép sang từ gfx/ui của bản gốc.
 const ART = {
   bag: 'assets/ui/bag.png',        // ba lô
@@ -64,9 +66,15 @@ const ART = {
   save: 'assets/ui/save.png',      // lưu
 };
 
+// Icon pixel tự vẽ — tools/mkicons.py sinh ra assets/ui/icon/<tên>.png.
+// Danh sách phải khớp ICONS bên tệp đó.
+const VE = new Set(['coin', 'map', 'chat', 'gift', 'quest', 'shop', 'trophy',
+                    'guild', 'friends', 'heart', 'flag', 'server', 'heal',
+                    'battle', 'walk', 'star']);
+
 // size = px, cls thêm class ngoài
 export function uiIcon(name, size = 22, cls = '') {
-  const art = ART[name];
+  const art = ART[name] || (VE.has(name) ? `assets/ui/icon/${name}.png` : null);
   if (art) {
     return `<span class="ui-ico ui-art ${cls}" style="width:${size}px;height:${size}px"
       ><img src="${art}" width="${size}" height="${size}" alt="" aria-hidden="true"></span>`;
