@@ -2511,3 +2511,83 @@ process.exit(fails === 0 ? 0 : 1);
     ok('boss có chiêu để đánh', (mon.moves || []).length > 0);
   }
 }
+
+// ==== Bang Đường: bản đồ riêng của bang hội ====
+{
+  const BD = await import('../js/engine/bangduong.js');
+  const m = MAPS[BD.BANG_MAP];
+  ok('có bản đồ Bang Đường', !!m, BD.BANG_MAP);
+  ok('Bang Đường có cổng về khu dân cư',
+    (m.warps || []).some(w => w.to === ES.KHU_DAT_MAP));
+  ok('từ khu dân cư có cổng vào Bang Đường',
+    (MAPS[ES.KHU_DAT_MAP].warps || []).some(w => w.to === BD.BANG_MAP));
+  ok('Bang Đường có hai khu khoá theo cấp bang', BD.CUA_KHU.length === 2);
+  ok('hai khu mở ở hai mốc cấp khác nhau',
+    BD.CUA_KHU[0].cap !== BD.CUA_KHU[1].cap
+    && BD.CUA_KHU.every(c => c.cap >= 2));
+
+  // Cửa phải nằm trên ô ĐI ĐƯỢC — khoá là do cấp bang, không phải do tường
+  ok('ô cửa không phải tường',
+    BD.CUA_KHU.every(c => !m.solid[c.y * m.w + c.x]),
+    BD.CUA_KHU.filter(c => m.solid[c.y * m.w + c.x]).map(c => c.id).join(', '));
+
+  // Chưa vào bang: cửa khoá. Đủ cấp: mở.
+  BD.datCapBang(0);
+  ok('chưa có bang thì cửa khoá',
+    BD.CUA_KHU.every(c => BD.khoaODay(BD.BANG_MAP, c.x, c.y)));
+  BD.datCapBang(BD.CUA_KHU[0].cap);
+  ok('đủ cấp thì cửa tương ứng mở',
+    !BD.khoaODay(BD.BANG_MAP, BD.CUA_KHU[0].x, BD.CUA_KHU[0].y));
+  ok('cửa cấp cao hơn vẫn khoá',
+    BD.khoaODay(BD.BANG_MAP, BD.CUA_KHU[1].x, BD.CUA_KHU[1].y));
+  BD.datCapBang(99);
+  ok('cấp cao thì mở hết',
+    BD.CUA_KHU.every(c => !BD.khoaODay(BD.BANG_MAP, c.x, c.y)));
+  ok('bản đồ khác không bị khoá lây',
+    !BD.khoaODay('taba_town', BD.CUA_KHU[0].x, BD.CUA_KHU[0].y));
+
+  ok('bấm được vào bục gọi boss',
+    BD.vatBangDuong(BD.BANG_MAP, BD.BUC_BOSS.x, BD.BUC_BOSS.y)?.kind === 'buc-boss');
+  ok('bấm được vào rương thưởng',
+    BD.vatBangDuong(BD.BANG_MAP, BD.RUONG_THUONG.x, BD.RUONG_THUONG.y)?.kind === 'ruong-thuong');
+  ok('ô trống thì không bắt được gì', BD.vatBangDuong(BD.BANG_MAP, 1, 1) === null);
+
+  // Đi bộ từ cổng phải tới được cửa hai khu, bục boss và rương (khi đã mở cấp)
+  {
+    const den = new Set();
+    const bd = (sx, sy) => {
+      den.clear();
+      const q = [[sx, sy]];
+      den.add(`${sx},${sy}`);
+      while (q.length) {
+        const [x, y] = q.pop();
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) continue;
+          if (m.solid[ny * m.w + nx]) continue;
+          const k = `${nx},${ny}`;
+          if (den.has(k)) continue;
+          den.add(k); q.push([nx, ny]);
+        }
+      }
+    };
+    bd(BD.CONG_RA.x, BD.CONG_RA.y - 1);
+    ok('đi bộ từ cổng tới được cả hai cửa khu',
+      BD.CUA_KHU.every(c => den.has(`${c.x},${c.y}`)));
+    const canh = (p) => [[1, 0], [-1, 0], [0, 1], [0, -1]]
+      .some(([dx, dy]) => den.has(`${p.x + dx},${p.y + dy}`));
+    ok('đi bộ tới được bục gọi boss', canh(BD.BUC_BOSS));
+    ok('đi bộ tới được rương thưởng', canh(BD.RUONG_THUONG));
+  }
+
+  // Boss bang phải có trong bảng và không lọt vào danh sách boss công khai
+  {
+    const { BOSSES } = await import('../js/data/bosses.js');
+    const bang = BOSSES.filter(b => b.kind === 'bang');
+    ok('có boss bang hội', bang.length >= 3);
+    ok('boss bang mở dần theo cấp bang',
+      bang.every((b, i) => i === 0 || b.capBang > bang[i - 1].capBang));
+    ok('boss thường không có mốc cấp bang',
+      BOSSES.filter(b => b.kind !== 'bang').every(b => !b.capBang));
+  }
+}

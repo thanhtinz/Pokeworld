@@ -41,7 +41,7 @@ async function storyDone(ch) {
 }
 
 export function render(el, { kind = 'wild', enemy = null, trainerId = null, from = 'home',
-  arena: arenaEp = null, bossId = null, bossName = '' } = {}) {
+  arena: arenaEp = null, bossId = null, bossName = '', bangBoss = false } = {}) {
   // ==== Dựng trận ====
   let trainer = null;
   let enemySide;
@@ -468,7 +468,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     bossDaBao = true;
     const dmg = Math.max(0, bossMauDau - Math.max(0, eMon()?.hpCur ?? 0));
     if (dmg <= 0) return;
-    const r = await api.hitBoss(bossId, dmg);
+    // Boss bang hội đi đường riêng: mỗi bang một thanh máu
+    const r = bangBoss ? await api.hitGuildBoss(bossId, dmg) : await api.hitBoss(bossId, dmg);
     if (!r.ok) { toast(r.error); return; }
     const d = r.data;
     toast(d.ha

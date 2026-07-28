@@ -134,3 +134,11 @@ export const fetchBosses = () => call('/boss');
 export const fetchBoss = (bossId) => call(`/boss/${encodeURIComponent(bossId)}`);
 export const hitBoss = (bossId, dmg) =>
   call(`/boss/${encodeURIComponent(bossId)}/danh`, { method: 'POST', body: { dmg } });
+
+// ==== Nhiệm vụ bang + boss bang ====
+export const guildQuests = () => call('/guild/nhiemvu');
+export const claimGuildQuest = (nvId) =>
+  call(`/guild/nhiemvu/${encodeURIComponent(nvId)}/nhan`, { method: 'POST' });
+export const guildBosses = () => call('/guild/boss');
+export const hitGuildBoss = (bossId, dmg) =>
+  call(`/guild/boss/${encodeURIComponent(bossId)}/danh`, { method: 'POST', body: { dmg } });

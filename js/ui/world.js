@@ -13,6 +13,9 @@ import { FURN_BY_ID } from '../data/estate.js';
 import * as ES from '../engine/estate.js';
 import * as TT from '../engine/furniture.js';
 import * as MT from '../engine/mounts.js';
+import * as BD from '../engine/bangduong.js';
+import * as api from '../net/api.js';
+import { isOnlineMode, getToken } from '../net/config.js';
 
 // Ảnh nhà giữ lại sau lần tải đầu, không tạo <img> mới mỗi khung hình
 const anhTepCache = new Map();
@@ -68,6 +71,12 @@ export function render(el) {
   // Con đang cưỡi có thể đã gục hoặc bị bỏ khỏi đội từ màn khác
   MT.kiemTraLai();
   if (isInside()) MT.xuong();
+  // Cấp bang quyết định hai cửa trong Bang Đường mở hay khoá — hỏi máy chủ
+  // một lần khi vào màn bản đồ.
+  if (isOnlineMode() && getToken()) {
+    api.myGuild().then(r => BD.datCapBang(r.ok ? (r.data?.guild?.level || 0) : 0))
+      .catch(() => {});
+  }
 
   el.innerHTML = `
     <div class="world">
@@ -509,6 +518,28 @@ export function render(el) {
     }
   }
 
+  // ==== Bang Đường ====
+  async function bangDuong(thing) {
+    const BIA = { name: 'Bảng Đá' };
+    if (thing.kind === 'cua-khu') {
+      const c = thing.cua;
+      if (BD.layCapBang() >= c.cap) {
+        toast(`${c.name} đã mở — cứ đi thẳng vào.`);
+        return;
+      }
+      await playDialog([[BIA,
+        `${c.name} còn khoá. Bang phải đạt cấp ${c.cap} mới mở được cửa này.`]]);
+      return;
+    }
+    if (thing.kind === 'buc-boss') {
+      cleanup(); show('guild', { tab: 'boss', from: 'world' });
+      return;
+    }
+    if (thing.kind === 'ruong-thuong') {
+      cleanup(); show('guild', { tab: 'nhiemvu', from: 'world' });
+    }
+  }
+
   // Vào trong nhà: mượn bản đồ nội thất trống của bản gốc, cắm thêm một cổng
   // quay ra đúng chỗ vừa đứng.
   function vaoNha() {
@@ -822,6 +853,8 @@ export function render(el) {
       }
       // Nhà đất: biển bán, lô của mình, công trường, cửa nhà, bác thợ mộc
       if (thing.type === 'estate') { await nhaDat(thing); return; }
+      // Bang Đường: cửa hai khu, bục gọi boss, rương thưởng nhiệm vụ
+      if (thing.type === 'bang') { await bangDuong(thing); return; }
       // NPC bản đồ mang sẵn vài câu thoại (js/data/maps.js), NPC cũ dùng .text
       const who = { name: thing.name, img: thing.face || null,
         ow: thing.face ? null : (thing.sprite || null) };

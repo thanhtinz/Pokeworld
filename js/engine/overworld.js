@@ -6,6 +6,7 @@ import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
 import { vatTheODay } from './estate.js';
+import { khoaODay, vatBangDuong } from './bangduong.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
@@ -314,6 +315,8 @@ function canWalk(baked, map, x, y, cur) {
     if (bay && map.water?.[ty2 * map.w + tx2]) continue;
     return false;
   }
+  // Cửa hai khu trong Bang Đường: chưa đủ cấp bang thì đứng ngoài mà nhìn
+  if (khoaODay(player.mapId, Math.floor(x), Math.floor(y))) return false;
   const tx = Math.floor(x), ty = Math.floor(y);
   if (cur && tx === cur[0] && ty === cur[1]) return true;   // vẫn trong ô của mình
   return !npcAt(map, tx, ty);
@@ -453,6 +456,9 @@ export function facingThing() {
   // Biển bán đất / nhà của mình / bác thợ mộc — đi chung một đường với NPC
   const es = vatTheODay(player.mapId, x, y);
   if (es) return es;
+  // Bục gọi boss / rương thưởng / cửa khu trong Bang Đường
+  const bd = vatBangDuong(player.mapId, x, y);
+  if (bd) return bd;
   // Bảng hiệu / bảng thông báo: bản đồ Tuxemon đánh dấu bằng sự kiện thoại
   const talk = talkAt(currentBake(), x, y);
   if (talk) return { type: 'talk', ...talk };

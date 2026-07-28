@@ -16,7 +16,14 @@ import { authRequired } from './auth.js';
 import { sendMail } from './inbox.js';
 import { BOSSES, BOSS_BY_ID } from './boss.data.js';
 
+// Việc "đánh boss xong thì ghi công cho bang" thuộc về bang hội, không thuộc
+// về boss. Nhận qua hook để tệp này không phải import bang hội — nếu import
+// thì thành vòng boss -> guild -> guildquest -> boss.
+let sauKhiDanh = null;
+export const datHookDanhBoss = (fn) => { sauKhiDanh = fn; };
+
 export const bossRouter = express.Router();
+export { BOSSES, BOSS_BY_ID };
 
 export const LUOT_MOI_NGAY = 10;
 // Hạ xong bao lâu thì con mới xuất hiện lại
@@ -37,40 +44,51 @@ function phanThuong(hang) {
   return THUONG.find(t => hang <= t.den) || THUONG[THUONG.length - 1];
 }
 
+// Boss bang hội có một lượt RIÊNG cho từng bang; boss thế giới / khu vực thì
+// cả máy chủ chung một lượt (guildId = null).
+const cungLuot = (r, bossId, guildId) =>
+  r.bossId === bossId && (r.guildId || null) === (guildId || null);
+
 // Lượt đánh đang mở của một boss (chưa bị hạ)
-function luotDangMo(bossId) {
-  return find('bossRuns', r => r.bossId === bossId && !r.hetLuc);
+export function luotDangMo(bossId, guildId = null) {
+  return find('bossRuns', r => cungLuot(r, bossId, guildId) && !r.hetLuc);
 }
 
-function lanCuoiBiHa(bossId) {
-  return filter('bossRuns', r => r.bossId === bossId && r.hetLuc)
+function lanCuoiBiHa(bossId, guildId = null) {
+  return filter('bossRuns', r => cungLuot(r, bossId, guildId) && r.hetLuc)
     .reduce((m, r) => Math.max(m, r.hetLuc), 0);
 }
 
+// Máu boss bang hội tăng theo cấp bang — bang mạnh thì con thủ hộ cũng dữ hơn
+export const mauBoss = (def, capBang = 0) =>
+  (def.kind === 'bang' ? Math.round(def.hpMax * (1 + capBang * 0.15)) : def.hpMax);
+
 // Mở một lượt mới nếu boss đã hồi sinh xong
-function moLuot(def) {
-  const dang = luotDangMo(def.id);
+export function moLuot(def, guildId = null, capBang = 0) {
+  const dang = luotDangMo(def.id, guildId);
   if (dang) return dang;
   const cho = HOI_SINH[def.kind] || HOI_SINH.khu;
-  if (Date.now() - lanCuoiBiHa(def.id) < cho) return null;
+  if (Date.now() - lanCuoiBiHa(def.id, guildId) < cho) return null;
+  const hp = mauBoss(def, capBang);
   return insert('bossRuns', {
-    id: uid('bos'), bossId: def.id, hp: def.hpMax, hpMax: def.hpMax,
+    id: uid('bos'), bossId: def.id, guildId: guildId || null,
+    hp, hpMax: hp,
     batDau: Date.now(), hetLuc: 0, dmg: {}, ten: {},
   });
 }
 
-function conLaiMs(def) {
+export function conLaiMs(def, guildId = null) {
   const cho = HOI_SINH[def.kind] || HOI_SINH.khu;
-  return Math.max(0, lanCuoiBiHa(def.id) + cho - Date.now());
+  return Math.max(0, lanCuoiBiHa(def.id, guildId) + cho - Date.now());
 }
 
-function bangXepHang(run) {
+export function bangXepHang(run) {
   return Object.entries(run.dmg || {})
     .map(([id, dmg]) => ({ id, dmg, username: run.ten?.[id] || '???' }))
     .sort((a, b) => b.dmg - a.dmg);
 }
 
-function soLuotHomNay(userId, bossId) {
+export function soLuotHomNay(userId, bossId) {
   const d = getDb().bossLuot || [];
   const r = d.find(x => x.u === userId && x.b === bossId && x.n === ngay());
   return r ? r.so : 0;
@@ -88,7 +106,7 @@ function ghiLuot(userId, bossId) {
 }
 
 // Chia quà rồi đóng lượt
-function chiaQua(def, run) {
+export function chiaQua(def, run) {
   const bxh = bangXepHang(run);
   bxh.forEach((x, i) => {
     const t = phanThuong(i + 1);
@@ -107,11 +125,17 @@ function chiaQua(def, run) {
   return bxh;
 }
 
-// Trả về [kết quả, lỗi]
-export function danhBoss(user, bossId, dmgThat) {
+// Trả về [kết quả, lỗi].
+// guildId khác null = boss bang hội, thanh máu riêng của bang đó.
+export function danhBoss(user, bossId, dmgThat, { guildId = null, capBang = 0 } = {}) {
   const def = BOSS_BY_ID[bossId];
   if (!def) return [null, 'Không có con boss này.'];
-  const run = moLuot(def);
+  if ((def.kind === 'bang') !== !!guildId) {
+    return [null, def.kind === 'bang'
+      ? 'Boss này chỉ đánh trong bang hội.'
+      : 'Boss này không phải boss bang hội.'];
+  }
+  const run = moLuot(def, guildId, capBang);
   if (!run) {
     return [null, `${def.name} vừa bị hạ, còn ${Math.ceil(conLaiMs(def) / 60000)} phút nữa mới hiện lại.`];
   }
@@ -148,8 +172,10 @@ export function danhBoss(user, bossId, dmgThat) {
 }
 
 // ==== Route ====
+// Danh sách boss công khai — boss bang hội KHÔNG nằm ở đây, nó có đường riêng
+// dưới /guild/boss vì mỗi bang một thanh máu.
 bossRouter.get('/', authRequired, (req, res) => {
-  const ds = BOSSES.map(def => {
+  const ds = BOSSES.filter(b => b.kind !== 'bang').map(def => {
     // Xem danh sách cũng là lúc mở lượt mới cho con nào đã hồi sinh xong —
     // không thì boss nằm im mãi vì chưa ai đánh, mà chưa mở lượt thì nút đánh
     // cũng không hiện: hai bên khoá chết lẫn nhau.
@@ -170,7 +196,7 @@ bossRouter.get('/', authRequired, (req, res) => {
 
 bossRouter.get('/:bossId', authRequired, (req, res) => {
   const def = BOSS_BY_ID[req.params.bossId];
-  if (!def) return res.status(404).json({ error: 'Không có con boss này.' });
+  if (!def || def.kind === 'bang') return res.status(404).json({ error: 'Không có con boss này.' });
   const run = moLuot(def);
   res.json({
     id: def.id, name: def.name, sp: def.sp, lv: def.lv, kind: def.kind,
@@ -187,5 +213,6 @@ bossRouter.get('/:bossId', authRequired, (req, res) => {
 bossRouter.post('/:bossId/danh', authRequired, (req, res) => {
   const [ra, err] = danhBoss(req.user, req.params.bossId, req.body?.dmg);
   if (err) return res.status(400).json({ error: err });
+  if (sauKhiDanh) sauKhiDanh(req.user, ra);
   res.json(ra);
 });

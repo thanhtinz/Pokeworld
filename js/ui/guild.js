@@ -6,10 +6,14 @@ import { isOnlineMode } from '../net/config.js';
 import * as api from '../net/api.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
 import { show } from '../main.js';
+import { newTuxemon } from '../engine/monster.js';
+import { SPECIES } from '../data/species.js';
+import { monPath } from '../util.js';
+import * as BD from '../engine/bangduong.js';
 
-export function render(el) {
+export function render(el, { tab = null, from = 'menu' } = {}) {
   el.innerHTML = `
-    ${header('Bang hội', 'menu')}
+    ${header('Bang hội', from)}
     ${statusCardHtml()}
     <div id="guild-body"></div>`;
   netStatusCard(el);
@@ -21,8 +25,12 @@ export function render(el) {
     body.innerHTML = '<div class="card"><div class="empty-note">Đang tải...</div></div>';
     const mine = await api.myGuild();
     const g = mine.ok ? mine.data?.guild : null;
-    if (g && g.id) return drawMine(g, mine.data?.role);
-    return drawList();
+    if (!g || !g.id) return drawList();
+    BD.datCapBang(g.level || 0);
+    // Vào từ bục gọi boss / rương thưởng trong Bang Đường thì mở thẳng đúng mục
+    if (tab === 'boss') { const t = tab; tab = null; return veBossBang(g, t); }
+    if (tab === 'nhiemvu') { tab = null; return veNhiemVu(g); }
+    return drawMine(g, mine.data?.role);
   }
 
   async function drawList() {
@@ -183,6 +191,100 @@ export function render(el) {
       const r = await api.respondApplicant(g.id, b.dataset.acc || b.dataset.rej, accept);
       toast(r.ok ? (accept ? 'Đã nhận vào bang.' : 'Đã từ chối.') : (r.error || 'Không xử lý được.'));
       if (r.ok) draw();
+    }));
+  }
+
+  // ==== Nhiệm vụ bang (theo tuần) ====
+  async function veNhiemVu(g) {
+    body.innerHTML = '<div class="card"><div class="empty-note">Đang tải...</div></div>';
+    const r = await api.guildQuests();
+    if (!r.ok) { body.innerHTML = `<div class="card empty-note">${esc(r.error)}</div>`; return; }
+    const d = r.data;
+    const gio = Math.floor(d.conLai / 3600000);
+    body.innerHTML = `
+      <div class="card guild-head">
+        <b>Nhiệm vụ tuần</b>
+        <small>Còn ${gio} giờ là sang tuần mới, tiến độ đặt lại từ đầu.</small>
+        <small>Tiến độ cộng từ việc cả bang làm: góp quỹ, đánh boss, thắng PvP.</small>
+      </div>
+      ${d.ds.map(n => {
+        const pct = Math.min(100, Math.round(n.co * 100 / n.muc));
+        return `<div class="card bs-row">
+          <div class="bs-info">
+            <b>${esc(n.ten)}</b>
+            <small>${esc(n.mo)}</small>
+          </div>
+          <div class="qu-thanh"><i style="width:${pct}%"></i></div>
+          <div class="bs-duoi">
+            <small>${fmt(n.co)}/${fmt(n.muc)} · thưởng ${fmt(n.exp)} kinh nghiệm bang
+              + ${tien(n.quy)} quỹ</small>
+            ${n.daNhan ? '<span class="gr-khong">đã nhận</span>'
+              : n.xong ? `<button class="btn btn-sm btn-primary" data-nhan="${esc(n.id)}">Nhận thưởng</button>`
+              : '<span class="gr-khong">chưa xong</span>'}
+          </div>
+        </div>`;
+      }).join('')}
+      <button class="btn" id="nv-back">Về trang bang hội</button>`;
+
+    body.querySelector('#nv-back').addEventListener('click', () => draw());
+    body.querySelectorAll('[data-nhan]').forEach(b => b.addEventListener('click', async () => {
+      const r2 = await api.claimGuildQuest(b.dataset.nhan);
+      if (!r2.ok) { toast(r2.error); return; }
+      toast(`Bang nhận +${fmt(r2.data.exp)} kinh nghiệm và ${tien(r2.data.quy)} quỹ.`);
+      veNhiemVu(g);
+    }));
+  }
+
+  // ==== Boss bang hội ====
+  async function veBossBang(g) {
+    body.innerHTML = '<div class="card"><div class="empty-note">Đang tải...</div></div>';
+    const r = await api.guildBosses();
+    if (!r.ok) { body.innerHTML = `<div class="card empty-note">${esc(r.error)}</div>`; return; }
+    const ds = r.data?.ds || [];
+    body.innerHTML = `
+      <div class="card guild-head">
+        <b>Thủ Hộ của bang</b>
+        <small>Máu riêng của bang mình, càng lên cấp con thủ hộ càng dày máu.
+        Hạ được thì quỹ bang và kinh nghiệm bang đều tăng, quà gửi vào hộp thư
+        từng người theo sát thương.</small>
+      </div>
+      ${ds.map(b => {
+        const pct = Math.max(0, Math.min(100, Math.round(b.hp * 100 / b.hpMax)));
+        return `<div class="card bs-row">
+          <div class="bs-top">
+            <img class="bs-mon" src="${esc(monPath(b.sp))}" alt="">
+            <div class="bs-info">
+              <b>${esc(b.name)}</b>
+              <small>${esc(SPECIES[b.sp]?.name || '?')} · Lv.${b.lv} · mở ở bang cấp ${b.capBang}</small>
+              <small>${b.mo ? (b.song ? `${b.soNguoi} người đang đánh` : 'chưa hiện')
+                : `Bang mới cấp ${r.data.level}`}</small>
+            </div>
+          </div>
+          <div class="bs-thanh"><i style="width:${pct}%"></i>
+            <b>${fmt(b.hp)} / ${fmt(b.hpMax)}</b></div>
+          <div class="bs-duoi">
+            <small>Sát thương của bạn: <b>${fmt(b.cuaBan)}</b> · còn ${b.conLuot} lượt</small>
+            ${b.mo && b.song && b.conLuot > 0
+              ? `<button class="btn btn-sm btn-primary" data-danh="${esc(b.id)}">Khiêu chiến</button>`
+              : '<span class="gr-khong">chưa gọi được</span>'}
+          </div>
+          ${b.top?.length ? `<div class="bs-top10">${b.top.map((x, i) =>
+            `<small>${i + 1}. ${esc(x.username)} — ${fmt(x.dmg)}</small>`).join('')}</div>` : ''}
+        </div>`;
+      }).join('')}
+      <button class="btn" id="bb-back">Về trang bang hội</button>`;
+
+    body.querySelector('#bb-back').addEventListener('click', () => draw());
+    body.querySelectorAll('[data-danh]').forEach(b => b.addEventListener('click', () => {
+      const con = ds.find(x => x.id === b.dataset.danh);
+      if (!(G.p.party || []).some(m => (m.hpCur || 0) > 0)) {
+        toast('Cả đội đang gục, đi hồi sức đã.');
+        return;
+      }
+      const mon = newTuxemon(con.sp, con.lv);
+      if (!mon) { toast('Không dựng được con boss này.'); return; }
+      show('battle', { kind: 'boss', enemy: mon, bossId: con.id, bossName: con.name,
+        bangBoss: true, from: 'guild' });
     }));
   }
 

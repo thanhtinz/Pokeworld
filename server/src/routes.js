@@ -11,7 +11,8 @@ import { guildRouter, guildOf } from './guild.js';
 import { chatRouter } from './chat.js';
 import { homeRouter } from './homes.js';
 import { giftRouter } from './gifts.js';
-import { bossRouter } from './boss.js';
+import { bossRouter, datHookDanhBoss } from './boss.js';
+import { ghiCong } from './guildquest.js';
 import { publicCosmetics, cosmeticsOf } from './cosmetics.js';
 import {
   listMail, readMail, claimMail, claimAllMail, deleteReadMail,
@@ -28,7 +29,9 @@ router.use('/chat', chatRouter);
 router.use('/home', homeRouter);
 // Quà tặng + điểm thân mật
 router.use('/gift', giftRouter);
-// Boss thế giới + boss từng khu
+// Boss thế giới + boss từng khu. Đánh xong thì ghi công vào nhiệm vụ tuần của
+// bang người đánh — nối bằng hook để boss.js không phải biết tới bang hội.
+datHookDanhBoss((user, ra) => ghiCong(guildOf(user.id), user.id, 'boss', ra.sat));
 router.use('/boss', bossRouter);
 
 const byName = (name) => {

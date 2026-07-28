@@ -21,6 +21,7 @@ import re
 
 MOC_KHU = 240000          # mau boss khu vuc
 MOC_THE_GIOI = 1200000    # mau boss the gioi
+MOC_BANG = 400000         # mau boss bang hoi (con nhan them theo cap bang)
 HE_SO = 60                # 1 diem mau trong tran = ngan nay diem tren thanh chung
 # Moi lan danh chi tru duoc toi da 1/25 thanh mau -> can it nhat 25 luot danh
 PHAN_MOI_LAN = 25
@@ -113,6 +114,20 @@ def main():
             'heSo': HE_SO,
         })
 
+    # ==== Boss bang hoi ====
+    # Ba con, mo dan theo cap bang. Mau con nhan them theo cap ben may chu.
+    for i, (sid, s2) in enumerate(sorted(sp.items(), key=lambda kv: -kv[1]['tong'])[4:7]):
+        bosses.append({
+            'id': 'bang_%d' % (i + 1),
+            'kind': 'bang',
+            'zone': None,
+            'name': 'Thủ Hộ %s' % s2['name'],
+            'sp': sid, 'lv': 60 + i * 12,
+            'hpMax': MOC_BANG + i * 300000,
+            'heSo': HE_SO,
+            'capBang': 1 + i * 5,
+        })
+
     for b in bosses:
         b['capMoiLan'] = b['hpMax'] // PHAN_MOI_LAN
 
@@ -121,12 +136,14 @@ def main():
             '// hpMax = thanh máu CHUNG của cả máy chủ, không phải máu con Tuxemon.',
             '// heSo  = sát thương thật trong trận nhân lên bấy nhiêu lần.',
             '// capMoiLan = một lần đánh trừ được nhiều nhất bằng này.',
+            '// capBang = boss bang hội mở ở cấp bang này (0 = không phải boss bang).',
             'export const BOSSES = [']
     for b in bosses:
         than.append('  { id: %s, kind: %s, zone: %s, name: %s, sp: %d, lv: %d,'
-                    ' hpMax: %d, heSo: %d, capMoiLan: %d },'
+                    ' hpMax: %d, heSo: %d, capMoiLan: %d, capBang: %d },'
                     % (js(b['id']), js(b['kind']), js(b['zone']), js(b['name']),
-                       b['sp'], b['lv'], b['hpMax'], b['heSo'], b['capMoiLan']))
+                       b['sp'], b['lv'], b['hpMax'], b['heSo'], b['capMoiLan'],
+                       b.get('capBang', 0)))
     than += ['];', '',
              'export const BOSS_BY_ID = Object.fromEntries(BOSSES.map(b => [b.id, b]));',
              '']
@@ -141,9 +158,10 @@ def main():
             '// SINH TỰ ĐỘNG bởi tools/mkboss.py — KHONG SUA TAY.',
             '// Máy chủ tự tra máu và trần sát thương của từng boss, không tin số client gửi lên.',
             ''] + than))
-    print('OK: %d boss khu vực + %d boss thế giới'
+    print('OK: %d boss khu vực + %d boss thế giới + %d boss bang hội'
           % (sum(1 for b in bosses if b['kind'] == 'khu'),
-             sum(1 for b in bosses if b['kind'] == 'the_gioi')))
+             sum(1 for b in bosses if b['kind'] == 'the_gioi'),
+             sum(1 for b in bosses if b['kind'] == 'bang')))
 
 
 if __name__ == '__main__':

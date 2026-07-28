@@ -3,6 +3,9 @@ import express from 'express';
 import { getDb, find, filter, insert, remove, markDirty, uid } from './db.js';
 import { authRequired } from './auth.js';
 import { isOnline, emitToUsers } from './hub.js';
+import {
+  bangNhiemVu, nhanThuong, ghiCong, conLaiTuan, danhSachBossBang, danhBossBang,
+} from './guildquest.js';
 
 export const CREATE_COST = 10000;
 export const MAX_LEVEL = 20;
@@ -234,6 +237,26 @@ export function promoteMember(user, targetId, role) {
   return [{ role: target.role }, null];
 }
 
+// Cộng kinh nghiệm cho bang và lên cấp nếu đủ. Dùng chung cho góp quỹ, nhiệm
+// vụ tuần và boss bang — trước đây đoạn này nằm lọt trong donateGuild nên chỗ
+// khác muốn cộng exp thì phải chép lại.
+export function congExp(g, them) {
+  const n = Math.max(0, Math.floor(Number(them) || 0));
+  if (!n) return false;
+  g.exp += n;
+  let leveled = false;
+  while (g.level < MAX_LEVEL && g.exp >= expNeededFor(g.level)) {
+    g.exp -= expNeededFor(g.level);
+    g.level++;
+    leveled = true;
+  }
+  if (g.level >= MAX_LEVEL) g.exp = Math.min(g.exp, expNeededFor(MAX_LEVEL));
+  g.maxMembers = maxMembersFor(g.level);
+  if (leveled) guildSystemMsg(g, `Bang hội đã lên cấp ${g.level}!`);
+  markDirty();
+  return leveled;
+}
+
 export function donateGuild(user, amount) {
   const g = guildOf(user.id);
   if (!g) return [null, 'Bạn chưa ở trong bang hội nào.'];
@@ -247,17 +270,9 @@ export function donateGuild(user, amount) {
   const me = memberOf(g, user.id);
   me.contribution = (me.contribution || 0) + amt;
 
-  const gained = Math.floor(amt / EXP_PER_MONEY);
-  g.exp += gained;
-  let leveled = false;
-  while (g.level < MAX_LEVEL && g.exp >= expNeededFor(g.level)) {
-    g.exp -= expNeededFor(g.level);
-    g.level++;
-    leveled = true;
-  }
-  if (g.level >= MAX_LEVEL) g.exp = Math.min(g.exp, expNeededFor(MAX_LEVEL));
-  g.maxMembers = maxMembersFor(g.level);
-  if (leveled) guildSystemMsg(g, `Bang hội đã lên cấp ${g.level}!`);
+  congExp(g, Math.floor(amt / EXP_PER_MONEY));
+  // Góp quỹ tính vào nhiệm vụ tuần của bang
+  ghiCong(g, user.id, 'gop', amt);
   guildUpdated(g);
   return [{ treasury: g.treasury, level: g.level, exp: g.exp, contribution: me.contribution, money: user.save.money }, null];
 }
@@ -303,6 +318,48 @@ export function guildChatHistory(guildId, limit = 50) {
 // ==== Router REST (/api/guild) ====
 export const guildRouter = express.Router();
 guildRouter.use(authRequired);
+
+// ==== Nhiệm vụ bang hội + boss bang hội ====
+// PHẢI khai trước route "/:id" bên dưới: Express khớp theo thứ tự, để sau thì
+// "/nhiemvu" bị nuốt thành id bang hội.
+guildRouter.get('/nhiemvu', (req, res) => {
+  const g = guildOf(req.user.id);
+  if (!g) return res.status(400).json({ error: 'Bạn chưa ở trong bang hội nào.' });
+  res.json({ ds: bangNhiemVu(g), conLai: conLaiTuan(), level: g.level, treasury: g.treasury });
+});
+
+guildRouter.post('/nhiemvu/:nvId/nhan', (req, res) => {
+  const g = guildOf(req.user.id);
+  if (!g) return res.status(400).json({ error: 'Bạn chưa ở trong bang hội nào.' });
+  const me = memberOf(g, req.user.id);
+  if (rank(me.role) < 2) {
+    return res.status(403).json({ error: 'Chỉ hội trưởng hoặc phó hội mới nhận thưởng nhiệm vụ.' });
+  }
+  const [ra, err] = nhanThuong(g, req.params.nvId, congExp);
+  if (err) return res.status(400).json({ error: err });
+  guildSystemMsg(g, `Bang nhận thưởng nhiệm vụ: +${ra.exp} kinh nghiệm, +$${ra.quy} quỹ.`);
+  guildUpdated(g);
+  res.json(ra);
+});
+
+guildRouter.get('/boss', (req, res) => {
+  const g = guildOf(req.user.id);
+  if (!g) return res.status(400).json({ error: 'Bạn chưa ở trong bang hội nào.' });
+  res.json({ ds: danhSachBossBang(g, req.user.id), level: g.level });
+});
+
+guildRouter.post('/boss/:bossId/danh', (req, res) => {
+  const g = guildOf(req.user.id);
+  if (!g) return res.status(400).json({ error: 'Bạn chưa ở trong bang hội nào.' });
+  const [ra, err] = danhBossBang(req.user, g, req.params.bossId, req.body?.dmg, congExp);
+  if (err) return res.status(400).json({ error: err });
+  if (ra.ha) {
+    guildSystemMsg(g, `Bang đã hạ ${ra.boss}! Quỹ bang +$${ra.quyBang}.`);
+    guildUpdated(g);
+  }
+  res.json(ra);
+});
+
 
 guildRouter.post('/create', (req, res) => {
   const [g, err] = createGuild(req.user, req.body || {});

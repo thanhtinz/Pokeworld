@@ -28,6 +28,7 @@ import sys
 import json
 import xml.etree.ElementTree as ET
 
+import bangduong
 import khudancu
 
 TILE = 16
@@ -927,6 +928,20 @@ def main():
         kdc['above'] = None
         out_maps[khudancu.SLUG] = kdc
         want.append(khudancu.SLUG)
+
+        # Bang Duong noi thang vao Khu Dan Cu: di het ngo la mot ben nha dan,
+        # mot ben cong bang hoi.
+        bd = bangduong.them_vao(out_maps, root, tsx_cache, load_tsx,
+                                khudancu.SLUG, (26, 22))
+        if bd:
+            remap2, cols2 = build_atlas(bd, 'assets/maps/%s.png' % bangduong.SLUG)
+            conv2 = lambda lay: [remap2.get(g, -1) if g > 0 else -1 for g in lay]
+            bd['name'] = bangduong.TEN
+            bd['cols'] = cols2
+            bd['layers'] = [conv2(l) for l in bd['layers']]
+            bd['above'] = None
+            out_maps[bangduong.SLUG] = bd
+            want.append(bangduong.SLUG)
 
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)

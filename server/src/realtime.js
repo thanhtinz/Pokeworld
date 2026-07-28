@@ -8,6 +8,7 @@ import {
   setIo, addOnline, removeOnline, getConn, onlineCount, isOnline, emitToUsers,
 } from './hub.js';
 import { guildOf, memberOf, memberIds, pushGuildChat } from './guild.js';
+import { ghiCong } from './guildquest.js';
 import { saveDm, dmPublic, userByName } from './chat.js';
 
 const online = {              // proxy nhỏ giữ nguyên cách dùng cũ trong file này
@@ -240,6 +241,8 @@ function recordPvp(room, winnerName, disputed) {
     const lu = find('users', u => u.id === loser.id);
     if (wu) { wu.stats = wu.stats || { pvpWin: 0, pvpLose: 0 }; wu.stats.pvpWin++; }
     if (lu) { lu.stats = lu.stats || { pvpWin: 0, pvpLose: 0 }; lu.stats.pvpLose++; }
+    // Thắng PvP tính vào nhiệm vụ tuần của bang người thắng
+    if (wu) ghiCong(guildOf(wu.id), wu.id, 'pvp', 1);
     markDirty();
   }
 }

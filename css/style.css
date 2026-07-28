@@ -2586,3 +2586,5 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .bs-bxh { align-self: flex-start; }
 .bs-head { display: flex; flex-direction: column; gap: 2px; }
 .bs-head small { color: var(--muted); }
+.bs-top10 { display: flex; flex-direction: column; gap: 2px; }
+.bs-top10 small { color: var(--muted); font-size: .72rem; }

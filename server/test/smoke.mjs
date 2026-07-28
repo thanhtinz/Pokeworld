@@ -347,6 +347,57 @@ try {
   ok('maxMembers tăng theo cấp', mine3.data.guild.maxMembers === 24, String(mine3.data.guild.maxMembers));
   ok('bonus tăng theo cấp', Math.abs(mine3.data.bonus.expMult - 1.04) < 1e-9);
 
+  // ==== Nhiệm vụ bang hội + boss bang hội ====
+  {
+    const nv = await api('/api/guild/nhiemvu', { token: tokenA });
+    ok('lấy được nhiệm vụ bang', nv.status === 200 && (nv.data.ds || []).length >= 3);
+    ok('nhiệm vụ có hạn theo tuần', nv.data.conLai > 0 && nv.data.conLai <= 7 * 86400000);
+    const gop = nv.data.ds.find(n => n.id === 'gop_quy');
+    ok('góp quỹ đã ghi vào tiến độ nhiệm vụ', gop.co === 100000, JSON.stringify(gop));
+    ok('chưa đủ mức thì chưa xong', gop.xong === false);
+
+    const som = await api('/api/guild/nhiemvu/gop_quy/nhan', { method: 'POST', token: tokenA });
+    ok('nhiệm vụ chưa xong thì chưa nhận thưởng được', som.status === 400);
+
+    const bay = await api('/api/guild/nhiemvu/khong_co/nhan', { method: 'POST', token: tokenA });
+    ok('nhiệm vụ không có thật thì từ chối', bay.status === 400);
+
+    // Thành viên thường không được nhận thưởng thay cả bang
+    const thuong = await api('/api/guild/nhiemvu/gop_quy/nhan', { method: 'POST', token: tokenB });
+    ok('thành viên thường không nhận thưởng nhiệm vụ được', thuong.status === 403);
+
+    // Boss bang: con đầu mở từ cấp 1, hai con sau khoá theo cấp
+    const bs = await api('/api/guild/boss', { token: tokenA });
+    ok('lấy được danh sách boss bang', bs.status === 200 && (bs.data.ds || []).length === 3);
+    ok('boss bang mở dần theo cấp bang',
+      bs.data.ds[0].mo === true && bs.data.ds[2].mo === false,
+      JSON.stringify(bs.data.ds.map(b => [b.capBang, b.mo])));
+    ok('máu boss bang tăng theo cấp bang', bs.data.ds[0].hpMax > 400000,
+      String(bs.data.ds[0].hpMax));
+
+    const khoa = await api(`/api/guild/boss/${bs.data.ds[2].id}/danh`, { method: 'POST', token: tokenA, body: { dmg: 100 } });
+    ok('chưa đủ cấp thì chưa gọi được thủ hộ', khoa.status === 400, JSON.stringify(khoa.data));
+
+    const d1 = await api(`/api/guild/boss/${bs.data.ds[0].id}/danh`, { method: 'POST', token: tokenA, body: { dmg: 100 } });
+    ok('đánh được boss bang', d1.status === 200 && d1.data.sat === 6000, JSON.stringify(d1.data));
+
+    const nv2 = await api('/api/guild/nhiemvu', { token: tokenA });
+    const sb = nv2.data.ds.find(n => n.id === 'san_boss');
+    ok('sát thương boss ghi vào nhiệm vụ tuần', sb.co === 6000, JSON.stringify(sb));
+
+    // Boss bang không đánh được qua đường boss công khai và ngược lại
+    const nham = await api(`/api/boss/${bs.data.ds[0].id}/danh`, { method: 'POST', token: tokenA, body: { dmg: 10 } });
+    ok('boss bang không đánh qua đường boss chung', nham.status === 400);
+    const nham2 = await api('/api/guild/boss/the_gioi_1/danh', { method: 'POST', token: tokenA, body: { dmg: 10 } });
+    ok('boss chung không đánh qua đường bang hội', nham2.status === 400);
+
+    // Người không ở bang nào thì không xem được
+    const ngoai = await api('/api/auth/register', { method: 'POST', body: { username: 'KhongBang', password: 'secret9' } });
+    const rNgoai = await api('/api/guild/nhiemvu', { token: ngoai.data.token });
+    ok('chưa vào bang thì không có nhiệm vụ bang', rNgoai.status === 400);
+  }
+
+
   // ==== Chat bang hội qua socket ====
   // Kết nối lại: socket của AshK đã bị ngắt trong phần test khóa tài khoản ở trên
   sockA.close(); sockB.close();
