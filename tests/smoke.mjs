@@ -33,7 +33,8 @@ import { Battle } from '../js/engine/battle.js';
 import { STATUSES } from '../js/data/statuses.js';
 import { TECH_SFX } from '../js/data/sounds.js';
 import { fxFor } from '../js/data/vfx.js';
-import { applyStatus, removeStatus, endOfTurn, statMult } from '../js/engine/status.js';
+import { applyStatus, removeStatus, endOfTurn, statMult, thornDamage,
+  counterDamage, swapDamage, wildRampage } from '../js/engine/status.js';
 import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
@@ -454,6 +455,56 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const duong = new Set(Object.values(EVOLUTIONS).flat().flatMap(w => w.item || []));
   ok('đá tiến hoá nào cũng mở được ít nhất một đường',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
+}
+
+// Trạng thái: kiểu tác động nào cũng phải có chỗ xử lý trong engine
+{
+  const kinds = [...new Set(Object.values(STATUSES).map(s => s.kind))];
+  ok('có đủ bảng trạng thái của bản gốc', kinds.length >= 25, String(kinds.length));
+
+  // Bốn trạng thái dội đòn dùng chung một cách tính
+  const doi = Object.entries(STATUSES).filter(([, s]) =>
+    ['prickly', 'spiky', 'feedback', 'elemental_shield'].includes(s.kind));
+  ok('có đủ nhóm trạng thái dội đòn', doi.length >= 3, String(doi.length));
+  {
+    const nan = newTuxemon(STARTERS[0].sp, 25);
+    const danh2 = newTuxemon(STARTERS[2].sp, 25);
+    const [id, st] = doi[0];
+    applyStatus(nan, id);
+    const tam = String(st.p?.[1] || '').split(':').filter(Boolean)[0] || 'melee';
+    ok(`${id} dội ngược người ra đòn`, thornDamage(nan, danh2, tam) > 0);
+    ok(`${id} không dội với tầm khác`,
+      !st.p?.[1] || thornDamage(nan, danh2, 'khong_co_tam_nay') === 0);
+  }
+
+  // Đáp trả / báo thù giáng lại đúng số vừa ăn
+  {
+    const m2 = newTuxemon(STARTERS[1].sp, 25);
+    applyStatus(m2, 'retaliate');
+    const r = counterDamage(m2, 'melee', 40);
+    ok('đáp trả giáng lại đúng số sát thương', r && r.dmg === 40 && !r.hut);
+    ok('đáp trả không ăn với chiêu tầm reliable', counterDamage(m2, 'reliable', 40) === null);
+    removeStatus(m2, 'all');
+    applyStatus(m2, 'revenge');
+    ok('báo thù còn hút chỗ đó thành máu', counterDamage(m2, 'melee', 40)?.hut === true);
+  }
+
+  // Dính lao: rút lui là mất máu
+  {
+    const m2 = newTuxemon(STARTERS[0].sp, 25);
+    ok('chưa dính lao thì rút lui không mất gì', swapDamage(m2) === 0);
+    applyStatus(m2, 'harpooned');
+    ok('dính lao thì rút lui mất máu', swapDamage(m2) > 0);
+  }
+
+  // Hoang dại: có lúc phát cuồng tự cắn mình
+  {
+    const m2 = newTuxemon(STARTERS[0].sp, 25);
+    applyStatus(m2, 'wild');
+    let cuong = 0;
+    for (let k = 0; k < 200; k++) if (wildRampage(m2) > 0) cuong++;
+    ok('hoang dại thỉnh thoảng phát cuồng', cuong > 10 && cuong < 190, `${cuong}/200`);
+  }
 }
 
 // Hiệu ứng phụ của chiêu: những loại engine chạy được thì phải chạy thật

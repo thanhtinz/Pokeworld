@@ -84,13 +84,42 @@ export function rangeBlocked(mon, range) {
 export const isLocked = (mon) => def(mon.status)?.kind === 'lockdown';
 export const cantHeal = (mon) => def(mon.status)?.kind === 'festering';
 
-// Đòn dội lại khi bị đánh trúng (prickly/spiky)
+// Đòn dội lại khi bị đánh trúng — bốn trạng thái cùng một kiểu tính:
+// prickly / spiky (gai), feedback (phản đòn), elementalshield (khiên nguyên tố).
+// Bản gốc: máu_tối_đa_của_người_dính / divisor, chỉ dội với đúng tầm đánh ghi kèm.
+const THORN = new Set(['prickly', 'spiky', 'feedback', 'elemental_shield']);
+
 export function thornDamage(target, attacker, range) {
   const s = def(target.status);
-  if (!s || (s.kind !== 'prickly' && s.kind !== 'spiky')) return 0;
+  if (!s || !THORN.has(s.kind)) return 0;
   const list = String(s.p?.[1] || '').split(':').filter(Boolean);
   if (list.length && !list.includes(range)) return 0;
   return Math.max(1, Math.floor(maxHp(attacker) / so(s.p?.[0], 8)));
+}
+
+// Đáp trả / báo thù: giáng lại ĐÚNG số sát thương vừa ăn. 'revenge' còn hút
+// luôn chỗ đó thành máu cho mình. Không ăn với chiêu tầm 'reliable'.
+// Trả về { dmg, hut } — 0 nghĩa là trạng thái không kích hoạt.
+export function counterDamage(target, range, dmg) {
+  const s = def(target.status);
+  if (!s || (s.kind !== 'retaliate' && s.kind !== 'revenge')) return null;
+  if (range === 'reliable' || dmg <= 0) return null;
+  return { dmg, hut: s.kind === 'revenge' };
+}
+
+// Dính lao: rút lui khỏi sân là mất một phần máu
+export function swapDamage(mon) {
+  const s = def(mon.status);
+  if (s?.kind !== 'harpooned') return 0;
+  return Math.max(1, Math.floor(maxHp(mon) / so(s.p?.[0], 8)));
+}
+
+// Hoang dại: có xác suất phát cuồng, bỏ lượt và tự cắn mình một miếng
+export function wildRampage(mon) {
+  const s = def(mon.status);
+  if (s?.kind !== 'wild') return 0;
+  if (!rng.roll(so(s.p?.[0], 0.25))) return 0;
+  return Math.max(1, Math.floor(maxHp(mon) / so(s.p?.[1], 8)));
 }
 
 // Lì đòn: một lần chịu đòn chí tử vẫn còn 1 máu

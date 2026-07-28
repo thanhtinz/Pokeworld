@@ -9,7 +9,8 @@ import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn,
 import { TYPES, TYPE_NAMES } from '../data/types.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
-  thornDamage, survives, cantHeal, isLocked, afterBattle, statusName } from './status.js';
+  thornDamage, survives, cantHeal, isLocked, afterBattle, statusName,
+  counterDamage, swapDamage, wildRampage } from './status.js';
 import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch, applyBallEffects, keepOnFail, keepOnCatch } from './catchmon.js';
 import { attemptEscape } from './escape.js';
@@ -260,6 +261,15 @@ export class Battle {
     const [ok, msg] = canAct(mon, displayName(mon));
     if (msg) ev.push({ t: 'msg', text: msg });
     if (!ok) return;
+
+    // Hoang dại: có lúc phát cuồng, bỏ luôn lượt và tự cắn mình một miếng
+    const cuong = wildRampage(mon);
+    if (cuong > 0) {
+      mon.hpCur = Math.max(0, mon.hpCur - cuong);
+      ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: cuong, crit: false, eff: 1 });
+      ev.push({ t: 'msg', text: `${displayName(mon)} phát cuồng, quay ra tự cắn mình!` });
+      return;
+    }
     if (moveIdx !== 'struggle' && rangeBlocked(mon, MOVES[mon.moves[moveIdx]?.id]?.range)) {
       ev.push({ t: 'msg', text: `${displayName(mon)} đang bị ghì, không ra đòn kiểu này được!` });
       return;
@@ -322,12 +332,25 @@ export class Battle {
       if (res.crit) ev.push({ t: 'msg', text: 'Đòn chí mạng!' });
       const et = effText(res.eff);
       if (et) ev.push({ t: 'msg', text: et });
-      // Gai đâm ngược người ra đòn
+      // Gai / phản đòn / khiên nguyên tố đâm ngược người ra đòn
       const gai = thornDamage(foe, mon, mv.range);
       if (gai > 0) {
         mon.hpCur = Math.max(0, mon.hpCur - gai);
         ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: gai, crit: false, eff: 1 });
-        ev.push({ t: 'msg', text: `${displayName(mon)} bị gai đâm ngược!` });
+        ev.push({ t: 'msg', text: `${displayName(mon)} bị dội ngược!` });
+      }
+      // Đáp trả / báo thù: giáng lại đúng số sát thương vừa ăn
+      const dap = counterDamage(foe, mv.range, res.dmg);
+      if (dap) {
+        mon.hpCur = Math.max(0, mon.hpCur - dap.dmg);
+        ev.push({ t: 'dmg', side: i, slot: this.sides[i].active, dmg: dap.dmg, crit: false, eff: 1 });
+        ev.push({ t: 'msg', text: `${displayName(foe)} đáp trả nguyên đòn vừa rồi!` });
+        if (dap.hut && !isFainted(foe)) {
+          const truoc = foe.hpCur;
+          foe.hpCur = Math.min(maxHp(foe), foe.hpCur + dap.dmg);
+          ev.push({ t: 'heal', side: oi, slot: this.sides[oi].active, amount: foe.hpCur - truoc });
+          ev.push({ t: 'msg', text: `${displayName(foe)} hút luôn chỗ đó thành máu!` });
+        }
       }
     }
 
@@ -470,6 +493,14 @@ export class Battle {
           ev.push({ t: 'msg', text: 'Không chạy thoát được!' });
         }
       } else if (a.t === 'switch') {
+        // Dính lao: rút lui khỏi sân là mất một phần máu
+        const raSan = this.activeMon(i);
+        const lao = raSan ? swapDamage(raSan) : 0;
+        if (lao > 0) {
+          raSan.hpCur = Math.max(0, raSan.hpCur - lao);
+          ev.push({ t: 'dmg', side: i, slot: s.active, dmg: lao, crit: false, eff: 1 });
+          ev.push({ t: 'msg', text: `${displayName(raSan)} bị lao giật khi rút lui!` });
+        }
         s.active = a.slot;
         s.stages = freshStages();
         s.mustSwitch = false;
