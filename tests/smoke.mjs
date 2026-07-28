@@ -2754,6 +2754,28 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('giường nhà trọ cũng dựng đứng', !!g && g.h >= g.w);
 }
 
+// ==== Mỗi ô trong Menu một icon riêng ====
+// Trước đây Nhiệm vụ và Chế tạo dùng chung tờ giấy, Nhà trẻ thì mượn dấu cộng
+// hồi máu — nhìn vào không biết ô nào là ô nào. Bài này đọc thẳng mã nguồn nên
+// không phải dựng DOM chỉ để soi một danh sách.
+{
+  const { readFileSync, existsSync } = await import('node:fs');
+  const src = readFileSync(new URL('../js/ui/menu.js', import.meta.url), 'utf8');
+  const ten = [...src.matchAll(/icon:\s*'([a-z_]+)'/g)].map(m => m[1]);
+  ok('Menu có đủ ô', ten.length >= 15);
+  const trung = ten.filter((x, i) => ten.indexOf(x) !== i);
+  ok('không ô Menu nào trùng icon', trung.length === 0, [...new Set(trung)].join(', '));
+
+  // Tên nào khai trong danh sách icon pixel thì phải có tệp thật, không thì
+  // uiIcon() trả về chuỗi rỗng và ô hiện ra trống trơn.
+  const isrc = readFileSync(new URL('../js/ui/icons.js', import.meta.url), 'utf8');
+  const ve = [...isrc.matchAll(/const VE = new Set\(\[([\s\S]*?)\]\)/g)][0]?.[1] || '';
+  const dsVe = [...ve.matchAll(/'([a-z_]+)'/g)].map(m => m[1]);
+  const thieu = dsVe.filter(n =>
+    !existsSync(new URL(`../assets/ui/icon/${n}.png`, import.meta.url)));
+  ok('icon pixel nào khai cũng có tệp thật', thieu.length === 0, thieu.join(', '));
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

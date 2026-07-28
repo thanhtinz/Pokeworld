@@ -17,7 +17,7 @@ export function render(el) {
   };
 
   el.innerHTML = `
-    <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>${uiIcon('book', 22)} Nhiệm vụ</h1></div>
+    <div class="scr-head"><button class="btn-back" data-goto="home">‹</button><h1>${uiIcon('quest', 22)} Nhiệm vụ</h1></div>
 
     <h2 class="sec-title">Đang làm</h2>
     ${active.length === 0 ? '<div class="card empty-note">Không có nhiệm vụ nào đang làm.</div>' : ''}

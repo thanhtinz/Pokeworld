@@ -257,8 +257,47 @@ def ve_car(d):
     d.ellipse((11, 11, 14, 14), fill=C['S'])
 
 
+def ve_lich(d):
+    # To lich diem danh: hai vong treo, dai do, mot dau tich
+    d.rounded_rectangle((2, 3, 13, 14), radius=1, fill=C['W'])
+    d.rectangle((2, 3, 13, 6), fill=C['R'])
+    d.rectangle((4, 1, 5, 4), fill=C['S'])
+    d.rectangle((10, 1, 11, 4), fill=C['S'])
+    d.line((5, 10, 7, 12), fill=C['E'])
+    d.line((7, 12, 11, 8), fill=C['E'])
+
+
+def ve_craft(d):
+    # De ren + bua: hai thu nay khong lan voi to giay nhiem vu
+    d.rectangle((1, 9, 11, 11), fill=C['S'])       # mat de
+    d.polygon([(11, 9), (14, 10), (11, 11)], fill=C['S'])   # sung de
+    d.rectangle((4, 12, 8, 13), fill=C['S'])       # than de
+    d.rectangle((2, 14, 10, 15), fill=C['S'])      # chan de
+    d.line((7, 7, 12, 2), fill=C['N'], width=2)    # can bua
+    d.rectangle((10, 1, 15, 4), fill=C['W'])       # dau bua
+
+
+def ve_daycare(d):
+    # Qua trung trong o rom — nha tre giu Tuxemon con
+    d.ellipse((4, 3, 12, 13), fill=C['W'])
+    for x, y in ((6, 6), (9, 8), (7, 10)):
+        d.rectangle((x, y, x + 1, y + 1), fill=C['R'])
+    d.arc((1, 10, 15, 16), 180, 360, fill=C['g'])
+    d.line((2, 14, 14, 14), fill=C['g'])
+
+
+def ve_compass(d):
+    # La ban: kim do chi len, duoi trang
+    d.ellipse((1, 1, 14, 14), fill=C['G'])
+    d.ellipse((3, 3, 12, 12), fill=C['o'])
+    d.polygon([(8, 4), (10, 8), (8, 9), (6, 8)], fill=C['R'])
+    d.polygon([(8, 11), (6, 8), (8, 8), (10, 8)], fill=C['W'])
+
+
 ICONS = {
     'home': ve_home, 'car': ve_car,
+    'lich': ve_lich, 'craft': ve_craft, 'daycare': ve_daycare,
+    'compass': ve_compass,
     'coin': ve_coin, 'map': ve_map, 'chat': ve_chat, 'gift': ve_gift,
     'quest': ve_quest, 'shop': ve_shop, 'trophy': ve_trophy, 'guild': ve_guild,
     'friends': ve_friends, 'heart': ve_heart, 'flag': ve_flag,

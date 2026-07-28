@@ -96,7 +96,7 @@ export function render(el) {
       <div class="hero-foot">
         <p class="hero-desc">${esc(zone.desc || '')}</p>
         <button class="btn btn-primary btn-big hero-go" id="btn-world">
-          ${uiIcon('walk', 20)} Đi bộ trên bản đồ
+          ${uiIcon('map', 20)} Đi bộ trên bản đồ
         </button>
       </div>
     </div>

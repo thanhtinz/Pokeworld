@@ -34,9 +34,17 @@ export function render(el) {
             <img class="holo-sprite px-icon" src="${monImg(m)}" width="72" height="72" alt="">
             <div class="ps-mid">
               <span class="holo-name ps-name">${esc(displayName(m))}</span>
+              <span class="ps-types">${(SPECIES[m.sp]?.types || []).map(typeBadge).join('')}</span>
               ${statusTag(m.status)}${plagueTag(m.plague)}
               ${hpBar(m.hpCur, maxHp(m))}
               <small class="ps-hp">${m.hpCur}/${maxHp(m)}</small>
+              ${(() => {
+                // Thanh kinh nghiệm ngay trên thẻ: khỏi phải bấm vào xem chi tiết
+                // mới biết con nào sắp lên cấp.
+                const [c, n] = expProgress(m);
+                return `<div class="expbar"><div class="expbar-fill"
+                  style="width:${Math.min(100, Math.round(c / Math.max(1, n) * 100))}%"></div></div>`;
+              })()}
             </div>
           </button>`).join('')}
         ${party.length === 0 ? '<div class="card party-empty-note">Chưa có Tuxemon nào.</div>' : ''}

@@ -70,7 +70,7 @@ const ART = {
 const VE = new Set(['coin', 'map', 'chat', 'gift', 'quest', 'shop', 'trophy',
                     'guild', 'friends', 'heart', 'flag', 'server', 'heal',
                     'battle', 'walk', 'star', 'mail', 'bell', 'ball',
-                    'home', 'car']);
+                    'home', 'car', 'lich', 'craft', 'daycare', 'compass']);
 
 // size = px, cls thêm class ngoài
 export function uiIcon(name, size = 22, cls = '') {

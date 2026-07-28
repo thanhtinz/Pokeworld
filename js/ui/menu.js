@@ -19,13 +19,13 @@ import { show, refresh } from '../main.js';
 // hiện ra rồi báo "cần nối máy chủ" — bấm vào chẳng làm được gì thì bày ra
 // chỉ tổ rối.
 const HUB = [
-  { act: 'daily',     icon: 'gift',    label: 'Điểm danh' },
+  { act: 'daily',     icon: 'lich',    label: 'Điểm danh' },
   { to: 'quest',      icon: 'quest',   label: 'Nhiệm vụ' },
   { to: 'shop',       icon: 'shop',    label: 'Cửa hàng' },
   { to: 'achievements', icon: 'star',   label: 'Thành tựu', badge: 'ach' },
   { to: 'park',       icon: 'walk',    label: 'Công viên' },
-  { to: 'daycare',    icon: 'heal',    label: 'Nhà trẻ' },
-  { to: 'craft',      icon: 'quest',   label: 'Chế tạo' },
+  { to: 'daycare',    icon: 'daycare', label: 'Nhà trẻ' },
+  { to: 'craft',      icon: 'craft',   label: 'Chế tạo' },
   { to: 'garage',     icon: 'car',     label: 'Nhà xe' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
   { to: 'boss',       icon: 'battle',  label: 'Săn boss', on: true },
