@@ -4,9 +4,13 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre } from '../engine/overworld.js';
+  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre,
+  enterMap } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
-import { nhaTrenBanDo } from '../engine/estate.js';
+import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
+import { MAPS } from '../data/maps.js';
+import { FURN_BY_ID } from '../data/estate.js';
+import * as ES from '../engine/estate.js';
 
 // Ảnh nhà giữ lại sau lần tải đầu, không tạo <img> mới mỗi khung hình
 const anhNhaCache = new Map();
@@ -28,10 +32,10 @@ import { ITEMS } from '../data/items.js';
 import { SHOPS } from '../data/shops.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
-import { esc } from '../util.js';
+import { esc, tien } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
-import { show } from '../main.js';
+import { show, drawTopBar } from '../main.js';
 import { TITLES, SKINS, imgOf } from '../data/cosmetics.js';
 
 // Bản đồ gốc không kèm chữ trên bảng, nên mỗi loại bảng nói một câu cho hợp cảnh
@@ -71,7 +75,17 @@ export function render(el) {
         <div class="joy-base"><div class="joy-knob" id="joy-knob"></div></div>
       </div>
       <button class="act-btn" id="btn-act">A</button>
+      <button class="btn deco-btn" id="btn-deco" hidden>Trang trí</button>
+      <div class="deco-bar" id="deco-bar" hidden>
+        <span id="deco-note">Kéo món đồ tới chỗ muốn đặt</span>
+        <button class="btn btn-sm" id="deco-add">Lấy đồ trong kho</button>
+        <button class="btn btn-sm btn-primary" id="deco-done">Xong</button>
+      </div>
     </div>`;
+
+  // ==== Trang trí trong nhà ====
+  let deco = false;                 // đang bật chế độ trang trí
+  const keo = { mon: null, x: 0, y: 0 };   // món đang kéo và ô nó đang lơ lửng trên
 
   const canvas = el.querySelector('#world-canvas');
   const ctx = canvas.getContext('2d');
@@ -171,6 +185,60 @@ export function render(el) {
       ctx.drawImage(im, Math.round((it.x + 0.5) * size - camX - s2 / 2),
         Math.round((it.y + 0.55) * size - camY - s2 / 2), s2, s2);
     }
+    // Đồ nội thất kê trong nhà — vẽ ngay trên bản đồ, đúng ô đã đặt
+    if (ES.dangTrongNha(player.mapId)) {
+      for (const d of ES.nha().dat) {
+        const f = FURN_BY_ID[d.id];
+        if (!f) continue;
+        const im = anhNha(f.img);
+        if (!im?.complete || !im.naturalWidth) continue;
+        const w2 = size * f.w;
+        const h2 = w2 * (im.naturalHeight / im.naturalWidth);
+        const dx = d === keo.mon ? keo.x : d.x, dy = d === keo.mon ? keo.y : d.y;
+        ctx.save();
+        if (d === keo.mon) ctx.globalAlpha = 0.75;
+        ctx.drawImage(im, Math.round(dx * size - camX),
+          Math.round((dy + f.h) * size - camY - h2), Math.round(w2), Math.round(h2));
+        ctx.restore();
+        // Đang trang trí thì viền ô cho thấy món nào kéo được
+        if (deco) {
+          ctx.save();
+          ctx.strokeStyle = d === keo.mon ? '#f0b429' : 'rgba(255,255,255,.45)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(Math.round(dx * size - camX) + 1, Math.round(dy * size - camY) + 1,
+            Math.round(size * f.w) - 2, Math.round(size * f.h) - 2);
+          ctx.restore();
+        }
+      }
+    }
+
+    // Biển "BÁN" cắm ở từng lô đất chưa ai mua
+    if (player.mapId === KHU_DAT_MAP) {
+      for (const l of LOTS) {
+        if (ES.nha().lot === l.id) continue;
+        const bx = (l.x + 1) * size - camX, by = (l.y + 2) * size - camY;
+        ctx.save();
+        ctx.fillStyle = '#8a6a3a';
+        ctx.fillRect(Math.round(bx + size * 0.42), Math.round(by - size * 0.1),
+          Math.max(2, Math.round(size * 0.16)), Math.round(size * 0.55));
+        ctx.fillStyle = '#f0e6d0';
+        ctx.strokeStyle = '#8a6a3a';
+        ctx.lineWidth = Math.max(1, size * 0.06);
+        const bw = size * 0.95, bh = size * 0.5;
+        ctx.fillRect(Math.round(bx), Math.round(by - size * 0.55), Math.round(bw), Math.round(bh));
+        ctx.strokeRect(Math.round(bx), Math.round(by - size * 0.55), Math.round(bw), Math.round(bh));
+        ctx.fillStyle = '#b03a24';
+        ctx.font = `bold ${Math.round(size * 0.3)}px system-ui, sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('BÁN', Math.round(bx + bw / 2), Math.round(by - size * 0.3));
+        ctx.restore();
+      }
+      // Bác thợ mộc bán nội thất
+      const tm = ES.THO_MOC;
+      const im2 = owImage('nurse');
+      if (owReady(im2)) put(im2, 'down', false, (tm.x + 0.5) * size - camX, (tm.y + 1) * size - camY);
+    }
+
     // Căn nhà người chơi đã dựng trên lô đất của mình
     const nhaMinh = nhaTrenBanDo(player.mapId);
     if (nhaMinh) {
@@ -178,8 +246,21 @@ export function render(el) {
       if (im?.complete && im.naturalWidth) {
         const w2 = size * 3;
         const h2 = w2 * (im.naturalHeight / im.naturalWidth);
-        ctx.drawImage(im, Math.round(nhaMinh.x * size - camX),
-          Math.round((nhaMinh.y + 3) * size - camY - h2), Math.round(w2), Math.round(h2));
+        const px = Math.round(nhaMinh.x * size - camX);
+        const py = Math.round((nhaMinh.y + 3) * size - camY - h2);
+        // Đang xây thì vẽ mờ, kèm chữ cho biết còn bao lâu
+        ctx.save();
+        if (nhaMinh.xay) ctx.globalAlpha = 0.45;
+        ctx.drawImage(im, px, py, Math.round(w2), Math.round(h2));
+        ctx.restore();
+        if (nhaMinh.xay) {
+          ctx.save();
+          ctx.fillStyle = '#f0b429';
+          ctx.font = `bold ${Math.round(size * 0.34)}px system-ui, sans-serif`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('ĐANG XÂY', px + w2 / 2, py + h2 / 2);
+          ctx.restore();
+        }
       }
     }
     for (const n of map.npcs || []) {
@@ -266,6 +347,84 @@ export function render(el) {
     if (hint) hint.classList.toggle('act-ready', !!facingThing() || !!canCau());
   }
 
+  // ==== Nhà đất ====
+  async function nhaDat(thing) {
+    const BAC = { name: 'Bác Thợ Mộc', ow: 'nurse' };
+    const BIEN = { name: 'Biển Bán Đất' };
+    if (thing.kind === 'tho-moc') {
+      await playDialog([[BAC, 'Bàn ghế giường tủ, thiếu gì tôi cũng có. Ghé xem đi!']]);
+      cleanup(); show('estate', { tab: 'cho', from: 'world' });
+      return;
+    }
+    if (thing.kind === 'lo-nguoi-khac') {
+      await playDialog([[BIEN, 'Bạn đã có đất rồi — mỗi người một lô thôi.']]);
+      return;
+    }
+    if (thing.kind === 'lo-ban') {
+      const l = thing.lot;
+      const i = await choose(l.name, [
+        { label: `Mua ${tien(l.price)}`, sub: `Bạn đang có ${tien(G.p.money)}` },
+        { label: 'Thôi để sau' },
+      ]);
+      if (i !== 0) return;
+      const [ok, err] = ES.muaDat(l.id);
+      if (err) { toast(err); return; }
+      toast(`Đã mua ${ok.name}! Giờ chọn mẫu nhà đi.`);
+      drawTopBar();
+      return;
+    }
+    if (thing.kind === 'lo-cua-minh') {
+      const ds = ES.HOUSE_BASES.map(b => ({
+        label: `${b.name} — ${tien(b.price)}`,
+        sub: `${ES.THOI_GIAN_XAY[b.id]} phút xây · ${b.o}×${b.o} ô kê đồ`,
+        disabled: (G.p.money || 0) < b.price,
+      }));
+      ds.push({ label: 'Thôi để sau' });
+      const i = await choose('Chọn mẫu nhà', ds);
+      if (i === null || i >= ES.HOUSE_BASES.length) return;
+      const [r, err] = ES.dungNha(ES.HOUSE_BASES[i].id);
+      if (err) { toast(err); return; }
+      await playDialog([[BAC, `Được rồi! ${r.base.name} nhé. Cho tôi ${ES.THOI_GIAN_XAY[r.base.id]} phút.`]]);
+      drawTopBar();
+      return;
+    }
+    if (thing.kind === 'dang-xay') {
+      const i = await choose('Công trường', [
+        { label: `Còn ${ES.conLaiChu()}`, disabled: true },
+        { label: `Giục thợ làm ngay — ${tien(Math.ceil(ES.conLaiMs() / 60000) * 500)}` },
+        { label: 'Để thợ làm tiếp' },
+      ]);
+      if (i !== 1) return;
+      const [gia, err] = ES.xayNhanh();
+      if (err) { toast(err); return; }
+      toast(`Đã trả thêm ${tien(gia)} — nhà xong rồi!`);
+      drawTopBar();
+      return;
+    }
+    if (thing.kind === 'cua-nha' || thing.kind === 'nha-minh') {
+      if (thing.kind === 'nha-minh') {
+        const c = ES.oCua();
+        toast(`Cửa ở phía dưới căn nhà (ô ${c.x}, ${c.y}).`);
+        return;
+      }
+      vaoNha();
+      return;
+    }
+  }
+
+  // Vào trong nhà: mượn bản đồ nội thất trống của bản gốc, cắm thêm một cổng
+  // quay ra đúng chỗ vừa đứng.
+  function vaoNha() {
+    const c = ES.oCua();
+    const noi = MAPS[ES.TRONG_NHA];
+    if (!noi || !c) { toast('Chưa vào được.'); return; }
+    noi.warps = (noi.warps || []).filter(w => !w.veNha);
+    noi.warps.push({ x: Math.floor(noi.w / 2), y: noi.h - 1, veNha: true,
+      to: ES.KHU_DAT_MAP, tx: c.x, ty: c.y + 1 });
+    enterMap(ES.TRONG_NHA, Math.floor(noi.w / 2), noi.h - 2);
+    toast('Về tới nhà rồi. Bấm nút Trang trí để kê đồ.');
+  }
+
   function draw() {
     const map = currentMap();
     const baked = currentBake();
@@ -320,7 +479,8 @@ export function render(el) {
   function loop(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    if (!busy) {
+    // Đang trang trí thì khoá đi lại, kẻo vừa kéo đồ vừa chạy
+    if (!busy && !deco) {
       const k = keyVec();
       updateNpcs(dt);
       const ev = update(dt, vec.x + k.x, vec.y + k.y);
@@ -350,10 +510,93 @@ export function render(el) {
         return;
       }
     }
+    capNhatNutDeco();
     draw();
     raf = requestAnimationFrame(loop);
   }
   raf = requestAnimationFrame(loop);
+
+  // ==== Nút Trang trí + kéo thả đồ ====
+  const btnDeco = el.querySelector('#btn-deco');
+  const barDeco = el.querySelector('#deco-bar');
+
+  function capNhatNutDeco() {
+    const trongNha = ES.dangTrongNha(player.mapId);
+    btnDeco.hidden = !trongNha || deco;
+    barDeco.hidden = !deco;
+    el.querySelector('#joy').hidden = deco;
+    el.querySelector('#btn-act').hidden = deco;
+  }
+
+  btnDeco.addEventListener('click', () => { deco = true; capNhatNutDeco(); });
+  el.querySelector('#deco-done').addEventListener('click', () => {
+    deco = false; keo.mon = null; capNhatNutDeco();
+  });
+  el.querySelector('#deco-add').addEventListener('click', async () => {
+    const e = ES.nha();
+    const ds = Object.entries(e.kho).filter(([, n]) => n > 0);
+    if (!ds.length) {
+      toast('Kho trống — mua đồ ở chỗ bác thợ mộc đã.');
+      return;
+    }
+    const i = await choose('Lấy món nào ra kê?', ds.map(([id, n]) => ({
+      label: FURN_BY_ID[id]?.name || id, sub: `còn ${n} cái`,
+    })));
+    if (i === null) return;
+    const id = ds[i][0];
+    // Đặt tạm vào ô trống đầu tiên tìm được, rồi người chơi kéo đi đâu tuỳ ý
+    const noi = currentMap();
+    for (let y = 1; y < noi.h - 1; y++) {
+      for (let x = 1; x < noi.w - 1; x++) {
+        if (ES.keDuocTrongNha(id, x, y, noi)) {
+          const [, err] = ES.keTaiO(id, x, y);
+          if (err) { toast(err); return; }
+          toast(`Đặt ${FURN_BY_ID[id]?.name} xuống rồi — kéo tới chỗ bạn muốn.`);
+          return;
+        }
+      }
+    }
+    toast('Không còn chỗ trống để kê.');
+  });
+
+  // Kéo bằng ngón tay: chạm trúng món nào thì nhấc món đó lên, thả xuống ô mới
+  const oTuMan = (ev) => {
+    const r = canvas.getBoundingClientRect();
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const baked = currentBake();
+    const size = Math.ceil(Math.max(Math.min(w, h) / 12, h / baked.h, w / baked.w));
+    const clamp = (v, lo, hi) => (hi < lo ? lo : Math.min(hi, Math.max(lo, v)));
+    const camX = clamp(player.x * size - w / 2, 0, baked.w * size - w);
+    const camY = clamp(player.y * size - h / 2, 0, baked.h * size - h);
+    return {
+      x: Math.floor((ev.clientX - r.left + camX) / size),
+      y: Math.floor((ev.clientY - r.top + camY) / size),
+    };
+  };
+
+  canvas.addEventListener('pointerdown', (ev) => {
+    if (!deco) return;
+    const { x, y } = oTuMan(ev);
+    const d = ES.monTaiO(x, y);
+    if (!d) return;
+    keo.mon = d; keo.x = d.x; keo.y = d.y;
+    canvas.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+  });
+  canvas.addEventListener('pointermove', (ev) => {
+    if (!deco || !keo.mon) return;
+    const { x, y } = oTuMan(ev);
+    keo.x = x; keo.y = y;
+    ev.preventDefault();
+  });
+  const thaTay = () => {
+    if (!keo.mon) return;
+    const [, err] = ES.chuyenDo(keo.mon, keo.x, keo.y, currentMap());
+    if (err) toast(err);
+    keo.mon = null;
+  };
+  canvas.addEventListener('pointerup', thaTay);
+  canvas.addEventListener('pointercancel', thaTay);
 
   // ==== Tương tác ====
   // Cần câu xịn nhất đang có trong túi, nếu đang đứng quay mặt ra mặt nước.
@@ -435,6 +678,8 @@ export function render(el) {
           thing.text || BANG_NOI[thing.name] || 'Không đọc được gì rõ ràng.']]);
         return;
       }
+      // Nhà đất: biển bán, lô của mình, công trường, cửa nhà, bác thợ mộc
+      if (thing.type === 'estate') { await nhaDat(thing); return; }
       // NPC bản đồ mang sẵn vài câu thoại (js/data/maps.js), NPC cũ dùng .text
       const who = { name: thing.name, img: thing.face || null,
         ow: thing.face ? null : (thing.sprite || null) };

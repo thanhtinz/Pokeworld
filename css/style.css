@@ -2502,3 +2502,14 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   color: var(--muted); }
 .cf-ng-i.du { color: var(--text); }
 .cf-ng-i b { color: var(--gold); }
+
+/* Nút Trang trí + thanh công cụ khi đang kê đồ trong nhà */
+.deco-btn { position: absolute; right: 14px; bottom: calc(150px + env(safe-area-inset-bottom));
+  z-index: 4; padding: 10px 16px; }
+.deco-bar { position: absolute; left: 10px; right: 10px;
+  bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 5;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  padding: 10px 12px; border-radius: 14px;
+  background: rgba(10, 6, 22, .92); border: 1px solid var(--line); }
+/* Dòng nhắc nằm hẳn một hàng riêng, không chen với hai nút */
+.deco-bar #deco-note { grid-column: 1 / -1; font-size: .8rem; color: var(--muted); }

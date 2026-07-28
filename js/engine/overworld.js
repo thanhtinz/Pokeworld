@@ -5,6 +5,7 @@ import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
+import { vatTheODay } from './estate.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
@@ -442,6 +443,9 @@ export function facingThing() {
   const { x, y } = facingTile();
   const npc = (map.npcs || []).find(n => n.x === x && n.y === y);
   if (npc) return { type: 'npc', ...npc };
+  // Biển bán đất / nhà của mình / bác thợ mộc — đi chung một đường với NPC
+  const es = vatTheODay(player.mapId, x, y);
+  if (es) return es;
   // Bảng hiệu / bảng thông báo: bản đồ Tuxemon đánh dấu bằng sự kiện thoại
   const talk = talkAt(currentBake(), x, y);
   if (talk) return { type: 'talk', ...talk };

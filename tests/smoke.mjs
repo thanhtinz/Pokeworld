@@ -2026,6 +2026,58 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   ok('tổng giá trị cộng cả đất, nhà và đồ',
     ES.tomTat().giaTri >= ES.LOT_BY_ID.a1.price + dat.price);
+
+  // ==== Đi bộ tới mua: biển bán / công trường / cửa nhà ====
+  {
+    newGame('EsMap');
+    G.p.money = 1000000;
+    const l = ES.LOTS[0];
+    ok('lô chưa mua thì thấy biển BÁN',
+      ES.vatTheODay(ES.KHU_DAT_MAP, l.x + 1, l.y + 1)?.kind === 'lo-ban');
+    ok('chỗ bác thợ mộc bắt được',
+      ES.vatTheODay(ES.KHU_DAT_MAP, ES.THO_MOC.x, ES.THO_MOC.y)?.kind === 'tho-moc');
+    ok('bản đồ khác thì không có gì', ES.vatTheODay('route1', l.x + 1, l.y + 1) === null);
+
+    ES.muaDat(l.id);
+    ok('mua rồi thì lô thành của mình',
+      ES.vatTheODay(ES.KHU_DAT_MAP, l.x + 1, l.y + 1)?.kind === 'lo-cua-minh');
+    ok('lô khác báo đã có đất rồi',
+      ES.vatTheODay(ES.KHU_DAT_MAP, ES.LOTS[1].x, ES.LOTS[1].y)?.kind === 'lo-nguoi-khac');
+
+    ES.dungNha('nha_go');
+    ok('dựng xong là vào chế độ đang xây', ES.dangXay() && !ES.nhaXong());
+    ok('đang xây thì tới nơi thấy công trường',
+      ES.vatTheODay(ES.KHU_DAT_MAP, l.x + 1, l.y + 1)?.kind === 'dang-xay');
+    ok('còn lại có chữ mô tả', /phút|giờ/.test(ES.conLaiChu()), ES.conLaiChu());
+
+    const tienTruoc = G.p.money;
+    const [gia] = ES.xayNhanh();
+    ok('giục thợ thì trả thêm tiền và xong ngay',
+      gia > 0 && G.p.money === tienTruoc - gia && ES.nhaXong());
+    const c = ES.oCua();
+    ok('có ô cửa để đi vào', !!c);
+    ok('đứng đúng ô cửa thì mở được nhà',
+      ES.vatTheODay(ES.KHU_DAT_MAP, c.x, c.y)?.kind === 'cua-nha');
+    ok('đứng chỗ khác trong lô thì chỉ là thân nhà',
+      ES.vatTheODay(ES.KHU_DAT_MAP, l.x, l.y)?.kind === 'nha-minh');
+
+    // Kê đồ theo ô bản đồ trong nhà
+    const noi = MAPS[ES.TRONG_NHA];
+    ok('bản đồ trong nhà có thật và trống', !!noi && (noi.npcs || []).length === 0);
+    const mon = FURNITURE[0];
+    ES.muaDo(mon.id);
+    ok('kê được vào ô giữa nhà', ES.keTaiO(mon.id, 2, 2)[0] !== null);
+    ok('tìm lại được món ở ô đó', ES.monTaiO(2, 2)?.id === mon.id);
+    const d = ES.monTaiO(2, 2);
+    ok('kéo sang ô trống thì đi theo', ES.chuyenDo(d, 4, 3, noi)[0] !== null && d.x === 4);
+    ok('kéo ra ngoài tường thì không cho', ES.chuyenDo(d, 0, 0, noi)[1] !== null);
+    ok('kéo ra ngoài mép bản đồ thì không cho',
+      ES.chuyenDo(d, noi.w, 3, noi)[1] !== null);
+    ES.muaDo(mon.id);
+    ok('không kê chồng lên món đang có', !ES.keDuocTrongNha(mon.id, 4, 3, noi));
+    ok('cất về kho thì đồ quay lại kho',
+      ES.catVeKho(d) && ES.conTrongKho(mon.id) === 2);
+  }
 }
 
 // ==== Chế tạo ====
