@@ -1118,6 +1118,45 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   ok('ngủ luôn mất ít nhất một lượt', daiNhat >= 2, String(daiNhat));
 }
 
+// ==== Đồ rơi trên bản đồ (sự kiện add_item của bản gốc) ====
+{
+  const { player, update, enterMap, pickedUp } = await import('../js/engine/overworld.js');
+  const roi = [];
+  for (const [id, mp] of Object.entries(MAPS)) for (const it of mp.items || []) roi.push({ id, it });
+  ok('có đồ rơi rải trên bản đồ', roi.length >= 3, String(roi.length));
+  ok('món rơi nào cũng có thật trong bảng vật phẩm',
+    roi.every(({ it }) => ITEMS[it.id]), roi.filter(({ it }) => !ITEMS[it.id]).map(x => x.it.id).join(' '));
+  ok('số lượng rơi luôn dương', roi.every(({ it }) => (it.n || 1) > 0));
+  ok('món rơi không nằm trong tường',
+    roi.every(({ id, it }) => !MAPS[id].solid[it.y * MAPS[id].w + it.x]),
+    roi.filter(({ id, it }) => MAPS[id].solid[it.y * MAPS[id].w + it.x]).map(x => x.id).join(' '));
+
+  // Giẫm lên là nhặt, và chỉ nhặt được một lần
+  const { id: mapId, it } = roi.find(({ id, it: x }) => MAPS[id].items.length && x.n >= 1);
+  newGame('Thợ Nhặt');
+  G.p.party = [newTuxemon(STARTERS[0].sp, 20)];
+  enterMap(mapId, it.x, it.y + 1);
+  const truoc = G.p.bag[it.id] || 0;
+  ok('chưa nhặt thì chưa đánh dấu', !pickedUp(mapId, it));
+  let ev = null;
+  for (let k = 0; k < 90 && !ev; k++) {
+    const e = update(1 / 60, 0, -1);
+    if (e?.t === 'pickup') ev = e;
+  }
+  ok('giẫm lên là nhặt được', !!ev && ev.id === it.id, JSON.stringify(ev));
+  ok('món vào đúng túi', (G.p.bag[it.id] || 0) === truoc + (it.n || 1),
+    `${truoc} -> ${G.p.bag[it.id]}`);
+  ok('nhặt rồi thì đánh dấu lại', pickedUp(mapId, it));
+  // đi ra rồi quay lại: không nhặt được nữa
+  enterMap(mapId, it.x, it.y + 1);
+  let lai = null;
+  for (let k = 0; k < 90 && !lai; k++) {
+    const e = update(1 / 60, 0, -1);
+    if (e?.t === 'pickup') lai = e;
+  }
+  ok('quay lại không nhặt được lần hai', lai === null);
+}
+
 // ==== Cửa hàng từng thị trấn (db/economy của bản gốc) ====
 {
   const { SHOPS } = await import('../js/data/shops.js');

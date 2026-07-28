@@ -4,7 +4,7 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, setHealSpot, repelLeft } from '../engine/overworld.js';
+  facingWater, setHealSpot, repelLeft, pickedUp } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal, displayName } from '../engine/monster.js';
 import { statusName } from '../engine/status.js';
@@ -150,6 +150,15 @@ export function render(el) {
       ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
         Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
     };
+    // Đồ rơi chưa nhặt: vẽ icon món đó ngay trên ô, nhặt rồi thì thôi
+    for (const it of map.items || []) {
+      if (pickedUp(player.mapId, it)) continue;
+      const im = itemImg(it.id);
+      if (!im?.complete || !im.naturalWidth) continue;
+      const s2 = Math.round(size * 0.7);
+      ctx.drawImage(im, Math.round((it.x + 0.5) * size - camX - s2 / 2),
+        Math.round((it.y + 0.55) * size - camY - s2 / 2), s2, s2);
+    }
     for (const n of map.npcs || []) {
       const nx = (n.x + (n.ox || 0) + 0.5) * size - camX;
       const ny = (n.y + (n.oy || 0) + 1) * size - camY;
@@ -161,6 +170,17 @@ export function render(el) {
     const py = (player.y + 0.5) * size - camY + bob;
     put(avatarImg(), player.dir, player.moving, px, py);
     drawTitle(px, py - chH + size * 0.34);
+  }
+
+  // Icon món đồ rơi trên bản đồ
+  const itemCache = {};
+  function itemImg(id) {
+    if (!itemCache[id]) {
+      const im = new Image();
+      im.src = `assets/items/${id}.png`;
+      itemCache[id] = im;
+    }
+    return itemCache[id];
   }
 
   // Bong bóng cảm xúc trên đầu NPC — ảnh gfx/bubbles của bản gốc
@@ -285,6 +305,9 @@ export function render(el) {
         el.querySelector('#world-zone').textContent = currentMap().name;
         playMusic(currentMap().music || 'town');
         toast(`Đã tới ${ev.name}`);
+      } else if (ev?.t === 'pickup') {
+        const it = ITEMS[ev.id];
+        toast(`Nhặt được ${it ? it.name : ev.id}${ev.n > 1 ? ` ×${ev.n}` : ''}!`);
       } else if (ev?.t === 'repelEnd') {
         toast('Bình xịt đã hết tác dụng.');
       } else if (ev?.t === 'stepHurt') {

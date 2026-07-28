@@ -3,7 +3,7 @@ import { MAPS, TILE_SIZE } from '../data/maps.js';
 import { bake, isSolidAt, isEncAt, talkAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
-import { G, save, markSeen } from '../state.js';
+import { G, save, markSeen, addItem } from '../state.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
@@ -104,6 +104,9 @@ export function facingWater() {
   if (x < 0 || y < 0 || x >= map.w || y >= map.h) return false;
   return !!map.water[y * map.w + x];
 }
+
+export const pickKey = (mapId, it) => `${mapId}:${it.x},${it.y}:${it.id}`;
+export const pickedUp = (mapId, it) => !!G.p?.picked?.[pickKey(mapId, it)];
 
 // Chỗ nghỉ gần nhất — bản gốc gọi là teleport_faint: nơi người chơi tỉnh dậy
 // khi cả đội gục, và cũng là đích của Chìa Khoá Thoát Hiểm. Cập nhật mỗi lần
@@ -329,6 +332,18 @@ export function update(dt, vx, vy) {
   if (beforeTile === afterTile) return null;   // chưa sang ô mới
 
   G.p.pos = { map: player.mapId, x: player.x, y: player.y };
+
+  // Đồ rơi trên bản đồ: giẫm lên là nhặt, mỗi món chỉ nhặt được một lần
+  // (bản gốc gác bằng biến <tên>:yes trong sự kiện add_item).
+  const nhat = (map.items || []).find(it => it.x === Math.floor(player.x)
+    && it.y === Math.floor(player.y) && !pickedUp(player.mapId, it));
+  if (nhat) {
+    if (!G.p.picked) G.p.picked = {};
+    G.p.picked[pickKey(player.mapId, nhat)] = true;
+    addItem(nhat.id, nhat.n || 1);
+    save();
+    return { t: 'pickup', id: nhat.id, n: nhat.n || 1 };
+  }
 
   // Bỏng / trúng độc còn hành cả lúc đi bộ: bản gốc ghi ngay trong db/status
   // (step_effect_type + step_interval), mặc định cứ 10 bước mất 1 máu. Đây là

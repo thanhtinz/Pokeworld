@@ -501,6 +501,7 @@ def parse_map(path, tsx_cache):
             solid[idx] = 1
     warps, talks, encs, nhac = [], [], set(), [None]
     trades = []
+    do_roi = []
     # Nen tran dau: ban goc dat bang "set_environment <slug>", ban do nao cung
     # co mot canh ban ngay va mot canh ban dem.
     moi_truong = [None, None]
@@ -530,6 +531,23 @@ def parse_map(path, tsx_cache):
                 for slug, d in re.findall(r'char_face\s+([a-z0-9_]+)\s*,\s*(up|down|left|right)', a):
                     if slug in npcs:
                         npcs[slug]['dir'] = d
+
+            # Do nhat duoc rai tren ban do: su kien co "add_item <mon>[,<so>]"
+            # kem mot bien "not variable_set ..." de chi nhat duoc mot lan.
+            # Chi lay mon co that trong bang vat pham cua game, va bo qua su
+            # kien nao con keo theo danh nhau / doi chac / mo cua hang.
+            if (any(a.startswith('add_item ') for a in acts)
+                    and any(c.startswith('not variable_set') for c in conds_all(props))
+                    and not any(a.split()[0] in ('start_battle', 'trading', 'open_shop',
+                                                 'transition_teleport') for a in acts)):
+                for a in acts:
+                    m = re.match(r'add_item\s+([a-z0-9_]+)\s*(?:,\s*(-?\d+))?', a)
+                    if not m or m.group(1) not in MON_CO_THAT:
+                        continue
+                    n_mon = int(m.group(2) or 1)
+                    if n_mon <= 0:
+                        continue
+                    do_roi.append({'x': ox, 'y': oy, 'id': m.group(1), 'n': n_mon})
 
             # Cua hang: "set_economy <npc>,<ma gian hang>" cho biet nguoi nao
             # ban gi. Ghep vao dung NPC de bam vao la mo dung gian hang do.
@@ -610,9 +628,41 @@ def parse_map(path, tsx_cache):
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
             'solid': solid, 'water': water, 'warps': warps, 'talks': talks,
             'trades': trades, 'encs': sorted(encs),
+            # Do roi phai nam tren o DI DUOC. Vai su kien add_item dat trong
+            # tuong (nguoi trong nha dua tan tay, khong phai nhat duoi dat) —
+            # de lai thi mon do khong bao gio cham toi duoc.
+            'items': [d for d in gop_do(do_roi)
+                      if 0 <= d['x'] < w and 0 <= d['y'] < h and not solid[d['y'] * w + d['x']]],
             'music': nhac[0],          # None = ban do khong tu goi nhac
             'env': moi_truong[0], 'envNight': moi_truong[1],
             'npcs': xep_cho(ds, solid, warps, w, h)}
+
+
+def conds_all(props):
+    return [v for k, v in props.items() if k.startswith('cond')]
+
+
+def gop_do(ds):
+    """Mot o co nhieu su kien cho cung mon -> chi giu mot."""
+    thay, out = set(), []
+    for d in ds:
+        k = (d['x'], d['y'], d['id'])
+        if k in thay:
+            continue
+        thay.add(k)
+        out.append(d)
+    return out
+
+
+# Ma vat pham game dang co — nap tu js/data/items.js (mkitems.py chay truoc)
+MON_CO_THAT = set()
+
+
+def nap_mon():
+    p = 'js/data/items.js'
+    if not os.path.exists(p):
+        return set()
+    return set(re.findall(r'^  ([a-z_0-9]+): \{', open(p, encoding='utf-8').read(), re.M))
 
 
 def chon_tep(mdir, slug):
@@ -786,6 +836,8 @@ def main():
         raise SystemExit('Khong thay %s' % mdir)
 
     load_npc_db(root)
+    global MON_CO_THAT
+    MON_CO_THAT = nap_mon()
     tsx_cache = {}
     want = pick_maps(mdir)
     names = {s: vi_name(s) for s in want}
@@ -811,6 +863,7 @@ def main():
             'warps': [w for w in m['warps'] if w['to'] in want],
             'talks': m['talks'],
             'npcs': m['npcs'],
+            'items': m['items'],
             'encs': m['encs'],
             'music': m['music'],
             'env': m.get('env'), 'envNight': m.get('envNight'),
@@ -1026,6 +1079,8 @@ def write_js(maps, want):
         out.append('    warps: %s,' % js(m['warps']))
         out.append('    talks: %s,' % js(m['talks']))
         out.append('    npcs: %s,' % js(m['npcs']))
+        if m.get('items'):
+            out.append('    items: %s,' % js(m['items']))
         out.append('  },')
     out.append('};')
     out.append('''
