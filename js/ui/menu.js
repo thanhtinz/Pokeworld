@@ -26,11 +26,12 @@ const HUB = [
   { to: 'park',       icon: 'walk',    label: 'Công viên' },
   { to: 'daycare',    icon: 'heal',    label: 'Nhà trẻ' },
   { to: 'craft',      icon: 'quest',   label: 'Chế tạo' },
-  { to: 'garage',     icon: 'walk',    label: 'Nhà xe' },
+  { to: 'garage',     icon: 'car',     label: 'Nhà xe' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
   { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng', on: true },
   { to: 'guild',      icon: 'guild',   label: 'Bang hội', on: true },
   { to: 'friends',    icon: 'friends', label: 'Bạn bè', badge: 'dm', on: true },
+  { to: 'homes',      icon: 'home',    label: 'Thăm nhà', on: true },
   { to: 'marriage',   icon: 'heart',   label: 'Kết hôn', on: true },
   { to: 'settings',   icon: 'gear',    label: 'Cài đặt' },
 ];

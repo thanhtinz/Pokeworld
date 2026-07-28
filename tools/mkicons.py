@@ -238,7 +238,27 @@ def ve_walk(d):
     d.line((9, 6, 12, 7), fill=C['B'], width=1)
 
 
+def ve_home(d):
+    # can nha co mai — dung cho muc "Tham nha" va "Nha xe" thi khong bi trung
+    # hinh voi cong vien nua
+    d.polygon([(8, 1), (15, 8), (12, 8), (12, 14), (4, 14), (4, 8), (1, 8)],
+              fill=C['R'])
+    d.rectangle((5, 9, 11, 14), fill=C['W'])
+    d.rectangle((7, 11, 9, 14), fill=C['N'])       # cua ra vao
+    d.point((6, 10), fill=C['B'])                   # o cua so
+
+
+def ve_car(d):
+    # chiec xe nhin ngang
+    d.rounded_rectangle((1, 8, 15, 12), radius=1, fill=C['B'])
+    d.polygon([(4, 8), (6, 5), (10, 5), (12, 8)], fill=C['b'])
+    d.rectangle((6, 6, 9, 8), fill=C['W'])
+    d.ellipse((2, 11, 5, 14), fill=C['S'])
+    d.ellipse((11, 11, 14, 14), fill=C['S'])
+
+
 ICONS = {
+    'home': ve_home, 'car': ve_car,
     'coin': ve_coin, 'map': ve_map, 'chat': ve_chat, 'gift': ve_gift,
     'quest': ve_quest, 'shop': ve_shop, 'trophy': ve_trophy, 'guild': ve_guild,
     'friends': ve_friends, 'heart': ve_heart, 'flag': ve_flag,

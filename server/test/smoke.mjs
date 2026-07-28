@@ -570,6 +570,70 @@ try {
       (thu.data?.mail || []).some(m => m.kind === 'event'));
   }
 
+  // ==== Thăm nhà bạn + tường nhà ====
+  {
+    await api('/api/save', { method: 'PUT', token: tokenA, body: {
+      money: 5000,
+      estate: { lot: 'a1', base: 'nha_da',
+                dat: [{ id: 'giuong_do_doi', x: 3, y: 3 }, { id: 'ban_tron', x: 6, y: 4 }] },
+    } });
+
+    const tu = await api('/api/home/AshK', { token: tokenA });
+    ok('chủ nhà xem được nhà mình', tu.status === 200 && tu.data.base === 'nha_da');
+    ok('nhà trả về đúng số đồ đã kê', (tu.data.dat || []).length === 2);
+    ok('mặc định chỉ bạn bè vào được', tu.data.tuong === 'friends');
+
+    // AshK và MistyW đã là bạn ở phần trên
+    // Hai người này ở phần trên vừa kết bạn vừa kết hôn, nên quan hệ là 'partner'
+    const ban = await api('/api/home/AshK', { token: tokenB });
+    ok('người nhà vào xem được nhà',
+      ban.status === 200 && ['friend', 'partner'].includes(ban.data.quanHe),
+      JSON.stringify(ban.data).slice(0, 120));
+    ok('bạn bè viết lên tường được', ban.data.vietDuoc === true);
+
+    const tham = await api('/api/home/AshK/tham', { method: 'POST', token: tokenB });
+    ok('ghi nhận lượt thăm', tham.status === 200 && tham.data.luotTham === 1);
+
+    const viet = await api('/api/home/AshK/wall', { method: 'POST', token: tokenB, body: { text: 'Nhà đẹp quá!' } });
+    ok('viết được lên tường', viet.status === 200 && viet.data.text === 'Nhà đẹp quá!');
+    const baiId = viet.data.id;
+
+    const spam = await api('/api/home/AshK/wall', { method: 'POST', token: tokenB, body: { text: 'lần hai' } });
+    ok('chặn đăng liên tiếp', spam.status === 429);
+
+    const rong = await api('/api/home/AshK/wall', { method: 'POST', token: tokenA, body: { text: '   ' } });
+    ok('không cho đăng bài rỗng', rong.status === 400);
+
+    const th1 = await api(`/api/home/wall/${baiId}/like`, { method: 'POST', token: tokenA });
+    ok('thích được bài', th1.status === 200 && th1.data.likes === 1 && th1.data.thich === true);
+    const th2 = await api(`/api/home/wall/${baiId}/like`, { method: 'POST', token: tokenA });
+    ok('bấm lần nữa thì bỏ thích', th2.data.likes === 0 && th2.data.thich === false);
+
+    const ds = await api('/api/home', { token: tokenB });
+    ok('danh sách nhà thăm được có nhà bạn',
+      (ds.data.nha || []).some(n => n.username === 'AshK' && n.moCua && n.soBai === 1),
+      JSON.stringify(ds.data));
+
+    const dong = await api('/api/home/tuong/chedo', { method: 'POST', token: tokenA, body: { che: 'none' } });
+    ok('đổi được chế độ tường', dong.status === 200 && dong.data.tuong === 'none');
+    const chan = await api('/api/home/AshK', { token: tokenB });
+    ok('đóng cửa thì bạn bè cũng không vào', chan.status === 403);
+    const chanViet = await api('/api/home/AshK/wall', { method: 'POST', token: tokenB, body: { text: 'cho vào với' } });
+    ok('đóng cửa thì cũng không viết được', chanViet.status === 403);
+
+    const bay = await api('/api/home/tuong/chedo', { method: 'POST', token: tokenA, body: { che: 'bay-bien' } });
+    ok('chế độ lạ thì từ chối', bay.status === 400);
+
+    await api('/api/home/tuong/chedo', { method: 'POST', token: tokenA, body: { che: 'all' } });
+    const xoa = await api(`/api/home/wall/${baiId}`, { method: 'DELETE', token: tokenA });
+    ok('chủ nhà xoá được bài trên tường mình', xoa.status === 200);
+    const sau = await api('/api/home/AshK', { token: tokenB });
+    ok('xoá rồi thì tường sạch', (sau.data.bai || []).length === 0);
+
+    const khong = await api('/api/home/KhongCoAi', { token: tokenA });
+    ok('nhà của người không tồn tại thì 404', khong.status === 404);
+  }
+
   // ==== Lưu xuống đĩa ====
   await api('/api/admin/flush', { method: 'POST', token: admToken });
   ok('DB ghi ra file', fs.existsSync(path.join(DATA_DIR, 'db.json')));

@@ -56,6 +56,7 @@ export function render(el) {
             <button type="button" class="fr-name" data-card="${esc(f.username)}">${esc(f.username)}</button>
             <span>
               <button class="btn-mini" data-dm="${esc(f.username)}">Nhắn</button>
+              <button class="btn-mini" data-nha="${esc(f.username)}">Nhà</button>
               <button class="btn-mini" data-pvp="${esc(f.username)}">Đấu</button>
               <button class="btn-mini" data-del="${esc(f.id)}">Xoá</button>
             </span>
@@ -86,6 +87,8 @@ export function render(el) {
       if (res.ok) draw();
     }));
     body.querySelectorAll('[data-dm]').forEach(b => b.addEventListener('click', () => show('chat', { to: b.dataset.dm })));
+    body.querySelectorAll('[data-nha]').forEach(b => b.addEventListener('click',
+      () => show('homes', { username: b.dataset.nha, from: 'friends' })));
     body.querySelectorAll('[data-pvp]').forEach(b => b.addEventListener('click', () => {
       if (!isOnline()) { toast('Chưa kết nối máy chủ.'); return; }
       sock.challengePvp(b.dataset.pvp);

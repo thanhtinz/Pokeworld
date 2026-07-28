@@ -112,3 +112,13 @@ export const rollEvent = (id, n = 1) => call(`/events/${encodeURIComponent(id)}/
 
 // ==== Thẻ huấn luyện viên của người khác ====
 export const fetchProfile = (username) => call(`/profile/${encodeURIComponent(username)}`);
+
+// ==== Thăm nhà bạn + tường nhà ====
+export const fetchHomes = () => call('/home');
+export const fetchHome = (username) => call(`/home/${encodeURIComponent(username)}`);
+export const visitHome = (username) => call(`/home/${encodeURIComponent(username)}/tham`, { method: 'POST' });
+export const postWall = (username, text) =>
+  call(`/home/${encodeURIComponent(username)}/wall`, { method: 'POST', body: { text } });
+export const deleteWall = (postId) => call(`/home/wall/${encodeURIComponent(postId)}`, { method: 'DELETE' });
+export const likeWall = (postId) => call(`/home/wall/${encodeURIComponent(postId)}/like`, { method: 'POST' });
+export const setWallMode = (che) => call('/home/tuong/chedo', { method: 'POST', body: { che } });

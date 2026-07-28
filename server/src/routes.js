@@ -9,6 +9,7 @@ import {
 } from './social.js';
 import { guildRouter, guildOf } from './guild.js';
 import { chatRouter } from './chat.js';
+import { homeRouter } from './homes.js';
 import { publicCosmetics, cosmeticsOf } from './cosmetics.js';
 import {
   listMail, readMail, claimMail, claimAllMail, deleteReadMail,
@@ -21,6 +22,8 @@ export const router = express.Router();
 // ==== Bang hội + tin nhắn ====
 router.use('/guild', guildRouter);
 router.use('/chat', chatRouter);
+// Thăm nhà bạn + tường nhà
+router.use('/home', homeRouter);
 
 const byName = (name) => {
   const lower = String(name || '').trim().toLowerCase();

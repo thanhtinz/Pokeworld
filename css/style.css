@@ -2533,3 +2533,22 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .gr-khong { color: var(--muted); font-size: .8rem; text-align: right; max-width: 40%; }
 .gr-dang { display: flex; align-items: center; gap: 10px; }
 .gr-dang b { flex: 1; }
+
+/* ==== Thăm nhà + tường nhà ==== */
+.hm-head { display: flex; flex-direction: column; gap: 2px; }
+.hm-head small { color: var(--muted); }
+.hm-canvas { padding: 6px; }
+.hm-canvas canvas { width: 100%; display: block; image-rendering: pixelated; border-radius: 8px; }
+.hm-do { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.hm-mon {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border: 1px solid var(--line-soft); border-radius: 999px;
+  font-size: .72rem; color: var(--muted);
+}
+.hm-mon img { width: 18px; height: 18px; image-rendering: pixelated; }
+.hm-bai p { margin: 4px 0 8px; white-space: pre-wrap; word-break: break-word; }
+.hm-bai-top { display: flex; align-items: baseline; gap: 8px; }
+.hm-bai-top small { color: var(--muted); font-size: .72rem; }
+.hm-bai-nut { display: flex; gap: 6px; }
+.hm-che { display: flex; flex-direction: column; gap: 6px; }
+.hm-che .seg-row { margin-bottom: 0; }
