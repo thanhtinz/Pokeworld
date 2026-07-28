@@ -334,6 +334,15 @@ export class Battle {
       attStage: this.sides[i].stages[uKey] || 0,
       defStage: this.sides[oi].stages[tKey] || 0,
     };
+    // Chiêu "mượn hệ": trước khi tính sát thương, chiêu đổi sang hệ của người
+    // dùng (Nội Lực, Ngoại Lực) hoặc của đối thủ (Cướp Sức) — core/effects/move_type.py
+    const muon = (mv.eff || []).find(e => e.t === 'move_type');
+    if (muon) {
+      const nguon = muon.from === 'foe' ? foe : mon;
+      ctx.types = typesOf(nguon);
+      ev.push({ t: 'msg',
+        text: `${mv.name} mượn hệ ${ctx.types.map(x => TYPE_NAMES[x] || x).join('/')}!` });
+    }
     let res = calcDamage(mon, foe, mvId, ctx);
     if (moveIdx === 'struggle') {
       // struggle không nằm trong bảng chiêu: tính tay theo đúng công thức Tuxemon
@@ -342,7 +351,15 @@ export class Battle {
       res = { dmg: Math.max(1, dmg), crit: false, eff: 1, missed: false };
     }
 
-    if (res.missed) {
+    // Chiêu "phủ đầu" (splash): bản gốc vẫn tính sát thương rồi CHIA cho divisor
+    // khi trượt, chứ không mất trắng như chiêu thường — vì thế mấy chiêu này độ
+    // trúng chỉ 60-75% mà hệ số lại 2.25-3.0 (core/effects/splash.py).
+    const toe = (mv.eff || []).find(e => e.t === 'splash');
+    if (res.missed && toe) {
+      const lai = calcDamage(mon, foe, mvId, { ...ctx, boQuaDoTrung: true });
+      res = { ...lai, dmg: Math.floor(lai.dmg / Math.max(1, toe.div || 2)), missed: false };
+      ev.push({ t: 'msg', text: `${displayName(mon)} đánh chệch, nhưng đòn vẫn tạt trúng!` });
+    } else if (res.missed) {
       ev.push({ t: 'msg', text: `${displayName(mon)} đánh trượt!` });
       return;
     }

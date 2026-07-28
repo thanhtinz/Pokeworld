@@ -55,7 +55,7 @@ export function calcDamage(att, def, moveId, ctx = {}) {
   }
 
   const acc = move.acc;
-  if (acc && acc < 100 && !rng.roll(acc / 100)) {
+  if (!ctx.boQuaDoTrung && acc && acc < 100 && !rng.roll(acc / 100)) {
     return { dmg: 0, crit: false, eff: 1, missed: true };
   }
 
@@ -77,7 +77,8 @@ export function calcDamage(att, def, moveId, ctx = {}) {
     ? 1
     : Math.max(1, defStats[targetKey] * statMult(def, targetKey) * stageMult(ctx.defStage));
 
-  const eff = typeMultiplier(move.types, typesOf(def));
+  // ctx.types: chiêu "mượn hệ" (move_type) đổi hệ theo người dùng hoặc đối thủ
+  const eff = typeMultiplier(ctx.types || move.types, typesOf(def));
   const dmg = Math.floor(strength * (move.power * eff) / resist);
 
   return { dmg: Math.max(eff > 0 ? 1 : 0, dmg), crit: false, eff, missed: false };

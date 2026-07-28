@@ -446,7 +446,7 @@ export const speciesBySlug = (slug) => Object.values(SPECIES).find(s => s.slug =
 EFFECT_KEEP = {'give', 'healing', 'prop_healing', 'prop_damage', 'remove', 'money',
                'multiattack', 'switch', 'cooldown_modifier', 'photogenesis',
                'life_share', 'life_swap', 'transfer', 'sacrifice', 'reverse',
-               'plague'}
+               'plague', 'splash', 'move_type', 'scope'}
 
 
 def hieu_ung(t):
@@ -487,6 +487,13 @@ def hieu_ung(t):
             row['n'] = float(par[0]) if par else 1.0
         elif kind == 'life_share':
             row['dir'] = par[0] if par else 'target_to_user'
+            row['how'] = par[1] if len(par) > 1 else 'simple'
+        elif kind == 'splash':
+            # danh truot van an nua don (chia cho divisor) — vi the nhung chieu
+            # nay do trung thap ma he so sat thuong lai cao
+            row['div'] = int(float(par[0])) if par else 2
+        elif kind == 'move_type':
+            row['from'] = 'foe' if par and par[0] == 'enemy_monster' else 'self'
         elif kind == 'transfer':
             row['id'] = par[0] if par else ''
             row['dir'] = par[1] if len(par) > 1 else 'user_to_target'
@@ -529,11 +536,14 @@ def write_moves(techs, disp):
         types = t.get('types') or ['normal']
         rng = t.get('range', 'melee')
         kinds = {e.get('type') for e in (t.get('effects') or []) if isinstance(e, dict)}
-        # Chieu co hieu ung 'multiattack' TU no tinh sat thuong (ban goc goi
-        # simple_damage_calculate ngay trong effect), khong khai them 'damage'.
-        # Truoc day cong cu chi xet 'damage' nen 6 chieu danh nhieu don bi coi
-        # la chieu ho tro, power ve 0, danh khong mat mieng nao.
-        is_dmg = ('damage' in kinds or 'multiattack' in kinds) and rng in DAMAGE_RANGES
+        # Vai hieu ung TU no tinh sat thuong (ban goc goi thang
+        # simple_damage_calculate trong effect), khong khai them 'damage':
+        #   multiattack — danh nhieu don lien tiep
+        #   splash      — danh truot van an nua don
+        # Cong cu truoc day chi xet 'damage' nen 19 chieu kieu nay bi coi la
+        # chieu ho tro, power ve 0, danh khong mat mieng nao. Trong so do co
+        # ca Surf, Bao Dien, Hoa No — toan chieu he so 2.5-3.0.
+        is_dmg = bool(kinds & {'damage', 'multiattack', 'splash'}) and rng in DAMAGE_RANGES
         heal = float(t.get('healing_power') or 0)
         cat = 'damage' if is_dmg else ('healing' if heal > 0 else 'status')
         power = round(float(t.get('power') or 0), 2) if is_dmg else 0

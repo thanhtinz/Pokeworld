@@ -735,7 +735,7 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   for (const mv of Object.values(MOVES)) for (const e of mv.eff || []) loai[e.t] = (loai[e.t] || 0) + 1;
   ok('có đủ các loại hiệu ứng của bản gốc',
     ['give', 'healing', 'multiattack', 'switch', 'cooldown_modifier',
-      'photogenesis', 'sacrifice', 'life_swap'].every(k => loai[k] > 0),
+      'photogenesis', 'sacrifice', 'life_swap', 'splash', 'move_type'].every(k => loai[k] > 0),
     JSON.stringify(loai));
 
   // Đánh thử một chiêu. Cho đối thủ dùng chiêu 0 sát thương và ra đòn sau,
@@ -807,6 +807,35 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     ok('chiêu đánh nhiều đòn gây sát thương gấp bội',
       r.truot || tong > mot, `${tong} vs ${mot}`);
   }
+
+  // splash: chiêu "phủ đầu" phải là chiêu ĐÁNH có hệ số, không phải chiêu hỗ trợ.
+  // Trước đây công cụ sinh data chỉ nhận 'damage' nên cả Surf lẫn Bão Điện đều
+  // ra power 0 — bấm vào chỉ tốn lượt.
+  const toe = Object.entries(MOVES).filter(([, m]) => (m.eff || []).some(e => e.t === 'splash'));
+  ok('có chiêu phủ đầu', toe.length >= 10, String(toe.length));
+  ok('chiêu phủ đầu đều gây sát thương thật',
+    toe.every(([, m]) => m.category === 'damage' && m.power > 0),
+    toe.filter(([, m]) => !m.power).map(([s]) => s).join(' '));
+  ok('Surf đánh ra máu', MOVES.surf?.power >= 2 && MOVES.surf.category === 'damage');
+  {
+    // Đánh trượt vẫn tạt trúng: cho độ trúng về 0 mà máu đối thủ vẫn phải sụt
+    const [id, mv] = toe.find(([, m]) => m.acc < 100) || toe[0];
+    const goc = mv.acc;
+    mv.acc = 1;
+    let sut = 0;
+    for (let k = 0; k < 40 && !sut; k++) {
+      const r = danh(id);
+      sut = maxHp(r.foe) - r.foe.hpCur;
+    }
+    mv.acc = goc;
+    ok('chiêu phủ đầu trượt vẫn ăn nửa đòn', sut > 0, `${id} ${sut}`);
+  }
+
+  // move_type: chiêu mượn hệ của người dùng thì khắc hệ tính theo hệ đó
+  const muon = Object.entries(MOVES).filter(([, m]) => (m.eff || []).some(e => e.t === 'move_type'));
+  ok('có chiêu mượn hệ', muon.length >= 2, String(muon.length));
+  ok('chiêu mượn hệ vẫn là chiêu đánh',
+    muon.every(([, m]) => m.category === 'damage' && m.power > 0));
 }
 
 // Khu vực bắt sinh vật: đủ nhiều vùng, cấp tăng dần theo đường đi
