@@ -43,7 +43,7 @@ export function applyStatus(mon, id) {
   }
 
   mon.status = id;
-  mon.statusTurns = s.kind === 'noddingoff' ? rng.int(1, 3) : 0;
+  mon.statusTurns = 0;
   mon.statusUsed = 0;
   return true;
 }
@@ -83,9 +83,15 @@ export function canAct(mon, name) {
   if (!s) return [true, null];
   const p0 = s.p?.[0];
 
+  // Ngủ gật: ít nhất một lượt, sau đó MỖI LƯỢT bốc xem có tỉnh không, và quá
+  // số lượt tối đa (duration = 5) thì chắc chắn tỉnh — core/effects/noddingoff.py
   if (s.kind === 'noddingoff') {
-    mon.statusTurns = (mon.statusTurns || 1) - 1;
-    if (mon.statusTurns <= 0) { cureStatus(mon); return [true, `${name} tỉnh ngủ!`]; }
+    mon.statusTurns = (mon.statusTurns || 0) + 1;
+    const qua = s.dur > 0 && mon.statusTurns > s.dur;
+    if (mon.statusTurns > 1 && (qua || !rng.roll(so(p0, 0.5)))) {
+      cureStatus(mon);
+      return [true, `${name} tỉnh ngủ!`];
+    }
     return [false, `${name} đang ngủ gà ngủ gật...`];
   }
   if (s.kind === 'confused' && rng.roll(so(p0, 0.5))) {
@@ -221,7 +227,16 @@ function heSoTrangThai(mon, s) {
   return Math.min(...co);
 }
 
-export function endOfTurn(mon, name) {
+// Số máu chuyển giữa hai con — formula.calculate_hp_transfer.
+// nhan = con NHẬN máu, cho = con MẤT máu.
+function chuyenMau(nhan, cho, uoc) {
+  return Math.max(0, Math.min(Math.floor(maxHp(cho) / so(uoc, 16)), cho.hpCur,
+    maxHp(nhan) - nhan.hpCur));
+}
+
+// linked = con đã gây ra trạng thái này (trạng thái có link: true nối máu hai
+// bên). Trả thêm toLinked = số máu cộng/trừ cho con kia.
+export function endOfTurn(mon, name, linked = null) {
   const s = def(mon.status);
   if (!s) return { dmg: 0, heal: 0, msg: null };
   const max = maxHp(mon);
@@ -233,13 +248,29 @@ export function endOfTurn(mon, name) {
   }
   const phan = (mac) => Math.max(1, Math.floor(max / so(s.p?.[0], mac) * he));
 
-  if (s.kind === 'burnt' || s.kind === 'poisoned' || s.kind === 'lifeleech') {
-    const d = phan(s.kind === 'lifeleech' ? 16 : 8);
+  // Hút máu / ban sinh lực nối hai con với nhau: máu rút khỏi bên này thì chảy
+  // thẳng sang bên kia (core/effects/lifeleech.py, lifegift.py). Bên kia gục
+  // rồi thì trạng thái tan luôn.
+  if (s.kind === 'lifeleech' || s.kind === 'lifegift') {
+    if (!linked || linked.hpCur <= 0) { cureStatus(mon); return { dmg: 0, heal: 0, msg: null }; }
+    if (s.kind === 'lifeleech') {
+      const d = chuyenMau(linked, mon, s.p?.[0]);
+      if (d <= 0) return { dmg: 0, heal: 0, msg: null };
+      mon.hpCur = Math.max(0, mon.hpCur - d);
+      return { dmg: d, heal: 0, toLinked: d, msg: `${name} bị hút mất sinh lực!` };
+    }
+    if (cantHeal(mon)) return { dmg: 0, heal: 0, msg: null };
+    const d = chuyenMau(mon, linked, s.p?.[0]);
+    if (d <= 0) return { dmg: 0, heal: 0, msg: null };
+    mon.hpCur = Math.min(max, mon.hpCur + d);
+    return { dmg: 0, heal: d, toLinked: -d, msg: `${name} được truyền sinh lực!` };
+  }
+
+  if (s.kind === 'burnt' || s.kind === 'poisoned') {
+    const d = phan(8);
     mon.hpCur = Math.max(0, mon.hpCur - d);
-    const msg = s.kind === 'burnt' ? `${name} bị vết bỏng hành hạ!`
-      : s.kind === 'poisoned' ? `${name} bị chất độc hành hạ!`
-        : `${name} bị hút mất sinh lực!`;
-    return { dmg: d, heal: 0, msg };
+    return { dmg: d, heal: 0,
+      msg: s.kind === 'burnt' ? `${name} bị vết bỏng hành hạ!` : `${name} bị chất độc hành hạ!` };
   }
   if (s.kind === 'wasting') {
     // Bản gốc càng để lâu càng nặng
@@ -248,7 +279,7 @@ export function endOfTurn(mon, name) {
     mon.hpCur = Math.max(0, mon.hpCur - d);
     return { dmg: d, heal: 0, msg: `${name} đang suy kiệt dần!` };
   }
-  if (s.kind === 'recover' || s.kind === 'lifegift') {
+  if (s.kind === 'recover') {
     if (cantHeal(mon)) return { dmg: 0, heal: 0, msg: null };
     const truoc = mon.hpCur;
     mon.hpCur = Math.min(max, mon.hpCur + phan(16));

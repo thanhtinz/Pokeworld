@@ -5,7 +5,8 @@ import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
-import { heal } from '../engine/monster.js';
+import { heal, displayName } from '../engine/monster.js';
+import { statusName } from '../engine/status.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
@@ -277,6 +278,9 @@ export function render(el) {
         el.querySelector('#world-zone').textContent = currentMap().name;
         playMusic(currentMap().music || 'town');
         toast(`Đã tới ${ev.name}`);
+      } else if (ev?.t === 'stepHurt') {
+        // Bỏng / trúng độc bào máu theo bước chân — báo một lần khi kiệt tới đáy
+        for (const m of ev.mons) toast(`${displayName(m)} kiệt sức vì ${statusName(m.status)}!`);
       } else if (ev?.t === 'encounter') {
         busy = true;
         save();

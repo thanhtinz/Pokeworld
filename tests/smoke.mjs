@@ -52,7 +52,7 @@ import { STATUSES } from '../js/data/statuses.js';
 import { TECH_SFX } from '../js/data/sounds.js';
 import { fxFor } from '../js/data/vfx.js';
 import { applyStatus, removeStatus, endOfTurn, statMult, thornDamage,
-  counterDamage, swapDamage, wildRampage, condBlocked, condTag } from '../js/engine/status.js';
+  counterDamage, swapDamage, wildRampage, condBlocked, condTag, canAct } from '../js/engine/status.js';
 import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
@@ -1057,6 +1057,79 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const rLua = endOfTurn(lua, 'X');
   ok('hệ Lửa miễn nhiễm bỏng, trạng thái tan luôn',
     rLua.dmg === 0 && lua.status === null, String(rLua.dmg));
+}
+
+// Trạng thái nối máu hai con: hút máu chảy sang kẻ gây ra, ban sinh lực thì
+// ngược lại. Trước đây chỉ trừ máu con dính mà không chuyển đi đâu cả.
+{
+  ok('có trạng thái nối máu',
+    STATUSES.lifeleech?.link && STATUSES.lifegift?.link);
+  const chay = (st) => {
+    const me = newTuxemon(STARTERS[0].sp, 40);
+    const foe = newTuxemon(STARTERS[2].sp, 40);
+    me.moves = [{ id: vaHai || 'struggle', cd: 0 }];
+    foe.moves = [{ id: vaHai || 'struggle', cd: 0 }];
+    const b = new Battle({ kind: 'wild',
+      sides: [{ kind: 'player', mons: [me] }, { kind: 'wild', mons: [foe] }] });
+    me.hpCur = Math.floor(maxHp(me) / 2);
+    foe.hpCur = Math.floor(maxHp(foe) / 2);
+    applyStatus(foe, st);
+    const a = [me.hpCur, foe.hpCur];
+    b.submit(0, { t: 'move', i: 0 });
+    b.resolve();
+    return { ta: me.hpCur - a[0], dich: foe.hpCur - a[1] };
+  };
+  const hut = chay('lifeleech');
+  ok('hút máu: địch mất, ta được', hut.ta > 0 && hut.dich < 0, JSON.stringify(hut));
+  const ban = chay('lifegift');
+  ok('ban sinh lực: ta mất, địch được', ban.ta < 0 && ban.dich > 0, JSON.stringify(ban));
+  // Bên nối đã gục thì trạng thái tan
+  const con = newTuxemon(STARTERS[0].sp, 20);
+  applyStatus(con, 'lifeleech');
+  endOfTurn(con, 'X', null);
+  ok('không còn ai để nối thì trạng thái tan', con.status === null);
+}
+
+// Ngủ gật: ít nhất một lượt, tối đa dur lượt là chắc chắn tỉnh
+{
+  ok('ngủ gật có số lượt tối đa', STATUSES.noddingoff?.dur === 5);
+  let daiNhat = 0;
+  for (let k = 0; k < 300; k++) {
+    const m = newTuxemon(STARTERS[0].sp, 20);
+    applyStatus(m, 'noddingoff');
+    let n = 0;
+    while (n < 20) {
+      const [duoc] = canAct(m, 'X');
+      n += 1;
+      if (duoc) break;
+    }
+    daiNhat = Math.max(daiNhat, n);
+    ok.tmp = n;
+  }
+  ok('ngủ không bao giờ quá số lượt tối đa', daiNhat <= STATUSES.noddingoff.dur + 1,
+    String(daiNhat));
+  ok('ngủ luôn mất ít nhất một lượt', daiNhat >= 2, String(daiNhat));
+}
+
+// Đi bộ trên bản đồ mà đang bỏng / trúng độc thì mất máu theo bước chân
+{
+  const co = Object.entries(STATUSES).filter(([, x]) => x.step?.length);
+  ok('có trạng thái hành người theo bước chân', co.length === 2, co.map(x => x[0]).join(' '));
+  ok('trạng thái đó đều còn sau khi hết trận', co.every(([, x]) => x.keep));
+  ok('cứ 10 bước mất 1 máu', co.every(([, x]) => x.step[2] === 10 && x.step[0] === 'flat_damage'));
+
+  const { player, update, enterMap } = await import('../js/engine/overworld.js');
+  newGame('Bộ Hành');
+  const con = newTuxemon(STARTERS[0].sp, 30);
+  con.hpCur = maxHp(con);
+  con.status = 'poison';
+  G.p.party = [con];
+  enterMap('taba_town');
+  const truoc = con.hpCur;
+  // đi tới đi lui cho đủ bước; mỗi lần sang ô mới tính một bước
+  for (let k = 0; k < 400; k++) update(0.05, (k % 20 < 10) ? 1 : -1, 0);
+  ok('đi bộ khi trúng độc thì mất máu dần', con.hpCur < truoc, `${truoc} -> ${con.hpCur}`);
+  ok('nhưng không gục hẳn ngoài bản đồ', con.hpCur >= 1, String(con.hpCur));
 }
 
 // Chuỗi trạng thái dồn lực -> tích lực -> kiệt sức. Trước đây "Đang dồn lực"

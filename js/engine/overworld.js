@@ -4,7 +4,8 @@ import { bake, isSolidAt, isEncAt, talkAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen } from '../state.js';
-import { newTuxemon } from './monster.js';
+import { newTuxemon, maxHp } from './monster.js';
+import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
 
 const SPEED = 3.6;              // ô mỗi giây
@@ -295,6 +296,11 @@ export function update(dt, vx, vy) {
 
   G.p.pos = { map: player.mapId, x: player.x, y: player.y };
 
+  // Bỏng / trúng độc còn hành cả lúc đi bộ: bản gốc ghi ngay trong db/status
+  // (step_effect_type + step_interval), mặc định cứ 10 bước mất 1 máu. Đây là
+  // lý do hai trạng thái đó đánh dấu "còn sau khi hết trận".
+  const dau = buocDau();
+
   // Cổng dịch chuyển
   const tx = Math.floor(player.x), ty = Math.floor(player.y);
   const warp = (map.warps || []).find(w => w.x === tx && w.y === ty);
@@ -312,7 +318,34 @@ export function update(dt, vx, vy) {
       if (mon) return { t: 'encounter', mon };
     }
   }
-  return null;
+  return dau;
+}
+
+// Mỗi bước đi trừ máu con đang mang trạng thái có step_effect. Trả về sự kiện
+// báo cho giao diện nếu có con gục, còn không thì null.
+function buocDau() {
+  const guc = [];
+  for (const mon of (G.p?.party || [])) {
+    const s = STATUSES[mon.status];
+    if (!s?.step || mon.hpCur <= 0) continue;
+    const [kieu, gt, moi] = s.step;
+    mon.stepTick = (mon.stepTick || 0) + 1;
+    if (mon.stepTick < moi) continue;
+    mon.stepTick = 0;
+    let d = 0;
+    if (kieu === 'flat_damage') d = gt;
+    else if (kieu === 'percent_max_hp_damage') d = maxHp(mon) * gt / 100;
+    else if (kieu === 'percent_current_hp_damage') d = mon.hpCur * gt / 100;
+    else if (kieu === 'percent_max_hp_heal') d = -maxHp(mon) * gt / 100;
+    d = Math.round(d);
+    if (!d) continue;
+    // Bản gốc không để con nào gục hẳn vì đi bộ — chừa lại 1 máu
+    mon.hpCur = Math.max(d > 0 ? 1 : 0, Math.min(maxHp(mon), mon.hpCur - d));
+    if (d > 0 && mon.hpCur <= 1) guc.push(mon);
+  }
+  if (!guc.length) return null;
+  save();
+  return { t: 'stepHurt', mons: guc };
 }
 
 // Chọn Tuxemon hoang. Ưu tiên bảng gặp lấy thẳng từ bản gốc (js/data/encounters.js

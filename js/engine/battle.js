@@ -8,6 +8,7 @@ import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn,
   typesOf } from './monster.js';
 import { TYPES, TYPE_NAMES } from '../data/types.js';
 import { PLAGUES } from '../data/plagues.js';
+import { STATUSES } from '../data/statuses.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName,
@@ -721,7 +722,22 @@ export class Battle {
       for (let i = 0; i < this.sides.length; i++) {
         const mon = this.activeMon(i);
         if (mon && !isFainted(mon)) {
-          const r = endOfTurn(mon, displayName(mon));
+          // Trạng thái nối máu thì bên kia là con đang đứng sân của phe đối diện
+          const noi = STATUSES[mon.status]?.link ? this.activeMon(1 - i) : null;
+          const r = endOfTurn(mon, displayName(mon), noi);
+          if (r.toLinked && noi) {
+            const truoc = noi.hpCur;
+            noi.hpCur = clamp(noi.hpCur + r.toLinked, 0, maxHp(noi));
+            const lech = noi.hpCur - truoc;
+            if (lech > 0) {
+              ev.push({ t: 'heal', side: 1 - i, slot: this.sides[1 - i].active, amount: lech });
+            } else if (lech < 0) {
+              ev.push({ t: 'dmg', side: 1 - i, slot: this.sides[1 - i].active, dmg: -lech, eff: 1 });
+            }
+            if (isFainted(noi) && !survives(noi)) {
+              if (this.handleFaint(1 - i, ev)) this.endBattle(i, ev);
+            }
+          }
           if (r.heal > 0) {
             ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount: r.heal });
             if (r.msg) ev.push({ t: 'msg', text: r.msg });
