@@ -9,6 +9,7 @@ import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '..
 import { expProgress } from '../engine/exp.js';
 import { condTag } from '../engine/status.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
+import { boc as bocDoRoi } from '../engine/drops.js';
 import { isInside, healSpot } from '../engine/overworld.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
@@ -534,6 +535,15 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       } else if (kind === 'wild') {
         G.p.stats.wins++;
         questToasts(emitQuest('win_battles', {}));
+        // Con hoang rơi nguyên liệu nấu ăn theo HỆ của nó — đây là nguồn chính
+        // để có mấy thứ tiệm tạp hoá không bán (xem js/engine/drops.js)
+        const roi = bocDoRoi(enemy);
+        if (roi) {
+          addItem(roi.id, roi.n);
+          const ten = ITEMS[roi.id] ? ITEMS[roi.id].name : roi.id;
+          floatPop(`+${ten}`, 'pop-exp', 40);
+          log(`Nhặt được ${ten} ×${roi.n}!`);
+        }
       }
       grantTrainerRewards();
       capNote();

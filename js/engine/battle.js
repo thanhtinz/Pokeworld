@@ -5,7 +5,7 @@ import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn,
-  typesOf } from './monster.js';
+  typesOf, coHoiGangGuong } from './monster.js';
 import { TYPES, TYPE_NAMES } from '../data/types.js';
 import { PLAGUES } from '../data/plagues.js';
 import { STATUSES } from '../data/statuses.js';
@@ -46,6 +46,18 @@ const SPEED_FACTOR = 0.25;
 const SPEED_BONUS = 1.0;
 const DODGE_MOD = 0.01;
 
+// Gắng gượng vì thân thiết: con nào rất quý chủ thì MỘT LẦN mỗi trận có cửa
+// trụ lại với 1 máu thay vì gục. Khác "lì đòn" (trạng thái diehard) ở chỗ đây
+// là do nuôi nấng mà có, không phải chiêu nào gắn vào.
+function gangGuong(mon) {
+  if (!mon || mon.daGang) return false;
+  const p = coHoiGangGuong(mon);
+  if (!p || !rng.roll(p)) return false;
+  mon.daGang = true;
+  mon.hpCur = 1;
+  return true;
+}
+
 function moveName(mvId) {
   const mv = MOVES[mvId];
   return (mv && mv.name) || mvId;
@@ -78,6 +90,8 @@ export class Battle {
         stages: freshStages(), // stage của con đang ra sân
         mustSwitch: false,
       };
+      // Mỗi trận chỉ được gắng gượng một lần cho mỗi con — xoá dấu cũ
+      for (const m of s.mons) delete m.daGang;
       // Con đầu tiên còn sống ra sân
       for (let slot = 0; slot < s.mons.length; slot++) {
         if (!isFainted(s.mons[slot])) { side.active = slot; break; }
@@ -435,6 +449,8 @@ export class Battle {
       foe.hpCur = Math.max(0, foe.hpCur - res.dmg);
       if (foe.hpCur <= 0 && survives(foe)) {
         ev.push({ t: 'msg', text: `${displayName(foe)} lì đòn, vẫn còn 1 máu!` });
+      } else if (foe.hpCur <= 0 && gangGuong(foe)) {
+        ev.push({ t: 'msg', text: `${displayName(foe)} gắng gượng vì bạn, vẫn còn 1 máu!` });
       }
       ev.push({ t: 'dmg', side: oi, slot: this.sides[oi].active, dmg: res.dmg,
                 eff: res.eff, moveType: (mv.types || ['normal'])[0],

@@ -87,6 +87,16 @@ MANG_THEO = {
 GIA_TIEN_ICH = {'fishing_rod': 3000, 'neptune': 12000, 'poseidon': 30000,
                 'alpha_seep': 700}
 
+# Nguyen lieu nau an: ban goc khong ghi gia (chung khong ban o dau ca) nen
+# mkitems.py de gia 0 — nghia la KHONG mua duoc, ma cung khong roi o dau. Ca
+# man Che Tao thanh vo dung. Cho tiem tap hoa ban may thu co ban, con may thu
+# quy thi phai di danh Tuxemon hoang moi roi ra (xem js/data/drops.js).
+LIEU_BAN = {
+    'crackle_salt': 120, 'meal_dust': 150, 'sweetroot': 180,
+    'mistflour_eggs': 220, 'moo_bloom': 260, 'suncrust_butter': 280,
+    'glowfat': 300, 'starpepper': 340, 'spice_dust': 380,
+}
+
 BUA = {
     'antidote_grapes': ('Chùm Nho Giải Độc', 1800),
     'cure_festering': ('Thuốc Trị Mưng Mủ', 1800),
@@ -113,6 +123,17 @@ VI_KHAU_VI = {
     'bland': 'lạt', 'peppy': 'hăng', 'salty': 'mặn', 'hearty': 'đậm',
     'zesty': 'thanh', 'refined': 'tinh', 'savory': 'bùi',
 }
+# Vi AM lam manh mot chi so, vi LANH lam yeu mot chi so — db/taste/taste.yaml.
+# Mot vai tep do an ben goc ghi sai vi (food_pie.yaml de "taste_pie", khong
+# phai vi nao ca). Chep nguyen thi mo ta hien ra "Mon vi dam va taste_pie" va
+# mon do khong bao gio hop hay ky khau vi ai — loc bo cho gon.
+VI_AM = {'peppy', 'salty', 'hearty', 'zesty', 'refined', 'savory'}
+VI_LANH = {'mild', 'sweet', 'soft', 'flakey', 'dry', 'bland'}
+
+
+def loc_vi(raw, hop_le):
+    v = str(raw).replace('taste_', '')
+    return v if v in hop_le else None
 
 # Ten trang thai tieng Viet (chi de viet mo ta bua ho menh)
 TEN_TRANG_THAI = {
@@ -409,10 +430,11 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
             phan.append('Tăng vĩnh viễn %d%% chỉ số %s.'
                         % (round(float(p[1]) * 100), CHI_SO.get(p[0], p[0]).lower()))
         elif t == 'food_preference':
-            warm = VI_KHAU_VI.get(p[0].replace('taste_', ''), p[0])
-            cold = VI_KHAU_VI.get(p[1].replace('taste_', ''), p[1])
-            phan.append('Món vị %s và %s — hợp khẩu vị thì tăng thân thiết, kỵ thì mất.'
-                        % (warm, cold))
+            w = loc_vi(p[0], VI_AM)
+            c = loc_vi(p[1], VI_LANH)
+            vi = ' và '.join(VI_KHAU_VI[x] for x in (w, c) if x)
+            phan.append('Món vị %s — hợp khẩu vị thì tăng thân thiết và no bụng'
+                        ' một lúc, kỵ thì mất thân thiết.' % (vi or 'lạ'))
         elif t == 'learn_tm':
             phan.append('Dạy chiêu %s cho một Tuxemon bất kỳ, không cần đủ cấp.'
                         % CHIEU.get(p[0], (p[0], ''))[0])
@@ -486,6 +508,12 @@ def viet_shops(root, co_mon):
                 if it.get('inventory') and int(it['inventory']) > 0:
                     row['stock'] = int(it['inventory'])
                 its.append(row)
+            # Tiem nao ban thuoc hoi la tiem tap hoa — cho ban them nguyen
+            # lieu nau an co ban, khong thi mua o dau ra ma nau
+            if any(it['id'] == 'potion' for it in its):
+                for ma, gia in LIEU_BAN.items():
+                    if ma in co_mon and not any(it['id'] == ma for it in its):
+                        its.append({'id': ma, 'price': gia})
             if not its:
                 continue
             rows.append((e['slug'], {
@@ -580,9 +608,9 @@ def hieu_ung_js(slug, eff, doc):
                 out.append(obj({'t': js('boost'), 'stat': js(stat),
                                 'step': js(int(mod.get('step', 1)))}))
         elif t == 'food_preference':
-            out.append(obj({'t': js('food'),
-                            'warm': js(p[0].replace('taste_', '')),
-                            'cold': js(p[1].replace('taste_', ''))}))
+            w = loc_vi(p[0], VI_AM)
+            c = loc_vi(p[1], VI_LANH)
+            out.append(obj({'t': js('food'), 'warm': js(w), 'cold': js(c)}))
         elif t == 'learn_tm':
             out.append(obj({'t': js('learnMove'), 'id': js(p[0])}))
         elif t == 'learn_mm':
@@ -744,6 +772,8 @@ def main():
             mac_dinh = BUA[slug][1]
         elif slug in GIA_TIEN_ICH:
             mac_dinh = GIA_TIEN_ICH[slug]
+        elif slug in LIEU_BAN:
+            mac_dinh = LIEU_BAN[slug]
         mua, ban = gia_goc.get(slug, (d.get('cost') or mac_dinh,
                                       round((d.get('cost') or mac_dinh) * 0.5)))
         trong_tran = 'MainCombatMenuState' in (d.get('usable_in') or [])

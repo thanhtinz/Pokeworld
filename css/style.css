@@ -339,6 +339,15 @@ html, body {
 }
 .expbar-fill { height: 100%; background: linear-gradient(90deg, #5c7cfa, #9775fa); transition: width .5s ease; }
 
+/* Ghi chú "nấu để làm gì" + hai dòng thân thiết / bữa no trong màn Đội hình */
+.cf-note { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.cf-note small { color: var(--muted); font-size: .82rem; line-height: 1.45; }
+.than-loi { color: var(--muted); font-size: .8rem; line-height: 1.4; }
+.bua-an {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: var(--green); font-size: .8rem;
+}
+
 /* ==== Badge hệ / trạng thái ==== */
 .type-badge {
   display: inline-block;

@@ -17,6 +17,39 @@ import sys
 
 import yaml
 
+# ==== Nguyen lieu roi ra tu Tuxemon hoang ====
+# Ban goc khong co he thong "danh quai roi do": nguyen lieu nau an khong ban o
+# dau, khong roi o dau, nen ca man Che Tao chi de ngam. Bang duoi gan moi
+# nguyen lieu voi mot vai HE cua Tuxemon cho hop le: danh con he Lua thi ra
+# tieu, gia vi; con he Go thi ra rau, vo cay...
+#
+# w = trong so trong bang boc tham cua he do. May thu tiem tap hoa co ban thi
+# de trong so thap, thu quy (khong mua duoc o dau) de cao cho de gap.
+ROI = {
+    'crackle_salt':     [('water', 8), ('metal', 6), ('normal', 4)],
+    'meal_dust':        [('earth', 8), ('normal', 5), ('wood', 4)],
+    'sweetroot':        [('wood', 8), ('earth', 6)],
+    'mistflour_eggs':   [('sky', 8), ('normal', 6)],
+    'moo_bloom':        [('normal', 7), ('wood', 5), ('heroic', 4)],
+    'suncrust_butter':  [('normal', 6), ('fire', 4), ('earth', 4)],
+    'glowfat':          [('cosmic', 9), ('lightning', 7), ('fire', 5)],
+    'starpepper':       [('fire', 9), ('venom', 6)],
+    'spice_dust':       [('fire', 7), ('venom', 7), ('shadow', 5)],
+    # Nhung thu duoi day KHONG ban trong tiem — chi danh Tuxemon hoang moi co
+    'stonefruit_bulbs': [('earth', 12), ('wood', 8)],
+    'zestsap':          [('wood', 12), ('venom', 7)],
+    'field_greens':     [('wood', 10), ('water', 6)],
+    'beastmoss':        [('shadow', 10), ('wood', 6), ('frost', 6)],
+    'root_beast_bark':  [('wood', 10), ('earth', 7)],
+    'zestroot_wraps':   [('wood', 9), ('heroic', 6)],
+    'flamehorn_shank':  [('fire', 10), ('heroic', 8)],
+    'sky_feather':      [('sky', 12), ('frost', 7)],
+}
+
+# Xac suat roi do sau MOT tran thang Tuxemon hoang. Danh mai khong ra thi nan,
+# ma ra lien tuc thi day tui trong nua tieng — mot phan ba la vua.
+TI_LE_ROI = 0.34
+
 # Ten tieng Viet cho cach che tao
 CACH = {
     'cooking': 'Nấu ăn',
@@ -29,6 +62,33 @@ CACH = {
 
 def js(v):
     return json.dumps(v, ensure_ascii=False)
+
+
+def viet_drops(lieu):
+    """js/data/drops.js — bang nguyen lieu roi ra theo HE cua con vua danh."""
+    thieu = sorted(set(lieu) - set(ROI))
+    if thieu:
+        print('CHUA GAN HE CHO NGUYEN LIEU:', ', '.join(thieu))
+    theo_he = {}
+    for ma, ds in sorted(ROI.items()):
+        if ma not in lieu:
+            continue
+        for he, w in ds:
+            theo_he.setdefault(he, []).append({'id': ma, 'w': w})
+    with open('js/data/drops.js', 'w', encoding='utf-8') as f:
+        f.write('// TuxeWorld H5 | data/drops.js | Nguyên liệu rơi từ Tuxemon hoang\n')
+        f.write('// SINH TU DONG boi tools/mkrecipes.py — KHONG SUA TAY.\n')
+        f.write('//\n')
+        f.write('// Bản gốc Tuxemon không có hệ thống rơi đồ: nguyên liệu nấu ăn\n')
+        f.write('// không bán ở đâu, không rơi ở đâu, nên màn Chế Tạo chỉ để ngắm.\n')
+        f.write('// Bảng này gắn mỗi nguyên liệu với vài HỆ cho hợp lẽ — đánh con\n')
+        f.write('// hệ Lửa thì ra tiêu, gia vị; con hệ Gỗ thì ra rau, vỏ cây.\n\n')
+        f.write('export const TI_LE_ROI = %s;\n\n' % js(TI_LE_ROI))
+        f.write('export const ROI_THEO_HE = {\n')
+        for he, ds in sorted(theo_he.items()):
+            f.write('  %s: %s,\n' % (he, js(ds)))
+        f.write('};\n')
+    return theo_he
 
 
 def main():
@@ -91,6 +151,8 @@ def main():
     with open('tools/_lieu.json', 'w', encoding='utf-8') as f:
         json.dump({'lieu': sorted(lieu), 'ketqua': sorted(ketqua)}, f,
                   ensure_ascii=False, indent=1)
+
+    viet_drops(lieu)
 
     print('OK: %d công thức, %d nguyên liệu, %d loại kết quả'
           % (len(rows), len(lieu), len(ketqua)))

@@ -12,6 +12,7 @@ import { MOVES } from '../data/moves.js';
 import { LEARNSETS } from '../data/learnsets.js';
 import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../data/tastes.js';
 import { expForLevel } from './exp.js';
+import { heSoAn } from './meal.js';
 
 // Thứ tự chỉ số trong mảng iv/tp (khớp schema save)
 export const STAT_KEYS = ['hp', 'armour', 'dodge', 'melee', 'ranged', 'speed'];
@@ -138,6 +139,8 @@ export function stats(mon) {
     let val = Math.floor(base * mult + iv + tp);
     if (cold?.stat === key) val = Math.floor(val * cold.mult);
     if (warm?.stat === key) val = Math.floor(val * warm.mult);
+    // Bữa no do món ăn tự nấu để lại (engine/meal.js) — hết giờ là tự hết
+    val = Math.floor(val * heSoAn(mon, key));
     out[key] = val;
   }
   return out;
@@ -223,5 +226,22 @@ export function replaceMove(mon, idx, moveId) {
 export function addBond(mon, n) {
   if (!mon) return;
   mon.bond = clamp((mon.bond ?? 25) + n, 0, 100);
+}
+
+// Thân thiết ĂN VÀO TRẬN ĐẤU, không chỉ để tiến hoá. Trên mức trung bình (50)
+// thì con vật đánh mạnh dần lên, tối đa +10% ở mức 100. Dưới 50 không phạt —
+// mới bắt về đã yếu sẵn thì chẳng ai nuôi.
+export const HE_SO_THAN = 500;          // 50 điểm thân = +10%
+export const MOC_LI_DON = 80;           // từ đây mới có cửa gắng gượng
+export function heSoThanThiet(mon) {
+  const b = mon?.bond ?? 25;
+  return 1 + Math.max(0, b - 50) / HE_SO_THAN;
+}
+
+// Rất thân thì một lần mỗi trận có thể gắng gượng lại với 1 máu.
+// Xác suất = bond/200, tức 40% ở mức 80 và 50% ở mức 100.
+export function coHoiGangGuong(mon) {
+  const b = mon?.bond ?? 25;
+  return b >= MOC_LI_DON ? b / 200 : 0;
 }
 

@@ -2861,6 +2861,141 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('trong nhà nào cũng có lối ra', ket.length === 0, ket.map(([id]) => id).join(', '));
 }
 
+// ==== Nấu ăn phải có ích cho Tuxemon ====
+// Trước đây cho ăn chỉ nhích điểm thân thiết, mà thân thiết thì chỉ vài loài
+// dùng tới lúc tiến hoá — gom sáu loại nguyên liệu để được đúng chừng đó thì
+// chẳng ai nấu. Nay có thêm BỮA NO và thân thiết ăn thẳng vào trận đấu.
+{
+  const MEAL = await import('../js/engine/meal.js');
+  const { mucAn } = await import('../js/engine/useitem.js');
+  const { newTuxemon, stats, heSoThanThiet, coHoiGangGuong, MOC_LI_DON }
+    = await import('../js/engine/monster.js');
+  const { ITEMS } = await import('../js/data/items.js');
+
+  const sp = Object.keys(SPECIES)[0];
+  const m = newTuxemon(sp, 30);
+  m.tasteWarm = 'hearty';       // mạnh về Giáp
+  m.tasteCold = 'dry';
+  delete m.buaAn;
+
+  ok('chưa ăn thì không có bữa no', MEAL.buaAn(m) === null && MEAL.chuBuaAn(m) === '');
+  const truoc = stats(m).armour;
+  // Món trùng CẢ HAI vị -> mức great
+  ok('món trùng cả hai vị là rất hợp miệng', mucAn(m, 'hearty', 'dry') === 'great');
+  const no = MEAL.choAn(m, 'hearty', 'great');
+  ok('ăn xong có câu tả bữa no', typeof no === 'string' && no.includes('Giáp'));
+  ok('bữa no cộng đúng chỉ số của vị ấm',
+    stats(m).armour > truoc, `${truoc} -> ${stats(m).armour}`);
+  ok('cộng đúng 20% cho mức rất hợp miệng',
+    Math.abs(stats(m).armour / truoc - 1.2) < 0.02);
+  ok('chỉ số khác không bị đụng vào', stats(m).speed === stats(newTuxemonGiong(m)).speed);
+  ok('bữa no có hạn dùng', MEAL.buaAn(m).den > Date.now());
+  ok('có câu hiện lên giao diện', MEAL.chuBuaAn(m).includes('Giáp'));
+
+  // Hết hạn thì tự dọn, chỉ số về như cũ
+  m.buaAn.den = Date.now() - 1;
+  ok('hết giờ là hết no', MEAL.buaAn(m) === null && m.buaAn === undefined);
+  ok('chỉ số trở lại như cũ', stats(m).armour === truoc);
+
+  // Món kỵ miệng thì không no
+  ok('món kỵ miệng là terrible', mucAn(m, 'soft', 'refined') === 'terrible');
+  ok('kỵ miệng thì không có bữa no', MEAL.choAn(m, 'soft', 'terrible') === null);
+  ok('mức trung bình vẫn no ít', (() => {
+    const r = MEAL.choAn(m, 'peppy', 'average');
+    const b = MEAL.buaAn(m);
+    delete m.buaAn;
+    return !!r && b.stat === 'speed' && Math.abs(b.pct - 0.08) < 1e-9;
+  })());
+
+  // Thân thiết ăn vào trận đấu
+  ok('dưới mức trung bình thì không phạt', heSoThanThiet({ bond: 10 }) === 1);
+  ok('thân thiết tối đa cộng 10% sát thương',
+    Math.abs(heSoThanThiet({ bond: 100 }) - 1.1) < 1e-9);
+  ok('chưa đủ thân thì không gắng gượng được',
+    coHoiGangGuong({ bond: MOC_LI_DON - 1 }) === 0);
+  ok('đủ thân thì có cửa gắng gượng',
+    coHoiGangGuong({ bond: MOC_LI_DON }) > 0 && coHoiGangGuong({ bond: 100 }) <= 0.5);
+
+  // Mọi món ăn trong game đều trỏ tới một vị ấm CÓ THẬT, không thì ăn xong
+  // không no mà cũng chẳng ai báo
+  const { TASTES_WARM, TASTES_COLD } = await import('../js/data/tastes.js');
+  // Vị nào ghi ra thì phải là vị CÓ THẬT. Bên gốc có tệp ghi sai (food_pie
+  // để "taste_pie"), mkitems.py lọc thành null chứ không chép bừa.
+  const sai = Object.entries(ITEMS).filter(([, it]) =>
+    (it.eff || []).some(e => e.t === 'food'
+      && ((e.warm && !TASTES_WARM[e.warm]) || (e.cold && !TASTES_COLD[e.cold]))));
+  ok('món ăn nào cũng có vị hợp lệ', sai.length === 0, sai.map(([k]) => k).join(', '));
+  ok('món ăn nào cũng có ít nhất một vị', Object.values(ITEMS)
+    .filter(it => (it.eff || []).some(e => e.t === 'food' && !e.warm && !e.cold))
+    .length === 0);
+  ok('mô tả món ăn không lòi mã gốc ra',
+    !Object.values(ITEMS).some(it => (it.desc || '').includes('taste_')));
+  const soMon = Object.values(ITEMS).filter(it => (it.eff || []).some(e => e.t === 'food')).length;
+  ok('có kha khá món để nấu', soMon >= 20, String(soMon));
+
+  function newTuxemonGiong(g) {
+    const x = newTuxemon(g.sp, g.lv);
+    x.iv = g.iv; x.tp = g.tp;
+    x.tasteWarm = g.tasteWarm; x.tasteCold = g.tasteCold;
+    return x;
+  }
+}
+
+// ==== Nguyên liệu nấu ăn phải kiếm được ====
+// Trước đây 17 loại nguyên liệu không bán ở đâu, không rơi ở đâu — mở màn Chế
+// Tạo ra chỉ toàn "Còn thiếu 6 loại", không cách nào nấu nổi một món.
+{
+  const { RECIPES } = await import('../js/data/recipes.js');
+  const { SHOPS } = await import('../js/data/shops.js');
+  const { ROI_THEO_HE, TI_LE_ROI } = await import('../js/data/drops.js');
+  const { boc } = await import('../js/engine/drops.js');
+  const { newTuxemon } = await import('../js/engine/monster.js');
+  const { ITEMS } = await import('../js/data/items.js');
+  const { TYPE_NAMES } = await import('../js/data/types.js');
+
+  const lieu = new Set();
+  for (const r of RECIPES) Object.keys(r.ng).forEach(id => lieu.add(id));
+  ok('có bảng nguyên liệu để kiểm', lieu.size >= 15);
+
+  const banShop = new Set();
+  for (const s of Object.values(SHOPS)) (s.items || []).forEach(i => banShop.add(i.id));
+  const roiDuoc = new Set();
+  for (const ds of Object.values(ROI_THEO_HE)) ds.forEach(d => roiDuoc.add(d.id));
+
+  const khongKiem = [...lieu].filter(id => !banShop.has(id) && !roiDuoc.has(id));
+  ok('nguyên liệu nào cũng kiếm được', khongKiem.length === 0, khongKiem.join(', '));
+  ok('có thứ phải đi đánh mới có', [...lieu].some(id => !banShop.has(id)));
+  ok('mua được thì phải có giá', [...banShop].filter(id => lieu.has(id))
+    .every(id => (SHOPS.tuxe_mart_taba?.items || []).concat(
+      ...Object.values(SHOPS).map(s => s.items))
+      .filter(i => i.id === id).every(i => i.price > 0)));
+  ok('hệ nào trong bảng rơi cũng là hệ có thật',
+    Object.keys(ROI_THEO_HE).every(h => TYPE_NAMES[h]));
+  ok('món rơi nào cũng có trong bảng vật phẩm',
+    [...roiDuoc].every(id => !!ITEMS[id]));
+  ok('tỉ lệ rơi ở khoảng chơi được', TI_LE_ROI > 0.1 && TI_LE_ROI < 0.6);
+
+  // Đánh nhiều lần một con hệ Lửa thì phải ra đồ, và chỉ ra đồ của hệ đó
+  const heLua = Object.keys(SPECIES).find(k => (SPECIES[k].types || []).includes('fire')
+    && (SPECIES[k].types || []).length === 1);
+  if (heLua) {
+    const hop = new Set((ROI_THEO_HE.fire || []).map(d => d.id));
+    const con = newTuxemon(heLua, 10);
+    let ra = 0, la = 0;
+    for (let i = 0; i < 400; i++) {
+      const d = boc(con);
+      if (!d) continue;
+      ra++;
+      if (!hop.has(d.id)) la++;
+    }
+    ok('đánh con hệ Lửa thì có rơi đồ', ra > 60, `${ra}/400`);
+    ok('chỉ rơi đồ đúng hệ của nó', la === 0, `${la} món lạ`);
+    ok('tần suất rơi bám sát tỉ lệ đã khai',
+      Math.abs(ra / 400 - TI_LE_ROI) < 0.12, `${(ra / 400).toFixed(2)} vs ${TI_LE_ROI}`);
+  }
+  ok('không có con thì không rơi gì', boc(null) === null);
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

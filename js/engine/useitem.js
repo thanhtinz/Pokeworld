@@ -26,6 +26,7 @@ import { removeStatus } from './status.js';
 import { gainExp } from './exp.js';
 import { checkEvolution } from './evolution.js';
 import { rng } from '../util.js';
+import { choAn } from './meal.js';
 
 // Tên chỉ số hiện trong thông báo
 const STAT_VI = { hp: 'HP', armour: 'Giáp', dodge: 'Né', melee: 'Cận chiến',
@@ -41,17 +42,22 @@ const DOI_NGHICH = {
 // config_monster.bond_preferences
 const BOND = { great: 10, good: 5, average: 0, bad: -5, terrible: -10 };
 
-export function foodBond(mon, warm, cold) {
+// Mức hợp khẩu vị của một món với một con: 'great' | 'good' | 'average' |
+// 'bad' | 'terrible'. Vừa quyết định điểm thân thiết, vừa quyết định bữa no
+// (engine/meal.js) nên tách riêng ra dùng chung.
+export function mucAn(mon, warm, cold) {
   const hopWarm = warm === mon.tasteWarm;
   const hopCold = cold === mon.tasteCold;
   const kyWarm = DOI_NGHICH[warm] === mon.tasteWarm;
   const kyCold = DOI_NGHICH[cold] === mon.tasteCold;
-  if (hopWarm && hopCold) return BOND.great;
-  if (hopWarm || hopCold) return BOND.good;
-  if (kyWarm && kyCold) return BOND.terrible;
-  if (kyWarm || kyCold) return BOND.bad;
-  return BOND.average;
+  if (hopWarm && hopCold) return 'great';
+  if (hopWarm || hopCold) return 'good';
+  if (kyWarm && kyCold) return 'terrible';
+  if (kyWarm || kyCold) return 'bad';
+  return 'average';
 }
+
+export const foodBond = (mon, warm, cold) => BOND[mucAn(mon, warm, cold)];
 
 // Món tác động lên thế giới (không chọn Tuxemon nào): cần câu, bình xịt,
 // chìa khoá thoát, lều trại.
@@ -157,11 +163,15 @@ export function useItem(itemId, mon, ctx = {}) {
         ok = true;
       }
     } else if (e.t === 'food') {
-      const n = foodBond(mon, e.warm, e.cold);
+      const muc = mucAn(mon, e.warm, e.cold);
+      const n = BOND[muc];
       addBond(mon, n);
       if (n > 0) msgs.push(`Rất hợp khẩu vị! Thân thiết +${n}.`);
       else if (n < 0) msgs.push(`Không hợp khẩu vị... Thân thiết ${n}.`);
       else msgs.push('Ăn xong nhưng chẳng thấy gì đặc biệt.');
+      // Ăn xong còn no một lúc: chỉ số ứng với vị ấm của món được cộng thêm
+      const no = choAn(mon, e.warm, muc);
+      if (no) msgs.push(`No bụng: ${no}.`);
       ok = true;
     } else if (e.t === 'learnMove' || e.t === 'learnRandom') {
       // Đĩa chiêu (TM) dạy đúng một chiêu; đĩa hệ (MM) bốc một chiêu bất kỳ của

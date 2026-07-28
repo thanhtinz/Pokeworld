@@ -3,7 +3,9 @@ import { G, save, CONFIG } from '../state.js';
 import { monImg, skinsFor } from '../engine/monskin.js';
 import { wearMonSkin, trainerLevel, monLevelCap } from '../engine/player.js';
 import { unlocked, requirement, imgOf } from '../data/cosmetics.js';
-import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/monster.js';
+import { stats, maxHp, displayName, isFainted, STAT_KEYS,
+  heSoThanThiet, coHoiGangGuong, MOC_LI_DON } from '../engine/monster.js';
+import { chuBuaAn } from '../engine/meal.js';
 import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
@@ -11,7 +13,7 @@ import { ITEMS } from '../data/items.js';
 import { tasteText } from '../data/tastes.js';
 import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, header, holoStyle, itemIcon, flairTag } from './kit.js';
-import { rangeIcon, speedIcon } from './icons.js';
+import { rangeIcon, speedIcon, uiIcon } from './icons.js';
 import { openSheet } from './sheet.js';
 
 // Sáu chỉ số của Tuxemon
@@ -71,6 +73,16 @@ export function render(el) {
     return out;
   }
 
+  // Thân thiết được cái gì — nói thẳng ra, không bắt người chơi đoán
+  function loiThanThiet(m) {
+    const them = Math.round((heSoThanThiet(m) - 1) * 100);
+    const gang = Math.round(coHoiGangGuong(m) * 100);
+    if (!them) return `Chưa đủ thân để lợi gì — cho ăn món hợp miệng là lên (trên 50 mới cộng sát thương)`;
+    return gang
+      ? `Sát thương +${them}% · ${gang}% cơ hội gắng gượng lại 1 máu (1 lần/trận)`
+      : `Sát thương +${them}% · đủ ${MOC_LI_DON} thân thì có thêm cửa gắng gượng`;
+  }
+
   function drawDetail(m) {
     const box = el.querySelector('#party-detail');
     const spec = SPECIES[m.sp];
@@ -87,6 +99,8 @@ export function render(el) {
             <small>Lv.${m.lv} · ${m.gender === 'm' ? 'Đực' : m.gender === 'f' ? 'Cái' : '—'} · ${esc(tasteText(m))}</small><br>
             <small>EXP: ${cur}/${need} tới level sau</small><br>
             <small class="bond-line">Thân thiết ${bondHearts(m.bond ?? 25)} ${m.bond ?? 25}/100</small>
+            <br><small class="than-loi">${esc(loiThanThiet(m))}</small>
+            ${chuBuaAn(m) ? `<br><small class="bua-an">${uiIcon('craft', 15)} No bụng: ${esc(chuBuaAn(m))}</small>` : ''}
             ${m.held && ITEMS[m.held] ? `<br><small class="held-line">${
               itemIcon(m.held, '', 18)} Đang cầm ${esc(ITEMS[m.held].name)}</small>` : ''}
             ${m.lv >= cap ? `<br><small class="cap-note">Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp</small>` : ''}

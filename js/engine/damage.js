@@ -16,7 +16,7 @@ import { rng, clamp } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { typeEff } from '../data/types.js';
-import { stats, typesOf } from './monster.js';
+import { stats, typesOf, heSoThanThiet } from './monster.js';
 import { statMult } from './status.js';
 
 // Hệ số buff/debuff trong trận (-6..+6) — phần này game giữ lại cho dễ chơi
@@ -74,6 +74,9 @@ export function calcDamage(att, def, moveId, ctx = {}) {
   } else {
     const a = attStats[userKey] * statMult(att, userKey);
     strength = a * stageMult(ctx.attStage) * (COEFF_DAMAGE + att.lv);
+    // Thân thiết cao thì đánh mạnh hơn (engine/monster.js). Chiêu tầm
+    // "reliable" ăn theo cấp chứ không theo chỉ số nên không cộng vào.
+    strength *= heSoThanThiet(att);
   }
 
   // Sức đỡ
