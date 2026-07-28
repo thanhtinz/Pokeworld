@@ -2452,3 +2452,37 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .tcard-v { flex: none; font-size: .82rem; font-weight: 700; color: var(--text);
   font-variant-numeric: tabular-nums; white-space: nowrap; }
 
+
+/* ==== Nhà đất (ui/estate.js) ==== */
+.es-note { margin: 0; font-size: .84rem; line-height: 1.6; color: var(--muted); }
+.es-lot, .es-base { display: flex; align-items: center; gap: 12px; }
+.es-lot-mid, .es-base-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.es-lot-mid b, .es-base-mid b { font-size: .9rem; }
+.es-lot-mid small, .es-base-mid small { color: var(--muted); font-size: .76rem; }
+.es-base-mid .es-o { color: var(--gold); }
+.es-lot.mine, .es-base.mine { border-color: rgba(240, 180, 41, .5); }
+.es-base-img { width: 74px; height: 60px; object-fit: contain; image-rendering: pixelated; flex: none; }
+.badge-mine { flex: none; font-size: .68rem; color: var(--gold);
+  border: 1px solid rgba(240, 180, 41, .5); border-radius: 999px; padding: 3px 9px; }
+
+/* Lưới kê đồ trong nhà */
+.es-room-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.es-room-head b { flex: 1; }
+.es-room-head small { color: var(--muted); font-size: .74rem; }
+.es-room {
+  display: grid; aspect-ratio: 1; gap: 2px; margin-bottom: 10px;
+  grid-template-columns: repeat(var(--n), 1fr);
+  grid-template-rows: repeat(var(--n), 1fr);
+  background: #2a2036; border: 2px solid #4a3a2a; border-radius: 8px; padding: 4px;
+  background-image: linear-gradient(45deg, rgba(255,255,255,.03) 25%, transparent 25%,
+    transparent 75%, rgba(255,255,255,.03) 75%);
+  background-size: 16px 16px;
+}
+.es-cell { border: 1px dashed rgba(255, 255, 255, .08); border-radius: 3px;
+  background: none; padding: 0; min-height: 0; }
+.es-cell:active { background: rgba(240, 180, 41, .2); }
+/* Đồ nằm ĐÈ lên lưới, không nhận click — click xuyên xuống ô bên dưới để gỡ */
+.es-item { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;
+  pointer-events: none; align-self: end; }
+.es-shop-img { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+.es-share { display: flex; align-items: center; gap: 7px; font-size: .82rem; }

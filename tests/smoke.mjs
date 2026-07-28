@@ -62,6 +62,8 @@ import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
 import * as P from '../js/engine/park.js';
 import * as DC from '../js/engine/daycare.js';
+import * as ES from '../js/engine/estate.js';
+import { FURNITURE, HOUSE_BASES } from '../js/data/estate.js';
 import { bangThanhTuu, nhanThuong, nhanHet, choNhan } from '../js/engine/achievements.js';
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -1956,6 +1958,68 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   for (let i = 0; i < 40; i++) DC.moiBuoc(1);
   ok('hết tiền thì ngừng cộng EXP chứ không nợ',
     DC.kho().mons[0].exp === expKhiHetTien && G.p.money === 0);
+}
+
+// ==== Nhà đất ====
+{
+  newGame('EsTester');
+  ok('có đủ mẫu nhà và đồ trang trí', HOUSE_BASES.length >= 4 && FURNITURE.length >= 10,
+    `${HOUSE_BASES.length} nhà / ${FURNITURE.length} món`);
+  ok('mẫu nhà xếp theo giá tăng dần',
+    HOUSE_BASES.every((b, i) => i === 0 || b.price > HOUSE_BASES[i - 1].price));
+  ok('nhà càng đắt lưới càng rộng',
+    HOUSE_BASES.every((b, i) => i === 0 || b.o >= HOUSE_BASES[i - 1].o));
+  // Lô đất phải rơi vào ô TRỐNG của bản đồ, không đè lên nhà cửa/NPC có sẵn
+  {
+    const m = MAPS[ES.KHU_DAT_MAP];
+    const ban = new Set();
+    for (const w of m.warps || []) ban.add(`${w.x},${w.y}`);
+    for (const n of m.npcs || []) ban.add(`${n.x},${n.y}`);
+    const xau = [];
+    for (const l of ES.LOTS) {
+      for (let dy = 0; dy < 3; dy++) {
+        for (let dx = 0; dx < 3; dx++) {
+          const gx = l.x + dx, gy = l.y + dy;
+          if (m.solid[gy * m.w + gx]) xau.push(`${l.id}: tường ${gx},${gy}`);
+          else if (ban.has(`${gx},${gy}`)) xau.push(`${l.id}: vướng ${gx},${gy}`);
+        }
+      }
+    }
+    ok('mọi lô đất nằm trên ô trống, không đè lên gì', xau.length === 0,
+      [...new Set(xau)].join(' | '));
+  }
+
+  G.p.money = 1000;
+  ok('không đủ tiền thì không mua được đất', ES.muaDat('a1')[1] !== null);
+  G.p.money = 1000000;
+  ok('mua được đất', ES.muaDat('a1')[0] !== null);
+  ok('mỗi người chỉ một lô', ES.muaDat('a2')[1] !== null);
+  ok('chưa có nhà thì bản đồ không vẽ gì', ES.nhaTrenBanDo(ES.KHU_DAT_MAP) === null);
+
+  const re = HOUSE_BASES[0], dat = HOUSE_BASES[2];
+  ok('dựng được nhà', ES.dungNha(re.id)[0] !== null);
+  ok('nhà hiện lên bản đồ', !!ES.nhaTrenBanDo(ES.KHU_DAT_MAP));
+  ok('nhà chỉ hiện ở đúng bản đồ khu đất', ES.nhaTrenBanDo('route1') === null);
+  const truoc = G.p.money;
+  const [nang] = ES.dungNha(dat.id);
+  ok('nâng cấp chỉ trả phần chênh lệch',
+    nang && G.p.money === truoc - (dat.price - re.price), String(G.p.money));
+  ok('không đổi xuống mẫu nhỏ hơn', ES.dungNha(re.id)[1] !== null);
+
+  // Kê đồ
+  const mon = FURNITURE[0];
+  ok('mua đồ vào kho', ES.muaDo(mon.id)[0] !== null && ES.conTrongKho(mon.id) === 1);
+  ok('kê được vào lưới', ES.ke(mon.id, 0, 0)[0] !== null);
+  ok('kê rồi thì rời kho', ES.conTrongKho(mon.id) === 0);
+  ES.muaDo(mon.id);
+  ok('không kê chồng lên nhau', ES.ke(mon.id, 0, 0)[1] !== null);
+  ok('không kê ra ngoài lưới', ES.ke(mon.id, ES.soO(), 0)[1] !== null);
+  ok('gỡ ra thì đồ về kho chứ không mất',
+    ES.go(0, 0)[0] !== null && ES.conTrongKho(mon.id) === 2);
+  ok('ô trống thì gỡ báo lỗi chứ không vỡ', ES.go(0, 0)[1] !== null);
+
+  ok('tổng giá trị cộng cả đất, nhà và đồ',
+    ES.tomTat().giaTri >= ES.LOT_BY_ID.a1.price + dat.price);
 }
 
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

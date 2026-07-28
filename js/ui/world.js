@@ -6,6 +6,18 @@ import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
   facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
+import { nhaTrenBanDo } from '../engine/estate.js';
+
+// Ảnh nhà giữ lại sau lần tải đầu, không tạo <img> mới mỗi khung hình
+const anhNhaCache = new Map();
+function anhNha(src) {
+  if (!anhNhaCache.has(src)) {
+    const im = new Image();
+    im.src = src;
+    anhNhaCache.set(src, im);
+  }
+  return anhNhaCache.get(src);
+}
 import { heal, displayName } from '../engine/monster.js';
 import { statusName } from '../engine/status.js';
 import { fish, wearRod } from '../engine/fishing.js';
@@ -158,6 +170,17 @@ export function render(el) {
       const s2 = Math.round(size * 0.7);
       ctx.drawImage(im, Math.round((it.x + 0.5) * size - camX - s2 / 2),
         Math.round((it.y + 0.55) * size - camY - s2 / 2), s2, s2);
+    }
+    // Căn nhà người chơi đã dựng trên lô đất của mình
+    const nhaMinh = nhaTrenBanDo(player.mapId);
+    if (nhaMinh) {
+      const im = anhNha(nhaMinh.img);
+      if (im?.complete && im.naturalWidth) {
+        const w2 = size * 3;
+        const h2 = w2 * (im.naturalHeight / im.naturalWidth);
+        ctx.drawImage(im, Math.round(nhaMinh.x * size - camX),
+          Math.round((nhaMinh.y + 3) * size - camY - h2), Math.round(w2), Math.round(h2));
+      }
     }
     for (const n of map.npcs || []) {
       const nx = (n.x + (n.ox || 0) + 0.5) * size - camX;
