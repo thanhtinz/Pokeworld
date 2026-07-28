@@ -840,6 +840,26 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .item-mid b { font-size: .9rem; }
 .item-mid small { color: var(--muted); font-size: .74rem; }
 .item-n { font-family: var(--pix); font-weight: 400; font-size: .66rem; color: var(--gold-num); white-space: nowrap; }
+/* Hai nút Mua / Bán: một thanh gạt hai mục, nút đang chọn nổi lên trên nền chìm */
+.seg-row {
+  display: flex; gap: 4px; padding: 4px; margin-bottom: 12px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--line); border-radius: 999px;
+}
+.seg-btn {
+  flex: 1; min-height: 38px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; border-radius: 999px; background: transparent;
+  color: var(--muted); font-size: .86rem; font-weight: 600; letter-spacing: .01em;
+  transition: background .16s, color .16s, box-shadow .16s;
+}
+.seg-btn:active { transform: scale(.97); }
+.seg-btn.active {
+  background: linear-gradient(180deg, #ff5a36, var(--accent));
+  color: #fff; box-shadow: 0 2px 10px rgba(240, 90, 54, .35);
+}
+.seg-btn .ui-ico { opacity: .9; }
+
 .shop-money { text-align: center; font-size: 1.05rem; color: var(--gold-num); font-family: var(--pix); font-size: .8rem; padding: 14px; }
 
 /* ==== Quest ==== */
@@ -1447,9 +1467,9 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 
 /* ==== Man Cong dong: chat / xep hang / bang hoi / ban be ==== */
-.tab-btn { flex: 1; padding: 9px 4px; border-radius: 10px; font-size: .78rem;
-  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: var(--muted); }
-.tab-btn.on { background: rgba(150,120,230,.22); border-color: var(--gold); color: #fff; }
+/* (Trước đây chỗ này ghi đè .tab-btn cho TOÀN GAME nên hai nút Mua/Bán của cửa
+   hàng bị kéo giãn thành hai khối bẹt. Màn Cộng đồng giờ không dùng .tab-btn
+   nữa nên bỏ hẳn phần ghi đè đó.) */
 .chan-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
 .chip { padding: 6px 12px; border-radius: 999px; font-size: .74rem; color: var(--muted);
   background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }

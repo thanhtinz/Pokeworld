@@ -49,9 +49,9 @@ export function render(el, { shop = null, from = 'home' } = {}) {
       <div class="scr-head"><button class="btn-back" data-goto="${esc(from)}">‹</button><h1>${
         esc(tiem ? tiem.name : 'Cửa hàng')}</h1></div>
       <div class="card shop-money">${uiIcon('coin', 20)} <b id="shop-balance">${fmt(G.p.money)}</b>₽</div>
-      <div class="tab-row">
-        <button type="button" class="tab-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
-        <button type="button" class="tab-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>
+      <div class="seg-row">
+        <button type="button" class="seg-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
+        <button type="button" class="seg-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>
       </div>
       ${NHOM.map(([k, label]) => {
         const g = ids.filter(id => ITEMS[id].kind === k);
@@ -61,7 +61,7 @@ export function render(el, { shop = null, from = 'home' } = {}) {
       }).join('')}
       ${ids.length === 0 ? `<div class="card empty-note">${tab === 'sell' ? 'Không có gì để bán.' : 'Chưa có hàng.'}</div>` : ''}`;
 
-    el.querySelectorAll('.tab-btn').forEach(b =>
+    el.querySelectorAll('.seg-btn').forEach(b =>
       b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
     el.querySelectorAll('.item-row').forEach(b =>
       b.addEventListener('click', () => (tab === 'sell' ? sell(b.dataset.id) : buy(b.dataset.id))));
