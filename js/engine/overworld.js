@@ -94,6 +94,40 @@ const NOTICE_RANGE = 2;          // thấy người chơi trong ngần này ô t
 const DIRS = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];
 const PATROL_DIRS = [[1, 0], [0, 1]];
 
+// Đang đứng nhìn thẳng vào mặt nước chưa? Bản gốc gọi điều kiện này là
+// "facing_tile surfable" — ô nước được đánh dấu ngay trong tileset, tools/mktmx.py
+// nướng sẵn thành mảng water của từng bản đồ.
+export function facingWater() {
+  const map = currentMap();
+  if (!map.water) return false;
+  const { x, y } = facingTile();
+  if (x < 0 || y < 0 || x >= map.w || y >= map.h) return false;
+  return !!map.water[y * map.w + x];
+}
+
+// Chỗ nghỉ gần nhất — bản gốc gọi là teleport_faint: nơi người chơi tỉnh dậy
+// khi cả đội gục, và cũng là đích của Chìa Khoá Thoát Hiểm. Cập nhật mỗi lần
+// nghỉ ở một điểm hồi phục; chưa nghỉ ở đâu thì về thị trấn đầu game.
+export function setHealSpot(mapId, x, y) {
+  G.p.healAt = { map: mapId, x: Math.round(x), y: Math.round(y) };
+  save();
+}
+
+export function healSpot() {
+  const h = G.p?.healAt;
+  if (h && MAPS[h.map]) return h;
+  const m = MAPS[START_MAP];
+  return { map: START_MAP, x: m.spawn.x, y: m.spawn.y };
+}
+
+// Xịt xua đuổi: n bước tiếp theo không gặp Tuxemon hoang (core/effects/repellent.py
+// đăng ký một bộ đếm bước rồi trừ dần).
+export function setRepellent(n) {
+  G.p.repel = Math.max(G.p.repel || 0, Math.round(n));
+  save();
+}
+export const repelLeft = () => G.p?.repel || 0;
+
 // NPC có đang đứng ngay ô người chơi nhìn tới không (get_coords + get_direction
 // bên bản gốc). Đang bị nhìn thẳng thì NPC đứng yên cho bấm nói chuyện.
 function dangNhinThang(px, py, n) {
@@ -307,6 +341,13 @@ export function update(dt, vx, vy) {
   if (warp) {
     enterMap(warp.to, warp.tx, warp.ty);
     return { t: 'warp', to: warp.to, name: MAPS[warp.to]?.name };
+  }
+
+  // Xịt xua đuổi còn hiệu lực thì đếm ngược, và không gặp con nào
+  if (G.p.repel > 0) {
+    G.p.repel -= 1;
+    if (G.p.repel === 0) return { t: 'repelEnd' };
+    return dau;
   }
 
   // Gặp Tuxemon khi đi trong cỏ cao

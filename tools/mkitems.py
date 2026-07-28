@@ -37,7 +37,8 @@ from PIL import Image
 
 HIEU_UNG = {'capture', 'heal', 'restore', 'gain_xp', 'evolve',
             'statchange', 'change_stat', 'food_preference',
-            'learn_tm', 'learn_mm', 'switch_type'}
+            'learn_tm', 'learn_mm', 'switch_type',
+            'fishing', 'repellent', 'teleport_item', 'bivouac'}
 
 # category cua ban goc -> nhom o trong tui do
 NHOM = {
@@ -48,6 +49,7 @@ NHOM = {
     'stats': 'stat',
     'none': 'tea',
     'badge': 'badge',         # huy hieu vo duong
+    'fish': 'fish',           # can cau
     'technique': 'tm',        # dia day chieu (TM/MM)
     'elements': 'element',    # qua doi he
 }
@@ -64,6 +66,10 @@ MANG_THEO = {
 # Bua ho menh: mon HOLDABLE khai immunity_to_status — cam theo la mien nhiem
 # han trang thai do (horseshoe: 'all' = mien tat). Ten tieng Viet + gia dat tay
 # vi ban goc khong ghi gia cho nhung mon nay.
+# Mon tien ich ngoai tran ban goc khong ghi gia — dat tay
+GIA_TIEN_ICH = {'fishing_rod': 3000, 'neptune': 12000, 'poseidon': 30000,
+                'alpha_seep': 700}
+
 BUA = {
     'antidote_grapes': ('Chùm Nho Giải Độc', 1800),
     'cure_festering': ('Thuốc Trị Mưng Mủ', 1800),
@@ -156,6 +162,10 @@ TEN = {
     'tm_surf': 'Đĩa Chiêu: Lướt Sóng', 'tm_vorpal': 'Đĩa Chiêu: Chém Đứt',
     'mm_earth': 'Đĩa Hệ Đất', 'mm_fire': 'Đĩa Hệ Lửa', 'mm_metal': 'Đĩa Hệ Kim',
     'mm_water': 'Đĩa Hệ Nước', 'mm_wood': 'Đĩa Hệ Gỗ',
+
+    'fishing_rod': 'Cần Câu', 'neptune': 'Cần Neptune', 'poseidon': 'Cần Poseidon',
+    'alpha_seep': 'Bình Xịt Xua Đuổi', 'escape_key': 'Chìa Khoá Thoát Hiểm',
+    'bivouac': 'Lều Trại',
 
     'shaft_badge': 'Huy Hiệu Hầm Mỏ', 'scoop_badge': 'Huy Hiệu Kem',
     'omnichannel_badge': 'Huy Hiệu Thương Trường', 'greenwash_badge': 'Huy Hiệu Xanh',
@@ -356,6 +366,18 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
                         'Tuxemon đúng hệ đó.' % HE.get(p[0], p[0]))
         elif t == 'switch_type':
             phan.append('Đổi hẳn hệ của Tuxemon sang hệ %s.' % HE.get(p[0], p[0]))
+        elif t == 'fishing':
+            c = CAU.get(slug) or {}
+            lo, hi = (c.get('level_bounds') or [1, 10])[:2]
+            phan.append('Đứng trước mặt nước rồi thả câu. Tỉ lệ cắn câu %d%%, '
+                        'cá lên cấp %d-%d.' % (round(float(c.get('trigger', 0)) * 100), lo, hi))
+        elif t == 'repellent':
+            phan.append('Xịt xong thì %s bước tiếp theo không gặp Tuxemon hoang nào.'
+                        % (p[0] if p else '100'))
+        elif t == 'teleport_item':
+            phan.append('Dùng là về thẳng chỗ nghỉ gần nhất, khỏi lội ngược đường.')
+        elif t == 'bivouac':
+            phan.append('Dựng trại nghỉ giữa đường: cả đội hồi đầy máu và gỡ sạch trạng thái.')
     return ' '.join(phan) or 'Vật phẩm của thế giới Tuxemon.'
 
 
@@ -363,6 +385,41 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
 # PHAI chay mkitems.py SAU mktuxemon.py. Dia day chieu ma chieu do khong co
 # trong game thi bo qua, khong nem vao tui do mot mon bam khong an gi.
 CHIEU = {}
+
+# Cau hinh cau ca doc tu mods/fishing.yaml cua ban goc (nap trong main)
+CAU = {}
+
+
+def viet_fishing(root):
+    """mods/fishing.yaml -> js/data/fishing.js. Tra ve so can cau."""
+    import json as _json
+    p_yaml = os.path.join(root, 'mods/fishing.yaml')
+    if not os.path.exists(p_yaml):
+        return {}
+    cfg = yaml.safe_load(open(p_yaml, encoding='utf-8')) or {}
+    out = ['// TuxeWorld H5 | data/fishing.js | Cấu hình câu cá — TỰ SINH TỪ tools/mkitems.py',
+           '// Nguồn: mods/fishing.yaml của Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
+           '// trigger = tỉ lệ cắn câu · lv = khoảng cấp · stages/shapes = lọc loài theo',
+           '// bậc tiến hoá và dáng thân, w = trọng số bốc dáng thân.', '',
+           'export const FISHING = {']
+    for slug, c in cfg.items():
+        lo, hi = (c.get('level_bounds') or [1, 10])[:2]
+        row = {
+            'name': TEN.get(slug, slug),
+            'trigger': round(float(c.get('trigger') or 0), 2),
+            'lv': [int(lo), int(hi)],
+            'stages': list(c.get('stages') or []),
+            'shapes': list(c.get('shapes') or []),
+            'w': {k: round(float(v), 2) for k, v in (c.get('shape_weights') or {}).items()},
+            'env': (c.get('environment') or {}).get('default', 'ocean'),
+            'envNight': (c.get('environment') or {}).get('night', 'night_ocean'),
+        }
+        out.append('  %s: %s,' % (_json.dumps(slug), _json.dumps(row, ensure_ascii=False)))
+    out.append('};')
+    out.append('')
+    out.append('export const isRod = (id) => Object.prototype.hasOwnProperty.call(FISHING, id);')
+    open('js/data/fishing.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    return cfg
 
 
 def doc_chieu():
@@ -413,6 +470,15 @@ def hieu_ung_js(slug, eff, doc):
             out.append(obj({'t': js('learnRandom'), 'el': js(p[0])}))
         elif t == 'switch_type':
             out.append(obj({'t': js('switchType'), 'el': js(p[0])}))
+        elif t == 'fishing':
+            out.append(obj({'t': js('fishing')}))
+        elif t == 'repellent':
+            out.append(obj({'t': js('repellent'), 'n': js(int(float(p[0]))) if p else js(100)}))
+        elif t == 'teleport_item':
+            # 'center' = ve dung cho hoi sinh khi ca doi guc
+            out.append(obj({'t': js('teleport'), 'to': js(p[0] if p else 'center')}))
+        elif t == 'bivouac':
+            out.append(obj({'t': js('camp')}))
     return out
 
 
@@ -432,6 +498,8 @@ def dieu_kien_js(conds):
             out.append(obj({'t': js('anyStatus')}))
         elif t == 'can_evolve':
             out.append(obj({'t': js('canEvolve')}))
+        elif t == 'facing_tile' and p and p[0] in ('surfable', 'swimmable'):
+            out.append(obj({'t': js('water')}))
         elif t == 'has_tech' and p:
             # dia day chieu: chi dung duoc khi con do CHUA biet chieu ay
             out.append(obj({'t': js('hasTech'), 'id': js(p[0]),
@@ -476,8 +544,9 @@ def main():
     if not os.path.isdir(db):
         raise SystemExit('Khong thay %s' % db)
 
-    global CHIEU
+    global CHIEU, CAU
     CHIEU = doc_chieu()
+    CAU = viet_fishing(root)
     gia_goc = doc_gia(root)
     ten_anh = doc_ten_anh(root)
     capdev_cfg = doc_capdev(root)
@@ -549,6 +618,8 @@ def main():
             mac_dinh = MANG_THEO[slug][1]
         elif bua:
             mac_dinh = BUA[slug][1]
+        elif slug in GIA_TIEN_ICH:
+            mac_dinh = GIA_TIEN_ICH[slug]
         mua, ban = gia_goc.get(slug, (d.get('cost') or mac_dinh,
                                       round((d.get('cost') or mac_dinh) * 0.5)))
         trong_tran = 'MainCombatMenuState' in (d.get('usable_in') or [])
@@ -571,7 +642,10 @@ def main():
         row = {
             'name': js(ten),
             'desc': js(mo),
-            'kind': js('held' if mang else NHOM[cat]),
+            # Mon tien ich xep rieng mot o, khong lan vao o "Tra"
+            'kind': js('held' if mang else
+                       ('tool' if any(e['type'] in ('repellent', 'teleport_item', 'bivouac')
+                                      for e in eff) else NHOM[cat])),
             'price': js(int(mua)),
             'sell': js(int(ban)),
             'inBattle': js(bool(trong_tran) and not mang),
@@ -604,6 +678,7 @@ export const itemsOfKind = (kind) => Object.entries(ITEMS).filter(([, it]) => it
     with open('js/data/capdev.js', 'w', encoding='utf-8') as fh:
         viet_capdev(capdev_cfg, fh)
 
+    print('OK: %d cần câu có cấu hình riêng' % len(CAU))
     print('OK: %d vật phẩm, %d loại tuxeball có hệ số riêng'
           % (len(rows), len([k for k in capdev if k != 'example'])))
     print('  (%d món lấy đúng giá trong db/economy)'

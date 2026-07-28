@@ -3,10 +3,15 @@ import { G, save } from '../state.js';
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
-  player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs } from '../engine/overworld.js';
+  player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
+  facingWater, setHealSpot, repelLeft } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal, displayName } from '../engine/monster.js';
 import { statusName } from '../engine/status.js';
+import { fish } from '../engine/fishing.js';
+import { isDaytime } from '../engine/daytime.js';
+import { FISHING, isRod } from '../data/fishing.js';
+import { ITEMS } from '../data/items.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
@@ -213,7 +218,7 @@ export function render(el) {
     if (chip && chip.textContent !== map.name) chip.textContent = map.name;
     // Nút A sáng lên khi đứng trước NPC, trước cửa hoặc trước quầy
     const hint = el.querySelector('#btn-act');
-    if (hint) hint.classList.toggle('act-ready', !!facingThing());
+    if (hint) hint.classList.toggle('act-ready', !!facingThing() || !!canCau());
   }
 
   function draw() {
@@ -278,6 +283,8 @@ export function render(el) {
         el.querySelector('#world-zone').textContent = currentMap().name;
         playMusic(currentMap().music || 'town');
         toast(`Đã tới ${ev.name}`);
+      } else if (ev?.t === 'repelEnd') {
+        toast('Bình xịt đã hết tác dụng.');
       } else if (ev?.t === 'stepHurt') {
         // Bỏng / trúng độc bào máu theo bước chân — báo một lần khi kiệt tới đáy
         for (const m of ev.mons) toast(`${displayName(m)} kiệt sức vì ${statusName(m.status)}!`);
@@ -295,8 +302,38 @@ export function render(el) {
   raf = requestAnimationFrame(loop);
 
   // ==== Tương tác ====
+  // Cần câu xịn nhất đang có trong túi, nếu đang đứng quay mặt ra mặt nước.
+  // Bản gốc bắt đúng điều kiện này (db/item: facing_tile surfable).
+  function canCau() {
+    if (!facingWater()) return null;
+    const co = Object.keys(G.p.bag).filter(id => G.p.bag[id] > 0 && isRod(id));
+    if (!co.length) return null;
+    // cần nào tỉ lệ cắn cao nhất thì dùng cần đó
+    return co.sort((a, b) => FISHING[b].trigger - FISHING[a].trigger)[0];
+  }
+
+  // Thả câu: mất một cần? Không — cần câu dùng lại được, bản gốc không tiêu hao.
+  // Cắn câu thì vào thẳng trận, không thì báo một câu.
+  async function thaCau(rod) {
+    busy = true;
+    try {
+      await playDialog([[{ name: 'Bạn' }, `Quăng ${ITEMS[rod]?.name || 'cần câu'} xuống nước...`]]);
+      const r = fish(rod);
+      if (!r.ok) { toast('Chờ mãi mà chẳng con nào cắn...'); return; }
+      save();
+      cleanup();
+      show('battle', { kind: 'wild', enemy: r.mon, from: 'world',
+        arena: isDaytime() ? r.env : r.envNight });
+      return;
+    } finally {
+      busy = false;
+    }
+  }
+
   async function interact() {
     if (busy) return;
+    const rod = canCau();
+    if (rod && !facingThing()) { await thaCau(rod); return; }
     const thing = facingThing();
     if (!thing) return;
     busy = true;
@@ -318,8 +355,11 @@ export function render(el) {
       switch (thing.kind) {
         case 'heal':
           G.p.party.forEach(m => heal(m));
+          // Nghỉ ở đâu thì đó thành chỗ tỉnh dậy khi cả đội gục, và là đích
+          // của Chìa Khoá Thoát Hiểm (bản gốc: teleport_faint)
+          setHealSpot(player.mapId, player.x, player.y);
           save();
-          toast('Cả đội đã hồi phục hoàn toàn!');
+          toast('Cả đội đã hồi phục hoàn toàn! Đây là chỗ nghỉ của bạn.');
           break;
         case 'shop':
           cleanup(); show('shop'); return;

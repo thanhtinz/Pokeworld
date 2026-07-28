@@ -14,6 +14,10 @@
 //   learnMove   đĩa chiêu (TM) — dạy đúng một chiêu, không cần đủ cấp
 //   learnRandom đĩa hệ (MM) — bốc một chiêu bất kỳ của hệ đó
 //   switchType  quả đổi hệ — đổi hẳn hệ của con vật
+//   fishing     cần câu — phải đứng trước mặt nước (xử lý ở js/ui/world.js)
+//   repellent   bình xịt — n bước không gặp con hoang
+//   teleport    chìa khoá thoát — về chỗ nghỉ gần nhất
+//   camp        lều trại — cả đội hồi đầy máu, gỡ sạch trạng thái
 import { ITEMS } from '../data/items.js';
 import { MOVES } from '../data/moves.js';
 import { TYPE_NAMES } from '../data/types.js';
@@ -49,6 +53,12 @@ export function foodBond(mon, warm, cold) {
   return BOND.average;
 }
 
+// Món tác động lên thế giới (không chọn Tuxemon nào): cần câu, bình xịt,
+// chìa khoá thoát, lều trại.
+const VIEC_THE_GIOI = new Set(['fishing', 'repellent', 'teleport', 'camp']);
+export const isWorldItem = (id) =>
+  (ITEMS[id]?.eff || []).some(e => VIEC_THE_GIOI.has(e.t));
+
 // Điều kiện dùng được (db/item conditions). Trả về true/false.
 export function canUse(itemId, mon, ctx = {}) {
   const it = ITEMS[itemId];
@@ -72,6 +82,9 @@ export function canUse(itemId, mon, ctx = {}) {
       if (!mon || !mon.status) return false;
     } else if (c.t === 'canEvolve') {
       if (!mon || !checkEvolution(mon, 'stone', itemId, ctx)) return false;
+    } else if (c.t === 'water') {
+      // Cần câu chỉ dùng được khi đang đứng nhìn thẳng vào mặt nước
+      if (!ctx.water) return false;
     } else if (c.t === 'hasTech') {
       // Đĩa chiêu: chỉ dùng được khi con đó CHƯA biết chiêu ấy
       const co = !!mon && (mon.moves || []).some(mv => mv.id === c.id);
@@ -86,7 +99,7 @@ export function canUse(itemId, mon, ctx = {}) {
   return true;
 }
 
-// Dùng vật phẩm lên mon. Trả về { ok, msgs, evolveTo, learn }
+// Dùng vật phẩm lên mon. Trả về { ok, msgs, evolveTo, learn, world }
 // ctx = { inBattle, wild, stages, party, inside } — stages là bảng buff của phe
 // đang cầm mon; party/inside cho mấy đường tiến hoá nhìn ra ngoài con vật.
 export function useItem(itemId, mon, ctx = {}) {
@@ -97,6 +110,7 @@ export function useItem(itemId, mon, ctx = {}) {
   let ok = false;
   let evolveTo = null;
   let learn = null;      // chiêu cần học — giao diện hỏi quên chiêu nào rồi mới nhét vào
+  let world = null;      // việc phải làm ngoài bản đồ (câu cá, xịt, dịch chuyển, cắm trại)
 
   for (const e of it.eff || []) {
     if (e.t === 'restore') {
@@ -164,6 +178,12 @@ export function useItem(itemId, mon, ctx = {}) {
         msgs.push(`Sẵn sàng học ${MOVES[id].name}!`);
         ok = true;
       }
+    } else if (e.t === 'repellent' || e.t === 'teleport' || e.t === 'camp'
+               || e.t === 'fishing') {
+      // Mấy món tác động lên THẾ GIỚI chứ không lên một con — engine chỉ báo
+      // lại cho giao diện biết phải làm gì (js/ui/bag.js, js/ui/world.js).
+      world = { t: e.t, n: e.n, to: e.to, id: itemId };
+      ok = true;
     } else if (e.t === 'switchType') {
       const he = e.el === 'random' ? rng.pick(Object.keys(TYPE_NAMES)) : e.el;
       if (!typesOf(mon).includes(he)) {
@@ -174,5 +194,5 @@ export function useItem(itemId, mon, ctx = {}) {
     }
   }
 
-  return { ok, msgs, evolveTo, learn };
+  return { ok, msgs, evolveTo, learn, world };
 }

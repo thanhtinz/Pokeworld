@@ -1,10 +1,13 @@
 // TuxeWorld H5 | ui/bag.js | Túi đồ: lưới ô vật phẩm, dùng item ngoài trận
 import { G, save, removeItem, addItem, markCaught, CONFIG } from '../state.js';
-import { maxHp, displayName, tryLearn, replaceMove } from '../engine/monster.js';
+import { maxHp, displayName, tryLearn, replaceMove, heal } from '../engine/monster.js';
 import { movesAtLevel } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
-import { isInside } from '../engine/overworld.js';
-import { useItem as engineUse, canUse } from '../engine/useitem.js';
+import { useItem as engineUse, canUse, isWorldItem } from '../engine/useitem.js';
+import { fish } from '../engine/fishing.js';
+import { isDaytime } from '../engine/daytime.js';
+import { isRod } from '../data/fishing.js';
+import { isInside, facingWater, setRepellent, enterMap, healSpot } from '../engine/overworld.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
@@ -20,6 +23,8 @@ const NHOM = [
   ['food', 'Món ăn'],
   ['stat', 'Rèn chỉ số'],
   ['tea', 'Trà'],
+  ['fish', 'Cần câu'],
+  ['tool', 'Đồ tiện ích'],
   ['tm', 'Đĩa chiêu'],
   ['element', 'Quả đổi hệ'],
   ['held', 'Đồ mang theo'],
@@ -33,6 +38,8 @@ const CACH_DUNG = {
   food: 'Cho một Tuxemon ăn để tăng thân thiết.',
   stat: 'Tăng chỉ số cho một Tuxemon.',
   tea: 'Cho một Tuxemon uống để nhận EXP.',
+  fish: 'Đứng quay mặt ra mặt nước rồi bấm để thả câu.',
+  tool: 'Dùng ngay trên bản đồ, không cần chọn Tuxemon.',
   tm: 'Dạy một chiêu mới cho Tuxemon, không cần đủ cấp.',
   element: 'Chỉ dùng trong trận — đổi hẳn hệ của Tuxemon.',
   held: 'Cho một Tuxemon cầm theo, có tác dụng cả khi ngồi dự bị.',
@@ -124,6 +131,9 @@ export function render(el) {
 
     if (!it.inWorld) { toast('Món này chỉ dùng được trong trận!'); return; }
 
+    // Món tác động lên thế giới: không chọn Tuxemon nào cả
+    if (isWorldItem(id)) { await dungNgoaiDoi(id); return; }
+
     const mon = await pickMon(`Dùng ${it.name} cho ai?`);
     if (!mon) return;
     const ctx = { inBattle: false, party: G.p.party, inside: isInside() };
@@ -161,6 +171,47 @@ export function render(el) {
       }
     }
     save(); draw();
+  }
+
+  // Cần câu · bình xịt · chìa khoá thoát · lều trại — bốn món của bản gốc tác
+  // động lên bản đồ chứ không lên một con nào.
+  async function dungNgoaiDoi(id) {
+    const ctx = { inBattle: false, party: G.p.party, inside: isInside(), water: facingWater() };
+    if (!canUse(id, null, ctx)) {
+      toast(isRod(id) ? 'Phải đứng quay mặt ra mặt nước mới thả câu được!'
+        : 'Không dùng được lúc này.');
+      return;
+    }
+    const res = engineUse(id, null, ctx);
+    if (!res.ok || !res.world) { toast('Không có tác dụng!'); return; }
+    const v = res.world;
+
+    if (v.t === 'fishing') {
+      // Cần câu KHÔNG tiêu hao — bản gốc dùng lại mãi
+      const r = fish(id);
+      if (!r.ok) { toast('Thả câu mãi mà chẳng con nào cắn...'); return; }
+      toast('Có con cắn câu!');
+      save();
+      show('battle', { kind: 'wild', enemy: r.mon, from: 'bag',
+        arena: isDaytime() ? r.env : r.envNight });
+      return;
+    }
+    if (v.t === 'repellent') {
+      removeItem(id, 1);
+      setRepellent(v.n || 100);
+      toast(`Đã xịt — ${v.n || 100} bước tới không gặp Tuxemon hoang.`);
+    } else if (v.t === 'teleport') {
+      removeItem(id, 1);
+      const nha = healSpot();
+      enterMap(nha.map, nha.x, nha.y);
+      toast('Đã về chỗ nghỉ.');
+    } else if (v.t === 'camp') {
+      removeItem(id, 1);
+      for (const m of G.p.party) heal(m);
+      toast('Dựng trại nghỉ — cả đội khoẻ lại như mới!');
+    }
+    save();
+    draw();
   }
 
   // Nhét một chiêu vào bộ chiêu; đủ 4 chiêu thì hỏi quên chiêu nào

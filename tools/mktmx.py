@@ -336,12 +336,20 @@ def load_tsx(path, cache):
         cache[path] = None
         return None
     src = os.path.join(os.path.dirname(path), img.get('source'))
+    # O nao trong tileset khai thuoc tinh 'surfable' la mat nuoc — ban goc dung
+    # dung cai nay de biet dung truoc bo co cau ca duoc khong.
+    nuoc = set()
+    for t in root.findall('tile'):
+        for pr in (t.find('properties') or []):
+            if pr.get('name') in ('surfable', 'swimmable'):
+                nuoc.add(int(t.get('id')))
     info = {
         'img': src,
         'cols': int(root.get('columns') or 0),
         'count': int(root.get('tilecount') or 0),
         'tw': int(root.get('tilewidth') or TILE),
         'th': int(root.get('tileheight') or TILE),
+        'nuoc': nuoc,
     }
     cache[path] = info
     return info
@@ -393,8 +401,27 @@ def parse_map(path, tsx_cache):
         else:
             layers.append(nums)
 
+    # Mat nuoc: o nao (o bat ky lop nao) dung tile co thuoc tinh surfable.
+    # Dung de biet nguoi choi co dang dung truoc bo nuoc de cau ca hay khong.
+    water = [0] * (w * h)
+    for nums in layers:
+        for idx, gid in enumerate(nums):
+            if not gid:
+                continue
+            for first, info in reversed(sets):
+                if gid >= first:
+                    if (gid - first) in (info.get('nuoc') or ()):
+                        water[idx] = 1
+                    break
+
     # va cham + su kien
     solid = [0] * (w * h)
+    # O nuoc chan duong: ban goc coi thuoc tinh be mat gia tri 0 la KHONG DI
+    # DUOC (collision_manager.get_collision_map). Thieu buoc nay thi nguoi choi
+    # di thang ra giua bien.
+    for idx, v in enumerate(water):
+        if v:
+            solid[idx] = 1
     warps, talks, encs, nhac = [], [], set(), [None]
     # Nen tran dau: ban goc dat bang "set_environment <slug>", ban do nao cung
     # co mot canh ban ngay va mot canh ban dem.
@@ -461,7 +488,7 @@ def parse_map(path, tsx_cache):
 
     ds = khac_nhau([n for n in (build_npc(n) for n in npcs.values()) if n])
     return {'w': w, 'h': h, 'sets': sets, 'layers': layers, 'above': above,
-            'solid': solid, 'warps': warps, 'talks': talks, 'encs': sorted(encs),
+            'solid': solid, 'water': water, 'warps': warps, 'talks': talks, 'encs': sorted(encs),
             'music': nhac[0],          # None = ban do khong tu goi nhac
             'env': moi_truong[0], 'envNight': moi_truong[1],
             'npcs': xep_cho(ds, solid, warps, w, h)}
@@ -644,6 +671,7 @@ def main():
             'layers': [conv(l) for l in m['layers']],
             'above': conv(m['above']) if m['above'] else None,
             'solid': m['solid'],
+            'water': m['water'],
             'warps': [w for w in m['warps'] if w['to'] in want],
             'talks': m['talks'],
             'npcs': m['npcs'],
@@ -846,6 +874,8 @@ def write_js(maps, want):
         out.append('    ],')
         out.append('    above: %s,' % (js(m['above']) if m['above'] else 'null'))
         out.append('    solid: %s,' % js(m['solid']))
+        if any(m.get('water') or []):
+            out.append('    water: %s,' % js(m['water']))
         out.append('    warps: %s,' % js(m['warps']))
         out.append('    talks: %s,' % js(m['talks']))
         out.append('    npcs: %s,' % js(m['npcs']))

@@ -13,6 +13,8 @@ const NHOM = [
   ['food', 'Món ăn'],
   ['stat', 'Rèn chỉ số'],
   ['tea', 'Trà'],
+  ['fish', 'Cần câu'],
+  ['tool', 'Đồ tiện ích'],
   ['tm', 'Đĩa chiêu'],
   ['element', 'Quả đổi hệ'],
 ];

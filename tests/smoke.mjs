@@ -49,6 +49,8 @@ import { MON_CRY, CRY_SFX, cryPath, MUSIC } from '../js/data/sounds.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
 import { STATUSES } from '../js/data/statuses.js';
+import { FISHING } from '../js/data/fishing.js';
+import { fish, catchable } from '../js/engine/fishing.js';
 import { TECH_SFX } from '../js/data/sounds.js';
 import { fxFor } from '../js/data/vfx.js';
 import { applyStatus, removeStatus, endOfTurn, statMult, thornDamage,
@@ -1109,6 +1111,106 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   ok('ngủ không bao giờ quá số lượt tối đa', daiNhat <= STATUSES.noddingoff.dur + 1,
     String(daiNhat));
   ok('ngủ luôn mất ít nhất một lượt', daiNhat >= 2, String(daiNhat));
+}
+
+// ==== Câu cá + mấy món tác động lên bản đồ (tính năng của bản gốc) ====
+{
+  ok('có 3 cần câu với cấu hình riêng', Object.keys(FISHING).length === 3,
+    Object.keys(FISHING).join(' '));
+  ok('cần càng xịn tỉ lệ cắn càng cao',
+    FISHING.fishing_rod.trigger < FISHING.neptune.trigger
+    && FISHING.neptune.trigger < FISHING.poseidon.trigger);
+  ok('cần càng xịn cá càng to',
+    FISHING.fishing_rod.lv[1] < FISHING.poseidon.lv[1]);
+  ok('cần nào cũng có món tương ứng trong túi',
+    Object.keys(FISHING).every(id => ITEMS[id]?.kind === 'fish'));
+  ok('cần câu đòi đứng trước mặt nước',
+    Object.keys(FISHING).every(id => ITEMS[id].cond.some(c => c.t === 'water')));
+
+  for (const [id, cfg] of Object.entries(FISHING)) {
+    const ds = catchable(id);
+    ok(`${cfg.name} câu được vài loài`, ds.length >= 10, `${ds.length} loài`);
+    ok(`${cfg.name} chỉ câu đúng dáng thân bản gốc cho phép`,
+      ds.every(sp => cfg.shapes.includes(SPECIES[sp].shape)));
+    ok(`${cfg.name} chỉ câu đúng bậc tiến hoá bản gốc cho phép`,
+      ds.every(sp => cfg.stages.includes(SPECIES[sp].stage)));
+  }
+  // Cần Poseidon là cần duy nhất câu được thuỷ quái
+  ok('chỉ cần xịn nhất mới câu được leviathan',
+    catchable('poseidon').some(sp => SPECIES[sp].shape === 'leviathan')
+    && !catchable('fishing_rod').some(sp => SPECIES[sp].shape === 'leviathan'));
+
+  {
+    let dinh = 0, lo = 99, hi = 0;
+    for (let k = 0; k < 400; k++) {
+      const r = fish('neptune');
+      if (!r.ok) continue;
+      dinh += 1;
+      lo = Math.min(lo, r.mon.lv); hi = Math.max(hi, r.mon.lv);
+    }
+    const ti = dinh / 400;
+    ok('tỉ lệ cắn câu bám sát cấu hình gốc',
+      Math.abs(ti - FISHING.neptune.trigger) < 0.1, ti.toFixed(2));
+    ok('cấp cá nằm trong khoảng của cần',
+      lo >= FISHING.neptune.lv[0] && hi <= FISHING.neptune.lv[1], `${lo}-${hi}`);
+  }
+
+  // Mặt nước phải được nướng vào bản đồ, không thì không bao giờ câu được
+  const nuoc = Object.entries(MAPS).filter(([, m]) => (m.water || []).some(x => x));
+  ok('có bản đồ đánh dấu mặt nước', nuoc.length >= 4, String(nuoc.length));
+  // Ô nước là ô KHÔNG ĐI VÀO ĐƯỢC (đứng trên bờ mà câu), nên phải chặn; và phải
+  // có bờ ngay bên cạnh, không thì cả bản đồ có nước mà chẳng chỗ nào câu được.
+  ok('ô nước đều là ô không giẫm lên được',
+    nuoc.every(([, m]) => m.water.filter((v, i) => v && !m.solid[i]).length
+      < m.water.filter(Boolean).length * 0.5),
+    nuoc.map(([id, m]) => `${id}:${m.water.filter((v, i) => v && !m.solid[i]).length}`).join(' '));
+  const dungDuoc = nuoc.filter(([, m]) => m.water.some((v, i) => {
+    if (!v) return false;
+    const x = i % m.w, y = Math.floor(i / m.w);
+    return [[0, 1], [0, -1], [1, 0], [-1, 0]].some(([dx, dy]) => {
+      const nx = x + dx, ny = y + dy;
+      return nx >= 0 && ny >= 0 && nx < m.w && ny < m.h && !m.solid[ny * m.w + nx];
+    });
+  }));
+  ok('bản đồ có nước nào cũng có chỗ đứng câu được',
+    dungDuoc.length === nuoc.length,
+    `${dungDuoc.length}/${nuoc.length}`);
+
+  // Bốn món tác động lên bản đồ
+  const { isWorldItem } = await import('../js/engine/useitem.js');
+  for (const id of ['fishing_rod', 'alpha_seep', 'escape_key', 'bivouac']) {
+    ok(`${ITEMS[id]?.name || id} là món dùng ngoài bản đồ`,
+      !!ITEMS[id] && isWorldItem(id) && ITEMS[id].inWorld && !ITEMS[id].inBattle);
+  }
+
+  // Bình xịt: xịt xong thì n bước không gặp con nào
+  {
+    const { player, update, enterMap, setRepellent, repelLeft } =
+      await import('../js/engine/overworld.js');
+    newGame('Câu Cá');
+    G.p.party = [newTuxemon(STARTERS[0].sp, 20)];
+    enterMap('route1');
+    setRepellent(50);
+    ok('xịt xong thì bộ đếm chạy', repelLeft() === 50, String(repelLeft()));
+    let gap = 0;
+    for (let k = 0; k < 300; k++) {
+      const e = update(0.05, (k % 20 < 10) ? 1 : -1, 0);
+      if (e?.t === 'encounter') gap += 1;
+    }
+    ok('còn thuốc xịt thì không gặp con hoang nào', gap === 0, String(gap));
+    ok('xịt hết thì bộ đếm về 0', repelLeft() === 0, String(repelLeft()));
+  }
+
+  // Chỗ nghỉ: chưa nghỉ ở đâu thì về thị trấn đầu game
+  {
+    const { healSpot, setHealSpot } = await import('../js/engine/overworld.js');
+    newGame('Lữ Khách');
+    const mac = healSpot();
+    ok('chưa nghỉ ở đâu thì chỗ nghỉ là bản đồ đầu game',
+      mac.map === Object.keys(MAPS)[0], mac.map);
+    setHealSpot('cotton_town', 5, 6);
+    ok('nghỉ ở đâu thì nhớ chỗ đó', healSpot().map === 'cotton_town');
+  }
 }
 
 // Đi bộ trên bản đồ mà đang bỏng / trúng độc thì mất máu theo bước chân

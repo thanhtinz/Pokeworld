@@ -9,7 +9,7 @@ import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '..
 import { expProgress } from '../engine/exp.js';
 import { condTag } from '../engine/status.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
-import { isInside } from '../engine/overworld.js';
+import { isInside, healSpot } from '../engine/overworld.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
@@ -36,7 +36,7 @@ async function storyDone(ch) {
   toast(`${ch.title} hoàn thành!`);
 }
 
-export function render(el, { kind = 'wild', enemy = null, trainerId = null, from = 'home' } = {}) {
+export function render(el, { kind = 'wild', enemy = null, trainerId = null, from = 'home', arena: arenaEp = null } = {}) {
   // ==== Dựng trận ====
   let trainer = null;
   let enemySide;
@@ -71,7 +71,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
 
   // ==== Khung DOM ====
   // Nền trận đấu đổi theo khu vực đang đứng
-  const arena = arenaFor(G.p.pos?.map || G.p.zone);
+  const arena = arenaFor(G.p.pos?.map || G.p.zone, arenaEp);
   el.innerHTML = `
     <div class="battle" style="--arena-bg:url(${arena.bg})">
       <div class="bt-enemy" id="bt-enemy"></div>
@@ -498,7 +498,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       capNote();
     } else if (allFainted()) {
       // Thua trận
-      G.p.zone = 'taba_town';
+      // Tỉnh dậy ở CHỖ NGHỈ gần nhất chứ không phải luôn luôn thị trấn đầu game
+      // (bản gốc: teleport_faint)
+      const nha = healSpot();
+      G.p.zone = nha.map;
+      G.p.pos = { map: nha.map, x: nha.x + 0.5, y: nha.y + 0.5 };
       for (const m of G.p.party) heal(m);
       const lost = Math.floor(G.p.money * 0.05);
       G.p.money -= lost;
