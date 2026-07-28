@@ -197,6 +197,18 @@ def ve_bell(d):
     d.line((5, 4, 5, 9), fill=C['W'])            # danh sang
 
 
+def ve_ball(d):
+    # Tuxeball cua ban goc: dia trang-xanh co khe chu thap, KHONG phai qua
+    # do-trang cua Pokemon
+    d.ellipse((2, 2, 13, 13), fill=C['W'])
+    d.ellipse((4, 4, 11, 11), fill=C['B'])
+    d.ellipse((6, 6, 9, 9), fill=C['b'])
+    d.line((8, 2, 8, 5), fill=C['W'])
+    d.line((8, 10, 8, 13), fill=C['W'])
+    d.line((2, 8, 5, 8), fill=C['W'])
+    d.line((10, 8, 13, 8), fill=C['W'])
+
+
 def ve_star(d):
     # ngoi sao 5 canh cho the huan luyen vien — anh 'stars' cua ban goc la chum
     # lap lanh, thu nho con 14px thi khong doc ra la may sao
@@ -217,7 +229,7 @@ ICONS = {
     'coin': ve_coin, 'map': ve_map, 'chat': ve_chat, 'gift': ve_gift,
     'quest': ve_quest, 'shop': ve_shop, 'trophy': ve_trophy, 'guild': ve_guild,
     'friends': ve_friends, 'heart': ve_heart, 'flag': ve_flag,
-    'server': ve_server, 'heal': ve_heal, 'battle': ve_battle, 'walk': ve_walk, 'star': ve_star,
+    'server': ve_server, 'heal': ve_heal, 'battle': ve_battle, 'walk': ve_walk, 'star': ve_star, 'ball': ve_ball,
     'mail': ve_mail, 'bell': ve_bell,
 }
 

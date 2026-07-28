@@ -37,7 +37,6 @@ const P = {
   heal: '<path d="M12 5v14M5 12h14"/>',
   battle: '<path d="m5 5 10 10M4 18l4-1 1-4"/><path d="m19 5-10 10M20 18l-4-1-1-4"/>',
   coin: '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M10 10h3a2 2 0 0 1 0 4h-3"/>',
-  ball: '<circle cx="12" cy="12" r="8"/><path d="M4 12h5M15 12h5"/><circle cx="12" cy="12" r="2.5"/>',
   swap: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
   run: '<path d="M13 4a1.7 1.7 0 1 0 0-.01"/><path d="m10 21 2-6-3-3 1-4 3 3 3 1"/><path d="M4 12h3M4 16h4"/>',
   // Ô trang bị (mỗi ô một hình riêng, thay cho sprite vật phẩm mờ nhìn giống hệt nhau)
@@ -70,7 +69,7 @@ const ART = {
 // Danh sách phải khớp ICONS bên tệp đó.
 const VE = new Set(['coin', 'map', 'chat', 'gift', 'quest', 'shop', 'trophy',
                     'guild', 'friends', 'heart', 'flag', 'server', 'heal',
-                    'battle', 'walk', 'star', 'mail', 'bell']);
+                    'battle', 'walk', 'star', 'mail', 'bell', 'ball']);
 
 // size = px, cls thêm class ngoài
 export function uiIcon(name, size = 22, cls = '') {

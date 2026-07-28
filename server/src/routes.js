@@ -97,6 +97,7 @@ router.get('/profile/:username', (req, res) => {
     dexCaught: Object.keys(sv.dex?.caught || {}).length,
     wins: sv.stats?.wins || 0,
     playSince: sv.stats?.playSince || u.createdAt,
+    playMin: sv.stats?.playMin || 0,
     pvp: { win: u.stats?.pvpWin || 0, lose: u.stats?.pvpLose || 0 },
     guild: g ? { name: g.name, tag: g.tag } : null,
     lastSeen: u.lastSeen,

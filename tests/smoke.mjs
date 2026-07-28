@@ -58,6 +58,8 @@ import { applyStatus, removeStatus, endOfTurn, statMult, thornDamage,
 import { G, newGame } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
+import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
+import { bangThanhTuu, nhanThuong, nhanHet, choNhan } from '../js/engine/achievements.js';
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -1711,6 +1713,47 @@ const bt = new Battle({
 const [okBall] = bt.submit(0, { t: 'ball', id: 'poke_ball' });
 const [okRun] = bt.submit(0, { t: 'run' });
 ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
+
+// ==== Thành tựu ====
+{
+  newGame('AchTester');
+  G.p.stats.catches = 0;
+  ok('mới chơi thì chưa nhận được thành tựu nào', choNhan() === 0);
+  ok('mọi phần thưởng trỏ tới vật phẩm có thật',
+    ACHIEVEMENTS.every(a => (a.qua.do || []).every(d => !!ITEMS[d.id])),
+    ACHIEVEMENTS.flatMap(a => (a.qua.do || []).map(d => d.id)).filter(id => !ITEMS[id]).join(', '));
+  ok('mã thành tựu không trùng nhau',
+    new Set(ACHIEVEMENTS.map(a => a.id)).size === ACHIEVEMENTS.length);
+  const bienCo = new Set(Object.keys(bangThanhTuu()[0] ? {
+    catches: 1, wins: 1, steps: 1, money: 1, badges: 1,
+    dexSeen: 1, dexCaught: 1, trainerLv: 1, gioChoi: 1,
+  } : {}));
+  ok('mọi thành tựu gắn với một biến có thật',
+    ACHIEVEMENTS.every(a => bienCo.has(a.bien)),
+    ACHIEVEMENTS.filter(a => !bienCo.has(a.bien)).map(a => a.bien).join(', '));
+
+  const [truoc, loi0] = nhanThuong('bat_1');
+  ok('chưa đạt mốc thì không nhận được', !truoc && !!loi0);
+
+  G.p.stats.catches = 1;
+  ok('đạt mốc thì báo có thành tựu chờ nhận', choNhan() >= 1);
+  const tienCu = G.p.money;
+  const [qua, loi] = nhanThuong('bat_1');
+  ok('nhận được thưởng khi đủ mốc', !!qua && !loi);
+  ok('tiền cộng đúng', G.p.money === tienCu + ACH_BY_ID.bat_1.qua.tien);
+  ok('vật phẩm vào túi', (G.p.bag.tuxeball || 0) >= 5);
+  const [lai, loi2] = nhanThuong('bat_1');
+  ok('không nhận lại lần hai', !lai && !!loi2);
+
+  G.p.stats.wins = 1000;
+  G.p.money = 2000000;
+  const [gop, n] = nhanHet();
+  ok('nhận tất cả gom được nhiều thành tựu', n >= 3, `n=${n}`);
+  ok('nhận tất cả cộng dồn tiền', gop.tien > 0);
+  ok('nhận xong thì hết cái chờ nhận', choNhan() === 0);
+  ok('bảng thành tựu đánh dấu đã nhận',
+    bangThanhTuu().filter(a => a.nhan).length === G.p.ach.length);
+}
 
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
 process.exit(fails === 0 ? 0 : 1);

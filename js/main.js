@@ -1,5 +1,5 @@
 // TuxeWorld H5 | main.js | Router màn hình + khởi động app
-import { G, load, hasSave } from './state.js';
+import { G, load, hasSave, save } from './state.js';
 import { toast } from './ui/kit.js';
 import { inbox, onInbox, refreshInbox } from './net/inbox.js';
 
@@ -14,6 +14,7 @@ import * as mail from './ui/mail.js';
 import * as news from './ui/news.js';
 import * as events from './ui/events.js';
 import * as profile from './ui/profile.js';
+import * as achievements from './ui/achievements.js';
 import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
@@ -54,7 +55,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
@@ -207,6 +208,15 @@ onInbox(veChamDo);
 // chủ báo có thư/tin mới.
 refreshInbox();
 setInterval(() => { refreshInbox(); }, 60000);
+
+// ==== Đếm giờ chơi ====
+// Cộng dồn mỗi phút vào bản lưu. Chỉ đếm khi tab đang mở và đang xem — để tab
+// chạy ngầm cả đêm mà tính là chơi thì con số vô nghĩa.
+setInterval(() => {
+  if (document.hidden || !G.p) return;
+  G.p.stats.playMin = (G.p.stats.playMin || 0) + 1;
+  save();
+}, 60000);
 document.addEventListener('inbox-poke', () => refreshInbox());
 
 // Bấm ảnh đại diện trên thanh trên -> bảng Trang trí

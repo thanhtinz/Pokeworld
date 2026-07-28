@@ -51,6 +51,7 @@ function defaultPlayer(name) {
     look: { title: 'none', avatarFrame: 'none', chatFrame: 'none', skin: 'default' },
     monSkins: {},
     granted: [],
+    ach: [],          // thành tựu đã nhận thưởng
     trainer: { level: 1, exp: 0 },
   };
 }

@@ -10,6 +10,7 @@ import { SPECIES } from '../data/species.js';
 import { ITEMS } from '../data/items.js';
 import { esc, fmt } from '../util.js';
 import { itemIcon } from './kit.js';
+import { uiIcon } from './icons.js';
 import { titleHtml, myFaceHtml, faceHtml, faceSrcOf, avatarFrame } from './look.js';
 
 // Kiểu của thẻ nằm trong css/character.css — màn nào vẽ thẻ cũng phải gọi hàm
@@ -50,6 +51,23 @@ export function SAO(p) {
 
 const ngay = (ts) => ts ? new Date(ts).toLocaleDateString('vi-VN') : '—';
 
+// Giờ chơi kiểu "12:34" như thẻ của mấy game hệ máy cầm tay
+export function gioChoi(phut) {
+  const p = Math.max(0, Math.round(Number(phut) || 0));
+  return `${Math.floor(p / 60)}:${String(p % 60).padStart(2, '0')}`;
+}
+
+// Bảng số liệu: mỗi dòng một nhãn bên trái, số bên phải, có gạch chấm nối như
+// thẻ giấy. Kiểu bốn cột trước đây nhìn giống bảng thống kê hơn là tấm thẻ.
+function dongSo(ds) {
+  return `<div class="tcard-rows">${ds.map(([nhan, so, ico]) => `
+    <div class="tcard-row">
+      <span class="tcard-k">${ico ? uiIcon(ico, 14) : ''}${nhan}</span>
+      <i class="tcard-dots"></i>
+      <b class="tcard-v">${so}</b>
+    </div>`).join('')}</div>`;
+}
+
 export function cardHtml(p) {
   const lv = trainerLevel();
   const need = expToNext(lv);
@@ -85,12 +103,13 @@ export function cardHtml(p) {
         </div>
       </div>
 
-      <div class="tcard-grid">
-        <div><small>Tiền</small><b>${fmt(p.money)}₽</b></div>
-        <div><small>Đã bắt</small><b>${fmt(caught)}</b></div>
-        <div><small>Đã gặp</small><b>${fmt(seen)}/${fmt(tong)}</b></div>
-        <div><small>Bắt đầu</small><b>${ngay(p.stats?.playSince)}</b></div>
-      </div>
+      ${dongSo([
+        ['Tiền', `${fmt(p.money)}₽`, 'coin'],
+        ['Tuxedex', `${fmt(caught)} bắt · ${fmt(seen)}/${fmt(tong)} gặp`, 'book'],
+        ['Số trận thắng', fmt(p.stats?.wins || 0), 'battle'],
+        ['Thời gian chơi', gioChoi(p.stats?.playMin), 'walk'],
+        ['Bắt đầu', ngay(p.stats?.playSince), 'flag'],
+      ])}
 
       <div class="tcard-badges">
         <small>Huy hiệu võ đường</small>
@@ -141,12 +160,13 @@ export function otherCardHtml(d) {
         </div>
       </div>
 
-      <div class="tcard-grid">
-        <div><small>Thắng</small><b>${fmt(d.wins || 0)}</b></div>
-        <div><small>Đã bắt</small><b>${fmt(d.dexCaught || 0)}</b></div>
-        <div><small>Đã gặp</small><b>${fmt(d.dexSeen || 0)}/${fmt(tong)}</b></div>
-        <div><small>PvP</small><b>${fmt(d.pvp?.win || 0)}/${fmt(d.pvp?.lose || 0)}</b></div>
-      </div>
+      ${dongSo([
+        ['Tuxedex', `${fmt(d.dexCaught || 0)} bắt · ${fmt(d.dexSeen || 0)}/${fmt(tong)} gặp`, 'book'],
+        ['Số trận thắng', fmt(d.wins || 0), 'battle'],
+        ['Thành tích PvP', `${fmt(d.pvp?.win || 0)} thắng / ${fmt(d.pvp?.lose || 0)} thua`, 'trophy'],
+        ['Thời gian chơi', gioChoi(d.playMin), 'walk'],
+        ['Bắt đầu', ngay(d.playSince), 'flag'],
+      ])}
 
       <div class="tcard-badges">
         <small>Huy hiệu võ đường</small>
