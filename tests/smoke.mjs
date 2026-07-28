@@ -2114,11 +2114,22 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ES.vatTheODay(ES.KHU_DAT_MAP, l.x, l.y)?.kind === 'nha-minh');
 
     // Kê đồ theo ô bản đồ trong nhà
-    const noi = MAPS[ES.TRONG_NHA];
+    const noi = MAPS[ES.mapTrongNha()];
     ok('bản đồ trong nhà có thật và trống', !!noi && (noi.npcs || []).length === 0);
     const mon = FURNITURE[0];
     ES.muaDo(mon.id);
-    ok('kê được vào ô giữa nhà', ES.keTaiO(mon.id, 2, 2)[0] !== null);
+    ok('mỗi mẫu nhà có mặt bằng riêng, càng đắt càng rộng', (() => {
+      const co = HOUSE_BASES.map(b => MAPS[ES.MAP_TRONG_NHA[b.id]]);
+      return co.every(Boolean) && co.every((m, i) => i === 0
+        || m.w * m.h >= co[i - 1].w * co[i - 1].h);
+    })(), HOUSE_BASES.map(b => {
+      const m = MAPS[ES.MAP_TRONG_NHA[b.id]];
+      return `${b.id}=${m ? m.w + 'x' + m.h : 'THIẾU'}`;
+    }).join(' '));
+  ok('bản đồ trong nhà nào cũng trống hẳn',
+    Object.values(ES.MAP_TRONG_NHA).every(k => MAPS[k]
+      && (MAPS[k].npcs || []).length === 0));
+  ok('kê được vào ô giữa nhà', ES.keTaiO(mon.id, 2, 2)[0] !== null);
     ok('tìm lại được món ở ô đó', ES.monTaiO(2, 2)?.id === mon.id);
     const d = ES.monTaiO(2, 2);
     ok('kéo sang ô trống thì đi theo', ES.chuyenDo(d, 4, 3, noi)[0] !== null && d.x === 4);

@@ -26,9 +26,17 @@ export const LOTS = [
 ];
 export const LOT_BY_ID = Object.fromEntries(LOTS.map(l => [l.id, l]));
 
-// Bản đồ dùng làm bên trong nhà. flower_house1 là căn 10x8 trống hẳn của bản
-// gốc — không NPC, không cổng — nên mượn làm nhà người chơi được luôn.
-export const TRONG_NHA = 'flower_house1';
+// Bên trong nhà mượn mấy bản đồ TRỐNG HẲN của bản gốc (không NPC, không cổng).
+// Mẫu nhà càng đắt thì mặt bằng càng rộng — đúng nghĩa "nhà to hơn".
+export const MAP_TRONG_NHA = {
+  nha_go: 'flower_house1',      // 10x8
+  nha_khung: 'flower_petshop',  // 14x9
+  nha_ngoi: 'flower_center',    // 13x11
+  nha_da: 'candy_center',       // 20x11
+};
+// Mọi bản đồ có thể là nhà của người chơi — dùng để nhận ra đang ở trong nhà
+export const CAC_MAP_NHA = Object.values(MAP_TRONG_NHA);
+export const mapTrongNha = () => MAP_TRONG_NHA[nha().base] || null;
 // Chỗ bác thợ mộc bán nội thất đứng, ngay đầu khu đất
 export const THO_MOC = { x: 5, y: 6 };
 
@@ -281,8 +289,13 @@ export function keDuocTrongNha(id, x, y, map, boQua = null) {
   return true;
 }
 
-// Mẫu nhà quyết định kê được bao nhiêu món
-export const soMonToiDa = () => { const b = mauNha(); return b ? b.o * 2 : 0; };
+// Mặt bằng rộng thì kê được nhiều đồ hơn — tính theo số ô thật của bản đồ
+export function soMonToiDa(map = null) {
+  const b = mauNha();
+  if (!b) return 0;
+  if (map) return Math.max(6, Math.floor((map.w - 2) * (map.h - 2) / 6));
+  return b.o * 3;
+}
 
 export function keTaiO(id, x, y) {
   const e = nha();
@@ -319,6 +332,6 @@ export function catVeKho(d) {
 }
 
 // Đang đứng trong chính nhà mình?
-export const dangTrongNha = (mapId) => mapId === TRONG_NHA && nhaXong();
+export const dangTrongNha = (mapId) => mapId === mapTrongNha() && nhaXong();
 
 export { HOUSE_BASES };

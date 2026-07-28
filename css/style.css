@@ -2508,8 +2508,13 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   z-index: 4; padding: 10px 16px; }
 .deco-bar { position: absolute; left: 10px; right: 10px;
   bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 5;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center;
   padding: 10px 12px; border-radius: 14px;
   background: rgba(10, 6, 22, .92); border: 1px solid var(--line); }
 /* Dòng nhắc nằm hẳn một hàng riêng, không chen với hai nút */
 .deco-bar #deco-note { grid-column: 1 / -1; font-size: .8rem; color: var(--muted); }
+.deco-bar #deco-add { grid-column: 1 / -1; }
+.deco-zoom { display: flex; align-items: center; gap: 6px; }
+.deco-zoom .btn { min-width: 38px; padding: 6px 0; }
+.deco-zoom b { min-width: 46px; text-align: center; font-size: .82rem;
+  font-variant-numeric: tabular-nums; color: var(--gold); }

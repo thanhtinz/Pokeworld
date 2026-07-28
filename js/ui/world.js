@@ -78,6 +78,11 @@ export function render(el) {
       <button class="btn deco-btn" id="btn-deco" hidden>Trang trí</button>
       <div class="deco-bar" id="deco-bar" hidden>
         <span id="deco-note">Kéo món đồ tới chỗ muốn đặt</span>
+        <span class="deco-zoom">
+          <button class="btn btn-sm" id="deco-out" aria-label="Thu nhỏ">−</button>
+          <b id="deco-zn">100%</b>
+          <button class="btn btn-sm" id="deco-in" aria-label="Phóng to">+</button>
+        </span>
         <button class="btn btn-sm" id="deco-add">Lấy đồ trong kho</button>
         <button class="btn btn-sm btn-primary" id="deco-done">Xong</button>
       </div>
@@ -86,6 +91,16 @@ export function render(el) {
   // ==== Trang trí trong nhà ====
   let deco = false;                 // đang bật chế độ trang trí
   const keo = { mon: null, x: 0, y: 0 };   // món đang kéo và ô nó đang lơ lửng trên
+  let zoom = 1;                            // chỉ dùng khi đang trang trí
+
+  // Cỡ một ô trên màn hình. Tách ra dùng chung cho cả lúc VẼ lẫn lúc quy đổi
+  // toạ độ ngón tay — hai chỗ mà lệch nhau một chút là kéo đồ rơi sai ô.
+  function coO() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const baked = currentBake();
+    const co = Math.ceil(Math.max(Math.min(w, h) / 12, h / baked.h, w / baked.w));
+    return deco ? Math.max(12, Math.round(co * zoom)) : co;
+  }
 
   const canvas = el.querySelector('#world-canvas');
   const ctx = canvas.getContext('2d');
@@ -416,12 +431,12 @@ export function render(el) {
   // quay ra đúng chỗ vừa đứng.
   function vaoNha() {
     const c = ES.oCua();
-    const noi = MAPS[ES.TRONG_NHA];
+    const noi = MAPS[ES.mapTrongNha()];
     if (!noi || !c) { toast('Chưa vào được.'); return; }
     noi.warps = (noi.warps || []).filter(w => !w.veNha);
     noi.warps.push({ x: Math.floor(noi.w / 2), y: noi.h - 1, veNha: true,
       to: ES.KHU_DAT_MAP, tx: c.x, ty: c.y + 1 });
-    enterMap(ES.TRONG_NHA, Math.floor(noi.w / 2), noi.h - 2);
+    enterMap(ES.mapTrongNha(), Math.floor(noi.w / 2), noi.h - 2);
     toast('Về tới nhà rồi. Bấm nút Trang trí để kê đồ.');
   }
 
@@ -430,11 +445,17 @@ export function render(el) {
     const baked = currentBake();
     const w = canvas.clientWidth, h = canvas.clientHeight;
     // Ô đủ to để nhìn rõ trên điện thoại, nhưng luôn đủ lớn để bản đồ phủ kín màn hình
-    const size = Math.ceil(Math.max(Math.min(w, h) / 12, h / baked.h, w / baked.w));
+    const size = coO();
     // Máy quay bám người chơi nhưng không lia ra ngoài rìa bản đồ
-    const clamp = (v, lo, hi) => (hi < lo ? lo : Math.min(hi, Math.max(lo, v)));
-    const camX = clamp(player.x * size - w / 2, 0, baked.w * size - w);
-    const camY = clamp(player.y * size - h / 2, 0, baked.h * size - h);
+    // Bản đồ NHỎ HƠN khung nhìn (hay gặp khi thu nhỏ lúc trang trí) thì căn
+    // giữa, không thì nó dạt lên góc trái để lộ một mảng đen to.
+    const cam = (toaDo, cheo, khung) => {
+      const dai = cheo * size;
+      if (dai <= khung) return -(khung - dai) / 2;
+      return Math.min(dai - khung, Math.max(0, toaDo * size - khung / 2));
+    };
+    const camX = cam(player.x, baked.w, w);
+    const camY = cam(player.y, baked.h, h);
 
     ctx.fillStyle = '#0b0716';
     ctx.fillRect(0, 0, w, h);
@@ -528,7 +549,24 @@ export function render(el) {
     el.querySelector('#btn-act').hidden = deco;
   }
 
-  btnDeco.addEventListener('click', () => { deco = true; capNhatNutDeco(); });
+  const ZOOM_MIN = 0.5, ZOOM_MAX = 3;
+  function datZoom(z) {
+    zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+    const n = el.querySelector('#deco-zn');
+    if (n) n.textContent = Math.round(zoom * 100) + '%';
+  }
+  el.querySelector('#deco-in').addEventListener('click', () => datZoom(zoom * 1.25));
+  el.querySelector('#deco-out').addEventListener('click', () => datZoom(zoom / 1.25));
+
+  // Chụm hai ngón để phóng to / thu nhỏ
+  const ngon = new Map();
+  let khoangCu = 0;
+  function khoangHaiNgon() {
+    const [a, b2] = [...ngon.values()];
+    return Math.hypot(a.x - b2.x, a.y - b2.y);
+  }
+
+  btnDeco.addEventListener('click', () => { deco = true; datZoom(1); capNhatNutDeco(); });
   el.querySelector('#deco-done').addEventListener('click', () => {
     deco = false; keo.mon = null; capNhatNutDeco();
   });
@@ -564,10 +602,14 @@ export function render(el) {
     const r = canvas.getBoundingClientRect();
     const w = canvas.clientWidth, h = canvas.clientHeight;
     const baked = currentBake();
-    const size = Math.ceil(Math.max(Math.min(w, h) / 12, h / baked.h, w / baked.w));
-    const clamp = (v, lo, hi) => (hi < lo ? lo : Math.min(hi, Math.max(lo, v)));
-    const camX = clamp(player.x * size - w / 2, 0, baked.w * size - w);
-    const camY = clamp(player.y * size - h / 2, 0, baked.h * size - h);
+    const size = coO();
+    const cam = (toaDo, cheo, khung) => {
+      const dai = cheo * size;
+      if (dai <= khung) return -(khung - dai) / 2;
+      return Math.min(dai - khung, Math.max(0, toaDo * size - khung / 2));
+    };
+    const camX = cam(player.x, baked.w, w);
+    const camY = cam(player.y, baked.h, h);
     return {
       x: Math.floor((ev.clientX - r.left + camX) / size),
       y: Math.floor((ev.clientY - r.top + camY) / size),
@@ -576,6 +618,8 @@ export function render(el) {
 
   canvas.addEventListener('pointerdown', (ev) => {
     if (!deco) return;
+    ngon.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (ngon.size === 2) { khoangCu = khoangHaiNgon(); keo.mon = null; return; }
     const { x, y } = oTuMan(ev);
     const d = ES.monTaiO(x, y);
     if (!d) return;
@@ -584,12 +628,24 @@ export function render(el) {
     ev.preventDefault();
   });
   canvas.addEventListener('pointermove', (ev) => {
-    if (!deco || !keo.mon) return;
+    if (!deco) return;
+    if (ngon.has(ev.pointerId)) ngon.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    // Hai ngón: chụm vào / xoè ra để zoom, không kéo đồ
+    if (ngon.size === 2) {
+      const d = khoangHaiNgon();
+      if (khoangCu > 0) datZoom(zoom * (d / khoangCu));
+      khoangCu = d;
+      ev.preventDefault();
+      return;
+    }
+    if (!keo.mon) return;
     const { x, y } = oTuMan(ev);
     keo.x = x; keo.y = y;
     ev.preventDefault();
   });
-  const thaTay = () => {
+  const thaTay = (ev) => {
+    if (ev && ngon.has(ev.pointerId)) ngon.delete(ev.pointerId);
+    if (ngon.size < 2) khoangCu = 0;
     if (!keo.mon) return;
     const [, err] = ES.chuyenDo(keo.mon, keo.x, keo.y, currentMap());
     if (err) toast(err);
