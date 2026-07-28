@@ -4,7 +4,7 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre, isInside,
+  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre, layTinNguDay, isInside,
   enterMap } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
@@ -576,19 +576,20 @@ export function render(el) {
 
   // Vừa mở game lên thì nhân vật đang nằm trên giường — nhà mình hoặc nhà trọ.
   // Nhấn hướng một cái là đứng dậy (vòng lặp dưới lo việc đó).
+  //
+  // CHỈ chạy đúng một lần cho mỗi lần mở trang. Trước đây hàm này gọi ở mỗi lần
+  // vẽ lại màn bản đồ, nên cứ từ Menu quay ra là bị đặt nằm xuống giường lại và
+  // hiện thêm một dòng nhắc — vừa sai vừa phiền. Cũng bỏ luôn dòng nhắc: nhìn
+  // là biết mình đang nằm ở đâu, không cần ai nói.
   function moGameNguDay() {
-    if (INN.laNhaTro(player.mapId)) {
+    const tin = layTinNguDay();
+    if (!tin) return;
+    if (tin.t === 'tro') {
       const g = INN.giuongCuaToi();
       if (g) TT.datTuThe('nam', { id: INN.ID_GIUONG, x: g.x, y: g.y });
-      toast('Bạn tỉnh dậy ở nhà trọ. Dựng được nhà rồi thì ngủ ở nhà mình.', 3200);
       return;
     }
-    if (ES.dangTrongNha(player.mapId)) {
-      // Có kê giường trong nhà thì nằm lên chính cái giường đó
-      const g = ES.nha().dat.find(d => FURN_BY_ID[d.id]?.kind === 'nam');
-      if (g) TT.datTuThe('nam', g);
-      toast('Bạn tỉnh dậy trong nhà mình.', 3000);
-    }
+    if (tin.giuong) TT.datTuThe('nam', tin.giuong);
   }
 
   // ==== Bang Đường ====
@@ -612,7 +613,9 @@ export function render(el) {
     const cho = ES.camCongVeNha();
     if (!cho) { toast('Chưa vào được.'); return; }
     enterMap(ES.mapTrongNha(), cho.x, cho.y);
-    toast('Về tới nhà rồi. Bấm nút Trang trí để kê đồ.');
+    // Chỉ nhắc khi nhà còn trống trơn; kê được món nào rồi thì thôi, người
+    // chơi biết nút Trang trí nằm đâu, nhắc lại mỗi lần vào nhà chỉ tổ phiền.
+    if (!ES.nha().dat.length) toast('Bấm nút Trang trí để kê đồ.');
   }
 
   function draw() {
@@ -680,7 +683,8 @@ export function render(el) {
       const k = keyVec();
       updateNpcs(dt);
       // Đang nằm/ngồi mà nhấn hướng thì đứng dậy trước đã
-      if ((vec.x + k.x || vec.y + k.y) && TT.dungDay()) toast('Bạn đứng dậy.');
+      // Nhấn hướng là đứng dậy. Không cần báo gì — nhìn nhân vật là thấy.
+      if (vec.x + k.x || vec.y + k.y) TT.dungDay();
       const ev = update(dt, vec.x + k.x, vec.y + k.y);
       if (ev?.t === 'warp') {
         el.querySelector('#world-zone').textContent = currentMap().name;
@@ -768,19 +772,23 @@ export function render(el) {
     })));
     if (i === null) return;
     const id = ds[i][0];
-    // Đặt tạm vào ô trống đầu tiên tìm được, rồi người chơi kéo đi đâu tuỳ ý
+    // Đặt tạm vào ô trống GẦN CHỖ ĐANG ĐỨNG nhất rồi người chơi kéo đi đâu tuỳ ý.
+    // Trước đây quét từ góc trên trái nên món vừa lấy ra rơi tít góc phòng,
+    // ngoài khung nhìn — tưởng như bấm xong chẳng có gì xảy ra.
     const noi = currentMap();
-    for (let y = 1; y < noi.h - 1; y++) {
-      for (let x = 1; x < noi.w - 1; x++) {
-        if (ES.keDuocTrongNha(id, x, y, noi)) {
-          const [, err] = ES.keTaiO(id, x, y);
-          if (err) { toast(err); return; }
-          toast(`Đặt ${FURN_BY_ID[id]?.name} xuống rồi — kéo tới chỗ bạn muốn.`);
-          return;
-        }
+    const px = Math.floor(player.x), py = Math.floor(player.y);
+    let cho = null, gan = Infinity;
+    for (let y = 0; y < noi.h; y++) {
+      for (let x = 0; x < noi.w; x++) {
+        if (!ES.keDuocTrongNha(id, x, y, noi)) continue;
+        const d = (x - px) ** 2 + (y - py) ** 2;
+        if (d < gan) { gan = d; cho = { x, y }; }
       }
     }
-    toast('Không còn chỗ trống để kê.');
+    if (!cho) { toast('Không còn chỗ trống để kê.'); return; }
+    const [, err] = ES.keTaiO(id, cho.x, cho.y);
+    if (err) { toast(err); return; }
+    toast(`Đặt ${FURN_BY_ID[id]?.name} xuống rồi — kéo tới chỗ bạn muốn.`);
   });
 
   // Kéo bằng ngón tay: chạm trúng món nào thì nhấc món đó lên, thả xuống ô mới

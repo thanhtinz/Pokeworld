@@ -2131,17 +2131,13 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     nang && G.p.money === truoc - (dat.price - re.price), String(G.p.money));
   ok('không đổi xuống mẫu nhỏ hơn', ES.dungNha(re.id)[1] !== null);
 
-  // Kê đồ
+  // Kê đồ (bộ kê theo bản đồ trong nhà, test kỹ ở phần dưới)
   const mon = FURNITURE[0];
   ok('mua đồ vào kho', ES.muaDo(mon.id)[0] !== null && ES.conTrongKho(mon.id) === 1);
-  ok('kê được vào lưới', ES.ke(mon.id, 0, 0)[0] !== null);
-  ok('kê rồi thì rời kho', ES.conTrongKho(mon.id) === 0);
-  ES.muaDo(mon.id);
-  ok('không kê chồng lên nhau', ES.ke(mon.id, 0, 0)[1] !== null);
-  ok('không kê ra ngoài lưới', ES.ke(mon.id, ES.soO(), 0)[1] !== null);
-  ok('gỡ ra thì đồ về kho chứ không mất',
-    ES.go(0, 0)[0] !== null && ES.conTrongKho(mon.id) === 2);
-  ok('ô trống thì gỡ báo lỗi chứ không vỡ', ES.go(0, 0)[1] !== null);
+  ok('số món kê được khớp với căn phòng thật', (() => {
+    const m = MAPS[ES.mapTrongNha()];
+    return ES.soMonToiDa() === ES.soMonToiDa(m) && ES.soMonToiDa() >= 6;
+  })(), `${ES.soMonToiDa()}`);
 
   ok('tổng giá trị cộng cả đất, nhà và đồ',
     ES.tomTat().giaTri >= ES.LOT_BY_ID.a1.price + dat.price);
@@ -2205,6 +2201,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ES.chuyenDo(d, noi.w, 3, noi)[1] !== null);
     ES.muaDo(mon.id);
     ok('không kê chồng lên món đang có', !ES.keDuocTrongNha(mon.id, 4, 3, noi));
+    // Tường của phòng dày HAI hàng trên cùng — không được kê vào đó
+    ok('không kê đồ vào tường',
+      !ES.keDuocTrongNha(mon.id, 3, 0, noi) && !ES.keDuocTrongNha(mon.id, 3, 1, noi));
+    ok('kê được ở hàng ngay dưới tường', ES.keDuocTrongNha(mon.id, 8, 2, noi));
+    ok('không kê tràn ra ngoài bản đồ',
+      !ES.keDuocTrongNha(mon.id, noi.w, 3, noi) && !ES.keDuocTrongNha(mon.id, 3, noi.h, noi));
     ok('cất về kho thì đồ quay lại kho',
       ES.catVeKho(d) && ES.conTrongKho(mon.id) === 2);
   }

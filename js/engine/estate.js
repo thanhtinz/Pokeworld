@@ -75,8 +75,6 @@ export function xayNhanh() {
 export const coDat = () => !!nha().lot;
 export const coNha = () => !!nha().base;
 export const mauNha = () => BASE_BY_ID[nha().base] || null;
-// Nhà càng đắt lưới càng rộng
-export const soO = () => (mauNha()?.o || 0);
 
 export function muaDat(lotId) {
   const e = nha();
@@ -124,74 +122,10 @@ export function muaDo(id) {
 // Số món đang nằm trong kho (chưa kê)
 export const conTrongKho = (id) => (nha().kho[id] || 0);
 
-// Ô nào đang bị chiếm — dùng để chặn kê chồng lên nhau
-function oBiChiem(bo = null) {
-  const e = nha();
-  const set = new Set();
-  e.dat.forEach((d, i) => {
-    if (i === bo) return;
-    const f = FURN_BY_ID[d.id];
-    if (!f) return;
-    for (let dy = 0; dy < f.h; dy++) {
-      for (let dx = 0; dx < f.w; dx++) set.add(`${d.x + dx},${d.y + dy}`);
-    }
-  });
-  return set;
-}
-
-export function keDuoc(id, x, y) {
-  const f = FURN_BY_ID[id];
-  const n = soO();
-  if (!f || !n) return false;
-  if (x < 0 || y < 0 || x + f.w > n || y + f.h > n) return false;
-  const chiem = oBiChiem();
-  for (let dy = 0; dy < f.h; dy++) {
-    for (let dx = 0; dx < f.w; dx++) if (chiem.has(`${x + dx},${y + dy}`)) return false;
-  }
-  return true;
-}
-
-export function ke(id, x, y) {
-  const e = nha();
-  if (!coNha()) return [null, 'Chưa có nhà để kê đồ.'];
-  if (!conTrongKho(id)) return [null, 'Trong kho hết món này rồi.'];
-  if (!keDuoc(id, x, y)) return [null, 'Chỗ này kê không vừa.'];
-  e.kho[id] -= 1;
-  if (e.kho[id] <= 0) delete e.kho[id];
-  e.dat.push({ id, x, y });
-  save();
-  return [{ id, x, y }, null];
-}
-
-// Gỡ món ở ô (x,y) — trả về kho chứ không mất tiền oan
-export function go(x, y) {
-  const e = nha();
-  const i = e.dat.findIndex(d => {
-    const f = FURN_BY_ID[d.id];
-    return f && x >= d.x && x < d.x + f.w && y >= d.y && y < d.y + f.h;
-  });
-  if (i < 0) return [null, 'Ô này không có gì.'];
-  const [d] = e.dat.splice(i, 1);
-  e.kho[d.id] = (e.kho[d.id] || 0) + 1;
-  save();
-  return [d, null];
-}
-
-// Đổi nhà nhỏ hơn thì đồ ngoài lưới mới phải gỡ về kho. Gọi sau khi đổi mẫu.
-export function donGonTheoO() {
-  const e = nha();
-  const n = soO();
-  const giu = [];
-  for (const d of e.dat) {
-    const f = FURN_BY_ID[d.id];
-    if (f && d.x + f.w <= n && d.y + f.h <= n) giu.push(d);
-    else e.kho[d.id] = (e.kho[d.id] || 0) + 1;
-  }
-  const bo = e.dat.length - giu.length;
-  e.dat = giu;
-  if (bo) save();
-  return bo;
-}
+// (Bỏ hẳn bộ kê đồ theo LƯỚI VUÔNG đời đầu: keDuoc/ke/go/donGonTheoO/oBiChiem.
+// Từ khi kê đồ ngay trên bản đồ trong nhà thì bộ đó không còn chỗ nào gọi, chỉ
+// còn mấy bài test tự gọi nhau — mà nó lại có luật khác hẳn bộ đang dùng, để
+// lại chỉ tổ nhầm.)
 
 // Bảng tóm tắt cho màn hình
 export function tomTat() {
@@ -200,7 +134,7 @@ export function tomTat() {
   return {
     lot: LOT_BY_ID[e.lot] || null,
     base: b,
-    o: soO(),
+    o: soMonToiDa(),
     daKe: e.dat.length,
     trongKho: Object.values(e.kho).reduce((a, x) => a + x, 0),
     giaTri: (LOT_BY_ID[e.lot]?.price || 0) + (b?.price || 0)
@@ -286,9 +220,13 @@ export function monTaiO(x, y) {
 export function keDuocTrongNha(id, x, y, map, boQua = null) {
   const f = FURN_BY_ID[id];
   if (!f || !map) return false;
-  if (x < 1 || y < 1 || x + f.w > map.w - 1 || y + f.h > map.h - 1) return false;
+  if (x < 0 || y < 0 || x + f.w > map.w || y + f.h > map.h) return false;
   for (let dy = 0; dy < f.h; dy++) {
     for (let dx = 0; dx < f.w; dx++) {
+      // Không kê vào TƯỜNG. Trước đây chỉ chừa một ô quanh mép bản đồ, mà
+      // phòng của mình có tường dày HAI hàng trên cùng — nên kê được cả vào
+      // giữa bức tường, món đồ dính nửa trong nửa ngoài.
+      if (map.solid?.[(y + dy) * map.w + (x + dx)]) return false;
       const o = monTaiO(x + dx, y + dy);
       if (o && o !== boQua) return false;
     }
@@ -296,12 +234,15 @@ export function keDuocTrongNha(id, x, y, map, boQua = null) {
   return true;
 }
 
-// Mặt bằng rộng thì kê được nhiều đồ hơn — tính theo số ô thật của bản đồ
+// Mặt bằng rộng thì kê được nhiều đồ hơn — tính theo SỐ Ô THẬT của căn phòng.
+// Trước đây gọi không kèm bản đồ thì trả một con số khác (theo trường 'o' của
+// mẫu nhà), nên màn hình hiện một đằng mà lúc kê lại chặn một nẻo. Giờ mỗi mẫu
+// nhà chỉ có đúng một căn phòng nên cứ tra thẳng phòng đó ra mà tính.
 export function soMonToiDa(map = null) {
-  const b = mauNha();
-  if (!b) return 0;
-  if (map) return Math.max(6, Math.floor((map.w - 2) * (map.h - 2) / 6));
-  return b.o * 3;
+  if (!mauNha()) return 0;
+  const m = map || MAPS[mapTrongNha()];
+  if (!m) return 0;
+  return Math.max(6, Math.floor((m.w - 2) * (m.h - 2) / 6));
 }
 
 export function keTaiO(id, x, y) {

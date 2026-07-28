@@ -53,6 +53,10 @@ export function enterMap(mapId, tx, ty) {
 // lúc tắt: có nhà thì dậy trong nhà mình, chưa có nhà thì dậy ở nhà trọ chung.
 // Chỉ chạy MỘT LẦN cho mỗi lần mở trang — đi lại trong game không bị kéo về.
 let daNguDay = false;
+// Kết quả của lần ngủ dậy, để màn bản đồ nhặt ra ĐÚNG MỘT LẦN rồi thôi
+let tinNguDay = null;
+export function layTinNguDay() { const t = tinNguDay; tinNguDay = null; return t; }
+
 export function nguDay() {
   // Đang sang thăm nhà người khác thì đừng lôi về giường — người chơi vừa bấm
   // "vào nhà" xong, kéo về nhà trọ là hỏng cả việc
@@ -64,11 +68,17 @@ export function nguDay() {
     // Có giường thì tỉnh dậy NGAY TRÊN GIƯỜNG, không thì đứng ở cửa
     const g = giuongTrongNha();
     const cho = g || cua;
-    if (cho && enterMap(mapTrongNha(), cho.x, cho.y)) return { t: 'nha', giuong: g };
+    if (cho && enterMap(mapTrongNha(), cho.x, cho.y)) {
+      tinNguDay = { t: 'nha', giuong: g };
+      return tinNguDay;
+    }
   }
   camCongNhaTro(START_MAP);
   const g2 = giuongCuaToi();
-  if (g2 && enterMap(MAP_NHA_TRO, g2.x, g2.y)) return { t: 'tro', giuong: g2 };
+  if (g2 && enterMap(MAP_NHA_TRO, g2.x, g2.y)) {
+    tinNguDay = { t: 'tro', giuong: g2 };
+    return tinNguDay;
+  }
   return null;
 }
 
