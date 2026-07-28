@@ -15,6 +15,7 @@ import { TRAINERS } from '../data/trainers.js';
 import { esc, fmt, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, tien, tienChu } from '../util.js';
 import { toast, choose, hpBar, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
+import { veCanh } from './scene.js';
 import { show, refresh } from '../main.js';
 
 // Icon đại diện zone: ưu tiên sprite item, sau đó artwork Tuxemon, cuối cùng bỏ trống
@@ -77,10 +78,32 @@ export function render(el) {
       </div>`;
   }
 
+  // Ô hành động: mỗi cái một icon riêng, xếp lưới cho ra dáng màn chính của game
+  const oHanhDong = (id, icon, ten, phu) => `
+    <button class="act-tile" id="${id}">
+      <span class="act-ico">${uiIcon(icon, 26)}</span>
+      <b>${esc(ten)}</b>
+      ${phu ? `<small>${esc(phu)}</small>` : ''}
+    </button>`;
+
   el.innerHTML = `
-    <div class="idle-top">
-      <div class="zone-chip">${zoneIcon(zone, 22)} <b>${esc(zone.name)}</b></div>
+    <div class="hero">
+      <canvas class="hero-canvas" id="home-scene"></canvas>
+      <div class="hero-veil"></div>
+      <div class="hero-top">
+        <span class="zone-chip">${zoneIcon(zone, 20)} <b>${esc(zone.name)}</b></span>
+      </div>
+      <div class="hero-foot">
+        <p class="hero-desc">${esc(zone.desc || '')}</p>
+        <button class="btn btn-primary btn-big hero-go" id="btn-world">
+          ${uiIcon('walk', 20)} Đi bộ trên bản đồ
+        </button>
+      </div>
     </div>
+
+    <small class="zone-hint">${isTown
+      ? 'Thị trấn không có Tuxemon hoang. Ra tuyến đường rồi đi vào bụi cỏ cao để gặp Tuxemon.'
+      : 'Đi bộ vào bụi cỏ cao trên bản đồ để gặp Tuxemon hoang dã.'}</small>
 
     ${ch ? `
     <button class="card story-card" id="btn-story">
@@ -89,28 +112,21 @@ export function render(el) {
       ${needIntro() ? '<span class="story-new" title="Mới"></span>' : ''}
     </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="" onerror="this.style.visibility='hidden'"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Tuxedex!</div>` : '')}
 
-    <div class="card zone-card">
-      <p class="zone-desc">${esc(zone.desc || '')}</p>
-      <small class="zone-hint">${isTown
-        ? 'Thị trấn không có Tuxemon hoang. Ra tuyến đường rồi đi vào bụi cỏ cao để gặp Tuxemon.'
-        : 'Đi bộ vào bụi cỏ cao trên bản đồ để gặp Tuxemon hoang dã.'}</small>
-      <button class="btn btn-primary btn-big" id="btn-world">Đi bộ trên bản đồ</button>
-    </div>
-
     ${partyHtml()}
 
-    ${isTown ? `
-    <div class="idle-controls">
-      <button class="btn" id="btn-center">Hồi phục</button>
-      <button class="btn" id="btn-shop">Cửa hàng</button>
-    </div>` : ''}
-
-    <div class="idle-controls">
-      <button class="btn" id="btn-travel">Di chuyển</button>
-      <button class="btn" id="btn-trainers">Đấu trainer ${zone.trainers?.length ? `(${zone.trainers.length})` : ''}</button>
+    <div class="act-grid">
+      ${isTown ? oHanhDong('btn-center', 'heal', 'Hồi phục', 'Đội khoẻ lại') : ''}
+      ${isTown ? oHanhDong('btn-shop', 'shop', 'Cửa hàng', 'Mua bán') : ''}
+      ${oHanhDong('btn-travel', 'compass', 'Di chuyển', `${(zone.next || []).length} lối đi`)}
+      ${oHanhDong('btn-trainers', 'battle', 'Đấu trainer',
+        zone.trainers?.length ? `${zone.trainers.length} người` : 'Không có ai')}
     </div>
   `;
   upgradeImages(el);
+
+  // Cảnh sống trong khung hero — nhớ tắt vòng vẽ khi rời màn
+  const tatCanh = veCanh(el.querySelector('#home-scene'));
+  el.addEventListener('screen-leave', tatCanh, { once: true });
 
   // ==== Cốt truyện ====
   async function playChapterIntro() {

@@ -214,6 +214,18 @@ export function render(el) {
       ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
         Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
     };
+    // Nằm trên giường: giường trong game đều DỰNG ĐỨNG (rộng 1-2 ô, cao 2 ô)
+    // nên xoay nhân vật 90° là nằm vắt ngang qua giường, thò cả người ra ngoài.
+    // Nằm dọc theo giường thì cứ vẽ đứng, chỉ hạ xuống giữa giường là đủ.
+    // Chỉ giường NẰM NGANG (rộng hơn cao) mới cần xoay.
+    const nam = (img, cx, cy, ngang) => {
+      if (!ngang) { put(img, 'down', false, cx, cy); return; }
+      ctx.save();
+      ctx.translate(cx, cy - chH / 2 + size * 0.34);
+      ctx.rotate(Math.PI / 2);
+      put(img, 'down', false, 0, chH / 2 - size * 0.34);
+      ctx.restore();
+    };
     // Đồ rơi chưa nhặt: vẽ icon món đó ngay trên ô, nhặt rồi thì thôi
     for (const it of map.items || []) {
       if (pickedUp(player.mapId, it)) continue;
@@ -266,13 +278,8 @@ export function render(el) {
         const k = khach[i - 1];
         if (i === 0 || !k) return;
         const ava = owImage(k.avatar === 'leaf' ? 'leaf' : 'red');
-        if (owReady(ava)) {
-          ctx.save();
-          ctx.translate((g.x + 0.5) * size - camX, (g.y + 0.8) * size - camY);
-          ctx.rotate(Math.PI / 2);
-          put(ava, 'down', false, 0, chH / 2 - size * 0.34);
-          ctx.restore();
-        }
+        nam(ava, (g.x + f.w / 2) * size - camX,
+          (g.y + f.h / 2) * size - camY + chH / 2 - size * 0.34, f.w > f.h);
         ctx.save();
         ctx.fillStyle = 'rgba(255,255,255,.75)';
         ctx.font = `${Math.round(size * 0.26)}px system-ui, sans-serif`;
@@ -390,11 +397,7 @@ export function render(el) {
     const mx = fm ? (mon.x + fm.w / 2) * size - camX : px;
     const my = fm ? (mon.y + fm.h / 2) * size - camY + chH / 2 - size * 0.34 : py;
     if (tt === 'nam') {
-      ctx.save();
-      ctx.translate(mx, my - chH / 2 + size * 0.34);
-      ctx.rotate(Math.PI / 2);
-      put(avatarImg(), 'down', false, 0, chH / 2 - size * 0.34);
-      ctx.restore();
+      nam(avatarImg(), mx, my, !!fm && fm.w > fm.h);
     } else if (tt === 'ngoi') {
       put(avatarImg(), player.dir, false, mx, my);
     } else {

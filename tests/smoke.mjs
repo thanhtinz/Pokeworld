@@ -2738,6 +2738,22 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     VS.vaoNhaNguoiKhac({ username: 'A', base: null, dat: [] }, null)[1] !== null);
 }
 
+// ==== Nằm giường thì nằm DỌC theo giường ====
+// Màn bản đồ chỉ xoay ngang nhân vật khi món nằm rộng hơn cao. Mọi giường
+// trong game đều dựng đứng, nên chỉ cần giữ đúng luật đó trong dữ liệu là
+// không bao giờ còn cảnh nằm vắt ngang thò cả người ra ngoài giường.
+{
+  const { FURNITURE } = await import('../js/data/estate.js');
+  const nam = FURNITURE.filter(f => f.kind === 'nam');
+  ok('có món để nằm', nam.length > 0);
+  const ngang = nam.filter(f => f.w > f.h);
+  ok('không giường nào nằm ngang', ngang.length === 0,
+    ngang.map(f => f.id).join(', '));
+  const INN2 = await import('../js/engine/inn.js');
+  const g = FURNITURE.find(f => f.id === INN2.ID_GIUONG);
+  ok('giường nhà trọ cũng dựng đứng', !!g && g.h >= g.w);
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
