@@ -143,6 +143,7 @@ export function heal(mon) {
   mon.hpCur = maxHp(mon);
   mon.status = null;
   mon.statusTurns = 0;
+  delete mon.plague;          // trạm hồi sức chữa luôn bệnh dịch
   for (const mv of mon.moves || []) mv.cd = 0;
 }
 

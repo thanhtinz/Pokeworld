@@ -2138,3 +2138,12 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 
 /* Dong "dang cam" trong the doi hinh */
 .held-line { display: inline-flex; align-items: center; gap: 4px; color: var(--gold-num); }
+
+/* Nhan benh dich (mods/plagues.yaml cua ban goc) */
+.plague-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: .68rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px;
+  background: rgba(140, 200, 60, .18);
+  border: 1px solid #8cc83c; color: #b8e86a;
+}

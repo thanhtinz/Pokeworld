@@ -10,7 +10,7 @@ import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
 import { tasteText } from '../data/tastes.js';
 import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
-import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle, itemIcon } from './kit.js';
+import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, header, holoStyle, itemIcon } from './kit.js';
 import { rangeIcon, speedIcon } from './icons.js';
 import { openSheet } from './sheet.js';
 
@@ -33,7 +33,7 @@ export function render(el) {
             <img class="holo-sprite px-icon" src="${monImg(m)}" width="72" height="72" alt="">
             <div class="ps-mid">
               <span class="holo-name ps-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''}</span>
-              ${statusTag(m.status)}
+              ${statusTag(m.status)}${plagueTag(m.plague)}
               ${hpBar(m.hpCur, maxHp(m))}
               <small class="ps-hp">${m.hpCur}/${maxHp(m)}</small>
             </div>

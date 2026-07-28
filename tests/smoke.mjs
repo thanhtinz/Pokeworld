@@ -17,7 +17,8 @@ import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, ALL_KINDS, N
   applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
 import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../js/data/tastes.js';
-import { newTuxemon, stats, maxHp, STAT_KEYS } from '../js/engine/monster.js';
+import { newTuxemon, stats, maxHp, STAT_KEYS, heal } from '../js/engine/monster.js';
+import { PLAGUES } from '../js/data/plagues.js';
 import { expForLevel, expYield, gainExp, movesAtLevel } from '../js/engine/exp.js';
 import { calcDamage, typeMultiplier, RANGE_MAP } from '../js/engine/damage.js';
 import { attemptCatch, ballModifier, statusModifier, applyBallEffects,
@@ -478,6 +479,45 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   const duong = new Set(Object.values(EVOLUTIONS).flat().flatMap(w => w.item || []));
   ok('đá tiến hoá nào cũng mở được ít nhất một đường',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
+}
+
+// Bệnh dịch (mods/plagues.yaml): dính chiêu mang bệnh thì có thể lây,
+// con đang bệnh ra đòn lại có lúc lây tiếp thay vì đánh
+{
+  ok('có bảng bệnh dịch', Object.keys(PLAGUES).length >= 1);
+  ok('bệnh nào cũng có tên tiếng Việt và tỉ lệ lây',
+    Object.values(PLAGUES).every(p2 => p2.name && p2.spread > 0 && p2.spread <= 1));
+
+  const mvBenh = Object.entries(MOVES).find(([, m]) =>
+    (m.eff || []).some(e => e.t === 'plague'));
+  ok('có chiêu mang bệnh trong bảng chiêu', !!mvBenh, mvBenh?.[0]);
+
+  if (mvBenh) {
+    // Ném chiêu bệnh nhiều lần thì kiểu gì cũng có lần lây được
+    let lay = 0;
+    for (let k = 0; k < 300; k++) {
+      const me = newTuxemon(STARTERS[0].sp, 30);
+      const foe = newTuxemon(STARTERS[2].sp, 30);
+      me.moves = [{ id: mvBenh[0], cd: 0 }];
+      foe.moves = [{ id: mvBenh[0], cd: 0 }];
+      const bt = new Battle({ kind: 'wild',
+        sides: [{ kind: 'player', mons: [me] }, { kind: 'wild', mons: [foe] }] });
+      bt.submit(0, { t: 'move', i: 0 });
+      bt.submit(1, { t: 'move', i: 0 });
+      bt.resolve();
+      if (foe.plague) lay++;
+    }
+    ok('chiêu mang bệnh lây được nhưng không phải lúc nào cũng lây',
+      lay > 5 && lay < 250, `${lay}/300`);
+  }
+
+  // Trạm hồi sức chữa luôn bệnh
+  {
+    const m2 = newTuxemon(STARTERS[0].sp, 20);
+    m2.plague = Object.keys(PLAGUES)[0];
+    heal(m2);
+    ok('hồi sức chữa luôn bệnh dịch', !m2.plague);
+  }
 }
 
 // Tiến hoá: mấy điều kiện nhìn ra ngoài bản thân con vật

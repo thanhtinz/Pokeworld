@@ -17,7 +17,7 @@ import { monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeI
 import { textDelay, sfx, getSetting, playMusic } from '../engine/settings.js';
 import { SFX, MON_CRY } from '../data/sounds.js';
 import { fxFor } from '../data/vfx.js';
-import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
+import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, plagueTag, itemIcon } from './kit.js';
 import { uiIcon, rangeIcon, speedIcon } from './icons.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
@@ -155,7 +155,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
             isFainted(x) ? 'faint' : (x.status ? 'status' : 'alive')}.png" alt="">`).join('')}</span>` : '';
     $enemy.innerHTML = `
       <div class="bt-info">
-        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
+        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}${plagueTag(m.plague)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, maxHp(m))}</div>
         ${balls}
       </div>
@@ -182,7 +182,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
              data-up="${monUpgradeChain(m, true)}" alt="${esc(displayName(m))}">
       </span>
       <div class="bt-info">
-        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}</div>
+        <div class="bt-name">${esc(displayName(m))}${m.shiny ? ' <span class="shiny-tag">SHINY</span>' : ''} <small>Lv.${m.lv}</small> ${statusTag(m.status)}${plagueTag(m.plague)}</div>
         <div class="bt-row"><span class="bt-lab">HP</span>${hpBar(m.hpCur, mx)}</div>
         <div class="bt-hpnum"><span class="hp-txt">${m.hpCur}/${mx}</span></div>
         <div class="bt-row"><span class="bt-lab">EXP</span><div class="expbar"><div class="expbar-fill" style="width:${expPct}%"></div></div></div>

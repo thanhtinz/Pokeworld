@@ -123,6 +123,9 @@ def main():
         for mv in m.get('moveset') or []:
             if mv.get('technique'):
                 used.add(mv['technique'])
+    # Chieu benh dich khong con nao hoc, nhung con dang benh se bi no chiem cho
+    # luc ra don (combat/session.py pre_check) nen van phai co trong bang chieu.
+    used.update(_plague_techs(root))
     techs = {}
     for slug in sorted(used):
         p = os.path.join(db, 'technique', slug + '.yaml')
@@ -134,6 +137,7 @@ def main():
     write_types(elements, names)
     write_species(mons, dex, shapes, disp, elements)
     write_bang_ten()
+    write_plagues(root)
     write_moves(techs, disp)
     write_learnsets(mons, dex, techs)
     write_evolutions(mons, dex)
@@ -336,6 +340,41 @@ DANG_THAN = {
 BAC = {'basic': 'Cơ bản', 'stage1': 'Bậc 1', 'stage2': 'Bậc 2', 'standalone': 'Độc lập'}
 
 
+def _plague_techs(root):
+    import yaml as _y
+    fp = os.path.join(root, 'mods/plagues.yaml')
+    if not os.path.exists(fp):
+        return set()
+    return set((_y.safe_load(open(fp, encoding='utf-8')) or {}).get('plagues') or {})
+
+
+def write_plagues(root):
+    """js/data/plagues.js — benh dich lay tu mods/plagues.yaml cua ban goc."""
+    import yaml as _y
+    fp = os.path.join(root, 'mods/plagues.yaml')
+    d = (_y.safe_load(open(fp, encoding='utf-8')) or {}).get('plagues') or {} \
+        if os.path.exists(fp) else {}
+    VI = {'spyderbite': 'Nhện Cắn'}
+    out = ['// TuxeWorld H5 | data/plagues.js | Bệnh dịch — TỰ SINH TỪ tools/mktuxemon.py',
+           '// Nguồn: mods/plagues.yaml của Tuxemon. Đừng sửa tay.',
+           '//',
+           '// spread = xác suất lây khi bị dính chiêu mang bệnh.',
+           '// Con đang bệnh mà ra đòn thì có lúc bị chiêu bệnh chiếm chỗ: thay vì',
+           '// đánh, nó lây bệnh sang đối thủ (bản gốc: combat/session.py pre_check).',
+           'export const PLAGUES = {']
+    for slug, cfg in sorted(d.items()):
+        if not isinstance(cfg, dict):
+            continue
+        out.append('  %s: { name: %s, spread: %s, carrier: %s, khoi: %s },'
+                   % (js(slug), js(VI.get(slug, slug.replace('_', ' ').title())),
+                      fmtnum(float(cfg.get('spreadness') or 0)),
+                      fmtnum(float(cfg.get('carrier_spreadness') or cfg.get('spreadness') or 0)),
+                      fmtnum(float(cfg.get('natural_recovery_chance') or 0))))
+    out.append('};')
+    open('js/data/plagues.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    return len(d)
+
+
 def write_bang_ten():
     """js/data/traits.js — ten tieng Viet cua dang than, bac, noi song, dac diem."""
     def bang(ten, d):
@@ -405,7 +444,8 @@ export const speciesBySlug = (slug) => Object.values(SPECIES).find(s => s.slug =
 # move_type) thi bo qua.
 EFFECT_KEEP = {'give', 'healing', 'prop_healing', 'prop_damage', 'remove', 'money',
                'multiattack', 'switch', 'cooldown_modifier', 'photogenesis',
-               'life_share', 'life_swap', 'transfer', 'sacrifice', 'reverse'}
+               'life_share', 'life_swap', 'transfer', 'sacrifice', 'reverse',
+               'plague'}
 
 
 def hieu_ung(t):
@@ -449,6 +489,8 @@ def hieu_ung(t):
         elif kind == 'transfer':
             row['id'] = par[0] if par else ''
             row['dir'] = par[1] if len(par) > 1 else 'user_to_target'
+        elif kind == 'plague':
+            row['id'] = par[0] if par else ''
         out.append(row)
     return out
 

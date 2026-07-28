@@ -7,6 +7,7 @@ import { ITEMS } from '../data/items.js';
 import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn,
   typesOf } from './monster.js';
 import { TYPES, TYPE_NAMES } from '../data/types.js';
+import { PLAGUES } from '../data/plagues.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName,
@@ -294,6 +295,22 @@ export class Battle {
       return;
     }
 
+    // Đang mang bệnh: mỗi lượt ra đòn đều thử phát tán, phát tán được thì mất
+    // luôn lượt đánh (bản gốc combat/session.py pre_check đổi chiêu sang chiêu bệnh).
+    if (mon.plague && PLAGUES[mon.plague]) {
+      const pl = PLAGUES[mon.plague];
+      if (!foe.plague && rng.roll(pl.spread)) {
+        foe.plague = mon.plague;
+        ev.push({ t: 'msg',
+          text: `${displayName(mon)} lên cơn bệnh, lây ${pl.name} sang ${displayName(foe)}!` });
+        return;
+      }
+      if (pl.khoi && rng.roll(pl.khoi)) {
+        delete mon.plague;
+        ev.push({ t: 'msg', text: `${displayName(mon)} tự khỏi bệnh ${pl.name}.` });
+      }
+    }
+
     let mvId, mv;
     if (moveIdx === 'struggle') {
       mvId = 'struggle';
@@ -466,6 +483,19 @@ export class Battle {
         foe.hpCur = Math.min(maxHp(foe), a);
         ev.push({ t: 'heal', side: i, slot: this.sides[i].active, amount: mon.hpCur - a });
         ev.push({ t: 'msg', text: 'Sinh lực hai bên bị hoán đổi!' });
+      } else if (e.t === 'plague') {
+        // Lây bệnh sang đối thủ theo xác suất spreadness của bản gốc
+        const pl = PLAGUES[e.id];
+        const [, target] = ben('foe');
+        if (!pl || !target || isFainted(target)) continue;
+        if (target.plague === e.id) {
+          ev.push({ t: 'msg', text: `${displayName(target)} đã mang bệnh sẵn rồi.` });
+        } else if (rng.roll(pl.spread)) {
+          target.plague = e.id;
+          ev.push({ t: 'msg', text: `${displayName(target)} nhiễm bệnh ${pl.name}!` });
+        } else {
+          ev.push({ t: 'msg', text: `${displayName(target)} phủi được, không dính bệnh.` });
+        }
       } else if (e.t === 'transfer') {
         // Đẩy một trạng thái từ bên này sang bên kia
         const [tu, den] = e.dir === 'user_to_target' ? [mon, foe] : [foe, mon];

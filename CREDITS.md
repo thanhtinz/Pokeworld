@@ -34,6 +34,7 @@ Cụ thể đã lấy:
 | Icon giao diện: ba lô, nhật ký, đội hình, cài đặt, nhân vật, thoát, lưu | `assets/ui/` |
 | Icon tầm đánh của chiêu (melee/touch/ranged/reach/reliable) | `assets/ui/range/` |
 | 33 trạng thái + icon (độc, bỏng, mê hoặc, vỏ cứng...) | `js/data/statuses.js`, `assets/ui/status/` |
+| Bệnh dịch lây qua chiêu thức | `js/data/plagues.js` |
 | Bảng gặp Tuxemon hoang của từng bản đồ | `js/data/encounters.js` |
 | Giá mua/bán trong cửa hàng | `js/data/items.js` |
 | 10 bản nhạc nền + bản đồ nào chơi bản nào | `assets/music/`, `js/data/maps.js` |

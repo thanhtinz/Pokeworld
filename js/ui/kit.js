@@ -4,6 +4,7 @@ import { ITEMS, itemIconPath } from '../data/items.js';
 import { TYPE_VI, TYPE_COLORS } from '../data/types.js';
 import { statusIcon } from './icons.js';
 import { STATUSES } from '../data/statuses.js';
+import { PLAGUES } from '../data/plagues.js';
 
 export function toast(msg, ms = 2200) {
   const wrap = document.getElementById('toast-wrap');
@@ -86,6 +87,13 @@ export function typeBadge(t) {
   return `<span class="type-badge type-${esc(t)}" style="--tc:${c};background:${c}"
     ><img class="type-ico" src="assets/types/${esc(t)}.png" width="22" height="22" alt=""
       onerror="this.style.display='none'"><span class="type-name">${TYPE_VI[t] || t}</span></span>`;
+}
+
+// Nhãn bệnh dịch (mods/plagues.yaml của bản gốc) — đứng cạnh nhãn trạng thái
+export function plagueTag(id) {
+  const pl = id && PLAGUES[id];
+  if (!pl) return '';
+  return `<span class="plague-tag" title="Đang mang bệnh">☣ ${esc(pl.name)}</span>`;
 }
 
 // Header màn hình có nút back tùy chọn (onBack = hàm hoặc null)
