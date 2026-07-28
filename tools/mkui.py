@@ -67,6 +67,25 @@ def copy_scaled(src, dst):
     im.resize((im.width * SCALE, im.height * SCALE), Image.NEAREST).save(dst, optimize=True)
 
 
+# Icon menu cua ban goc moi tep mot kieu le: 'backpack' an het 16x16, 'player'
+# chi an 12x12 giua khung. Dat canh icon SVG (net nam trong 24x24 chua ~83%)
+# thi cai to cai be, nhin nhu bi lech. Cat sat net roi dem lai cho MOI icon an
+# dung TI_LE_MUC phan khung -> ca bo bang nhau, tam quang hoc trung nhau.
+TI_LE_MUC = 0.83
+
+
+def copy_menu_icon(src, dst, im=None):
+    im = (im or Image.open(src)).convert('RGBA')
+    bb = im.split()[3].getbbox() or (0, 0, im.width, im.height)
+    muc = im.crop(bb)
+    # Khung dich: canh dai cua net chiem dung TI_LE_MUC, phan con lai la le
+    canh = max(muc.width, muc.height)
+    khung = int(round(canh / TI_LE_MUC))
+    ra = Image.new('RGBA', (khung, khung), (0, 0, 0, 0))
+    ra.paste(muc, ((khung - muc.width) // 2, (khung - muc.height) // 2))
+    ra.resize((khung * SCALE, khung * SCALE), Image.NEAREST).save(dst, optimize=True)
+
+
 def main():
     if len(sys.argv) < 2:
         raise SystemExit(__doc__)
@@ -83,7 +102,7 @@ def main():
     for name, src in MENU.items():
         p = os.path.join(ui, 'menu', src + '.png')
         if os.path.exists(p):
-            copy_scaled(p, 'assets/ui/%s.png' % name)
+            copy_menu_icon(p, 'assets/ui/%s.png' % name)
             n += 1
         else:
             thieu.append(src)
@@ -101,8 +120,7 @@ def main():
                     # Giu do dam nhat cua net goc, chi doi tong mau
                     k = 1 - (r + g + b) / 765
                     px[x, y] = (int(mau[0] * k), int(mau[1] * k), int(mau[2] * k), a)
-            im.resize((im.width * SCALE, im.height * SCALE), Image.NEAREST).save(
-                'assets/ui/%s.png' % ten, optimize=True)
+            copy_menu_icon(None, 'assets/ui/%s.png' % ten, im)
             n += 1
         else:
             thieu.append(goc)

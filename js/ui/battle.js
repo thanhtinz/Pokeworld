@@ -413,9 +413,12 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     sfx('throw');
     const spr = $enemy.querySelector('.bt-sprite');
     if (spr) spr.classList.add('hidden');
-    const ball = document.createElement('div');
+    // Dùng đúng ảnh quả Tuxeball vừa ném (mỗi loại một hình riêng của bản gốc)
+    const ball = document.createElement('img');
     ball.className = 'ball-anim';
-    ball.textContent = '';
+    ball.src = `assets/items/${ev.ball || 'tuxeball'}.png`;
+    ball.alt = '';
+    ball.onerror = () => { ball.src = 'assets/items/tuxeball.png'; ball.onerror = null; };
     $enemy.appendChild(ball);
     await sleep(350);
     const shakes = ev.shakes ?? 0;

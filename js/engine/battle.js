@@ -672,7 +672,7 @@ export class Battle {
         const foeMon = this.activeMon(oi);
         ev.push({ t: 'msg', text: `Ném ${(ITEMS[a.id] && ITEMS[a.id].name) || a.id}!` });
         const res = attemptCatch(foeMon, a.id);
-        ev.push({ t: 'catch', caught: res.caught, shakes: res.shakes });
+        ev.push({ t: 'catch', caught: res.caught, shakes: res.shakes, ball: a.id });
         if (res.caught) {
           foeMon.ball = a.id;
           // Vài loại bóng còn sửa con vừa bắt: kẹo +1 cấp, bóng khẩu vị đổi vị

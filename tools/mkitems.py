@@ -44,7 +44,7 @@ HIEU_UNG = {'capture', 'heal', 'restore', 'gain_xp', 'evolve',
 NHOM = {
     'capture': 'ball',
     'potion': 'medicine',
-    'morph': 'stone',
+    'morph': 'morph',
     'food': 'food',
     'stats': 'stat',
     'none': 'tea',
@@ -104,6 +104,11 @@ TEN_TRANG_THAI = {
     'noddingoff': 'ngủ gật',
 }
 
+# Mon 'booster' cua ban goc gan voi mot he — mo ta bam theo dung ban goc
+HE_BOOSTER = {'fire_booster': 'Lửa', 'water_booster': 'Nước', 'wood_booster': 'Gỗ',
+              'earth_booster': 'Đất', 'metal_booster': 'Kim',
+              'booster_tech': 'Kỹ Thuật'}
+
 GIOI_TINH = {'male': 'm', 'female': 'f', 'neuter': 'n'}
 VI_GIOI_TINH = {'m': 'đực', 'f': 'cái', 'n': 'vô tính'}
 
@@ -135,9 +140,11 @@ TEN = {
     'raise_armour': 'Rèn Giáp', 'raise_dodge': 'Rèn Né', 'raise_hp': 'Rèn HP',
     'raise_melee': 'Rèn Cận Chiến', 'raise_ranged': 'Rèn Tầm Xa', 'raise_speed': 'Rèn Tốc Độ',
 
-    'fire_booster': 'Đá Lửa', 'water_booster': 'Đá Nước', 'wood_booster': 'Đá Gỗ',
-    'earth_booster': 'Đá Đất', 'metal_booster': 'Đá Kim', 'booster_tech': 'Đá Kỹ Thuật',
-    'flintstone': 'Đá Đánh Lửa', 'thunderstone': 'Đá Sét', 'lucky_bamboo': 'Trúc May Mắn',
+    # Ban goc goi la 'booster' (chat kich hoat bien hinh), khong phai 'stone'.
+    'fire_booster': 'Tinh Chất Lửa', 'water_booster': 'Tinh Chất Nước',
+    'wood_booster': 'Tinh Chất Gỗ', 'earth_booster': 'Tinh Chất Đất',
+    'metal_booster': 'Tinh Chất Kim', 'booster_tech': 'Tinh Chất Kỹ Thuật',
+    'flintstone': 'Đá Lửa', 'thunderstone': 'Đá Sấm', 'lucky_bamboo': 'Trúc May Mắn',
     'lima_pie': 'Bánh Lima', 'miaow_milk': 'Sữa Meo', 'ox_stick': 'Gậy Sừng Bò',
     'peace_lily': 'Huệ Bình An', 'pyramidion': 'Chóp Kim Tự Tháp',
     'sea_girdle': 'Đai Biển', 'stovepipe': 'Ống Khói', 'sweet_sand': 'Cát Ngọt',
@@ -344,8 +351,15 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
         elif t == 'gain_xp':
             phan.append('Cho ngay %s EXP.' % '{:,}'.format(int(float(p[0]))).replace(',', '.'))
         elif t == 'evolve':
-            ten = tien_hoa.get(slug)
-            phan.append('Giúp %s tiến hoá.' % (ten or 'vài loài nhất định'))
+            # Ban goc xep nhom nay la 'morph' va mo ta la "morph ... into a
+            # different form" — khong phai da tien hoa kieu Pokemon.
+            he = HE_BOOSTER.get(slug)
+            if he:
+                phan.append('Cho Tuxemon hệ %s biến sang một hình thái khác.' % he)
+            else:
+                ten = tien_hoa.get(slug)
+                phan.append('Giúp %s biến sang hình thái mới.'
+                            % (ten or 'vài loài nhất định'))
         elif t == 'statchange':
             st = slug[len('boost_'):] if slug.startswith('boost_') else ''
             phan.append('Tăng mạnh chỉ số %s trong suốt trận đấu.'
@@ -725,7 +739,7 @@ def main():
     out = ['// TuxeWorld H5 | data/items.js | Vật phẩm — TỰ SINH TỪ tools/mkitems.py',
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '//',
-           "// kind: 'ball' bắt | 'medicine' hồi phục | 'stone' tiến hoá |",
+           "// kind: 'ball' bắt | 'medicine' hồi phục | 'morph' biến hình |",
            "//       'food' món ăn | 'stat' rèn chỉ số | 'tea' cho EXP | 'held' mang theo",
            "// eff:  hiệu ứng khi dùng, giữ đúng tên bên bản gốc (js/engine/useitem.js chạy)",
            "// cond: điều kiện dùng được, cũng lấy từ bản gốc",

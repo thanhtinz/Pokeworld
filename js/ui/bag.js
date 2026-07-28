@@ -18,8 +18,8 @@ import { openSheet } from './sheet.js';
 // Thứ tự nhóm hiện trong túi
 const NHOM = [
   ['medicine', 'Thuốc'],
-  ['ball', 'Bóng'],
-  ['stone', 'Đá tiến hoá'],
+  ['ball', 'Tuxeball'],
+  ['morph', 'Vật biến hình'],
   ['food', 'Món ăn'],
   ['stat', 'Rèn chỉ số'],
   ['tea', 'Trà'],
@@ -33,7 +33,7 @@ const NHOM = [
 // Câu ghi dưới tên: dùng được ở đâu
 const CACH_DUNG = {
   ball: 'Chỉ ném được trong trận với Tuxemon hoang.',
-  stone: 'Dùng cho một Tuxemon để tiến hoá.',
+  morph: 'Dùng cho một Tuxemon để nó biến sang hình thái khác.',
   medicine: 'Dùng cho một Tuxemon trong đội.',
   food: 'Cho một Tuxemon ăn để tăng thân thiết.',
   stat: 'Tăng chỉ số cho một Tuxemon.',

@@ -81,7 +81,7 @@ export function canUse(itemId, mon, ctx = {}) {
     } else if (c.t === 'anyStatus') {
       if (!mon || !mon.status) return false;
     } else if (c.t === 'canEvolve') {
-      if (!mon || !checkEvolution(mon, 'stone', itemId, ctx)) return false;
+      if (!mon || !checkEvolution(mon, 'item', itemId, ctx)) return false;
     } else if (c.t === 'water') {
       // Cần câu chỉ dùng được khi đang đứng nhìn thẳng vào mặt nước
       if (!ctx.water) return false;
@@ -137,7 +137,7 @@ export function useItem(itemId, mon, ctx = {}) {
       for (const lv of levels) msgs.push(`Lên cấp ${lv}!`);
       ok = true;
     } else if (e.t === 'evolve') {
-      evolveTo = checkEvolution(mon, 'stone', itemId, ctx);
+      evolveTo = checkEvolution(mon, 'item', itemId, ctx);
       if (evolveTo) ok = true;
     } else if (e.t === 'boost') {
       // Trong trận: cộng thẳng vào bảng buff của phe đang cầm con này

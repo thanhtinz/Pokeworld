@@ -10,7 +10,7 @@ import { uiIcon } from './icons.js';
 const NHOM = [
   ['ball', 'Tuxeball'],
   ['medicine', 'Thuốc'],
-  ['stone', 'Đá tiến hoá'],
+  ['morph', 'Vật biến hình'],
   ['food', 'Món ăn'],
   ['stat', 'Rèn chỉ số'],
   ['tea', 'Trà'],

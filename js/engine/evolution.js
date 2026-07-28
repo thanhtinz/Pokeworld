@@ -5,7 +5,7 @@ import { EVOLUTIONS } from '../data/evolutions.js';
 import { maxHp, stats, typesOf } from './monster.js';
 
 // Kiểm tra điều kiện tiến hoá theo đúng bảng của bản gốc (js/data/evolutions.js).
-// trigger: 'level' sau khi lên cấp | 'stone' khi dùng vật phẩm (arg = mã món)
+// trigger: 'level' sau khi lên cấp | 'item' khi dùng vật phẩm (arg = mã món)
 // Điều kiện có thể gộp nhiều thứ: cấp + giới tính, cấp + so sánh chỉ số...
 // ctx = { party: [...con trong đội], inside: đang ở trong nhà } — vài đường
 // tiến hoá của bản gốc nhìn ra ngoài bản thân con vật.
@@ -17,8 +17,8 @@ export function checkEvolution(mon, trigger, arg, ctx = {}) {
     if (!SPECIES[e.into]) continue;
     // Đường nào cần vật phẩm thì chỉ xét khi đang dùng đúng món đó
     if (e.item) {
-      if (trigger !== 'stone' || !e.item.includes(arg)) continue;
-    } else if (trigger === 'stone') {
+      if (trigger !== 'item' || !e.item.includes(arg)) continue;
+    } else if (trigger === 'item') {
       continue;
     }
     if (e.level && mon.lv < e.level) continue;

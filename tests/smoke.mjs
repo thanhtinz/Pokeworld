@@ -423,7 +423,7 @@ ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) ==
   const m = newTuxemon(Number(sp), 60);
   ok('cần vật phẩm thì lên cấp suông không tiến hoá', checkEvolution(m, 'level') !== w.into);
   ok('dùng đúng vật phẩm mới tiến hoá',
-    checkEvolution(m, 'stone', w.item[0]) === w.into && checkEvolution(m, 'stone', 'potion') !== w.into);
+    checkEvolution(m, 'item', w.item[0]) === w.into && checkEvolution(m, 'item', 'potion') !== w.into);
   // Đường cần giới tính thì con khác giới đi đường khác
   const g = Object.entries(EVOLUTIONS).find(([, w2]) => w2.some(x => x.gender));
   if (g) {

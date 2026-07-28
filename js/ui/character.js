@@ -74,8 +74,6 @@ export function render(el) {
         <small>${t ? `${esc(t.name)} · ` : ''}Skin nhân vật · Danh hiệu</small>
       </span>
       <span class="fa-link-go">›</span>
-    </button>
-
     </button>`;
 
   upgradeFaces(el);
