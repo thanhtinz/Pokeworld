@@ -197,7 +197,7 @@ html, body {
   flex: 1;
   min-width: 0;              /* không có dòng này thì "Nhân vật" nong ô ra, đè sang ô bên */
   padding: 6px 3px 7px;
-  font-size: 0.76rem;
+  font-size: .63rem;
   font-family: var(--ui);
   font-weight: 600;
   letter-spacing: 0;
@@ -2486,3 +2486,19 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   pointer-events: none; align-self: end; }
 .es-shop-img { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
 .es-share { display: flex; align-items: center; gap: 7px; font-size: .82rem; }
+
+/* ==== Chế tạo (ui/craft.js) ==== */
+.cf-row.ok { border-color: rgba(240, 180, 41, .4); }
+.cf-head { display: flex; align-items: center; gap: 11px; }
+.cf-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cf-mid b { font-size: .92rem; }
+.cf-mid small { color: var(--muted); font-size: .8rem; }
+.cf-head .btn { flex: none; }
+.cf-detail { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
+.cf-sub { display: block; font-size: .84rem; color: var(--muted); margin-bottom: 7px; }
+.cf-sub + .cf-ng { margin-bottom: 11px; }
+.cf-ng { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.cf-ng-i { display: inline-flex; align-items: center; gap: 4px; font-size: .82rem;
+  color: var(--muted); }
+.cf-ng-i.du { color: var(--text); }
+.cf-ng-i b { color: var(--gold); }

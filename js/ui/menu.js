@@ -26,6 +26,7 @@ const HUB = [
   { to: 'park',       icon: 'walk',    label: 'Công viên' },
   { to: 'daycare',    icon: 'heal',    label: 'Nhà trẻ' },
   { to: 'estate',     icon: 'shop',    label: 'Nhà đất' },
+  { to: 'craft',      icon: 'quest',   label: 'Chế tạo' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
   { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng', on: true },
   { to: 'guild',      icon: 'guild',   label: 'Bang hội', on: true },

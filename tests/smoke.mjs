@@ -63,6 +63,7 @@ import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
 import * as P from '../js/engine/park.js';
 import * as DC from '../js/engine/daycare.js';
 import * as ES from '../js/engine/estate.js';
+import * as CR from '../js/engine/craft.js';
 import { FURNITURE, HOUSE_BASES } from '../js/data/estate.js';
 import { bangThanhTuu, nhanThuong, nhanHet, choNhan } from '../js/engine/achievements.js';
 
@@ -545,7 +546,9 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   // Bóng Công Viên cũng ngoại lệ: bản gốc để usable_in: [MainParkMenuState] và
   // hiệu ứng 'park capture' — nó chỉ ném được trong màn Công Viên, không phải
   // trong trận, nên không có eff/inBattle/inWorld như đồ thường.
-  const dung = it.filter(([, x]) => !x.held && x.kind !== 'badge' && x.kind !== 'park');
+  // Nguyên liệu chế tạo cũng ngoại lệ: bản gốc để category 'none', không hiệu
+  // ứng gì — nó chỉ tồn tại để đem đi làm món (mods/recipes.yaml).
+  const dung = it.filter(([, x]) => !x.held && !['badge', 'park', 'lieu'].includes(x.kind));
   ok('món nào cũng có ít nhất một hiệu ứng', dung.every(([, x]) => x.eff.length > 0));
   ok('món nào cũng dùng được ở đâu đó', dung.every(([, x]) => x.inBattle || x.inWorld));
   ok('có đồ mang theo', it.some(([, x]) => x.held));
@@ -1972,16 +1975,19 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   // Lô đất phải rơi vào ô TRỐNG của bản đồ, không đè lên nhà cửa/NPC có sẵn
   {
     const m = MAPS[ES.KHU_DAT_MAP];
+    // CHỈ xét vật cản CỐ ĐỊNH. NPC thì đi lang thang khắp ô trống nên toạ độ
+    // của chúng đổi liên tục — kiểm theo đó thì test lúc đỏ lúc xanh, mà cũng
+    // vô nghĩa vì lát sau chúng lại đi chỗ khác. Ô nhà không đặt solid nên NPC
+    // đi ngang qua cũng không kẹt.
     const ban = new Set();
     for (const w of m.warps || []) ban.add(`${w.x},${w.y}`);
-    for (const n of m.npcs || []) ban.add(`${n.x},${n.y}`);
     const xau = [];
     for (const l of ES.LOTS) {
       for (let dy = 0; dy < 3; dy++) {
         for (let dx = 0; dx < 3; dx++) {
           const gx = l.x + dx, gy = l.y + dy;
           if (m.solid[gy * m.w + gx]) xau.push(`${l.id}: tường ${gx},${gy}`);
-          else if (ban.has(`${gx},${gy}`)) xau.push(`${l.id}: vướng ${gx},${gy}`);
+          else if (ban.has(`${gx},${gy}`)) xau.push(`${l.id}: đè cổng ${gx},${gy}`);
         }
       }
     }
@@ -2020,6 +2026,45 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   ok('tổng giá trị cộng cả đất, nhà và đồ',
     ES.tomTat().giaTri >= ES.LOT_BY_ID.a1.price + dat.price);
+}
+
+// ==== Chế tạo ====
+{
+  ok('đọc được công thức từ bản gốc', CR.RECIPES.length >= 20, String(CR.RECIPES.length));
+  const xauNg = CR.RECIPES.flatMap(r => Object.keys(r.ng)).filter(id => !ITEMS[id]);
+  ok('mọi nguyên liệu đều là món có thật', xauNg.length === 0, [...new Set(xauNg)].join(', '));
+  const xauOut = CR.RECIPES.flatMap(r => r.out.map(o => o.id)).filter(id => !ITEMS[id]);
+  ok('mọi kết quả đều là món có thật', xauOut.length === 0, [...new Set(xauOut)].join(', '));
+  ok('công thức nào cũng có ít nhất một kết quả',
+    CR.RECIPES.every(r => r.out.length > 0));
+  // Nguyên liệu phải có đường kiếm, không thì công thức chỉ để ngắm
+  const lieu = Object.keys(ITEMS).filter(id => ITEMS[id].kind === 'lieu');
+  ok('nguyên liệu có mặt trong bảng vật phẩm', lieu.length >= 15, String(lieu.length));
+
+  newGame('CraftTester');
+  const r = CR.RECIPES[0];
+  ok('thiếu nguyên liệu thì không làm được', CR.cheTao(r.id)[1] !== null);
+  ok('conThieu liệt kê đúng số loại còn thiếu',
+    CR.conThieu(r).length === Object.keys(r.ng).length);
+
+  for (const [id, n] of Object.entries(r.ng)) G.p.bag[id] = n * 2;
+  ok('đủ đồ thì báo làm được', CR.lamDuoc(r));
+  ok('tính đúng số mẻ làm được', CR.soLanLamDuoc(r) === 2, String(CR.soLanLamDuoc(r)));
+  const [kq, err] = CR.cheTao(r.id);
+  ok('chế tạo ra một món', !!kq && !err, String(err));
+  ok('kết quả vào túi', (G.p.bag[kq.id] || 0) >= kq.n);
+  ok('nguyên liệu bị tiêu đi',
+    Object.entries(r.ng).every(([id, n]) => (G.p.bag[id] || 0) === n));
+  ok('làm mẻ thứ hai xong là hết đồ',
+    CR.cheTao(r.id)[1] === null && CR.soLanLamDuoc(r) === 0);
+
+  // Tỉ lệ phải cộng lại ra 100% (làm tròn) để bày cho người chơi
+  for (const rr of CR.RECIPES) {
+    const t = CR.tiLe(rr).reduce((a, o) => a + o.pc, 0);
+    if (Math.abs(t - 100) > 2) { ok(`tỉ lệ công thức ${rr.id} cộng lại ~100%`, false, String(t)); break; }
+  }
+  ok('tỉ lệ mọi công thức cộng lại ~100%',
+    CR.RECIPES.every(rr => Math.abs(CR.tiLe(rr).reduce((a, o) => a + o.pc, 0) - 100) <= 2));
 }
 
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

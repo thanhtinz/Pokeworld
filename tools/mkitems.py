@@ -28,6 +28,7 @@ nen khong dua vao, dua vao chi lam day tui do.
 
 Ma vat pham GIU NGUYEN slug cua Tuxemon de doi chieu cho de.
 """
+import json
 import os
 import re
 import sys
@@ -53,6 +54,22 @@ NHOM = {
     'technique': 'tm',        # dia day chieu (TM/MM)
     'elements': 'element',    # qua doi he
 }
+
+# Nguyen lieu che tao: mon 'category: none' khong co hieu ung gi nen bi loc mat,
+# nhung cong thuc trong mods/recipes.yaml lai can. tools/mkrecipes.py ghi ra
+# danh sach; doc lai o day de giu chung lai voi nhom rieng 'lieu'.
+def doc_lieu():
+    try:
+        with open('tools/_lieu.json', encoding='utf-8') as f:
+            d = json.load(f)
+        return set(d.get('lieu') or []), set(d.get('ketqua') or [])
+    except Exception:
+        return set(), set()
+
+
+LIEU, KETQUA = doc_lieu()
+# Mon can giu lai du khong co hieu ung gi
+GIU_LAI = LIEU | KETQUA
 
 # Do MANG THEO (behaviors.holdable ben ban goc). Ban goc co 12 mon holdable
 # nhung 10 mon khong khai hieu ung gi (modifiers rong) — chi lay hai mon that
@@ -177,6 +194,20 @@ TEN = {
     'shaft_badge': 'Huy Hiệu Hầm Mỏ', 'scoop_badge': 'Huy Hiệu Kem',
     'omnichannel_badge': 'Huy Hiệu Thương Trường', 'greenwash_badge': 'Huy Hiệu Xanh',
     'nimrod_badge': 'Huy Hiệu Thợ Săn',
+
+    # Mon HONG khi che tao — ban goc dat lam ket qua xui cua cong thuc
+    'bite_of_despair': 'Miếng Tuyệt Vọng', 'whispersoup': 'Súp Thì Thầm',
+    'inferno_custard': 'Kem Trứng Địa Ngục', 'dread_omelette': 'Trứng Ốp Kinh Hoàng',
+
+    # Nguyen lieu che tao (mods/recipes.yaml)
+    'beastmoss': 'Rêu Thú', 'crackle_salt': 'Muối Nổ', 'field_greens': 'Rau Đồng',
+    'flamehorn_shank': 'Giò Sừng Lửa', 'glowfat': 'Mỡ Phát Sáng',
+    'meal_dust': 'Bột Mịn', 'mistflour_eggs': 'Trứng Bột Sương',
+    'moo_bloom': 'Hoa Bò Sữa', 'root_beast_bark': 'Vỏ Cây Rễ Thú',
+    'sky_feather': 'Lông Trời', 'spice_dust': 'Bột Gia Vị',
+    'starpepper': 'Tiêu Sao', 'stonefruit_bulbs': 'Củ Quả Đá',
+    'suncrust_butter': 'Bơ Vỏ Nắng', 'sweetroot': 'Rễ Ngọt',
+    'zestroot_wraps': 'Lá Rễ Thơm', 'zestsap': 'Nhựa Thơm',
 
     'cosmic_berry': 'Quả Vũ Trụ', 'earth_berry': 'Quả Đất', 'fire_berry': 'Quả Lửa',
     'frost_berry': 'Quả Băng', 'heroic_berry': 'Quả Anh Hùng',
@@ -335,6 +366,11 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
             return 'Bóng riêng của Công Viên Pepper — chỉ ném được ở trong đó.'
         return 'Tuxeball cơ bản để bắt Tuxemon hoang.'
 
+    if slug in LIEU:
+        return 'Nguyên liệu chế tạo. Tự nó không dùng được, phải đem đi làm món.'
+    if slug in KETQUA and not eff:
+        return 'Làm hỏng rồi — ăn không nổi, nhưng vứt thì tiếc.'
+
     if cat == 'badge':
         return 'Vật chứng thắng một võ đường. Giữ đủ huy hiệu mới đi tiếp được.'
 
@@ -344,7 +380,10 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
         p = e.get('parameters') or []
         if t == 'heal':
             n, mode = float(p[0]), (p[1] if len(p) > 1 else 'fixed')
-            if mode == 'percentage':
+            if n < 0:
+                # Mon che tao hong: an vao la MAT mau chu khong hoi
+                phan.append('Nấu hỏng mất — ăn vào tụt %d HP.' % int(-n))
+            elif mode == 'percentage':
                 phan.append('Hồi %d%% máu tối đa.' % round(n * 100))
             else:
                 phan.append('Hồi %d HP.' % int(n))
@@ -651,7 +690,8 @@ def main():
         # Huy hieu vo duong khong co hieu ung gi — no la vat chung minh da thang,
         # giu lai de lay ten + icon that cua Tuxemon thay cho huy hieu tu che.
         huy_hieu = (d.get('category') or '') == 'badge'
-        if not mang_theo and not huy_hieu and not bua:
+        la_lieu = d['slug'] in GIU_LAI
+        if not mang_theo and not huy_hieu and not bua and not la_lieu:
             if not eff or not (set(e['type'] for e in eff) & HIEU_UNG):
                 continue
             # Bo mon hieu ung phu tro chua chay duoc (learn_tm, switch_type...)
@@ -667,9 +707,13 @@ def main():
         mang = mang_theo or bool(bua)
         if cat not in NHOM and not mang:
             continue
-        # Mon co hai am (bite_of_despair...) khong ban trong shop, bo qua
-        if any(e['type'] == 'heal' and float((e.get('parameters') or ['0'])[0]) < 0
-               for e in eff):
+        # Mon co hai (bite_of_despair...) khong ban trong shop. Truoc day bo han,
+        # nhung mods/recipes.yaml lay dung may mon nay lam KET QUA HONG khi che
+        # tao — bo di thi che tao ra mon khong ton tai. Giu lai neu la ket qua
+        # cua mot cong thuc, va danh dau gia 0 cho khoi bay ban.
+        co_hai = any(e['type'] == 'heal'
+                     and float((e.get('parameters') or ['0'])[0]) < 0 for e in eff)
+        if co_hai and slug not in KETQUA:
             continue
 
 
@@ -724,6 +768,7 @@ def main():
             'desc': js(mo),
             # Mon tien ich xep rieng mot o, khong lan vao o "Tra"
             'kind': js('held' if mang else
+                       'lieu' if slug in GIU_LAI and not eff else
                        'park' if slug == 'tuxeball_park' else
                        ('tool' if any(e['type'] in ('repellent', 'teleport_item', 'bivouac')
                                       for e in eff) else NHOM[cat])),
