@@ -1,6 +1,6 @@
 // TuxeWorld H5 | ui/starter.js | Màn mở đầu: đặt tên + chọn starter
 import { G, newGame, addToParty, markCaught, startQuest, save } from '../state.js';
-import { newTuxemon } from '../engine/pokemon.js';
+import { newTuxemon } from '../engine/monster.js';
 import { SPECIES } from '../data/species.js';
 import { QUESTS } from '../data/quests.js';
 import { spriteUrl, monPath, boxIcon, esc } from '../util.js';

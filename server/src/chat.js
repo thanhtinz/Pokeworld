@@ -1,4 +1,4 @@
-// PokeWorld server | src/chat.js | Tin nhắn riêng (DM): lưu trữ + REST lịch sử hội thoại
+// TuxeWorld server | src/chat.js | Tin nhắn riêng (DM): lưu trữ + REST lịch sử hội thoại
 import express from 'express';
 import { getDb, find, filter, insert, remove, markDirty, uid } from './db.js';
 import { authRequired } from './auth.js';

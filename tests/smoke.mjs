@@ -17,10 +17,11 @@ import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, ALL_KINDS, N
   applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
 import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../js/data/tastes.js';
-import { newTuxemon, stats, maxHp, STAT_KEYS } from '../js/engine/pokemon.js';
+import { newTuxemon, stats, maxHp, STAT_KEYS } from '../js/engine/monster.js';
 import { expForLevel, expYield, gainExp, movesAtLevel } from '../js/engine/exp.js';
 import { calcDamage, typeMultiplier, RANGE_MAP } from '../js/engine/damage.js';
 import { attemptCatch } from '../js/engine/catchmon.js';
+import { escapeChance } from '../js/engine/escape.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
 import { STATUSES } from '../js/data/statuses.js';
@@ -286,7 +287,7 @@ ok(`đòn khắc hệ ${mvId} có hệ số > 1 (hoặc trượt)`, dmg.missed |
     const v = typeMultiplier(m.types, ['fire', 'water']);
     return v >= 0.25 && v <= 4;
   }));
-  // Không còn STAB / chí mạng kiểu Pokémon
+  // Bản gốc không có STAB và không có chí mạng
   ok('không có đòn chí mạng', calcDamage(att, def, entry ? entry[0] : 'ram', {}).crit === false);
 }
 
@@ -309,6 +310,29 @@ ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) ==
   ok('phần lớn chiêu có hiệu ứng riêng', coAnim.length >= 200, String(coAnim.length));
   ok('hiệu ứng của chiêu luôn tìm được ảnh',
     coAnim.every(m => fxFor(m.anim, m.types[0])?.src));
+}
+
+// Chạy trốn theo đúng công thức bản gốc: hụt lần nào lần sau dễ hơn
+{
+  const me = newTuxemon(STARTERS[0].sp, 10);
+  const foe = newTuxemon(STARTERS[2].sp, 10);
+  ok('cùng cấp, lần đầu chạy 40%', Math.abs(escapeChance('default', me, foe, 0) - 0.4) < 1e-9);
+  ok('thử lại lần 2 lên 55%', Math.abs(escapeChance('default', me, foe, 1) - 0.55) < 1e-9);
+  ok('thử 4 lần là chắc chắn thoát', escapeChance('default', me, foe, 4) === 1);
+  ok('cấp thấp hơn nhiều thì khó chạy',
+    escapeChance('default', me, newTuxemon(STARTERS[2].sp, 40), 0) === 0);
+  ok('cách tính always/never', escapeChance('always', me, foe) === 1
+    && escapeChance('never', me, foe) === 0);
+  ok('cách tính relative nằm trong [0,1]',
+    escapeChance('relative', me, foe) >= 0 && escapeChance('relative', me, foe) <= 1);
+  // Trong trận thật: chạy trong trận hoang dã phải kết thúc được trận
+  const b = new Battle({ kind: 'wild', escapeMethod: 'always',
+    sides: [{ kind: 'player', mons: [newTuxemon(STARTERS[0].sp, 10)] },
+      { kind: 'wild', mons: [newTuxemon(STARTERS[2].sp, 5)] }] });
+  b.submit(0, { t: 'run' });
+  b.submit(1, { t: 'move', i: 0 });
+  const evs = b.resolve().events;
+  ok('chạy trốn kết thúc trận', b.over && evs.some(e => e.t === 'run' && e.ok));
 }
 
 // Điều kiện tiến hoá lấy đủ từ bản gốc, không chỉ mỗi "đủ cấp"

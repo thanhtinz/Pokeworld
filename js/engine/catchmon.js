@@ -5,12 +5,12 @@
 //                 * hệ_số_bóng / (3 * HPtối_đa)
 //   shake_check = 524325 / (căn(căn(100 / catch_check)) * 8) * kháng_bắt
 //   Lắc 4 lần, mỗi lần bốc số 0..65536; số nào lớn hơn shake_check là nó thoát.
-// catch_rate của Tuxemon nằm thang 0-100 (không phải 0-255 kiểu Pokémon), và
+// catch_rate của Tuxemon nằm thang 0-100 (không phải thang 0-255), và
 // mỗi lần ném còn nhân thêm hệ số kháng bắt ngẫu nhiên riêng của từng loài.
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { ITEMS } from '../data/items.js';
-import { maxHp } from './pokemon.js';
+import { maxHp } from './monster.js';
 import { catchBonus } from './status.js';
 
 const MAX_CATCH_RATE = 100;      // config_monster.catch_rate_range[1]

@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/starters.js | Ba sinh vật khởi đầu — TỰ SINH TỪ tools/mkworld.py
+// TuxeWorld H5 | data/starters.js | Ba sinh vật khởi đầu — TỰ SINH TỪ tools/mkworld.py
 // Đúng ba con của bản gốc Tuxemon (maps/professor_lab.tmx):
 // rockitten (Đất) · cardiling (Lửa) · tweesher (Băng).
 

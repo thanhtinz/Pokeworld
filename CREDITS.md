@@ -1,7 +1,7 @@
 # Nguồn tài nguyên
 
 Game này dùng sinh vật, hệ và chiêu thức của **[Tuxemon](https://github.com/Tuxemon/Tuxemon)**
-— một game mã nguồn mở kiểu Pokémon.
+— một game bắt sinh vật mã nguồn mở.
 
 - Mã nguồn Tuxemon: GPL-3.0
 - Hình ảnh sinh vật và dữ liệu: **CC BY-SA 4.0**, xem `ATTRIBUTIONS.md` bên kho
@@ -36,8 +36,9 @@ Cụ thể đã lấy:
 Cả **luật chơi** cũng lấy theo bản gốc: công thức sát thương theo tầm đánh,
 chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt, khẩu vị thay cho tính
 cách, bảng trạng thái và hiệu ứng phụ của chiêu — xem `js/engine/damage.js`,
-`js/engine/pokemon.js`, `js/engine/exp.js`, `js/engine/catchmon.js`,
-`js/engine/status.js`, mỗi tệp có ghi rõ lấy từ đâu bên bản gốc.
+`js/engine/monster.js`, `js/engine/exp.js`, `js/engine/catchmon.js`,
+`js/engine/status.js`, `js/engine/escape.js`, mỗi tệp có ghi rõ lấy từ đâu bên
+bản gốc.
 
 Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py`,
 `tools/mksprites.py`, `tools/mkitems.py`, `tools/mkarena.py`, `tools/mksounds.py`,
@@ -69,9 +70,8 @@ Chỉ chép những tệp thật sự dùng (`tools/mksounds.py`), tổng khoả
 | Chữ tiêu đề TuxeWorld (`assets/img/title.png`) | font pixel tự dựng trong script |
 | Icon giao diện | SVG vẽ tay trong `js/ui/icons.js` |
 
-Trước đây nền trận đấu lấy từ kho asset của PokéRogue và ảnh vật phẩm lấy từ
-pokesprite (đều là ảnh cắt từ game Pokémon) — nay đã bỏ hết, thay bằng đồ tự vẽ
-và vật phẩm của chính Tuxemon.
+Các bản đầu của dự án có mượn ảnh cắt từ game thương mại (nền trận đấu, ảnh
+vật phẩm) — đã bỏ sạch, nay chỉ còn asset của chính Tuxemon và đồ tự vẽ.
 
 ## Nguồn khác đã xem qua nhưng chưa dùng
 

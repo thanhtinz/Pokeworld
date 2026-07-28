@@ -3,7 +3,7 @@ import { G, save, CONFIG } from '../state.js';
 import { monImg, skinsFor } from '../engine/monskin.js';
 import { wearMonSkin, trainerLevel, monLevelCap } from '../engine/player.js';
 import { unlocked, requirement, imgOf } from '../data/cosmetics.js';
-import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/pokemon.js';
+import { stats, maxHp, displayName, isFainted, STAT_KEYS } from '../engine/monster.js';
 import { expProgress } from '../engine/exp.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';

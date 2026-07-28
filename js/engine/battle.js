@@ -4,12 +4,13 @@ import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
-import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn } from './pokemon.js';
+import { stats, maxHp, isFainted, displayName, addTp, addBond, tryLearn } from './monster.js';
 import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName } from './status.js';
 import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch } from './catchmon.js';
+import { attemptEscape } from './escape.js';
 
 // Tên chỉ số tiếng Việt (cho thông báo tăng/giảm chỉ số) — 6 chỉ số của Tuxemon
 const STAT_VI = {
@@ -26,13 +27,15 @@ function moveName(mvId) {
 
 export class Battle {
   // { kind: 'wild'|'trainer', sides: [{mons:[...], kind:'player'|'wild'|'trainer'}, {...}] }
-  constructor({ kind = 'wild', sides }) {
+  constructor({ kind = 'wild', sides, escapeMethod }) {
     this.kind = kind;
     this.turn = 1;
     this.over = false;
     this.winner = null;
     this.pending = [null, null]; // action đã submit theo side idx
     this.caughtMon = null;
+    this.runAttempts = 0;                            // bản gốc: biến run_attempts
+    this.escapeMethod = escapeMethod || CONFIG.ESCAPE_METHOD; // default|relative|always|never
     this.sides = sides.map((s) => {
       const side = {
         mons: s.mons,
@@ -348,17 +351,16 @@ export class Battle {
         continue;
       }
       if (a.t === 'run') {
-        // Tỉ lệ chạy theo speed 2 bên
-        const mySpe = stats(mon).speed;
-        const foeMon = this.activeMon(oi);
-        const foeSpe = foeMon ? stats(foeMon).speed : 1;
-        const chance = clamp(CONFIG.RUN_BASE_CHANCE + (mySpe - foeSpe) / 200, 0.1, 0.95);
-        const ok = rng.roll(chance);
+        const foeMon = this.activeMon(oi) || mon;
+        const ok = attemptEscape(this.escapeMethod, mon, foeMon, this.runAttempts);
         ev.push({ t: 'run', ok, side: i });
         if (ok) {
+          this.runAttempts = 0;
           ev.push({ t: 'msg', text: 'Chạy thoát thành công!' });
           this.endBattle(oi, ev);
         } else {
+          // Hụt một lần thì lần sau dễ hơn (bản gốc: run_attempts + 1)
+          this.runAttempts += 1;
           ev.push({ t: 'msg', text: 'Không chạy thoát được!' });
         }
       } else if (a.t === 'switch') {

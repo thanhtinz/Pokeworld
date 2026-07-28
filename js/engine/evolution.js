@@ -2,7 +2,7 @@
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { EVOLUTIONS } from '../data/evolutions.js';
-import { maxHp, stats } from './pokemon.js';
+import { maxHp, stats } from './monster.js';
 
 // Kiểm tra điều kiện tiến hoá theo đúng bảng của bản gốc (js/data/evolutions.js).
 // trigger: 'level' sau khi lên cấp | 'stone' khi dùng vật phẩm (arg = mã món)

@@ -75,7 +75,7 @@ def main():
     os.makedirs('assets/ow', exist_ok=True)
     os.makedirs('assets/trainers', exist_ok=True)
 
-    # Xoa sprite cu de khong con lai tep thua cua bo Pokemon
+    # Xoa sprite cu de khong con lai tep thua cua bo asset truoc
     for d in ('assets/ow', 'assets/trainers'):
         for f in os.listdir(d):
             if f.endswith('.png'):

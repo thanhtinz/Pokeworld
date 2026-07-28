@@ -1,6 +1,6 @@
 // TuxeWorld H5 | ui/bag.js | Túi đồ: lưới ô vật phẩm, dùng item ngoài trận
 import { G, save, removeItem, addItem, markCaught, CONFIG } from '../state.js';
-import { maxHp, displayName, isFainted, tryLearn, replaceMove } from '../engine/pokemon.js';
+import { maxHp, displayName, isFainted, tryLearn, replaceMove } from '../engine/monster.js';
 import { removeStatus } from '../engine/status.js';
 import { gainExp, expForLevel, movesAtLevel } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';

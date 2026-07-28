@@ -1,4 +1,4 @@
-// PokeWorld server | src/auth.js | Đăng ký/đăng nhập, băm mật khẩu, JWT, middleware
+// TuxeWorld server | src/auth.js | Đăng ký/đăng nhập, băm mật khẩu, JWT, middleware
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { find, insert, markDirty, uid } from './db.js';

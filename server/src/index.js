@@ -1,4 +1,4 @@
-// PokeWorld server | src/index.js | Điểm khởi động: Express + Socket.IO + trang admin
+// TuxeWorld server | src/index.js | Điểm khởi động: Express + Socket.IO + trang admin
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -40,7 +40,7 @@ app.use('/uploads/cosmetics', express.static(UPLOAD_DIR, { maxAge: '1h' }));
 
 app.get('/', (req, res) => {
   res.json({
-    name: getDb().config.serverName || 'PokeWorld',
+    name: getDb().config.serverName || 'TuxeWorld',
     motd: getDb().config.motd,
     online: onlineCount(),
     endpoints: ['/api', '/admin', '/health'],
@@ -50,13 +50,13 @@ app.get('/', (req, res) => {
 setupRealtime(io);
 
 server.listen(PORT, () => {
-  console.log(`[PokeWorld] server chạy tại http://localhost:${PORT}`);
-  console.log(`[PokeWorld] trang admin: http://localhost:${PORT}/admin`);
+  console.log(`[TuxeWorld] server chạy tại http://localhost:${PORT}`);
+  console.log(`[TuxeWorld] trang admin: http://localhost:${PORT}/admin`);
 });
 
 // Lưu dữ liệu trước khi tắt (docker stop / Ctrl+C)
 const shutdown = (sig) => {
-  console.log(`\n[PokeWorld] ${sig} — đang lưu dữ liệu...`);
+  console.log(`\n[TuxeWorld] ${sig} — đang lưu dữ liệu...`);
   stopAutosave();
   server.close(() => process.exit(0));
   setTimeout(() => process.exit(0), 3000).unref();

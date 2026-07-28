@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/zones.js | Khu vực: bảng gặp sinh vật, huấn luyện viên, lối đi
+// TuxeWorld H5 | data/zones.js | Khu vực: bảng gặp sinh vật, huấn luyện viên, lối đi
 // Bảng gặp TỰ SINH TỪ tools/mkworld.py theo địa hình của Tuxemon — đừng sửa tay phần encounters.
 
 // kind: 'town' | 'route' | 'forest' | 'cave' | 'lake' | 'meadow' | 'beach'

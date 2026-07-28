@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Ghep sinh vat Tuxemon vao the gioi cua PokeWorld.
+"""Ghep sinh vat Tuxemon vao the gioi cua TuxeWorld.
 
 Chay:  python3 tools/mkworld.py <duong-dan-kho-Tuxemon>
 Phai chay SAU tools/mktuxemon.py vi can js/data/species.js da sinh xong.
@@ -145,7 +145,7 @@ ZONE_TRAINERS = {
 
 
 def write_zones(zone_pool, meta):
-    out = ["// PokeWorld H5 | data/zones.js | Khu vực: bảng gặp sinh vật, huấn luyện viên, lối đi",
+    out = ["// TuxeWorld H5 | data/zones.js | Khu vực: bảng gặp sinh vật, huấn luyện viên, lối đi",
            '// Bảng gặp TỰ SINH TỪ tools/mkworld.py theo địa hình của Tuxemon — đừng sửa tay phần encounters.', '',
            "// kind: 'town' | 'route' | 'forest' | 'cave' | 'lake' | 'meadow' | 'beach'",
            'export const ZONES = {']
@@ -213,7 +213,7 @@ STARTER_SLUGS = ['rockitten', 'cardiling', 'tweesher']
 def write_starters(mons):
     by_slug = {m['slug']: m for m in mons}
     picks = [by_slug[s] for s in STARTER_SLUGS if s in by_slug]
-    out = ["// PokeWorld H5 | data/starters.js | Ba sinh vật khởi đầu — TỰ SINH TỪ tools/mkworld.py",
+    out = ["// TuxeWorld H5 | data/starters.js | Ba sinh vật khởi đầu — TỰ SINH TỪ tools/mkworld.py",
            '// Đúng ba con của bản gốc Tuxemon (maps/professor_lab.tmx):',
            '// rockitten (Đất) · cardiling (Lửa) · tweesher (Băng).', '',
            'export const STARTERS = [']
@@ -278,7 +278,7 @@ TRAINERS_META = [
 
 def write_trainers(zone_pool, mons):
     by_id = {m['id']: m for m in mons}
-    out = ["// PokeWorld H5 | data/trainers.js | Huấn luyện viên — TỰ SINH TỪ tools/mkworld.py",
+    out = ["// TuxeWorld H5 | data/trainers.js | Huấn luyện viên — TỰ SINH TỪ tools/mkworld.py",
            '// Đội hình lấy từ chính bảng gặp của khu vực họ đứng, nên đánh ở đâu gặp sinh vật vùng đó.', '',
            "// kind: 'trainer' | 'gym' | 'rocket' | 'rival'",
            'export const TRAINERS = {']

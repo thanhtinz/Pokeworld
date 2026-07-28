@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/learnsets.js | Học chiêu theo cấp — TỰ SINH TỪ tools/mktuxemon.py
+// TuxeWorld H5 | data/learnsets.js | Học chiêu theo cấp — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
 
 export const LEARNSETS = {

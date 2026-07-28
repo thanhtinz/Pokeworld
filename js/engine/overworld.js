@@ -4,7 +4,7 @@ import { bake, isSolidAt, isEncAt, talkAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen } from '../state.js';
-import { newTuxemon } from './pokemon.js';
+import { newTuxemon } from './monster.js';
 import { rng } from '../util.js';
 
 const SPEED = 3.6;              // ô mỗi giây

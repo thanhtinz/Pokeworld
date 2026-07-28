@@ -1,4 +1,4 @@
-// TuxeWorld H5 | data/tastes.js | "Khẩu vị" — thay cho hệ tính cách kiểu Pokémon
+// TuxeWorld H5 | data/tastes.js | "Khẩu vị" — thay cho hệ tính cách của bản gốc
 //
 // Nguồn: Tuxemon db/taste/taste.yaml. Mỗi con mang đúng MỘT vị lạnh và MỘT vị
 // ấm; vị lạnh làm yếu một chỉ số, vị ấm làm mạnh một chỉ số.

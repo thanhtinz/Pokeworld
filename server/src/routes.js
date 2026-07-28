@@ -1,4 +1,4 @@
-// PokeWorld server | src/routes.js | REST API cho client
+// TuxeWorld server | src/routes.js | REST API cho client
 import express from 'express';
 import { getDb, find, filter, markDirty } from './db.js';
 import { registerUser, loginUser, signToken, publicUser, authRequired } from './auth.js';

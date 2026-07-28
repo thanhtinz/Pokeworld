@@ -6,7 +6,7 @@
 import { G, save } from '../state.js';
 import { monImg } from '../engine/monskin.js';
 import { Battle } from '../engine/battle.js';
-import { displayName, maxHp, isFainted } from '../engine/pokemon.js';
+import { displayName, maxHp, isFainted } from '../engine/monster.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { esc, sleep, rng, monLocalSrc, monSpriteClass, monUpgradeChain, upgradeImages } from '../util.js';

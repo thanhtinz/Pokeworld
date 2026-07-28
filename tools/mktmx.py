@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Chuyen ban do Tiled (.tmx) cua Tuxemon sang dinh dang PokeWorld.
+"""Chuyen ban do Tiled (.tmx) cua Tuxemon sang dinh dang TuxeWorld.
 
 Chay:  python3 tools/mktmx.py <duong-dan-kho-Tuxemon> [ten_map ...]
 Vi du: python3 tools/mktmx.py /tmp/Tuxemon

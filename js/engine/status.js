@@ -7,7 +7,7 @@
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { STATUSES, statusName } from '../data/statuses.js';
-import { maxHp } from './pokemon.js';
+import { maxHp } from './monster.js';
 
 export { statusName };
 export const STATUS_NAMES = Object.fromEntries(

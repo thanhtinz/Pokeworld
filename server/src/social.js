@@ -1,4 +1,4 @@
-// PokeWorld server | src/social.js | Hệ thống bạn bè + kết hôn
+// TuxeWorld server | src/social.js | Hệ thống bạn bè + kết hôn
 import { find, filter, insert, remove, markDirty, uid } from './db.js';
 
 const pairKey = (a, b) => [a, b].sort().join('|');

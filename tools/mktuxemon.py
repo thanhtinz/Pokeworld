@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Chuyen toan bo du lieu sinh vat cua Tuxemon sang dinh dang PokeWorld.
+"""Chuyen toan bo du lieu sinh vat cua Tuxemon sang dinh dang TuxeWorld.
 
 Chay:  python3 tools/mktuxemon.py <duong-dan-kho-Tuxemon>
 Vi du: python3 tools/mktuxemon.py /tmp/Tuxemon
@@ -202,7 +202,7 @@ def write_statuses(db, names, disp):
             'keep': bool((st.get('behaviors') or {}).get('persists_after_combat')),
         }))
 
-    out = ["// PokeWorld H5 | data/statuses.js | Trạng thái — TỰ SINH TỪ tools/mktuxemon.py",
+    out = ["// TuxeWorld H5 | data/statuses.js | Trạng thái — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon db/status (CC BY-SA 4.0). Đừng sửa tay.',
            '// kind = kiểu tác động (xem js/engine/status.js), p = tham số của bản gốc,',
            '// mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận.', '',
@@ -221,7 +221,7 @@ def write_statuses(db, names, disp):
 # ==================== He ====================
 def write_types(elements, names):
     order = sorted(elements)
-    out = ["// PokeWorld H5 | data/types.js | Hệ và bảng khắc chế — TỰ SINH TỪ tools/mktuxemon.py",
+    out = ["// TuxeWorld H5 | data/types.js | Hệ và bảng khắc chế — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.', '',
            'export const TYPES = %s;' % js(order), '',
            '// TYPE_NAMES[hệ] = tên tiếng Việt hiển thị trong game',
@@ -256,7 +256,7 @@ def write_types(elements, names):
         out.append('  %s: { %s },' % (t, pairs))
     out.append('};')
     out.append('''
-// Hệ số khi một chiêu hệ `atk` đánh vào Pokémon mang các hệ `defTypes`.
+// Hệ số khi một chiêu hệ `atk` đánh vào sinh vật mang các hệ `defTypes`.
 // Nhân dồn từng hệ giống loạt game gốc.
 export function typeEff(atk, defTypes) {
   const row = CHART[atk];
@@ -280,7 +280,7 @@ def fmtnum(v):
 
 # ==================== Sinh vat ====================
 def write_species(mons, dex, shapes, disp, elements):
-    out = ["// PokeWorld H5 | data/species.js | Sinh vật — TỰ SINH TỪ tools/mktuxemon.py",
+    out = ["// TuxeWorld H5 | data/species.js | Sinh vật — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '// base = 6 chỉ số của DÁNG THÂN (4-9), giống hệt bản gốc: chỉ số thật',
            '// tính bằng base * (cấp + 7) + IV + TP. Mọi dáng thân cộng lại đều bằng 36.',
@@ -352,7 +352,7 @@ def hieu_ung(t):
 
 
 def write_moves(techs, disp):
-    out = ["// PokeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py",
+    out = ["// TuxeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '// power là HỆ SỐ như bản gốc (0.4-3.0), acc 0-100, recharge = số lượt chờ.',
            '// range: melee (cận chiến vs giáp) · touch (cận chiến vs né) · ranged',
@@ -393,7 +393,7 @@ def write_moves(techs, disp):
 
 # ==================== Bang hoc chieu ====================
 def write_learnsets(mons, dex, techs):
-    out = ["// PokeWorld H5 | data/learnsets.js | Học chiêu theo cấp — TỰ SINH TỪ tools/mktuxemon.py",
+    out = ["// TuxeWorld H5 | data/learnsets.js | Học chiêu theo cấp — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.', '',
            'export const LEARNSETS = {']
     for m in mons:
@@ -469,7 +469,7 @@ def dieu_kien(ev, dex):
 
 
 def write_evolutions(mons, dex):
-    out = ["// PokeWorld H5 | data/evolutions.js | Chuỗi tiến hoá — TỰ SINH TỪ tools/mktuxemon.py",
+    out = ["// TuxeWorld H5 | data/evolutions.js | Chuỗi tiến hoá — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '// Mỗi loài là một mảng các đường tiến hoá; điều kiện có thể là cấp,',
            '// vật phẩm, giới tính, độ thân thiết, so sánh hai chỉ số, hoặc biết chiêu.', '',

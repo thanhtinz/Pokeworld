@@ -10,7 +10,7 @@
 import { CONFIG } from '../state.js';
 import { SPECIES } from '../data/species.js';
 import { LEARNSETS } from '../data/learnsets.js';
-import { maxHp } from './pokemon.js';
+import { maxHp } from './monster.js';
 import { monLevelCap, OVER_CAP_EXP } from './player.js';
 
 export function expForLevel(lv) {

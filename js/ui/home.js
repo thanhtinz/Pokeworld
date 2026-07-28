@@ -5,7 +5,7 @@
 // bỏ hẳn. Màn này giờ chỉ còn: đang ở đâu, chương truyện nào, và các nút để đi.
 import { G, save, allFainted, emitQuest } from '../state.js';
 import { monImg } from '../engine/monskin.js';
-import { heal, displayName, maxHp, isFainted } from '../engine/pokemon.js';
+import { heal, displayName, maxHp, isFainted } from '../engine/monster.js';
 import { expProgress } from '../engine/exp.js';
 import { currentChapter, needIntro, markIntroSeen, emitStory, zoneLockedBy, storyProgress } from '../engine/story.js';
 import { playDialog } from './dialog.js';

@@ -1,4 +1,4 @@
-// PokeWorld server | src/hub.js | Sổ đăng ký kết nối realtime (presence + gửi sự kiện)
+// TuxeWorld server | src/hub.js | Sổ đăng ký kết nối realtime (presence + gửi sự kiện)
 // Tách riêng khỏi realtime.js để các module logic (guild, chat) gửi được sự kiện
 // mà không tạo vòng lặp import.
 

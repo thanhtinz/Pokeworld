@@ -5,7 +5,7 @@ import {
 } from '../state.js';
 import { Battle } from '../engine/battle.js';
 import { monImg } from '../engine/monskin.js';
-import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '../engine/pokemon.js';
+import { newTuxemon, displayName, maxHp, isFainted, replaceMove, heal } from '../engine/monster.js';
 import { expProgress } from '../engine/exp.js';
 import { checkEvolution, evolve } from '../engine/evolution.js';
 import { SPECIES } from '../data/species.js';

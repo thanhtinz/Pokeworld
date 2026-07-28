@@ -1,4 +1,4 @@
-// PokeWorld server | src/cosmetics.js | Kho thời trang do admin quản lý
+// TuxeWorld server | src/cosmetics.js | Kho thời trang do admin quản lý
 //
 // Hai việc ở đây:
 //   1. Catalogue: admin tự thêm danh hiệu / khung avatar / khung chat / skin và

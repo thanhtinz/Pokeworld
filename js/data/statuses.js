@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/statuses.js | Trạng thái — TỰ SINH TỪ tools/mktuxemon.py
+// TuxeWorld H5 | data/statuses.js | Trạng thái — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon db/status (CC BY-SA 4.0). Đừng sửa tay.
 // kind = kiểu tác động (xem js/engine/status.js), p = tham số của bản gốc,
 // mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận.

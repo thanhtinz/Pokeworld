@@ -1,4 +1,4 @@
-/* PokeWorld H5 | style.css | Đại tu thẩm mỹ: pixel-game + galaxy starfield (kiểu PokAidle) */
+/* TuxeWorld H5 | style.css | Đại tu thẩm mỹ: pixel-game + galaxy starfield (kiểu PokAidle) */
 
 /* ==== Reset gọn ==== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,7 +16,7 @@ table { border-collapse: collapse; }
   --line-soft: #35265a;
   --text: #f1edff;
   --muted: #a89cd0;
-  --accent: #e3350d;      /* đỏ pokeball */
+  --accent: #e3350d;      /* đỏ tuxeball */
   --accent-dark: #b32a0a;
   --gold: #f0b429;
   --gold-num: #ffd43b;
@@ -584,7 +584,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
   position: relative;
 }
 /* Khung máu nổi ĐÈ lên nền như game gốc, không chiếm chỗ của sprite —
-   trước đây nó nằm cùng hàng nên Pokémon to bị bóp lại còn một nửa. */
+   trước đây nó nằm cùng hàng nên con to bị bóp lại còn một nửa. */
 .bt-enemy { justify-content: flex-end; min-height: 172px; }
 .bt-me { justify-content: flex-start; min-height: 168px; margin-top: auto; }
 .bt-info {
@@ -733,7 +733,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .detail-btns { display: flex; gap: 8px; }
 .detail-btns .btn { padding: 10px 6px; font-size: .78rem; }
 
-/* ==== Pokédex ==== */
+/* ==== Tuxedex ==== */
 .dex-count { text-align: center; font-size: .9rem; }
 .dex-count b { font-family: var(--pix); font-size: .72rem; color: var(--gold-num); }
 .dex-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -1070,7 +1070,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .asset-ico { display: inline-flex; align-items: center; vertical-align: middle; }
 .asset-ico img { image-rendering: pixelated; display: inline-block; }
 
-/* Icon zone + artwork Pokemon tren the */
+/* Icon zone + artwork sinh vat tren the */
 .zone-ico { display: inline-flex; align-items: center; vertical-align: -5px; }
 .zone-ico img { display: inline-block; object-fit: contain; }
 .mon-art { image-rendering: pixelated; object-fit: contain; }
@@ -1114,7 +1114,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .done-pill { background: rgba(81, 207, 102, .18); color: #b2f2bb; border: 1px solid rgba(81, 207, 102, .5); margin-left: 6px; }
 .login-lock { color: var(--muted); font-size: .68rem; white-space: nowrap; }
 
-/* Dau tick "da bat" trong Pokedex: ve bang CSS thay ky tu */
+/* Dau tick "da bat" trong Tuxedex: ve bang CSS thay ky tu */
 .dex-check {
   width: 12px; height: 12px;
   text-indent: -999px; overflow: hidden;
@@ -1183,7 +1183,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 }
 .ball-anim.caught { background: linear-gradient(180deg, #ffd43b 0 46%, #1b1b1b 46% 54%, #f5f5f5 54% 100%); }
 
-/* Bi Pokemon con lai cua trainer: cham tron CSS thay ky tu */
+/* Bi sinh vat con lai cua trainer: cham tron CSS thay ky tu */
 .tr-balls { letter-spacing: 0; display: flex; gap: 5px; margin-top: 6px; }
 .tr-ball {
   display: inline-block;
@@ -1401,9 +1401,9 @@ img[src*='sprites'] { image-rendering: pixelated; }
 
 @media (prefers-reduced-motion: reduce) { .act-btn.act-ready { animation: none; } }
 
-/* Anh nho tu pokesprite: giu net pixel khi phong to */
+/* Anh nho: giu net pixel khi phong to */
 .px-icon { image-rendering: pixelated; object-fit: contain; }
-/* Anh hop Pokemon (pokesprite) von 68x56 va co nhieu khoang trong — phong to cho can doi */
+/* Anh hop von 68x56 va co nhieu khoang trong — phong to cho can doi */
 .dex-ico { transform: scale(1.25); transform-origin: center; }
 
 /* Chan dung lay tu sprite ban do: cat dung o "dung nhin xuong" (cot 0, hang 0)
@@ -1485,12 +1485,12 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Chấm đỏ nằm ở góc nút, không lọt ra ngoài */
 #chat-fab .nav-dot { top: 6px; right: 7px; width: 10px; height: 10px; }
 
-/* Anh hop Pokemon lam sprite tran danh (khi chua tai duoc anh dong): phong to cho can
+/* Anh hop lam sprite tran danh (khi chua tai duoc anh dong): phong to cho can
    voi ben kia, vi anh hop von be va co nhieu khoang trong */
 .bt-sprite.px-icon { transform: scale(1.45); }
 .bt-sprite.px-icon.faint { transform: scale(1.45) translateY(24px); }
 
-/* ==== Nen tran dau kieu Pokemon: troi + dat + hai cai be dung ==== */
+/* ==== Nen tran dau: troi + dat + hai cai be dung ==== */
 .battle {
   position: relative;
   background-image: var(--arena-bg);
@@ -1560,7 +1560,7 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .screen-battle .bt-info { background: rgba(8, 5, 18, .88); }
 .screen-battle .bt-log { background: rgba(8, 5, 18, .86); }
 
-/* Dau chan trong Pokedex: anh goc la hinh den nen trong suot -> dao mau cho hop nen toi */
+/* Dau chan trong Tuxedex: anh goc la hinh den nen trong suot -> dao mau cho hop nen toi */
 .dex-print { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .dex-print img { image-rendering: pixelated; filter: invert(1); opacity: .85; }
 .dex-print small { color: var(--muted); font-size: .74rem; }

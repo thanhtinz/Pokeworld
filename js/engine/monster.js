@@ -1,4 +1,4 @@
-// TuxeWorld H5 | engine/pokemon.js | Tạo một con Tuxemon: IV, TP, khẩu vị, chỉ số
+// TuxeWorld H5 | engine/monster.js | Tạo một con Tuxemon: IV, TP, khẩu vị, chỉ số
 //
 // Chỉ số tính ĐÚNG THEO BẢN GỐC (tuxemon/monster/stats.py):
 //   chỉ số = dáng_thân * (cấp + 7) + IV + TP*cấp/100, rồi nhân hệ số khẩu vị.
@@ -192,6 +192,3 @@ export function addBond(mon, n) {
   mon.bond = clamp((mon.bond ?? 25) + n, 0, 100);
 }
 
-export function addFriendship(mon, n) {
-  mon.friendship = clamp((mon.friendship || 0) + n, 0, 255);
-}

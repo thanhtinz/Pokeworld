@@ -1,14 +1,16 @@
-// PokeWorld server | src/validate.js | Kiểm tra save từ client (chống sửa dữ liệu thô)
+// TuxeWorld server | src/validate.js | Kiểm tra save từ client (chống sửa dữ liệu thô)
 // Nguyên tắc: KHÔNG từ chối cứng (tránh làm mất tiến trình người chơi thật) —
 // kẹp giá trị về mức hợp lệ và trả về cảnh báo để ghi log/admin xem.
 
 const MONEY_CAP = 9999999;
 const MAX_LEVEL = 100;
-const MAX_DEX = 151;
+const MAX_DEX = 411;          // số loài của bản gốc Tuxemon (js/data/species.js)
 const PARTY_MAX = 6;
 const BOX_MAX = 60;
-const IV_MAX = 31;
-const EV_STAT_CAP = 252;
+const IV_MAX = 15;            // Tuxemon: iv_range [0, 15]
+const TP_STAT_CAP = 150;      // Tuxemon: max_tps
+const TP_TOTAL_CAP = 300;     // Tuxemon: max_total_tps
+const BOND_MAX = 100;
 const ITEM_QTY_CAP = 999;
 
 const clamp = (x, a, b) => Math.max(a, Math.min(b, Number.isFinite(x) ? x : a));
@@ -23,26 +25,36 @@ function cleanMon(mon, warn, where) {
   const iv = Array.isArray(mon.iv) && mon.iv.length === 6
     ? mon.iv.map(v => clamp(Math.round(Number(v)), 0, IV_MAX))
     : [0, 0, 0, 0, 0, 0];
-  const ev = Array.isArray(mon.ev) && mon.ev.length === 6
-    ? mon.ev.map(v => clamp(Math.round(Number(v)), 0, EV_STAT_CAP))
+  // TP (điểm rèn luyện) thay cho EV: mỗi chỉ số tối đa 150, tổng tối đa 300
+  let tp = Array.isArray(mon.tp) && mon.tp.length === 6
+    ? mon.tp.map(v => clamp(Math.round(Number(v)), 0, TP_STAT_CAP))
     : [0, 0, 0, 0, 0, 0];
+  let tong = tp.reduce((a, b) => a + b, 0);
+  if (tong > TP_TOTAL_CAP) {
+    warn(`${where}: tổng TP ${tong} > ${TP_TOTAL_CAP} — cắt bớt`);
+    tp = tp.map(v => Math.floor(v * TP_TOTAL_CAP / tong));
+  }
 
+  // Chiêu dùng "recharge" (cd) chứ không có PP
   const moves = Array.isArray(mon.moves)
     ? mon.moves.slice(0, 4).filter(m => m && typeof m.id === 'string').map(m => ({
         id: m.id.slice(0, 40),
-        pp: clamp(Math.round(Number(m.pp)), 0, 64),
+        cd: clamp(Math.round(Number(m.cd) || 0), 0, 32),
       }))
     : [];
 
-  return {
+  const out = {
     ...mon,
-    sp, lv, iv, ev, moves,
+    sp, lv, iv, tp, moves,
     exp: clamp(Math.round(Number(mon.exp) || 0), 0, 2000000),
-    hpCur: clamp(Math.round(Number(mon.hpCur) || 0), 0, 9999),
-    friendship: clamp(Math.round(Number(mon.friendship) || 0), 0, 255),
+    hpCur: clamp(Math.round(Number(mon.hpCur) || 0), 0, 99999),
+    bond: clamp(Math.round(Number(mon.bond) ?? 25), 0, BOND_MAX),
     nick: typeof mon.nick === 'string' ? mon.nick.slice(0, 12) : null,
     shiny: !!mon.shiny,
   };
+  // Field của schema đời cũ, bản gốc không có
+  delete out.ev; delete out.nature; delete out.ability; delete out.friendship;
+  return out;
 }
 
 // Trả về { save, warnings }
@@ -78,7 +90,7 @@ export function validateSave(raw) {
     ? [...new Set(save.badges.filter(b => typeof b === 'string' && b.length < 40))].slice(0, 16)
     : [];
 
-  // Pokédex
+  // Tuxedex
   const cleanDexMap = (obj) => {
     const out = {};
     for (const k of Object.keys(obj || {})) {

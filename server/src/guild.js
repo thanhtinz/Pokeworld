@@ -1,4 +1,4 @@
-// PokeWorld server | src/guild.js | Hệ thống bang hội (guild): tạo, gia nhập, chức vụ, quỹ, cấp bậc
+// TuxeWorld server | src/guild.js | Hệ thống bang hội (guild): tạo, gia nhập, chức vụ, quỹ, cấp bậc
 import express from 'express';
 import { getDb, find, filter, insert, remove, markDirty, uid } from './db.js';
 import { authRequired } from './auth.js';

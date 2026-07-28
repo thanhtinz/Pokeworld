@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/species.js | Sinh vật — TỰ SINH TỪ tools/mktuxemon.py
+// TuxeWorld H5 | data/species.js | Sinh vật — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
 // base = 6 chỉ số của DÁNG THÂN (4-9), giống hệt bản gốc: chỉ số thật
 // tính bằng base * (cấp + 7) + IV + TP. Mọi dáng thân cộng lại đều bằng 36.

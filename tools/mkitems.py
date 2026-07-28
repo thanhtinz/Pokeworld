@@ -9,8 +9,8 @@ Ghi de:
   js/data/items.js     danh sach vat pham
   assets/items/*.png   icon lay thang tu gfx/items cua Tuxemon
 
-Truoc day phan vat pham van la do Pokemon (Potion, Poke Ball...) voi icon
-lay tu kho pokesprite. Gio dung DUNG do cua Tuxemon: tuxeball de bat, potion
+Truoc day phan vat pham van la do cua game khac, voi icon
+lay tu kho ngoai. Gio dung DUNG do cua Tuxemon: tuxeball de bat, potion
 de hoi mau, booster de tien hoa.
 
 Ma vat pham GIU NGUYEN slug cua Tuxemon de sau nay doi chieu cho de.

@@ -16,7 +16,7 @@ import { rng, clamp } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { typeEff } from '../data/types.js';
-import { stats } from './pokemon.js';
+import { stats } from './monster.js';
 import { statMult } from './status.js';
 
 // Hệ số buff/debuff trong trận (-6..+6) — phần này game giữ lại cho dễ chơi

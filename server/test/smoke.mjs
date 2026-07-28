@@ -1,4 +1,4 @@
-// PokeWorld server | test/smoke.mjs | Test tự động: REST + socket + PvP + admin
+// TuxeWorld server | test/smoke.mjs | Test tự động: REST + socket + PvP + admin
 // Chạy: node test/smoke.mjs  (tự khởi động server ở port test, dùng thư mục data tạm)
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -82,7 +82,7 @@ try {
   // ==== Save + validate chống hack ====
   const hackedSave = {
     name: 'AshK', money: 999999999,        // vượt trần
-    party: [{ sp: 25, lv: 999, iv: [99, 99, 99, 99, 99, 99], ev: [999, 0, 0, 0, 0, 0], moves: [{ id: 'thunderbolt', pp: 15 }], hpCur: 50, exp: 0 }],
+    party: [{ sp: 25, lv: 999, iv: [99, 99, 99, 99, 99, 99], tp: [999, 999, 999, 999, 999, 999], moves: [{ id: 'ram', cd: 0 }], hpCur: 50, exp: 0 }],
     box: [], bag: { potion: 99999, 'hack<script>': 5 }, badges: ['badge_boulder'],
     dex: { seen: { 25: true, 9999: true }, caught: { 25: true } },
   };
@@ -93,11 +93,15 @@ try {
   const me = await api('/api/me', { token: tokenA });
   ok('tiền bị kẹp về trần', me.data.save.money === 9999999, String(me.data.save.money));
   ok('level bị kẹp về 100', me.data.save.party[0].lv === 100);
-  ok('IV bị kẹp về 31', me.data.save.party[0].iv[0] === 31);
+  ok('IV bị kẹp về 15', me.data.save.party[0].iv[0] === 15);
+  ok('tổng TP bị kẹp về 300',
+    me.data.save.party[0].tp.reduce((a, b) => a + b, 0) <= 300);
+  ok('field schema cũ bị gỡ', me.data.save.party[0].ev === undefined
+    && me.data.save.party[0].friendship === undefined);
   ok('item số lượng bị kẹp 999', me.data.save.bag.potion === 999);
   ok('dex số hiệu lạ bị loại', !me.data.save.dex.seen['9999']);
 
-  await api('/api/save', { method: 'PUT', token: tokenB, body: { name: 'MistyW', money: 5000, party: [{ sp: 7, lv: 20, iv: [10, 10, 10, 10, 10, 10], ev: [0, 0, 0, 0, 0, 0], moves: [{ id: 'water_gun', pp: 25 }], hpCur: 40, exp: 0 }], box: [], bag: {}, badges: [], dex: { seen: { 7: true }, caught: { 7: true } } } });
+  await api('/api/save', { method: 'PUT', token: tokenB, body: { name: 'MistyW', money: 5000, party: [{ sp: 7, lv: 20, iv: [10, 10, 10, 10, 10, 10], tp: [0, 0, 0, 0, 0, 0], moves: [{ id: 'ram', cd: 0 }], hpCur: 40, exp: 0 }], box: [], bag: {}, badges: [], dex: { seen: { 7: true }, caught: { 7: true } } } });
 
   const noAuth = await api('/api/me');
   ok('chặn truy cập không token', noAuth.status === 401);
@@ -238,7 +242,7 @@ try {
 
   // ==== Bang hội ====
   // AshK vừa bị trừ tiền còn 999999₽; nạp lại mốc tiền cố định để kiểm tra trừ phí chính xác
-  await api('/api/save', { method: 'PUT', token: tokenA, body: { name: 'AshK', money: 200000, party: [{ sp: 25, lv: 50, iv: [31, 31, 31, 31, 31, 31], ev: [0, 0, 0, 0, 0, 0], moves: [{ id: 'thunderbolt', pp: 15 }], hpCur: 100, exp: 0 }], box: [], bag: {}, badges: [], dex: { seen: { 25: true }, caught: { 25: true } } } });
+  await api('/api/save', { method: 'PUT', token: tokenA, body: { name: 'AshK', money: 200000, party: [{ sp: 25, lv: 50, iv: [15, 15, 15, 15, 15, 15], tp: [0, 0, 0, 0, 0, 0], moves: [{ id: 'ram', cd: 0 }], hpCur: 100, exp: 0 }], box: [], bag: {}, badges: [], dex: { seen: { 25: true }, caught: { 25: true } } } });
 
   const gCreate = await api('/api/guild/create', { method: 'POST', body: { name: 'Doi Sam Set', tag: 'zap', desc: 'Bang hoi test', icon: 3 }, token: tokenA });
   ok('tạo bang hội', gCreate.status === 200 && gCreate.data.guild?.tag === 'ZAP', JSON.stringify(gCreate.data));

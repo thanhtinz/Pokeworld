@@ -15,7 +15,7 @@ const TIPS = [
 ];
 
 // Ảnh chắc chắn dùng ngay khi vào game. Danh sách cũ còn trỏ vào sprite thời
-// Pokémon đã xoá (oak, rival, juan, nurse_joy...) nên mỗi lần vào game là một
+// trước đã xoá (oak, rival, juan, nurse_joy...) nên mỗi lần vào game là một
 // loạt 404; nay chỉ giữ tệp có thật và suy phần sinh vật ra TỪ CHÍNH DỮ LIỆU.
 const LOCAL_ASSETS = [
   'assets/img/title.png', 'assets/img/dlgbox.png', 'assets/img/crown.png',

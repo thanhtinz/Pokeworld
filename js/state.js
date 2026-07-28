@@ -3,6 +3,7 @@ import { clamp, todayNum } from './util.js';
 import { QUESTS } from './data/quests.js';
 import { loadActiveSave, writeActiveSave, clearActiveSave } from './engine/accounts.js';
 
+// Khoá localStorage đời đầu — giữ nguyên tên để bản lưu cũ không mất.
 const SAVE_KEY = 'pokeworld_save_v1';
 export const SAVE_VERSION = 1;
 
@@ -22,7 +23,7 @@ export const CONFIG = {
   BOX_SIZE: 60,
   STARTING_MONEY: 3000,
   MONEY_CAP: 9999999,
-  RUN_BASE_CHANCE: 0.6,
+  ESCAPE_METHOD: 'default',   // cách tính chạy trốn của bản gốc (method_escape)
 };
 
 // Trạng thái toàn cục. G.p = dữ liệu người chơi (null nếu chưa có save)
@@ -74,12 +75,14 @@ function vaMons(list) {
     if (!Array.isArray(m.iv) || m.iv.length < 6) m.iv = [8, 8, 8, 8, 8, 8];
     m.iv = m.iv.map(v => clamp(Number(v) || 0, 0, CONFIG.IV_MAX));
     if (!Array.isArray(m.tp) || m.tp.length < 6) m.tp = [0, 0, 0, 0, 0, 0];
-    delete m.ev;                       // EV kiểu Pokémon đã thay bằng TP
+    delete m.ev;                       // EV của bản lưu cũ đã thay bằng TP
     if (!Array.isArray(m.moves) || !m.moves.length) m.moves = [{ id: 'struggle', cd: 0 }];
     for (const mv of m.moves) if (typeof mv.cd !== 'number') mv.cd = 0;
     m.lv = clamp(Number(m.lv) || 1, 1, CONFIG.MAX_LEVEL);
     if (typeof m.hpCur !== 'number') m.hpCur = 0;
-    if (typeof m.friendship !== 'number') m.friendship = 70;
+    if (typeof m.bond !== 'number') m.bond = 25;
+    delete m.friendship;               // độ thân thiết cũ đã thay bằng bond
+    delete m.nature; delete m.ability; // bản gốc không có tính cách / đặc tính
     return m;
   });
 }

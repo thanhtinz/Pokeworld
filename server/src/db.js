@@ -1,4 +1,4 @@
-// PokeWorld server | src/db.js | Kho dữ liệu JSON có ghi an toàn (atomic) — interface kiểu collection
+// TuxeWorld server | src/db.js | Kho dữ liệu JSON có ghi an toàn (atomic) — interface kiểu collection
 // Đổi sang Postgres/SQLite sau này chỉ cần thay thân các hàm dưới, giữ nguyên chữ ký.
 import fs from 'fs';
 import path from 'path';
@@ -44,11 +44,11 @@ export function loadDb() {
     db = structuredClone(EMPTY);
   }
   db.config = {
-    motd: 'Chào mừng đến PokeWorld Online!',
+    motd: 'Chào mừng đến TuxeWorld Online!',
     expMult: 1,
     moneyMult: 1,
     shinyMult: 1,
-    serverName: 'PokeWorld',
+    serverName: 'TuxeWorld',
     ...db.config,
   };
   return db;

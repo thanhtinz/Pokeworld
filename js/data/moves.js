@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py
+// TuxeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
 // power là HỆ SỐ như bản gốc (0.4-3.0), acc 0-100, recharge = số lượt chờ.
 // range: melee (cận chiến vs giáp) · touch (cận chiến vs né) · ranged

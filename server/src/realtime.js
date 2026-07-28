@@ -1,4 +1,4 @@
-// PokeWorld server | src/realtime.js | Socket.IO: online presence, chat thế giới, PvP realtime
+// TuxeWorld server | src/realtime.js | Socket.IO: online presence, chat thế giới, PvP realtime
 // PvP theo mô hình lockstep: server phát 1 seed chung, hai client chạy cùng engine,
 // server chỉ chuyển tiếp action + làm trọng tài kết quả (2 bên báo khớp mới ghi nhận).
 import { verifyToken } from './auth.js';

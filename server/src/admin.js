@@ -1,4 +1,4 @@
-// PokeWorld server | src/admin.js | API quản trị + phục vụ trang /admin
+// TuxeWorld server | src/admin.js | API quản trị + phục vụ trang /admin
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';

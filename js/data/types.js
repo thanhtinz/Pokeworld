@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/types.js | Hệ và bảng khắc chế — TỰ SINH TỪ tools/mktuxemon.py
+// TuxeWorld H5 | data/types.js | Hệ và bảng khắc chế — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
 
 export const TYPES = ["cosmic", "earth", "fire", "frost", "heroic", "lightning", "metal", "normal", "shadow", "sky", "venom", "water", "wood"];
@@ -55,7 +55,7 @@ export const CHART = {
   wood: { cosmic: 1, earth: 2, fire: 0.5, frost: 1, heroic: 1, lightning: 1, metal: 1, normal: 1, shadow: 1, sky: 1, venom: 0.5, water: 2, wood: 0.5 },
 };
 
-// Hệ số khi một chiêu hệ `atk` đánh vào Pokémon mang các hệ `defTypes`.
+// Hệ số khi một chiêu hệ `atk` đánh vào sinh vật mang các hệ `defTypes`.
 // Nhân dồn từng hệ giống loạt game gốc.
 export function typeEff(atk, defTypes) {
   const row = CHART[atk];

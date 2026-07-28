@@ -32,7 +32,7 @@ import * as fashion from './ui/fashion.js';
 import { activeAccount } from './engine/accounts.js';
 import { startSession, onChange, net } from './net/session.js';
 import { wirePvpInvites } from './net/pvpinvite.js';
-import { maxHp } from './engine/pokemon.js';
+import { maxHp } from './engine/monster.js';
 import { trainerLevel } from './engine/player.js';
 import { FEATURES, isUnlocked, lockNote } from './engine/unlock.js';
 import { fmt } from './util.js';

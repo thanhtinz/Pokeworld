@@ -1,4 +1,4 @@
-// PokeWorld H5 | data/evolutions.js | Chuỗi tiến hoá — TỰ SINH TỪ tools/mktuxemon.py
+// TuxeWorld H5 | data/evolutions.js | Chuỗi tiến hoá — TỰ SINH TỪ tools/mktuxemon.py
 // Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.
 // Mỗi loài là một mảng các đường tiến hoá; điều kiện có thể là cấp,
 // vật phẩm, giới tính, độ thân thiết, so sánh hai chỉ số, hoặc biết chiêu.

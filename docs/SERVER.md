@@ -1,6 +1,6 @@
-# PokeWorld Server — Hướng dẫn cài đặt
+# TuxeWorld Server — Hướng dẫn cài đặt
 
-Máy chủ online cho PokeWorld: tài khoản, đồng bộ save, bảng xếp hạng, bạn bè, kết hôn, chat, PvP realtime và trang quản trị.
+Máy chủ online cho TuxeWorld: tài khoản, đồng bộ save, bảng xếp hạng, bạn bè, kết hôn, chat, PvP realtime và trang quản trị.
 
 ## 1. Chạy thử trên máy
 
