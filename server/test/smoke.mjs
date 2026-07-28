@@ -665,6 +665,80 @@ try {
     ok('nhà của người không tồn tại thì 404', khong.status === 404);
   }
 
+
+  // ==== Boss thế giới + boss khu vực ====
+  {
+    const ds = await api('/api/boss', { token: tokenA });
+    ok('lấy được danh sách boss', ds.status === 200 && (ds.data.ds || []).length >= 10,
+      String((ds.data.ds || []).length));
+    ok('có cả boss thế giới lẫn boss khu vực',
+      ds.data.ds.some(b => b.kind === 'the_gioi') && ds.data.ds.some(b => b.kind === 'khu'));
+    const tg = ds.data.ds.find(b => b.kind === 'the_gioi');
+    ok('boss thế giới máu đầy khi chưa ai đánh', tg.hp === tg.hpMax);
+    ok('boss có giới hạn lượt mỗi ngày', ds.data.luotMoiNgay > 0);
+
+    const bay = await api('/api/boss/khong_co_con_nay/danh', { method: 'POST', token: tokenA, body: { dmg: 10 } });
+    ok('boss không có thật thì từ chối', bay.status === 400);
+
+    const d1 = await api(`/api/boss/${tg.id}/danh`, { method: 'POST', token: tokenA, body: { dmg: 100 } });
+    ok('đánh boss thì trừ máu', d1.status === 200 && d1.data.hp < tg.hpMax, JSON.stringify(d1.data));
+    ok('sát thương nhân theo hệ số', d1.data.sat === 100 * 60, String(d1.data.sat));
+    ok('ghi nhận sát thương của mình', d1.data.cuaBan === d1.data.sat);
+
+    // Một lần đánh không được vượt trần dù client báo số khổng lồ
+    const d2 = await api(`/api/boss/${tg.id}/danh`, { method: 'POST', token: tokenB, body: { dmg: 999999999 } });
+    ok('một lần đánh không quá trần', d2.data.sat <= Math.ceil(tg.hpMax / 25),
+      `${d2.data.sat} / ${tg.hpMax}`);
+
+    const bxh = await api(`/api/boss/${tg.id}`, { token: tokenA });
+    ok('bảng sát thương xếp cao xuống thấp',
+      bxh.data.top.length === 2 && bxh.data.top[0].dmg >= bxh.data.top[1].dmg,
+      JSON.stringify(bxh.data.top));
+
+    // Hai người đánh hết lượt trong ngày cũng chưa hạ nổi con boss thế giới —
+    // đúng ý đồ: phải cả máy chủ xúm vào.
+    let vong = 0;
+    let con = bxh.data.hp;
+    let chan = null;
+    while (con > 0 && vong < 60) {
+      const tok = vong % 2 ? tokenA : tokenB;
+      const r = await api(`/api/boss/${tg.id}/danh`, { method: 'POST', token: tok, body: { dmg: 999999 } });
+      if (r.status !== 200) { chan = r.data?.error; break; }
+      con = r.data.hp;
+      vong++;
+    }
+    ok('hai người không thể một mình hạ boss thế giới', con > 0, `còn ${con} sau ${vong} lượt`);
+    ok('hết lượt trong ngày thì bị chặn', /lần rồi/.test(chan || ''), String(chan));
+
+    // Boss khu vực máu nhỏ hơn: gom đủ người vào thì hạ được, và quà phải về
+    // hộp thư theo đúng thứ hạng sát thương.
+    const khu = ds.data.ds.find(b => b.kind === 'khu');
+    const toks = [];
+    for (let i = 0; i < 4; i++) {
+      const r = await api('/api/auth/register', { method: 'POST', body: { username: `SanBoss${i}`, password: 'secret9' } });
+      toks.push(r.data.token);
+    }
+    let ha = null;
+    for (let i = 0; i < 40 && !ha; i++) {
+      const r = await api(`/api/boss/${khu.id}/danh`, { method: 'POST', token: toks[i % toks.length], body: { dmg: 999999 } });
+      if (r.status !== 200) continue;
+      if (r.data.ha) ha = r.data;
+    }
+    ok('cả nhóm xúm vào thì hạ được boss khu vực', !!ha, JSON.stringify(ha));
+    ok('hạ xong có bảng xếp hạng sát thương', (ha?.top || []).length >= 2);
+
+    const thu = await api('/api/mail', { token: toks[0] });
+    const qua = (thu.data?.mail || []).find(m => m.kind === 'boss');
+    ok('quà hạ boss gửi vào hộp thư', !!qua, JSON.stringify(thu.data).slice(0, 160));
+    ok('quà có tiền và vật phẩm', qua?.money > 0 && (qua?.items || []).length > 0);
+
+    const lai = await api(`/api/boss/${khu.id}`, { token: toks[0] });
+    ok('hạ rồi thì boss chờ hồi sinh', lai.data.song === false && lai.data.hoiSinhSau > 0);
+    const som = await api(`/api/boss/${khu.id}/danh`, { method: 'POST', token: toks[0], body: { dmg: 10 } });
+    ok('boss đang chờ hồi sinh thì không đánh được', som.status === 400,
+      JSON.stringify(som.data));
+  }
+
   // ==== Lưu xuống đĩa ====
   await api('/api/admin/flush', { method: 'POST', token: admToken });
   ok('DB ghi ra file', fs.existsSync(path.join(DATA_DIR, 'db.json')));

@@ -28,6 +28,7 @@ const HUB = [
   { to: 'craft',      icon: 'quest',   label: 'Chế tạo' },
   { to: 'garage',     icon: 'car',     label: 'Nhà xe' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
+  { to: 'boss',       icon: 'battle',  label: 'Săn boss', on: true },
   { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng', on: true },
   { to: 'guild',      icon: 'guild',   label: 'Bang hội', on: true },
   { to: 'friends',    icon: 'friends', label: 'Bạn bè', badge: 'dm', on: true },

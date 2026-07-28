@@ -2464,3 +2464,50 @@ process.exit(fails === 0 ? 0 : 1);
         !m.solid[(q.y + dy) * m.w + (q.x + dx)]));
   }
 }
+
+// ==== Boss thế giới + boss khu vực ====
+{
+  const { BOSSES, BOSS_BY_ID, BOSS_HE_SO } = await import('../js/data/bosses.js');
+  const { SPECIES } = await import('../js/data/species.js');
+
+  ok('có boss thế giới', BOSSES.some(b => b.kind === 'the_gioi'));
+  ok('có boss riêng cho từng khu', BOSSES.filter(b => b.kind === 'khu').length >= 8,
+    String(BOSSES.filter(b => b.kind === 'khu').length));
+  ok('id boss không trùng nhau', new Set(BOSSES.map(b => b.id)).size === BOSSES.length);
+  ok('boss nào cũng dùng loài có thật',
+    BOSSES.every(b => !!SPECIES[b.sp]),
+    BOSSES.filter(b => !SPECIES[b.sp]).map(b => b.id).join(', '));
+  ok('boss khu nào cũng gắn với một bản đồ có thật',
+    BOSSES.filter(b => b.kind === 'khu').every(b => !!MAPS[b.zone]),
+    BOSSES.filter(b => b.kind === 'khu' && !MAPS[b.zone]).map(b => b.zone).join(', '));
+  ok('boss thế giới trâu hơn boss khu', (() => {
+    const tg = Math.min(...BOSSES.filter(b => b.kind === 'the_gioi').map(b => b.hpMax));
+    const kv = Math.max(...BOSSES.filter(b => b.kind === 'khu').map(b => b.hpMax));
+    return tg > kv;
+  })());
+  ok('cấp boss nằm trong thang chơi được',
+    BOSSES.every(b => b.lv >= 10 && b.lv <= 100));
+  // Trần sát thương phải buộc nhiều người cùng đánh mới hạ được
+  ok('một mình không hạ nổi boss nào',
+    BOSSES.every(b => b.hpMax / b.capMoiLan >= 20),
+    BOSSES.filter(b => b.hpMax / b.capMoiLan < 20).map(b => b.id).join(', '));
+  ok('hệ số quy đổi sát thương dương', BOSS_HE_SO > 0
+    && BOSSES.every(b => b.heSo === BOSS_HE_SO));
+  ok('tra được boss theo id', BOSS_BY_ID[BOSSES[0].id]?.name === BOSSES[0].name);
+  // Bảng của máy chủ phải khớp từng con số
+  {
+    const sv = await import('../server/src/boss.data.js');
+    ok('bảng boss hai bên khớp nhau',
+      sv.BOSSES.length === BOSSES.length
+      && sv.BOSSES.every((b, i) => b.id === BOSSES[i].id && b.hpMax === BOSSES[i].hpMax
+        && b.capMoiLan === BOSSES[i].capMoiLan && b.sp === BOSSES[i].sp));
+  }
+  // Dựng thử con boss xem engine có tạo được không
+  {
+    const b = BOSSES[0];
+    const mon = newTuxemon(b.sp, b.lv);
+    ok('dựng được con boss bằng engine thường',
+      !!mon && mon.lv === b.lv && maxHp(mon) > 0);
+    ok('boss có chiêu để đánh', (mon.moves || []).length > 0);
+  }
+}

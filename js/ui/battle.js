@@ -24,6 +24,7 @@ import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
 import { syncNow } from '../net/session.js';
+import * as api from '../net/api.js';
 import { arenaFor } from '../data/arenas.js';
 import { addTrainerExp, trainerLevel, trainerExpFor, monLevelCap } from '../engine/player.js';
 import { unlockedBetween } from '../engine/unlock.js';
@@ -39,7 +40,8 @@ async function storyDone(ch) {
   toast(`${ch.title} hoàn thành!`);
 }
 
-export function render(el, { kind = 'wild', enemy = null, trainerId = null, from = 'home', arena: arenaEp = null } = {}) {
+export function render(el, { kind = 'wild', enemy = null, trainerId = null, from = 'home',
+  arena: arenaEp = null, bossId = null, bossName = '' } = {}) {
   // ==== Dựng trận ====
   let trainer = null;
   let enemySide;
@@ -57,9 +59,18 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     for (const m of enemySide.mons) markSeen(m.sp);
   } else {
     if (!enemy) { show(from); return; }
-    enemySide = { mons: [enemy], kind: 'wild' };
+    // Boss dùng lại y hệt đường của trận hoang, chỉ khác: không bắt được nó, và
+    // đánh xong bao nhiêu máu thì báo lên máy chủ bấy nhiêu.
+    enemySide = { mons: [enemy], kind: kind === 'boss' ? 'trainer' : 'wild' };
   }
-  const b = new Battle({ kind, sides: [{ mons: G.p.party, kind: 'player' }, enemySide] });
+  // Engine chỉ hiểu 'wild' | 'trainer'. Trận boss tính như trận huấn luyện viên
+  // (không ném bóng bắt được) nhưng vẫn chạy trốn được — bỏ cuộc thì phần sát
+  // thương đã gây vẫn được ghi nhận.
+  const b = new Battle({ kind: kind === 'boss' ? 'trainer' : kind,
+    sides: [{ mons: G.p.party, kind: 'player' }, enemySide] });
+  // Máu ban đầu của boss, để cuối trận biết mình gặm được bao nhiêu
+  const bossMauDau = kind === 'boss' ? (enemy.hpCur || 0) : 0;
+  let bossDaBao = false;
 
   // ==== State cục bộ ====
   let busy = false;        // đang phát events -> khóa nút
@@ -449,10 +460,27 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     for (const { quest } of list || []) toast(`Hoàn thành: ${quest.name}`);
   }
 
+  // Báo sát thương lên máy chủ. Gọi ở MỌI đường ra khỏi trận (thắng, thua,
+  // bỏ chạy) — đánh được bao nhiêu thì tính bấy nhiêu, chứ thua mà mất trắng
+  // công thì chẳng ai dám thử con boss to.
+  async function baoSatThuong() {
+    if (kind !== 'boss' || bossDaBao || !bossId) return;
+    bossDaBao = true;
+    const dmg = Math.max(0, bossMauDau - Math.max(0, eMon()?.hpCur ?? 0));
+    if (dmg <= 0) return;
+    const r = await api.hitBoss(bossId, dmg);
+    if (!r.ok) { toast(r.error); return; }
+    const d = r.data;
+    toast(d.ha
+      ? `Hạ được ${d.boss}! Bạn hạng ${d.hang}/${d.soNguoi} — quà gửi vào hộp thư.`
+      : `Gây ${fmt(d.sat)} sát thương cho ${d.boss}. Còn ${fmt(d.hp)} máu.`, 3600);
+  }
+
   // ==== Kết thúc trận ====
   async function endBattle(winner) {
     ended = true;
     busy = true;
+    await baoSatThuong();
 
     if (kind === 'wild' && caught && b.caughtMon) {
       const mon = b.caughtMon;
@@ -604,6 +632,11 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     if (trainer.intro) {
       playDialog([[{ name: trainer.name, img: trainer.sprite }, trainer.intro]]);
     }
+  } else if (kind === 'boss') {
+    const m = eMon();
+    log(`${bossName || displayName(m)} gầm lên một tiếng! Đánh được bao nhiêu`
+      + ' cũng tính, thua hay bỏ chạy vẫn ghi nhận.');
+    keu(m, 0);
   } else {
     const m = eMon();
     log(`Một ${displayName(m)} hoang dã${m.flair ? ' (hiếm!)' : ''} xuất hiện!`);

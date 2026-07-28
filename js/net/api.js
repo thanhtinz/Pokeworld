@@ -128,3 +128,9 @@ export const fetchGiftShop = () => call('/gift', { auth: false });
 export const fetchIntimacy = () => call('/gift/thanmat');
 export const sendGift = (username, giftId) =>
   call('/gift/tang', { method: 'POST', body: { username, giftId } });
+
+// ==== Boss thế giới / boss khu vực ====
+export const fetchBosses = () => call('/boss');
+export const fetchBoss = (bossId) => call(`/boss/${encodeURIComponent(bossId)}`);
+export const hitBoss = (bossId, dmg) =>
+  call(`/boss/${encodeURIComponent(bossId)}/danh`, { method: 'POST', body: { dmg } });

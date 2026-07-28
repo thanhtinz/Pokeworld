@@ -16,6 +16,8 @@ const EMPTY = {
   guildChat: [],      // {id, guildId, from, avatar, text, ts, system}
   dms: [],            // {id, from, to, text, ts, read}
   auditLog: [],       // {id, ts, admin, action, target, detail}
+  bossRuns: [],       // {id, bossId, hp, hpMax, batDau, hetLuc, dmg:{userId:sát thương}, ten:{userId:tên}}
+  bossLuot: [],       // {u, b, n, so} — số lượt đánh boss trong ngày
   intimacy: [],       // {id, key, a, b, diem, soQua, ngay, trongNgay, ts} — điểm thân mật từng cặp
   wallPosts: [],      // {id, homeId, from, fromName, avatar, text, ts, likes:[userId]} — tường nhà
   cosmetics: [],      // {id, kind, name, color, css, how, n, img, createdAt} — thời trang admin thêm

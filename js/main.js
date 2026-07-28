@@ -22,6 +22,7 @@ import * as craft from './ui/craft.js';
 import * as garage from './ui/garage.js';
 import * as homes from './ui/homes.js';
 import * as gifts from './ui/gifts.js';
+import * as boss from './ui/boss.js';
 import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
@@ -63,7 +64,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements, park, daycare, estate, craft, garage, homes, gifts,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements, park, daycare, estate, craft, garage, homes, gifts, boss,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
