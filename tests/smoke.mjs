@@ -17,7 +17,7 @@ import { TITLES, AVATAR_FRAMES, CHAT_FRAMES, SKINS, COSMETIC_KINDS, ALL_KINDS, N
   applyRemote, imgOf, unlocked, requirement } from '../js/data/cosmetics.js';
 import { typeEff, TYPE_NAMES, TYPE_COLORS, TYPES } from '../js/data/types.js';
 import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../js/data/tastes.js';
-import { newTuxemon, stats, maxHp, STAT_KEYS, heal } from '../js/engine/monster.js';
+import { newTuxemon, stats, maxHp, STAT_KEYS, heal, typesOf } from '../js/engine/monster.js';
 import { PLAGUES } from '../js/data/plagues.js';
 import { expForLevel, expYield, gainExp, movesAtLevel } from '../js/engine/exp.js';
 import { calcDamage, typeMultiplier, RANGE_MAP } from '../js/engine/damage.js';
@@ -514,6 +514,51 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     && !canUse('revive', newTuxemon(STARTERS[1].sp, 20), { inBattle: false }));
   useItem('revive', guc, { inBattle: false });
   ok('hồi sinh thì sống lại', guc.hpCur > 0, String(guc.hpCur));
+
+  // Đĩa chiêu (TM) / đĩa hệ (MM) / quả đổi hệ — vật phẩm bản gốc, mới nối vào
+  {
+    const tm = Object.entries(ITEMS).filter(([, x]) => x.eff.some(e => e.t === 'learnMove'));
+    ok('có đĩa chiêu', tm.length >= 10, String(tm.length));
+    ok('đĩa chiêu nào cũng dạy chiêu game đang có',
+      tm.every(([, x]) => x.eff.every(e => e.t !== 'learnMove' || MOVES[e.id])),
+      tm.filter(([, x]) => x.eff.some(e => e.t === 'learnMove' && !MOVES[e.id]))
+        .map(([s]) => s).join(' '));
+
+    const [tmId, tmIt] = tm[0];
+    const mvId = tmIt.eff.find(e => e.t === 'learnMove').id;
+    const hoc = newTuxemon(STARTERS[0].sp, 20);
+    hoc.moves = [{ id: 'canine', cd: 0 }];
+    ok('chưa biết chiêu thì dùng được đĩa', canUse(tmId, hoc, { inBattle: false }));
+    const r = useItem(tmId, hoc, { inBattle: false });
+    ok('đĩa chiêu trả về chiêu cần học', r.learn === mvId, String(r.learn));
+    hoc.moves.push({ id: mvId, cd: 0 });
+    ok('biết rồi thì không dùng lại được', !canUse(tmId, hoc, { inBattle: false }));
+
+    // Đĩa hệ: chỉ dùng cho con đúng hệ, và bốc chiêu đúng hệ đó
+    const mm = Object.entries(ITEMS).find(([, x]) => x.eff.some(e => e.t === 'learnRandom'));
+    ok('có đĩa hệ', !!mm);
+    if (mm) {
+      const el = mm[1].eff.find(e => e.t === 'learnRandom').el;
+      const dung = newTuxemon(Object.entries(SPECIES).find(([, s]) => s.types.includes(el))[0], 20);
+      const sai = newTuxemon(Object.entries(SPECIES).find(([, s]) => !s.types.includes(el))[0], 20);
+      ok('đĩa hệ chỉ dùng cho con đúng hệ',
+        canUse(mm[0], dung, { inBattle: false }) && !canUse(mm[0], sai, { inBattle: false }));
+      const r2 = useItem(mm[0], dung, { inBattle: false });
+      ok('đĩa hệ bốc ra chiêu đúng hệ',
+        !!r2.learn && MOVES[r2.learn].types.includes(el) && !MOVES[r2.learn].res,
+        String(r2.learn));
+    }
+
+    // Quả đổi hệ: đổi hẳn hệ, và không dùng được cho con vốn đã mang hệ đó
+    const qua = Object.entries(ITEMS).filter(([, x]) => x.eff.some(e => e.t === 'switchType'));
+    ok('có đủ quả đổi hệ cho 13 hệ', qua.length >= 13, String(qua.length));
+    const el2 = qua[0][1].eff.find(e => e.t === 'switchType').el;
+    const doi = newTuxemon(Object.entries(SPECIES).find(([, s]) => !s.types.includes(el2))[0], 20);
+    useItem(qua[0][0], doi, { inBattle: true });
+    ok('quả đổi hệ đổi được hệ', typesOf(doi).join() === el2, typesOf(doi).join());
+    ok('con đã mang hệ đó thì quả vô dụng', !canUse(qua[0][0], doi, { inBattle: true }));
+    ok('quả đổi hệ chỉ dùng trong trận', qua.every(([, x]) => x.inBattle && !x.inWorld));
+  }
 
   // Trà: cho thẳng EXP
   const tra = newTuxemon(STARTERS[2].sp, 5);

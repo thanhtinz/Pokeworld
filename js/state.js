@@ -2,6 +2,7 @@
 import { clamp, todayNum } from './util.js';
 import { QUESTS } from './data/quests.js';
 import { ITEMS } from './data/items.js';
+import { TYPES } from './data/types.js';
 import { loadActiveSave, writeActiveSave, clearActiveSave } from './engine/accounts.js';
 
 // Khoá localStorage đời đầu — giữ nguyên tên để bản lưu cũ không mất.
@@ -85,6 +86,8 @@ function vaMons(list) {
     delete m.friendship;               // độ thân thiết cũ đã thay bằng bond
     delete m.nature; delete m.ability; // bản gốc không có tính cách / đặc tính
     if (m.held && !ITEMS[m.held]) delete m.held;   // món cũ đã bỏ khỏi bảng
+    // Hệ do quả đổi hệ ghi đè — hệ lạ thì bỏ, để lấy lại hệ gốc của loài
+    if (m.types && (!Array.isArray(m.types) || !m.types.every(t => TYPES[t]))) delete m.types;
     return m;
   });
 }

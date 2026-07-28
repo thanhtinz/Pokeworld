@@ -20,6 +20,8 @@ const NHOM = [
   ['food', 'Món ăn'],
   ['stat', 'Rèn chỉ số'],
   ['tea', 'Trà'],
+  ['tm', 'Đĩa chiêu'],
+  ['element', 'Quả đổi hệ'],
   ['held', 'Đồ mang theo'],
 ];
 
@@ -31,6 +33,8 @@ const CACH_DUNG = {
   food: 'Cho một Tuxemon ăn để tăng thân thiết.',
   stat: 'Tăng chỉ số cho một Tuxemon.',
   tea: 'Cho một Tuxemon uống để nhận EXP.',
+  tm: 'Dạy một chiêu mới cho Tuxemon, không cần đủ cấp.',
+  element: 'Chỉ dùng trong trận — đổi hẳn hệ của Tuxemon.',
   held: 'Cho một Tuxemon cầm theo, có tác dụng cả khi ngồi dự bị.',
 };
 
@@ -140,6 +144,9 @@ export function render(el) {
     removeItem(id, 1);
     for (const m of res.msgs) toast(m);
 
+    // Đĩa chiêu / đĩa hệ: đủ 4 chiêu rồi thì hỏi quên chiêu nào, y như lúc lên cấp
+    if (res.learn) await daHoc(mon, res.learn);
+
     // Cho EXP xong có thể lên cấp -> học chiêu mới, rồi tới lượt tiến hoá theo cấp
     await hocChieuMoi(mon);
     if (!res.evolveTo) {
@@ -156,20 +163,22 @@ export function render(el) {
     save(); draw();
   }
 
-  // Chiêu học được ở cấp hiện tại; đủ 4 chiêu thì hỏi quên chiêu nào
+  // Nhét một chiêu vào bộ chiêu; đủ 4 chiêu thì hỏi quên chiêu nào
+  async function daHoc(mon, mvId) {
+    const r = tryLearn(mon, mvId);
+    const d = MOVES[mvId];
+    if (r === 'learned') { toast(`Học được ${d ? d.name : mvId}!`); return; }
+    if (r !== 'full') return;
+    const opts = mon.moves.map(mv => ({ label: MOVES[mv.id] ? MOVES[mv.id].name : mv.id }));
+    opts.push({ label: 'Không học' });
+    const idx = await choose(`${displayName(mon)} muốn học ${d ? d.name : mvId}. Quên chiêu nào?`,
+      opts, { cancelable: false });
+    if (idx !== null && idx < mon.moves.length) replaceMove(mon, idx, mvId);
+  }
+
+  // Chiêu học được ở cấp hiện tại
   async function hocChieuMoi(mon) {
-    for (const mvId of movesAtLevel(mon.sp, mon.lv)) {
-      const r = tryLearn(mon, mvId);
-      const d = MOVES[mvId];
-      if (r === 'learned') toast(`Học được ${d ? d.name : mvId}!`);
-      else if (r === 'full') {
-        const opts = mon.moves.map(mv => ({ label: MOVES[mv.id] ? MOVES[mv.id].name : mv.id }));
-        opts.push({ label: 'Không học' });
-        const idx = await choose(`${displayName(mon)} muốn học ${d ? d.name : mvId}. Quên chiêu nào?`,
-          opts, { cancelable: false });
-        if (idx !== null && idx < mon.moves.length) replaceMove(mon, idx, mvId);
-      }
-    }
+    for (const mvId of movesAtLevel(mon.sp, mon.lv)) await daHoc(mon, mvId);
   }
 
 

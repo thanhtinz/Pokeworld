@@ -11,11 +11,17 @@
 //   boost       tăng chỉ số TRONG TRẬN (statchange)
 //   changeStat  tăng chỉ số VĨNH VIỄN (change_stat)
 //   food        món ăn — hợp khẩu vị thì tăng thân thiết, kỵ thì mất
+//   learnMove   đĩa chiêu (TM) — dạy đúng một chiêu, không cần đủ cấp
+//   learnRandom đĩa hệ (MM) — bốc một chiêu bất kỳ của hệ đó
+//   switchType  quả đổi hệ — đổi hẳn hệ của con vật
 import { ITEMS } from '../data/items.js';
-import { maxHp, isFainted, stats, addBond } from './monster.js';
+import { MOVES } from '../data/moves.js';
+import { TYPE_NAMES } from '../data/types.js';
+import { maxHp, isFainted, stats, addBond, typesOf } from './monster.js';
 import { removeStatus } from './status.js';
 import { gainExp } from './exp.js';
 import { checkEvolution } from './evolution.js';
+import { rng } from '../util.js';
 
 // Tên chỉ số hiện trong thông báo
 const STAT_VI = { hp: 'HP', armour: 'Giáp', dodge: 'Né', melee: 'Cận chiến',
@@ -66,12 +72,21 @@ export function canUse(itemId, mon, ctx = {}) {
       if (!mon || !mon.status) return false;
     } else if (c.t === 'canEvolve') {
       if (!mon || !checkEvolution(mon, 'stone', itemId, ctx)) return false;
+    } else if (c.t === 'hasTech') {
+      // Đĩa chiêu: chỉ dùng được khi con đó CHƯA biết chiêu ấy
+      const co = !!mon && (mon.moves || []).some(mv => mv.id === c.id);
+      if (co === !c.no) continue;
+      return false;
+    } else if (c.t === 'type') {
+      const co = !!mon && typesOf(mon).includes(c.el);
+      if (co === !c.no) continue;
+      return false;
     }
   }
   return true;
 }
 
-// Dùng vật phẩm lên mon. Trả về { ok, msgs, evolveTo }
+// Dùng vật phẩm lên mon. Trả về { ok, msgs, evolveTo, learn }
 // ctx = { inBattle, wild, stages, party, inside } — stages là bảng buff của phe
 // đang cầm mon; party/inside cho mấy đường tiến hoá nhìn ra ngoài con vật.
 export function useItem(itemId, mon, ctx = {}) {
@@ -81,6 +96,7 @@ export function useItem(itemId, mon, ctx = {}) {
 
   let ok = false;
   let evolveTo = null;
+  let learn = null;      // chiêu cần học — giao diện hỏi quên chiêu nào rồi mới nhét vào
 
   for (const e of it.eff || []) {
     if (e.t === 'restore') {
@@ -133,8 +149,30 @@ export function useItem(itemId, mon, ctx = {}) {
       else if (n < 0) msgs.push(`Không hợp khẩu vị... Thân thiết ${n}.`);
       else msgs.push('Ăn xong nhưng chẳng thấy gì đặc biệt.');
       ok = true;
+    } else if (e.t === 'learnMove' || e.t === 'learnRandom') {
+      // Đĩa chiêu (TM) dạy đúng một chiêu; đĩa hệ (MM) bốc một chiêu bất kỳ của
+      // hệ đó mà con này chưa biết — core/effects/learn_tm.py, learn_mm.py.
+      const biet = new Set((mon.moves || []).map(mv => mv.id));
+      let id = e.t === 'learnMove' ? e.id : null;
+      if (e.t === 'learnRandom') {
+        const co = Object.keys(MOVES).filter(k =>
+          !biet.has(k) && !MOVES[k].res && (MOVES[k].types || []).includes(e.el));
+        id = co.length ? rng.pick(co) : null;
+      }
+      if (id && !biet.has(id) && MOVES[id]) {
+        learn = id;
+        msgs.push(`Sẵn sàng học ${MOVES[id].name}!`);
+        ok = true;
+      }
+    } else if (e.t === 'switchType') {
+      const he = e.el === 'random' ? rng.pick(Object.keys(TYPE_NAMES)) : e.el;
+      if (!typesOf(mon).includes(he)) {
+        mon.types = [he];
+        msgs.push(`Đổi sang hệ ${TYPE_NAMES[he] || he}!`);
+        ok = true;
+      }
     }
   }
 
-  return { ok, msgs, evolveTo };
+  return { ok, msgs, evolveTo, learn };
 }

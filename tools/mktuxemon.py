@@ -557,7 +557,10 @@ def write_moves(techs, disp):
             sfx = ''
         anim = (t.get('visuals') or {}).get('animation') or ''
         cond = dieu_kien_chieu(t)
-        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, speed: %d, potency: %s, heal: %s%s%s%s%s },'
+        # category: reserved — chieu rieng cua mot vai loai, dia he (MM) khong
+        # duoc boc trung (core/effects/learn_mm.py loc bo nhom nay)
+        res = t.get('category') == 'reserved' or slug == 'struggle'
+        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, speed: %d, potency: %s, heal: %s%s%s%s%s%s },'
                    % (js(slug), js(disp(slug)), js(types), js(rng), js(cat), fmtnum(power), acc,
                       int(t.get('recharge') or 0),
                       TOC_DO.get(t.get('speed') or 'normal', 0),
@@ -565,6 +568,7 @@ def write_moves(techs, disp):
                       fmtnum(round(heal, 2)),
                       (', eff: %s' % js(eff)) if eff else '',
                       (', cond: %s' % js(cond)) if cond else '',
+                      ', res: true' if res else '',
                       (', sfx: %s' % js(sfx)) if sfx else '',
                       (', anim: %s' % js(anim)) if anim else ''))
     out.append('};')

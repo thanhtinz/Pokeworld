@@ -19,6 +19,9 @@ Chi lay nhung mon co HIEU UNG MA GAME NAY CHAY DUOC:
   statchange      tang chi so TRONG TRAN
   change_stat     tang chi so VINH VIEN
   food_preference mon an — hop khau vi thi tang than thiet
+  learn_tm        dia chieu: day dung mot chieu
+  learn_mm        dia he: boc mot chieu bat ky cua he do
+  switch_type     qua doi he: doi han he cua con vat
 
 Con lai (dien thoai, can cau, dich chuyen, nhiem vu) chua co he thong tuong ung
 nen khong dua vao, dua vao chi lam day tui do.
@@ -26,13 +29,15 @@ nen khong dua vao, dua vao chi lam day tui do.
 Ma vat pham GIU NGUYEN slug cua Tuxemon de doi chieu cho de.
 """
 import os
+import re
 import sys
 
 import yaml
 from PIL import Image
 
 HIEU_UNG = {'capture', 'heal', 'restore', 'gain_xp', 'evolve',
-            'statchange', 'change_stat', 'food_preference'}
+            'statchange', 'change_stat', 'food_preference',
+            'learn_tm', 'learn_mm', 'switch_type'}
 
 # category cua ban goc -> nhom o trong tui do
 NHOM = {
@@ -42,6 +47,8 @@ NHOM = {
     'food': 'food',
     'stats': 'stat',
     'none': 'tea',
+    'technique': 'tm',        # dia day chieu (TM/MM)
+    'elements': 'element',    # qua doi he
 }
 
 # Do MANG THEO (behaviors.holdable ben ban goc). Ban goc co 12 mon holdable
@@ -57,9 +64,11 @@ MANG_THEO = {
 CHI_SO = {'hp': 'HP', 'armour': 'Giáp', 'dodge': 'Né', 'melee': 'Cận chiến',
           'ranged': 'Tầm xa', 'speed': 'Tốc độ'}
 
-HE = {'earth': 'Đất', 'fire': 'Lửa', 'metal': 'Kim', 'water': 'Nước', 'wood': 'Gỗ',
-      'nut': 'Hạt', 'aether': 'Thái Hư', 'electric': 'Điện', 'ice': 'Băng',
-      'poison': 'Độc', 'psychic': 'Linh', 'dragon': 'Rồng', 'normal': 'Thường'}
+# 13 he cua Tuxemon — giu khop voi TYPE_NAMES trong js/data/types.js
+HE = {'cosmic': 'Vũ Trụ', 'earth': 'Đất', 'fire': 'Lửa', 'frost': 'Băng',
+      'heroic': 'Anh Hùng', 'lightning': 'Điện', 'metal': 'Kim', 'normal': 'Thường',
+      'shadow': 'Bóng Tối', 'sky': 'Bầu Trời', 'venom': 'Độc', 'water': 'Nước',
+      'wood': 'Gỗ'}
 
 VI_KHAU_VI = {
     'mild': 'nhạt', 'sweet': 'ngọt', 'soft': 'mềm', 'flakey': 'bở', 'dry': 'khô',
@@ -115,6 +124,22 @@ TEN = {
     'pretzels': 'Bánh Quy Xoắn', 'pudding': 'Bánh Pudding', 'rub_chicken': 'Gà Ướp',
     'rub_pork_chops': 'Sườn Heo Ướp', 'rub_ribs': 'Sườn Nướng', 'rub_steak': 'Bò Bít Tết',
     'shell_tacos': 'Bánh Taco', 'souffle': 'Bánh Souffle', 'wings': 'Cánh Gà',
+
+    'tm_acid': 'Đĩa Chiêu: Axit', 'tm_all_in': 'Đĩa Chiêu: Dốc Sức',
+    'tm_avalanche': 'Đĩa Chiêu: Tuyết Lở', 'tm_blade': 'Đĩa Chiêu: Lưỡi Kiếm',
+    'tm_blossom': 'Đĩa Chiêu: Trổ Hoa', 'tm_frostbite': 'Đĩa Chiêu: Buốt Giá',
+    'tm_ice_shield': 'Đĩa Chiêu: Khiên Băng', 'tm_leaf_barrage': 'Đĩa Chiêu: Mưa Lá',
+    'tm_panjandrum': 'Đĩa Chiêu: Bánh Xe Nổ', 'tm_shadow_boxing': 'Đĩa Chiêu: Quyền Bóng',
+    'tm_solar_synthesis': 'Đĩa Chiêu: Quang Hợp', 'tm_supernova': 'Đĩa Chiêu: Siêu Tân Tinh',
+    'tm_surf': 'Đĩa Chiêu: Lướt Sóng', 'tm_vorpal': 'Đĩa Chiêu: Chém Đứt',
+    'mm_earth': 'Đĩa Hệ Đất', 'mm_fire': 'Đĩa Hệ Lửa', 'mm_metal': 'Đĩa Hệ Kim',
+    'mm_water': 'Đĩa Hệ Nước', 'mm_wood': 'Đĩa Hệ Gỗ',
+
+    'cosmic_berry': 'Quả Vũ Trụ', 'earth_berry': 'Quả Đất', 'fire_berry': 'Quả Lửa',
+    'frost_berry': 'Quả Băng', 'heroic_berry': 'Quả Anh Hùng',
+    'lightning_berry': 'Quả Điện', 'metal_berry': 'Quả Kim', 'normal_berry': 'Quả Thường',
+    'shadow_berry': 'Quả Bóng Tối', 'sky_berry': 'Quả Bầu Trời', 'venom_berry': 'Quả Độc',
+    'water_berry': 'Quả Nước', 'wood_berry': 'Quả Gỗ',
 }
 
 # Mon khong co anh trung ten -> muon anh cung y nghia
@@ -294,7 +319,32 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
             cold = VI_KHAU_VI.get(p[1].replace('taste_', ''), p[1])
             phan.append('Món vị %s và %s — hợp khẩu vị thì tăng thân thiết, kỵ thì mất.'
                         % (warm, cold))
+        elif t == 'learn_tm':
+            phan.append('Dạy chiêu %s cho một Tuxemon bất kỳ, không cần đủ cấp.'
+                        % CHIEU.get(p[0], (p[0], ''))[0])
+        elif t == 'learn_mm':
+            phan.append('Dạy một chiêu hệ %s bốc ngẫu nhiên — chỉ dùng được cho '
+                        'Tuxemon đúng hệ đó.' % HE.get(p[0], p[0]))
+        elif t == 'switch_type':
+            phan.append('Đổi hẳn hệ của Tuxemon sang hệ %s.' % HE.get(p[0], p[0]))
     return ' '.join(phan) or 'Vật phẩm của thế giới Tuxemon.'
+
+
+# Bang chieu game dang co: {slug: (ten, [he])}. Doc thang js/data/moves.js nen
+# PHAI chay mkitems.py SAU mktuxemon.py. Dia day chieu ma chieu do khong co
+# trong game thi bo qua, khong nem vao tui do mot mon bam khong an gi.
+CHIEU = {}
+
+
+def doc_chieu():
+    p = 'js/data/moves.js'
+    if not os.path.exists(p):
+        return {}
+    out = {}
+    for m in re.finditer(r'^  "([a-z_0-9]+)": \{ name: "([^"]*)", types: \[([^\]]*)\]',
+                         open(p, encoding='utf-8').read(), re.M):
+        out[m.group(1)] = (m.group(2), re.findall(r'"(\w+)"', m.group(3)))
+    return out
 
 
 def hieu_ung_js(slug, eff, doc):
@@ -328,6 +378,12 @@ def hieu_ung_js(slug, eff, doc):
             out.append(obj({'t': js('food'),
                             'warm': js(p[0].replace('taste_', '')),
                             'cold': js(p[1].replace('taste_', ''))}))
+        elif t == 'learn_tm':
+            out.append(obj({'t': js('learnMove'), 'id': js(p[0])}))
+        elif t == 'learn_mm':
+            out.append(obj({'t': js('learnRandom'), 'el': js(p[0])}))
+        elif t == 'switch_type':
+            out.append(obj({'t': js('switchType'), 'el': js(p[0])}))
     return out
 
 
@@ -347,6 +403,14 @@ def dieu_kien_js(conds):
             out.append(obj({'t': js('anyStatus')}))
         elif t == 'can_evolve':
             out.append(obj({'t': js('canEvolve')}))
+        elif t == 'has_tech' and p:
+            # dia day chieu: chi dung duoc khi con do CHUA biet chieu ay
+            out.append(obj({'t': js('hasTech'), 'id': js(p[0]),
+                            'no': js(c.get('operator') == 'not')}))
+        elif t == 'base' and len(p) >= 2 and p[0] == 'types':
+            # dia MM doi he: doi con phai (hoac phai khong) mang he do
+            out.append(obj({'t': js('type'), 'el': js(p[1]),
+                            'no': js(c.get('operator') == 'not')}))
     return out
 
 
@@ -383,6 +447,8 @@ def main():
     if not os.path.isdir(db):
         raise SystemExit('Khong thay %s' % db)
 
+    global CHIEU
+    CHIEU = doc_chieu()
     gia_goc = doc_gia(root)
     ten_anh = doc_ten_anh(root)
     capdev_cfg = doc_capdev(root)
@@ -408,6 +474,11 @@ def main():
             if any(e['type'] not in HIEU_UNG for e in eff):
                 continue
         slug = d['slug']
+        # Dia day chieu ma chieu do khong nam trong 257 chieu game dang co
+        # (tm_scope, tm_ubuntu...) thi bo — ban ra chi de nguoi choi bam hut.
+        day = [e for e in eff if e['type'] == 'learn_tm']
+        if day and (day[0].get('parameters') or [''])[0] not in CHIEU:
+            continue
         cat = d.get('category') or 'none'
         mang = slug in MANG_THEO and (d.get('behaviors') or {}).get('holdable')
         if cat not in NHOM and not mang:
