@@ -126,6 +126,7 @@ def main():
     # Chieu benh dich khong con nao hoc, nhung con dang benh se bi no chiem cho
     # luc ra don (combat/session.py pre_check) nen van phai co trong bang chieu.
     used.update(_plague_techs(root))
+    used.add('struggle')      # chieu vong cuoi, khong nam trong learnset nua
     techs = {}
     for slug in sorted(used):
         p = os.path.join(db, 'technique', slug + '.yaml')
@@ -558,6 +559,13 @@ def write_learnsets(mons, dex, techs):
         for mv in m.get('moveset') or []:
             slug = mv.get('technique')
             lv = mv.get('level_learned', 1)
+            # 'fallback' la chieu VONG CUOI (struggle) — ban goc chi lay ra khi
+            # khong con chieu nao dung duoc (moves.get_fallback_moves), chu khong
+            # chiem mot o trong bo bon chieu. De lan vao learnset thi ca 411 loai
+            # deu mang san Struggle luc dau, o dau tien la mot chieu gan nhu vo
+            # dung — bam bua la danh mai khong chet ai.
+            if mv.get('learning_method') == 'fallback':
+                continue
             if not slug or slug not in techs or slug in seen:
                 continue
             seen.add(slug)

@@ -371,6 +371,22 @@ ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) ==
   }
 }
 
+// Chiêu vòng cuối (struggle) KHÔNG được chiếm ô trong bộ bốn chiêu.
+// Bản gốc đánh dấu learning_method: fallback và chỉ lấy ra khi hết chiêu dùng
+// được; để nó lẫn vào learnset thì con nào cũng mang sẵn một chiêu gần vô dụng.
+{
+  const dinh = Object.entries(LEARNSETS)
+    .filter(([, ls]) => ls.some(([, id]) => id === 'struggle')).map(([sp]) => sp);
+  ok('không loài nào học struggle qua bảng học chiêu', dinh.length === 0,
+    dinh.slice(0, 5).join(' '));
+  ok('struggle vẫn còn trong bảng chiêu để dùng làm vòng cuối', !!MOVES.struggle);
+  // Con mới ra lò phải có chiêu đánh được, không phải toàn chiêu hỗ trợ
+  const m2 = newTuxemon(STARTERS[0].sp, 25);
+  ok('starter cấp 25 có chiêu tấn công tử tế',
+    m2.moves.some(mv => MOVES[mv.id]?.category === 'damage' && MOVES[mv.id].power >= 1),
+    m2.moves.map(mv => `${mv.id}(${MOVES[mv.id]?.power})`).join(' '));
+}
+
 // Chiêu dùng "recharge" chứ không phải PP
 ok('chiêu nào cũng có số lượt hồi, không có PP',
   Object.values(MOVES).every(m => typeof m.recharge === 'number' && m.pp === undefined));
