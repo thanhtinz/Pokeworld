@@ -54,7 +54,7 @@ def mau_phong(m):
     return nen, pho_bien(0), pho_bien(1)
 
 
-def dung(m_goc, w, h):
+def dung(m_goc, w, h, npcs=None, talks=None):
     """Tra ve dict giong parse_map(): mot can phong chu nhat trong khong."""
     nen, t_tren, t_duoi = mau_phong(m_goc)
     lop = [0] * (w * h)
@@ -72,10 +72,10 @@ def dung(m_goc, w, h):
                 lop[i] = nen
     return {
         'w': w, 'h': h, 'sets': m_goc['sets'], 'layers': [lop], 'above': None,
-        'solid': solid, 'water': [0] * (w * h), 'warps': [], 'talks': [],
+        'solid': solid, 'water': [0] * (w * h), 'warps': [], 'talks': talks or [],
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'interior', 'envNight': 'interior',
-        'npcs': [],
+        'npcs': npcs or [],
     }
 
 

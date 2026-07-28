@@ -944,6 +944,18 @@ def main():
             out_maps[bangduong.SLUG] = bd
             want.append(bangduong.SLUG)
 
+            # Ba gian trong ba toa nha cua bang
+            for slug, gian in bangduong.dung_trong(
+                    phongtrong, parse_map, chon_tep, mdir, tsx_cache).items():
+                remapb, colsb = build_atlas(gian, 'assets/maps/%s.png' % slug)
+                convb = lambda lay, r=remapb: [r.get(g, -1) if g > 0 else -1 for g in lay]
+                gian['name'] = gian.pop('_ten')
+                gian['cols'] = colsb
+                gian['layers'] = [convb(l) for l in gian['layers']]
+                gian['above'] = None
+                out_maps[slug] = gian
+                want.append(slug)
+
     # Phong trong cho nha nguoi choi + nha tro chung
     for slug in phongtrong.them_vao(out_maps, parse_map, chon_tep, mdir, tsx_cache):
         pt = out_maps[slug]

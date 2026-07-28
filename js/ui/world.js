@@ -9,7 +9,7 @@ import {
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
 import { MAPS } from '../data/maps.js';
-import { FURN_BY_ID } from '../data/estate.js';
+import { FURN_BY_ID, TOA_BANG } from '../data/estate.js';
 import * as ES from '../engine/estate.js';
 import * as TT from '../engine/furniture.js';
 import * as MT from '../engine/mounts.js';
@@ -312,6 +312,28 @@ export function render(el) {
       }
     }
 
+    // Toà nhà của bang hội đứng trên Bang Đường — vẽ đè lên bản đồ y như nhà
+    // của người chơi, phần va chạm thì bản đồ đã đánh dấu sẵn.
+    for (const t of BD.toaNhaTren(player.mapId)) {
+      const a = TOA_BANG[t.id];
+      const im = a && anhTep(a.img);
+      if (!im?.complete || !im.naturalWidth) continue;
+      const w2 = size * t.w;
+      const h2 = w2 * (im.naturalHeight / im.naturalWidth);
+      const px2 = Math.round(t.x * size - camX);
+      const py2 = Math.round((t.y + 1) * size - camY - h2);
+      ctx.drawImage(im, px2, py2, Math.round(w2), Math.round(h2));
+      ctx.save();
+      ctx.fillStyle = '#f0e6d0';
+      ctx.font = `bold ${Math.round(size * 0.3)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = 'rgba(0,0,0,.7)';
+      ctx.lineWidth = Math.max(2, size * 0.08);
+      ctx.strokeText(t.name, px2 + w2 / 2, py2 - size * 0.15);
+      ctx.fillText(t.name, px2 + w2 / 2, py2 - size * 0.15);
+      ctx.restore();
+    }
+
     // Căn nhà người chơi đã dựng trên lô đất của mình
     const nhaMinh = nhaTrenBanDo(player.mapId);
     if (nhaMinh) {
@@ -581,13 +603,6 @@ export function render(el) {
       await playDialog([[BIA,
         `${c.name} còn khoá. Bang phải đạt cấp ${c.cap} mới mở được cửa này.`]]);
       return;
-    }
-    if (thing.kind === 'buc-boss') {
-      cleanup(); show('guild', { tab: 'boss', from: 'world' });
-      return;
-    }
-    if (thing.kind === 'ruong-thuong') {
-      cleanup(); show('guild', { tab: 'nhiemvu', from: 'world' });
     }
   }
 
@@ -924,6 +939,13 @@ export function render(el) {
       const say = thing.lines?.length ? thing.lines : (thing.text ? [thing.text] : []);
       if (say.length) {
         await playDialog(say.map(t => [who, t]));
+      }
+      // NPC làm việc: nói xong thì mở đúng màn hình của việc đó (nhiệm vụ bang,
+      // gọi Thủ Hộ...). Bản đồ tự sinh gắn sẵn trường 'mo' cho mấy NPC này.
+      if (thing.mo) {
+        cleanup();
+        show(thing.mo, thing.tab ? { tab: thing.tab, from: 'world' } : { from: 'world' });
+        return;
       }
       switch (thing.kind) {
         case 'heal':

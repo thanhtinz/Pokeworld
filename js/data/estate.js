@@ -9,6 +9,13 @@ export const HOUSE_BASES = [
   { id: "nha_da", name: "Nhà Đá Hai Tầng", price: 500000, desc: "To nhất khu — hàng xóm nhìn sang là biết chủ nhà khá.", img: "assets/estate/nha_03.png", w: 78, h: 80, o: 10 },
 ];
 
+// Toà nhà của bang hội, dựng trên bản đồ Bang Đường
+export const TOA_BANG = {
+  bang_sanh: { name: "Sảnh Bang", img: "assets/estate/bang_00.png", w: 78, h: 60 },
+  bang_dien: { name: "Điện Thủ Hộ", img: "assets/estate/bang_01.png", w: 78, h: 61 },
+  bang_kho: { name: "Kho Bang", img: "assets/estate/bang_02.png", w: 78, h: 60 },
+};
+
 // Nhóm đồ — dùng chia tab bên cửa hàng bác thợ mộc
 export const NHOM_DO = [
   { id: "nghi", name: "Giường & ghế" },

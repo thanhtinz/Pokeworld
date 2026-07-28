@@ -2392,8 +2392,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     CR.RECIPES.every(rr => Math.abs(CR.tiLe(rr).reduce((a, o) => a + o.pc, 0) - 100) <= 2));
 }
 
-console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
-process.exit(fails === 0 ? 0 : 1);
 
 // ==== Quà tặng + điểm thân mật ====
 {
@@ -2521,11 +2519,61 @@ process.exit(fails === 0 ? 0 : 1);
   ok('bản đồ khác không bị khoá lây',
     !BD.khoaODay('taba_town', BD.CUA_KHU[0].x, BD.CUA_KHU[0].y));
 
-  ok('bấm được vào bục gọi boss',
-    BD.vatBangDuong(BD.BANG_MAP, BD.BUC_BOSS.x, BD.BUC_BOSS.y)?.kind === 'buc-boss');
-  ok('bấm được vào rương thưởng',
-    BD.vatBangDuong(BD.BANG_MAP, BD.RUONG_THUONG.x, BD.RUONG_THUONG.y)?.kind === 'ruong-thuong');
   ok('ô trống thì không bắt được gì', BD.vatBangDuong(BD.BANG_MAP, 1, 1) === null);
+
+  // ==== Ba toà nhà của bang, ngoài và trong đều có người ====
+  {
+    const { TOA_BANG } = await import('../js/data/estate.js');
+    const toa = BD.TOA_NHA;
+    ok('bang có nhiều toà nhà', toa.length >= 3, String(toa.length));
+    ok('toà nào cũng có ảnh', toa.every(t => !!TOA_BANG[t.id]),
+      toa.filter(t => !TOA_BANG[t.id]).map(t => t.id).join(', '));
+    ok('toà nào cũng có gian trong riêng',
+      toa.every(t => !!MAPS[t.trong])
+      && new Set(toa.map(t => t.trong)).size === toa.length);
+    ok('thân nhà chặn đường, chỉ chừa ô cửa', toa.every(t => {
+      for (let dy = 0; dy < t.h; dy++) {
+        for (let dx = 0; dx < t.w; dx++) {
+          const x = t.x + dx, y = t.y - dy;
+          const cua = (x === t.cua && y === t.y);
+          if (!!m.solid[y * m.w + x] === cua) return false;
+        }
+      }
+      return true;
+    }));
+    ok('cửa toà nào cũng có cổng vào đúng gian trong', toa.every(t =>
+      (m.warps || []).some(w => w.x === t.cua && w.y === t.y && w.to === t.trong)));
+    ok('gian trong nào cũng có cổng đi ra Bang Đường', toa.every(t =>
+      (MAPS[t.trong].warps || []).some(w => w.to === BD.BANG_MAP)));
+
+    // NPC: ngoài sân có người, trong mỗi toà cũng có người
+    ok('ngoài sân có NPC', (m.npcs || []).length >= 2, String((m.npcs || []).length));
+    ok('trong toà nào cũng có NPC',
+      toa.every(t => (MAPS[t.trong].npcs || []).length >= 1));
+    ok('NPC nào cũng đứng trên ô đi được', (() => {
+      const xau = [];
+      for (const mp of [m, ...toa.map(t => MAPS[t.trong])]) {
+        for (const n of mp.npcs || []) {
+          if (mp.solid[n.y * mp.w + n.x]) xau.push(`${n.name}@${n.x},${n.y}`);
+        }
+      }
+      return xau.length === 0 || xau.join(' ');
+    })() === true);
+
+    // Việc của bang phải bấm vào NPC mới làm được
+    const viec = toa.flatMap(t => (MAPS[t.trong].npcs || []).filter(n => n.mo));
+    ok('có NPC giao nhiệm vụ bang',
+      viec.some(n => n.mo === 'guild' && n.tab === 'nhiemvu'),
+      viec.map(n => `${n.name}:${n.mo}/${n.tab || ''}`).join(', '));
+    ok('có NPC gọi Thủ Hộ để đánh boss bang',
+      viec.some(n => n.mo === 'guild' && n.tab === 'boss'));
+    ok('NPC làm việc nào cũng có lời thoại',
+      viec.every(n => (n.lines || []).length > 0));
+    ok('NPC làm việc thì đứng yên, không đi lang thang',
+      viec.every(n => n.ai === 'stand'));
+    ok('bản đồ không còn bục đá / rương gỗ đứng giữa sân',
+      BD.BUC_BOSS === undefined && BD.RUONG_THUONG === undefined);
+  }
 
   // Đi bộ từ cổng phải tới được cửa hai khu, bục boss và rương (khi đã mở cấp)
   {
@@ -2549,10 +2597,9 @@ process.exit(fails === 0 ? 0 : 1);
     bd(BD.CONG_RA.x, BD.CONG_RA.y - 1);
     ok('đi bộ từ cổng tới được cả hai cửa khu',
       BD.CUA_KHU.every(c => den.has(`${c.x},${c.y}`)));
-    const canh = (p) => [[1, 0], [-1, 0], [0, 1], [0, -1]]
-      .some(([dx, dy]) => den.has(`${p.x + dx},${p.y + dy}`));
-    ok('đi bộ tới được bục gọi boss', canh(BD.BUC_BOSS));
-    ok('đi bộ tới được rương thưởng', canh(BD.RUONG_THUONG));
+    ok('đi bộ từ cổng tới được cửa cả ba toà nhà',
+      BD.TOA_NHA.every(t => den.has(`${t.cua},${t.y}`)),
+      BD.TOA_NHA.filter(t => !den.has(`${t.cua},${t.y}`)).map(t => t.id).join(', '));
   }
 
   // Boss bang phải có trong bảng và không lọt vào danh sách boss công khai
@@ -2584,7 +2631,7 @@ process.exit(fails === 0 ? 0 : 1);
 // ==== Phòng trong nhà phải TRỐNG, không đè lên đồ vẽ sẵn ====
 {
   const { PHONG_NHA, MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
-  const { HOUSE_BASES } = await import('../js/data/estate.js');
+  const { HOUSE_BASES, FURN_BY_ID } = await import('../js/data/estate.js');
 
   ok('mẫu nhà nào cũng có phòng riêng',
     HOUSE_BASES.every(b => !!PHONG_NHA[b.id]),
@@ -2688,3 +2735,8 @@ process.exit(fails === 0 ? 0 : 1);
   ok('nhà chưa dựng thì không thăm được',
     VS.vaoNhaNguoiKhac({ username: 'A', base: null, dat: [] }, null)[1] !== null);
 }
+
+// Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
+// thêm về sau nằm sau process.exit() và không bao giờ chạy.
+console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
+process.exit(fails === 0 ? 0 : 1);

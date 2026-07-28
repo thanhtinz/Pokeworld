@@ -50,10 +50,51 @@ KHU = [
 ]
 # O cua noi san chinh voi hai khu tren (x, y) — dung o hang ngan cach y = 11
 CUA = {'san_tap': (7, 11), 'kho_bau': (22, 11)}
-# Cho goi boss bang / nhan thuong nhiem vu
-BUC_BOSS = (7, 5)
-RUONG_THUONG = (22, 5)
 CONG = (14, H - 1)               # cong ra Khu Dan Cu, o canh duoi
+
+# ==== Ba toa nha cua bang ====
+# (id, ten, x goc trai, y HANG CHAN cua toa nha, ban do trong nha)
+# Toa nha chiem 4 o ngang x..x+3 va 3 o doc y-2..y; cua o (x+1, y).
+TOA = [
+    ('bang_sanh', 'Sảnh Bang', 5, 18, 'trong_sanh'),      # san chinh, ai cung vao
+    ('bang_dien', 'Điện Thủ Hộ', 5, 8, 'trong_dien'),     # trong San Tap (cap 5)
+    ('bang_kho', 'Kho Bang', 19, 8, 'trong_kho'),         # trong Kho Bau (cap 10)
+]
+TOA_RONG, TOA_CAO = 4, 3
+# Anh toa nha ve cai cua o o thu ba tinh tu trai — dat cong dung ngay do, khong
+# thi nguoi choi di xuyen tuong gach vao nha
+TOA_CUA = 2
+
+# NPC dung ngoai san
+NPC_NGOAI = [
+    (14, 21, 'down', 'knight', 'Vệ Binh Bang',
+     ['Vào Sảnh Bang gặp quản sự để nhận nhiệm vụ tuần nhé.']),
+    (17, 19, 'left', 'cooldude', 'Đệ Tử Bang',
+     ['Bang lên cấp là mở thêm sân, thêm cả Thủ Hộ để đánh.']),
+    (8, 14, 'down', 'lady', 'Chị Coi Sân',
+     ['Sân Tập mở ở bang cấp 5, Kho Báu thì cấp 10.']),
+]
+
+# NPC trong tung toa nha: (map trong nha, x, y, huong, sprite, ten, thoai, mo man)
+NPC_TRONG = [
+    ('trong_sanh', 6, 3, 'down', 'shopkeeper', 'Quản Sự Bang',
+     ['Nhiệm vụ tuần của bang tôi ghi cả đây. Xong việc nào thì tôi trả thưởng việc đó.'],
+     'guild', 'nhiemvu'),
+    ('trong_sanh', 2, 5, 'right', 'homemaker', 'Bà Quét Sảnh',
+     ['Bang càng đông người góp thì nhiệm vụ càng nhanh xong.'], None, None),
+    ('trong_sanh', 9, 5, 'left', 'bob', 'Ông Giữ Sổ',
+     ['Góp quỹ, đánh boss, thắng đấu trường — cái nào cũng tính vào nhiệm vụ tuần.'],
+     None, None),
+    ('trong_dien', 6, 3, 'down', 'disciple', 'Trưởng Tế',
+     ['Muốn gọi Thủ Hộ ra thì cả bang phải cùng đánh. Một mình không hạ nổi đâu.'],
+     'guild', 'boss'),
+    ('trong_dien', 2, 5, 'right', 'cooldude', 'Người Canh Điện',
+     ['Thủ Hộ càng dữ khi bang càng mạnh. Hạ được thì cả bang có phần.'], None, None),
+    ('trong_kho', 6, 3, 'down', 'shopassistant', 'Thủ Kho',
+     ['Quỹ bang với cấp bang đều ghi trong sổ này.'], 'guild', None),
+    ('trong_kho', 9, 5, 'left', 'florist', 'Cô Kiểm Kho',
+     ['Nhận thưởng nhiệm vụ xong là quỹ vào thẳng đây.'], None, None),
+]
 
 
 def _rng(x, y, n):
@@ -152,9 +193,16 @@ def dung(root, tsx_cache, load_tsx):
     for x, y in ((10, 14), (19, 14), (10, 20), (19, 20)):
         dat_tren(x, y, HOA[_rng(x, y, len(HOA))], chan=False)
 
-    # Bục gọi boss và rương thưởng — hai thứ này phải bấm được nên KHÔNG chắn
-    dat_tren(BUC_BOSS[0], BUC_BOSS[1], TUONG_DA)
-    dat_tren(RUONG_THUONG[0], RUONG_THUONG[1], TUONG_DA)
+    # Ba toa nha: chan het phan than nha, chua dung o cua. Anh toa nha do
+    # js/ui/world.js ve de len (giong nha cua nguoi choi), o day chi lo va cham.
+    for _id, _ten, tx, ty, _trong in TOA:
+        for dy in range(TOA_CAO):
+            for dx in range(TOA_RONG):
+                x, y = tx + dx, ty - dy
+                if 0 <= x < W and 0 <= y < H:
+                    solid[idx(x, y)] = 1
+                    tren[idx(x, y)] = 0
+        solid[idx(tx + TOA_CUA, ty)] = 0    # o cua di duoc
 
     # Dọn những ô bắt buộc phải đi được
     def don(x, y):
@@ -169,21 +217,28 @@ def dung(root, tsx_cache, load_tsx):
         don(cx, cy)
         don(cx, cy - 1)
         don(cx, cy + 1)
-    for cho in (BUC_BOSS, RUONG_THUONG):
-        for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-            don(cho[0] + dx, cho[1] + dy)
+    # Truoc cua tung toa nha phai trong de con dung vao
+    for _id, _ten, tx, ty, _trong in TOA:
+        don(tx + TOA_CUA, ty)
+        don(tx + TOA_CUA, ty + 1)
+    for x, y, *_ in NPC_NGOAI:
+        don(x, y)
 
     talks = [
         {'x': CONG[0], 'y': H - 3, 'name': 'Bảng Bang Đường',
          'text': 'BANG ĐƯỜNG — sân tập mở ở cấp 5, kho báu mở ở cấp 10.'},
     ]
+    npcs = [{'x': x, 'y': y, 'dir': d, 'sprite': spr, 'name': ten,
+             'lines': loi, 'ai': 'stand'}
+            for x, y, d, spr, ten, loi in NPC_NGOAI
+            if not solid[idx(x, y)]]
 
     return {
         'w': W, 'h': H, 'sets': sets, 'layers': [nen, tren], 'above': None,
         'solid': solid, 'water': water, 'warps': [], 'talks': talks,
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'grass', 'envNight': 'night_grass',
-        'npcs': [],
+        'npcs': npcs,
     }
 
 
@@ -204,16 +259,46 @@ def viet_js():
                     % (ten, nhan, cua[0], cua[1], cap))
     dong += [
         '];',
-        '// Bục gọi boss bang (trong Sân Tập)',
-        'export const BUC_BOSS = { x: %d, y: %d };' % BUC_BOSS,
-        '// Rương thưởng nhiệm vụ bang (trong Kho Báu)',
-        'export const RUONG_THUONG = { x: %d, y: %d };' % RUONG_THUONG,
+        '// Ba toà nhà của bang. Ảnh do js/ui/world.js vẽ đè lên bản đồ.',
+        'export const TOA_NHA = [',
+    ] + [
+        '  { id: "%s", name: "%s", x: %d, y: %d, w: %d, h: %d, cua: %d, trong: "%s" },'
+        % (bid, ten, tx, ty, TOA_RONG, TOA_CAO, tx + TOA_CUA, trong)
+        for bid, ten, tx, ty, trong in TOA
+    ] + [
+        '];',
         '// Ô cổng ra ngoài',
         'export const CONG_RA = { x: %d, y: %d };' % CONG,
         '',
     ]
     with open('js/data/bangduong.js', 'w', encoding='utf-8') as f:
         f.write('\n'.join(dong))
+
+
+# Ba gian trong ba toa nha, dung chung khuon phong trong voi nha nguoi choi
+TRONG_RONG, TRONG_CAO = 12, 8
+MAU_TRONG = 'taba_house2'        # ban do goc muon mau nen/tuong
+
+
+def dung_trong(phongtrong, parse_map, chon_tep, mdir, tsx_cache):
+    """Dung ba gian trong nha bang, moi gian mot NPC lam viec + vai NPC noi cho vui."""
+    p = chon_tep(mdir, MAU_TRONG)
+    if not p:
+        return {}
+    goc = parse_map(p, tsx_cache)
+    ra = {}
+    for bid, ten, tx, ty, slug in TOA:
+        npcs = [{'x': x, 'y': y, 'dir': d, 'sprite': spr, 'name': n,
+                 'lines': loi, 'ai': 'stand',
+                 **({'mo': mo} if mo else {}), **({'tab': tab} if tab else {})}
+                for (s2, x, y, d, spr, n, loi, mo, tab) in NPC_TRONG if s2 == slug]
+        m = phongtrong.dung(goc, TRONG_RONG, TRONG_CAO, npcs=npcs)
+        m['_ten'] = ten
+        # Cua ra: buoc xuong mep duoi la ve dung truoc cua toa nha
+        m['warps'] = [{'x': TRONG_RONG // 2, 'y': TRONG_CAO - 1,
+                       'to': SLUG, 'tx': tx + TOA_CUA, 'ty': ty + 1}]
+        ra[slug] = m
+    return ra
 
 
 def them_vao(out_maps, root, tsx_cache, load_tsx, tu_map, tu_o):
@@ -227,6 +312,10 @@ def them_vao(out_maps, root, tsx_cache, load_tsx, tu_map, tu_o):
     cx, cy = CONG
     m['warps'] = [{'x': cx, 'y': cy, 'to': tu_map, 'tx': tx, 'ty': ty + 1},
                   {'x': cx + 1, 'y': cy, 'to': tu_map, 'tx': tx, 'ty': ty + 1}]
+    # Cua tung toa nha: dung vao o cua la vao trong
+    for bid, _ten, bx, by, slug in TOA:
+        m['warps'].append({'x': bx + TOA_CUA, 'y': by, 'to': slug,
+                           'tx': TRONG_RONG // 2, 'ty': TRONG_CAO - 2})
     goc['warps'].append({'x': tx, 'y': ty, 'to': SLUG, 'tx': cx, 'ty': cy - 1})
     goc['talks'].append({'x': tx, 'y': ty - 1, 'name': 'Biển Bang Đường',
                          'text': 'Bang Đường — chỗ hội họp của các bang hội.'})

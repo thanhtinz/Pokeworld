@@ -29,6 +29,14 @@ NGUON_DO = ('Furniture_and_Fittings_by_George.png', (12, 12), (64, 80))
 # Nha trong sheet dinh sat nhau nen flood fill gop het thanh mot cum — phai
 # cat theo KHUNG CO DINH do tay tren anh goc (MK_buildings.png, 512x448).
 NGUON_NHA = 'MK_buildings.png'
+# Toa nha cua BANG HOI dung tren ban do Bang Duong (tools/bangduong.py).
+# Khong phai nha o nen khong co gia, chi can anh.
+KHUNG_BANG = [
+    ('bang_sanh', 'Sảnh Bang', (400, 144, 478, 208)),   # nha da xam, cua chinh
+    ('bang_dien', 'Điện Thủ Hộ', (320, 144, 398, 208)),  # nha go, cua lua
+    ('bang_kho', 'Kho Bang', (240, 144, 318, 208)),      # kho go
+]
+
 # Xep theo GIA tang dan cho khop bang TEN_NHA ben duoi
 KHUNG_NHA = [
     (160, 144, 238, 208),     # nha go mai nau — re nhat
@@ -256,6 +264,7 @@ def main():
     do2 = catTheoChiSo(root, NGUON_DO2[0], NGUON_DO2[1], NGUON_DO2[2],
                        'assets/estate', 'sp', [r[0] for r in TEN_DO2])
     nha = catKhung(root, NGUON_NHA, KHUNG_NHA, 'assets/estate', 'nha')
+    bang = catKhung(root, NGUON_NHA, [k[2] for k in KHUNG_BANG], 'assets/estate', 'bang')
 
     out = ["// TuxeWorld H5 | data/estate.js | Nhà đất — SINH TỰ ĐỘNG bởi tools/mkestate.py",
            "// KHONG SUA TAY. Ảnh cắt từ gfx/tilesets của Tuxemon (CC BY-SA 4.0).",
@@ -272,6 +281,15 @@ def main():
                    % (js(slug), js(ten), gia, js(mo),
                       js('assets/estate/' + a['file']), a['w'], a['h'], o))
     out.append('];')
+    out.append('')
+
+    out.append('// Toà nhà của bang hội, dựng trên bản đồ Bang Đường')
+    out.append('export const TOA_BANG = {')
+    for i, (bid, ten, _k) in enumerate(KHUNG_BANG):
+        a = bang[i]
+        out.append('  %s: { name: %s, img: %s, w: %d, h: %d },'
+                   % (bid, js(ten), js('assets/estate/' + a['file']), a['w'], a['h']))
+    out.append('};')
     out.append('')
 
     out.append('// Nhóm đồ — dùng chia tab bên cửa hàng bác thợ mộc')
