@@ -2402,3 +2402,46 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .park-top { display: flex; flex-wrap: wrap; gap: 6px 10px; }
 .park-top-i { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; }
 .park-top-i img { width: 26px; height: 26px; object-fit: contain; image-rendering: pixelated; }
+
+/* ==== Nhà Trẻ (ui/daycare.js) ==== */
+.dc-head p { margin: 8px 0 0; font-size: .84rem; line-height: 1.6; color: var(--muted); }
+.dc-mode { font-size: 1rem; color: var(--muted); }
+.dc-mode.renluyen { color: var(--gold); }
+.dc-mode.nhangiong, .dc-mode.nuaduong { color: #91a7ff; }
+.dc-mode.sansang { color: #51cf66; }
+
+.dc-slots { display: flex; gap: 10px; align-items: stretch; }
+.dc-mon { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; text-align: center; padding: 10px 6px; border-radius: 12px;
+  background: rgba(0, 0, 0, .25); border: 1px solid var(--line-soft); }
+.dc-mon img { width: 62px; height: 62px; object-fit: contain; image-rendering: pixelated; }
+.dc-mon b { font-size: .84rem; }
+.dc-mon small { color: var(--muted); font-size: .74rem; }
+.dc-slots .empty-note { flex: 1; align-self: center; }
+.dc-add { flex: 1; min-height: 96px; border-radius: 12px; font-size: .84rem;
+  color: var(--muted); background: none; border: 1px dashed var(--line); cursor: pointer; }
+.dc-add:active { border-color: var(--accent); color: var(--text); }
+
+.dc-breed .ev-task-head { margin-bottom: 8px; }
+.dc-breed .btn { width: 100%; margin-top: 10px; }
+.dc-out { width: 100%; }
+
+/* Bảng số liệu kiểu thẻ giấy — thẻ huấn luyện viên, Công Viên và Nhà Trẻ
+   cùng dùng, nên để ở đây (luôn nạp) thay vì css/character.css nạp trễ. */
+/* Bảng số liệu kiểu thẻ giấy: nhãn trái, số phải, gạch chấm nối ở giữa.
+   Nhãn và số neo hai mép nên đọc lướt xuống là thấy thẳng hàng. */
+.tcard-rows {
+  margin: 12px 0 11px; padding: 9px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.tcard-row { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; }
+.tcard-k { display: flex; align-items: center; gap: 5px; flex: none;
+  color: var(--muted); font-size: .78rem; }
+.tcard-k .ui-ico { opacity: .9; transform: translateY(2px); }
+/* Gạch chấm nối co giãn lấp chỗ trống giữa nhãn và số */
+.tcard-dots { flex: 1; min-width: 8px; height: 1px; align-self: center;
+  background-image: radial-gradient(circle, var(--line-soft) 1px, transparent 1px);
+  background-size: 4px 2px; background-repeat: repeat-x; }
+.tcard-v { flex: none; font-family: var(--pix2); font-size: 11px; color: var(--text);
+  white-space: nowrap; }
+

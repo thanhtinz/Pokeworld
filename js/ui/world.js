@@ -4,7 +4,7 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, setHealSpot, repelLeft, pickedUp } from '../engine/overworld.js';
+  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { heal, displayName } from '../engine/monster.js';
 import { statusName } from '../engine/status.js';
@@ -305,7 +305,13 @@ export function render(el) {
         el.querySelector('#world-zone').textContent = currentMap().name;
         playMusic(currentMap().music || 'town');
         toast(`Đã tới ${ev.name}`);
-      } else if (ev?.t === 'pickup') {
+      }
+      // Tin từ nhà trẻ: mỗi mốc chỉ báo một lần
+      const tin = layTinNhaTre();
+      if (tin === 'sansang') toast('Nhà trẻ báo: có con non chờ bạn tới đón!');
+      else if (tin === 'nuaduong') toast('Nhà trẻ báo: hai con đã quen nhau lắm rồi.');
+      else if (tin === 'hettien') toast('Hết tiền trả nhà trẻ — việc rèn luyện tạm dừng.');
+      if (ev?.t === 'pickup') {
         const it = ITEMS[ev.id];
         toast(`Nhặt được ${it ? it.name : ev.id}${ev.n > 1 ? ` ×${ev.n}` : ''}!`);
       } else if (ev?.t === 'repelEnd') {

@@ -4,6 +4,7 @@ import { bake, isSolidAt, isEncAt, talkAt } from './mapbake.js';
 import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
+import { moiBuoc as daycareBuoc } from './daycare.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
@@ -104,6 +105,11 @@ export function facingWater() {
   if (x < 0 || y < 0 || x >= map.w || y >= map.h) return false;
   return !!map.water[y * map.w + x];
 }
+
+// Tin mới nhất từ nhà trẻ (nửa đường / sẵn sàng / hết tiền) — màn bản đồ đọc
+// rồi xoá đi, để mỗi mốc chỉ báo một lần.
+let tinNhaTre = null;
+export function layTinNhaTre() { const t = tinNhaTre; tinNhaTre = null; return t; }
 
 export const pickKey = (mapId, it) => `${mapId}:${it.x},${it.y}:${it.id}`;
 export const pickedUp = (mapId, it) => !!G.p?.picked?.[pickKey(mapId, it)];
@@ -335,6 +341,10 @@ export function update(dt, vx, vy) {
   // Tổng số bước cả đời — nhiệm vụ sự kiện đọc biến này (player.steps ở trên
   // là bộ đếm riêng để tính gặp Tuxemon, cứ gặp một con là bị reset).
   G.p.stats.steps = (G.p.stats.steps || 0) + 1;
+  // Con gửi nhà trẻ ăn theo số bước của người chơi (bản gốc: Daycare.on_steps).
+  // Mốc đáng báo thì để dành, màn bản đồ nhặt ra hiện toast.
+  const nt = daycareBuoc(1);
+  if (nt && nt.t !== 'exp') tinNhaTre = nt.t;
 
   // Đồ rơi trên bản đồ: giẫm lên là nhặt, mỗi món chỉ nhặt được một lần
   // (bản gốc gác bằng biến <tên>:yes trong sự kiện add_item).

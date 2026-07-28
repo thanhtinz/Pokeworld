@@ -20,6 +20,7 @@ const HUB = [
   { to: 'shop',       icon: 'shop',    label: 'Cửa hàng' },
   { to: 'achievements', icon: 'star',   label: 'Thành tựu', badge: 'ach' },
   { to: 'park',       icon: 'walk',    label: 'Công viên' },
+  { to: 'daycare',    icon: 'heal',    label: 'Nhà trẻ' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện' },
   { to: 'rank',       icon: 'trophy',  label: 'Xếp hạng' },
   { to: 'guild',      icon: 'guild',   label: 'Bang hội' },

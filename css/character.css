@@ -464,23 +464,6 @@
 .tcard-info .char-xp { margin: 2px 0 0; }
 .tcard-xp { color: var(--muted); font-size: .72rem; }
 
-/* Bảng số liệu kiểu thẻ giấy: nhãn trái, số phải, gạch chấm nối ở giữa.
-   Nhãn và số neo hai mép nên đọc lướt xuống là thấy thẳng hàng. */
-.tcard-rows {
-  margin: 12px 0 11px; padding: 9px 0;
-  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-}
-.tcard-row { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; }
-.tcard-k { display: flex; align-items: center; gap: 5px; flex: none;
-  color: var(--muted); font-size: .78rem; }
-.tcard-k .ui-ico { opacity: .9; transform: translateY(2px); }
-/* Gạch chấm nối co giãn lấp chỗ trống giữa nhãn và số */
-.tcard-dots { flex: 1; min-width: 8px; height: 1px; align-self: center;
-  background-image: radial-gradient(circle, var(--line-soft) 1px, transparent 1px);
-  background-size: 4px 2px; background-repeat: repeat-x; }
-.tcard-v { flex: none; font-family: var(--pix2); font-size: 11px; color: var(--text);
-  white-space: nowrap; }
-
 .tcard-badges > small { display: block; color: var(--muted); font-size: .7rem; margin-bottom: 7px; }
 .tcard-badge-row { display: flex; gap: 8px; }
 .tcard-badge {

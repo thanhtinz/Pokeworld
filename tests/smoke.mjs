@@ -60,6 +60,7 @@ import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor } from '../js/engine/play
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
 import * as P from '../js/engine/park.js';
+import * as DC from '../js/engine/daycare.js';
 import { bangThanhTuu, nhanThuong, nhanHet, choNhan } from '../js/engine/achievements.js';
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -1859,6 +1860,76 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   ok('bóng công viên không ném được ngoài trận thường',
     ITEMS[P.BONG] && ITEMS[P.BONG].kind === 'park' && !ITEMS[P.BONG].inBattle);
+}
+
+// ==== Nhà Trẻ ====
+{
+  newGame('DCTester');
+  G.p.money = 100000;
+  // Tìm một cặp đực/cái đã qua dạng cơ bản để thử nhân giống
+  const daTienHoa = Object.keys(SPECIES).map(Number)
+    .filter(id => DC.hangTienHoa(id) > 1 && !SPECIES[id].glitched);
+  ok('có loài đã qua dạng cơ bản để ghép đôi', daTienHoa.length > 50, String(daTienHoa.length));
+  // Loài chỉ có giống vô tính (robot...) thì không bao giờ ghép được — phải còn
+  // đủ nhiều loài vừa có hai giới vừa đã tiến hoá, không thì tính năng vô dụng
+  const ghepThat = daTienHoa.filter(id => SPECIES[id].gender?.m > 0 && SPECIES[id].gender?.f > 0);
+  ok('còn đủ loài thật sự ghép đôi được', ghepThat.length > 80, String(ghepThat.length));
+
+  const me = newTuxemon(daTienHoa[0], 20); me.gender = 'f';
+  const cha = newTuxemon(daTienHoa[1], 24); cha.gender = 'm';
+  ok('một đực một cái đã tiến hoá thì ghép được', DC.ghepDuoc(me, cha));
+  const voTinh = newTuxemon(daTienHoa[2], 20); voTinh.gender = 'n';
+  ok('con vô tính không ghép đôi được', !DC.ghepDuoc(me, voTinh));
+
+  G.p.party = [me, cha, newTuxemon(STARTERS[0].sp, 10)];
+  ok('gửi được con vào nhà trẻ', DC.gui(0)[0] !== null);
+  ok('gửi rồi thì con rời đội hình', G.p.party.length === 2);
+  DC.gui(0);
+  ok('nhà trẻ giữ tối đa 2 con', DC.kho().mons.length === 2 && DC.gui(0)[1] !== null);
+  ok('phải chừa lại ít nhất một con', G.p.party.length === 1);
+
+  ok('hai con hợp đôi thì vào chế độ nhân giống', DC.cheDo() === 'nhangiong', DC.cheDo());
+
+  // Đi tới mốc nửa đường rồi tới lúc đẻ
+  let nua = false, san = false;
+  for (let i = 0; i < DC.BUOC_CAN + 10; i++) {
+    const e = DC.moiBuoc(1);
+    if (e?.t === 'nuaduong') nua = true;
+    if (e?.t === 'sansang') san = true;
+  }
+  ok('đi nửa đường thì có báo', nua);
+  ok('đi đủ bước thì sẵn sàng', san && DC.sanSang());
+
+  const soTruoc = G.p.party.length;
+  const [con, err] = DC.layConNon();
+  ok('đón được con non', !!con && !err, String(err));
+  ok('con non vào đội hình', G.p.party.length === soTruoc + 1);
+  ok('con non ở dạng gốc của bố mẹ', DC.hangTienHoa(con.sp) === 1,
+    `${SPECIES[con.sp]?.slug} hạng ${DC.hangTienHoa(con.sp)}`);
+  ok('con non có cấp trung bình của bố mẹ', con.lv === Math.floor((20 + 24) / 2), String(con.lv));
+  ok('IV con non lấy giá trị cao hơn của bố mẹ',
+    con.iv.every((v, i) => v >= Math.max(me.iv[i], cha.iv[i]) - 0 && v === Math.max(me.iv[i], cha.iv[i])));
+  ok('đẻ xong thì đếm lại từ đầu', DC.kho().buoc === 0);
+
+  // Chế độ rèn luyện: một con thì ăn EXP và trừ tiền
+  DC.nhanVe();
+  G.p.party = [newTuxemon(STARTERS[0].sp, 5), newTuxemon(STARTERS[1].sp, 5)];
+  DC.gui(0);
+  ok('một con thì vào chế độ rèn luyện', DC.cheDo() === 'renluyen');
+  const expCu = DC.kho().mons[0].exp;
+  const tienCu = G.p.money;
+  for (let i = 0; i < 40; i++) DC.moiBuoc(1);
+  ok('rèn luyện cộng EXP', DC.kho().mons[0].exp > expCu,
+    `${expCu} -> ${DC.kho().mons[0].exp}`);
+  ok('rèn luyện trừ tiền', G.p.money < tienCu, `${tienCu} -> ${G.p.money}`);
+  ok('EXP lẻ 0.25/bước không bị cắt cụt thành 0', DC.kho().tongExp >= 9,
+    String(DC.kho().tongExp));
+
+  G.p.money = 0;
+  const expKhiHetTien = DC.kho().mons[0].exp;
+  for (let i = 0; i < 40; i++) DC.moiBuoc(1);
+  ok('hết tiền thì ngừng cộng EXP chứ không nợ',
+    DC.kho().mons[0].exp === expKhiHetTien && G.p.money === 0);
 }
 
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
