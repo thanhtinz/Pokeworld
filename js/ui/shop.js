@@ -5,6 +5,16 @@ import { esc, fmt } from '../util.js';
 import { toast, choose, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 
+// Gian hàng chia theo nhóm cho dễ tìm — 91 món xếp một dọc thì cuộn mỏi tay
+const NHOM = [
+  ['ball', 'Tuxeball'],
+  ['medicine', 'Thuốc'],
+  ['stone', 'Đá tiến hoá'],
+  ['food', 'Món ăn'],
+  ['stat', 'Rèn chỉ số'],
+  ['tea', 'Trà'],
+];
+
 export function render(el) {
   let tab = 'buy';
 
@@ -20,25 +30,30 @@ export function render(el) {
         <button type="button" class="tab-btn ${tab === 'buy' ? 'active' : ''}" data-tab="buy">Mua</button>
         <button type="button" class="tab-btn ${tab === 'sell' ? 'active' : ''}" data-tab="sell">Bán</button>
       </div>
-      <div class="item-list">
-        ${ids.map(id => {
-          const it = ITEMS[id];
-          return `
-          <button class="card item-row" data-id="${esc(id)}">
-            ${itemIcon(id)}
-            <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
-            <span class="item-n">${tab === 'sell'
-              ? `×${G.p.bag[id]} · ${fmt(it.sell)}₽`
-              : `${fmt(it.price)}₽${G.p.bag[id] ? ` <small>(có ${G.p.bag[id]})</small>` : ''}`}</span>
-          </button>`;
-        }).join('')}
-        ${ids.length === 0 ? `<div class="card empty-note">${tab === 'sell' ? 'Không có gì để bán.' : 'Chưa có hàng.'}</div>` : ''}
-      </div>`;
+      ${NHOM.map(([k, label]) => {
+        const g = ids.filter(id => ITEMS[id].kind === k);
+        if (!g.length) return '';
+        return `<div class="shop-group"><h2 class="shop-group-h">${esc(label)}</h2>
+          <div class="item-list">${g.map(id => hang(id)).join('')}</div></div>`;
+      }).join('')}
+      ${ids.length === 0 ? `<div class="card empty-note">${tab === 'sell' ? 'Không có gì để bán.' : 'Chưa có hàng.'}</div>` : ''}`;
 
     el.querySelectorAll('.tab-btn').forEach(b =>
       b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
     el.querySelectorAll('.item-row').forEach(b =>
       b.addEventListener('click', () => (tab === 'sell' ? sell(b.dataset.id) : buy(b.dataset.id))));
+  }
+
+  function hang(id) {
+    const it = ITEMS[id];
+    return `
+      <button class="card item-row" data-id="${esc(id)}">
+        ${itemIcon(id)}
+        <span class="item-mid"><b>${esc(it.name)}</b><small>${esc(it.desc || '')}</small></span>
+        <span class="item-n">${tab === 'sell'
+          ? `×${G.p.bag[id]} · ${fmt(it.sell)}₽`
+          : `${fmt(it.price)}₽${G.p.bag[id] ? ` <small>(có ${G.p.bag[id]})</small>` : ''}`}</span>
+      </button>`;
   }
 
   async function buy(id) {

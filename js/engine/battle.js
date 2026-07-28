@@ -9,8 +9,9 @@ import { expYield, gainExp, movesAtLevel } from './exp.js';
 import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   thornDamage, survives, cantHeal, isLocked, afterBattle, statusName } from './status.js';
 import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
-import { attemptCatch } from './catchmon.js';
+import { attemptCatch, applyBallEffects, keepOnFail, keepOnCatch } from './catchmon.js';
 import { attemptEscape } from './escape.js';
+import { useItem } from './useitem.js';
 
 // Tên chỉ số tiếng Việt (cho thông báo tăng/giảm chỉ số) — 6 chỉ số của Tuxemon
 const STAT_VI = {
@@ -374,17 +375,16 @@ export class Battle {
         const item = ITEMS[a.id];
         const targetSlot = a.targetSlot ?? s.active;
         const target = s.mons[targetSlot];
-        if (item && item.effect && target) {
-          if (item.effect.heal) {
-            const max = maxHp(target);
-            let amount = item.effect.heal;
-            if (amount === 'full') amount = max;
-            const before = target.hpCur;
-            target.hpCur = Math.min(max, target.hpCur + amount);
+        if (item && target) {
+          const before = target.hpCur;
+          const res = useItem(a.id, target, { inBattle: true, wild: this.kind === 'wild',
+            stages: s.stages });
+          ev.push({ t: 'msg', text: `Đã dùng ${item.name}!` });
+          if (target.hpCur !== before) {
             ev.push({ t: 'heal', side: i, slot: targetSlot, amount: target.hpCur - before });
           }
-          if (item.effect.cure) removeStatus(target, 'negative');
-          ev.push({ t: 'msg', text: `Đã dùng ${item.name}!` });
+          for (const m of res.msgs) ev.push({ t: 'msg', text: m });
+          if (!res.ok) ev.push({ t: 'msg', text: 'Nhưng không có tác dụng!' });
         }
       } else if (a.t === 'ball') {
         const foeMon = this.activeMon(oi);
@@ -393,11 +393,20 @@ export class Battle {
         ev.push({ t: 'catch', caught: res.caught, shakes: res.shakes, crit: res.crit });
         if (res.caught) {
           foeMon.ball = a.id;
+          // Vài loại bóng còn sửa con vừa bắt: kẹo +1 cấp, bóng khẩu vị đổi vị
+          applyBallEffects(a.id, foeMon);
+          if (foeMon.hpCur > maxHp(foeMon)) foeMon.hpCur = maxHp(foeMon);
           this.caughtMon = foeMon;
           ev.push({ t: 'msg', text: `Tuyệt vời! Đã bắt được ${displayName(foeMon)}!` });
+          if (keepOnCatch(a.id)) ev.push({ t: 'refund', id: a.id });
           this.endBattle(i, ev);
         } else {
           ev.push({ t: 'msg', text: `Ôi không! ${displayName(foeMon)} đã thoát ra!` });
+          // Tuxeball Gia Cố: ném hụt vẫn nhặt lại được
+          if (keepOnFail(a.id)) {
+            ev.push({ t: 'refund', id: a.id });
+            ev.push({ t: 'msg', text: `Nhặt lại được ${(ITEMS[a.id] && ITEMS[a.id].name) || a.id}.` });
+          }
         }
       } else if (a.t === 'move' || a.t === 'struggle') {
         this.doMove(i, a.t === 'struggle' ? 'struggle' : a.i, ev);

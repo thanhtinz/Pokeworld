@@ -140,7 +140,7 @@ export const CHAPTERS = [
       ['prof', 'Cháu đi được một chặng dài rồi. Từ hôm nay cháu là NHÀ VÔ ĐỊCH của vùng — và là bằng chứng sống rằng lệnh cấm kia sai.'],
       ['prof', 'Hành trình chưa hết đâu: Tuxedex vẫn còn trống nhiều lắm.'],
     ],
-    reward: { money: 10000, items: [{ id: 'lucky_bamboo', n: 3 }, { id: 'nu_phone', n: 1 }] },
+    reward: { money: 10000, items: [{ id: 'lucky_bamboo', n: 3 }, { id: 'tuxeball_ancient', n: 3 }] },
     unlock: [],
   },
 ];

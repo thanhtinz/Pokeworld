@@ -20,7 +20,10 @@ import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../js/data/taste
 import { newTuxemon, stats, maxHp, STAT_KEYS } from '../js/engine/monster.js';
 import { expForLevel, expYield, gainExp, movesAtLevel } from '../js/engine/exp.js';
 import { calcDamage, typeMultiplier, RANGE_MAP } from '../js/engine/damage.js';
-import { attemptCatch } from '../js/engine/catchmon.js';
+import { attemptCatch, ballModifier, statusModifier, applyBallEffects,
+  keepOnFail } from '../js/engine/catchmon.js';
+import { CAPDEV } from '../js/data/capdev.js';
+import { useItem, canUse, foodBond } from '../js/engine/useitem.js';
 import { escapeChance } from '../js/engine/escape.js';
 import { checkEvolution, evolve } from '../js/engine/evolution.js';
 import { Battle } from '../js/engine/battle.js';
@@ -368,6 +371,87 @@ ok('chiêu nào cũng có số lượt hồi, không có PP',
 ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   Object.values(SPECIES).every(s => s.catchRate >= 0 && s.catchRate <= 100
     && s.catchLo > 0 && s.catchHi >= s.catchLo));
+
+// Tuxeball: mỗi loại một hệ số riêng, lấy từ mods/capture_devices.yaml
+{
+  const balls = Object.entries(ITEMS).filter(([, it]) => it.kind === 'ball');
+  ok('có đủ bộ tuxeball', balls.length >= 20, String(balls.length));
+  ok('bóng nào cũng chỉ ném được trong trận với con hoang',
+    balls.every(([, it]) => it.inBattle && it.cond.some(c => c.t === 'wild')));
+  ok('bóng nào cũng có hệ số trong bảng capdev',
+    balls.every(([id]) => CAPDEV[id]), balls.filter(([id]) => !CAPDEV[id]).map(x => x[0]).join(' '));
+
+  const wood = Object.entries(SPECIES).find(([, s]) => s.types.includes('wood'))[0];
+  const notWood = Object.entries(SPECIES).find(([, s]) => !s.types.includes('wood'))[0];
+  ok('Tuxeball Gỗ ăn con hệ Gỗ, con hệ khác thì phạt nặng',
+    ballModifier('tuxeball_wood', newTuxemon(Number(wood), 10)) > 1
+    && ballModifier('tuxeball_wood', newTuxemon(Number(notWood), 10)) < 0.5);
+  ok('Tuxeball Cổ mạnh gấp 99 lần', ballModifier('tuxeball_ancient', newTuxemon(1, 10)) === 99);
+  ok('Tuxeball Đực chuộng con đực',
+    ballModifier('tuxeball_male', newTuxemon(1, 10, { gender: 'm' }))
+    > ballModifier('tuxeball_male', newTuxemon(1, 10, { gender: 'f' })));
+  ok('bóng gia cố ném hụt vẫn nhặt lại được',
+    keepOnFail('tuxeball_hardened') && !keepOnFail('tuxeball'));
+  {
+    const m = newTuxemon(1, 10);
+    const lv = m.lv;
+    applyBallEffects('tuxeball_candy', m);
+    applyBallEffects('tuxeball_salty', m);
+    ok('bóng kẹo +1 cấp, bóng vị mặn đổi khẩu vị',
+      m.lv === lv + 1 && m.tasteWarm === 'salty');
+  }
+  ok('trạng thái xấu làm dễ bắt hơn', (() => {
+    const m = newTuxemon(1, 10);
+    const truoc = statusModifier('tuxeball', m);
+    applyStatus(m, 'poison');
+    return statusModifier('tuxeball', m) > truoc;
+  })());
+}
+
+// Vật phẩm: hiệu ứng chạy đúng như bản gốc
+{
+  const it = Object.entries(ITEMS);
+  ok('có đủ bộ vật phẩm', it.length >= 80, String(it.length));
+  ok('món nào cũng có ít nhất một hiệu ứng', it.every(([, x]) => x.eff.length > 0));
+  ok('món nào cũng dùng được ở đâu đó', it.every(([, x]) => x.inBattle || x.inWorld));
+
+  // Thuốc hồi máu: đúng số HP ghi trong mô tả
+  const mon = newTuxemon(STARTERS[0].sp, 20);
+  mon.hpCur = 1;
+  useItem('potion', mon, { inBattle: false });
+  ok('thuốc hồi đúng 50 HP', mon.hpCur === 51, String(mon.hpCur));
+
+  // Con còn đầy máu thì thuốc không dùng được (điều kiện current_hp < 1.0)
+  mon.hpCur = maxHp(mon);
+  ok('máu đầy thì không dùng được thuốc', !canUse('potion', mon, { inBattle: false }));
+
+  // Hồi sinh: chỉ dùng cho con đã gục
+  const guc = newTuxemon(STARTERS[1].sp, 20);
+  guc.hpCur = 0;
+  ok('hồi sinh chỉ dùng cho con đã gục',
+    canUse('revive', guc, { inBattle: false })
+    && !canUse('revive', newTuxemon(STARTERS[1].sp, 20), { inBattle: false }));
+  useItem('revive', guc, { inBattle: false });
+  ok('hồi sinh thì sống lại', guc.hpCur > 0, String(guc.hpCur));
+
+  // Trà: cho thẳng EXP
+  const tra = newTuxemon(STARTERS[2].sp, 5);
+  const expTruoc = tra.exp;
+  useItem('tea', tra, { inBattle: false });
+  ok('trà cho đúng 500 EXP', tra.exp - expTruoc === 500, String(tra.exp - expTruoc));
+
+  // Món ăn: hợp khẩu vị thì tăng thân thiết, kỵ thì mất
+  const an = newTuxemon(STARTERS[0].sp, 10, { tasteWarm: 'salty', tasteCold: 'sweet' });
+  ok('hợp cả hai vị thì +10 thân thiết', foodBond(an, 'salty', 'sweet') === 10);
+  ok('kỵ cả hai vị thì -10 thân thiết', foodBond(an, 'sweet', 'salty') === -10);
+  ok('không hợp không kỵ thì không đổi', foodBond(an, 'peppy', 'dry') === 0);
+
+  // Đá tiến hoá phải trỏ tới đường tiến hoá có thật
+  const daTienHoa = it.filter(([, x]) => x.eff.some(e => e.t === 'evolve')).map(([id]) => id);
+  const duong = new Set(Object.values(EVOLUTIONS).flat().flatMap(w => w.item || []));
+  ok('đá tiến hoá nào cũng mở được ít nhất một đường',
+    daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
+}
 
 // ==== Bảng gặp Tuxemon hoang lấy từ db/encounter ====
 ok('có bảng gặp lấy từ bản gốc', Object.keys(ENCOUNTERS).length >= 1, String(Object.keys(ENCOUNTERS).length));

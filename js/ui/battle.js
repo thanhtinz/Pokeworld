@@ -225,7 +225,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
     if (busy || ended) return;
     const ids = Object.keys(G.p.bag).filter(id => {
       const it = ITEMS[id];
-      return it && (it.kind === 'ball' || it.kind === 'medicine') && G.p.bag[id] > 0;
+      return it && it.inBattle && G.p.bag[id] > 0;
     });
     if (!ids.length) { toast('Không có vật phẩm dùng được trong trận!'); return; }
     const i = await choose('Túi đồ', ids.map(id => {
@@ -321,6 +321,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           await sleep(textDelay(520));
           break;
         }
+        case 'refund':
+          // Bóng loại nhặt lại được: trả về túi
+          addItem(ev.id, 1);
+          break;
         case 'heal':
           sfx('heal');
           playFx(ev.side, 'heal');

@@ -2084,3 +2084,6 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   .decor-prev-note { flex: none; }
   .decor-use { width: 100%; }
 }
+
+/* Gian hang chia nhom: tieu de nho phia tren tung nhom */
+.shop-group-h { font-size: 13px; color: var(--muted); margin: 12px 4px 6px; letter-spacing: .04em; }

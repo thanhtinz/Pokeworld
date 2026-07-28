@@ -17,11 +17,11 @@ export const EVOLUTIONS = {
   29: [{ into: 30, level: 36 }],   // legko
   31: [{ into: 32, level: 24 }],   // agnite
   32: [{ into: 33, level: 36 }],   // agnidon
-  34: [{ into: 35, item: ["earth_booster"] }, { into: 36, item: ["metal_booster"] }],   // grintot
-  37: [{ into: 38, item: ["earth_booster"] }, { into: 39, item: ["metal_booster"] }, { into: 40, item: ["fire_booster"] }],   // memnomnom
-  41: [{ into: 42, bond: 100 }, { into: 43, item: ["water_booster"] }, { into: 44, item: ["metal_booster"] }],   // dollfin
-  45: [{ into: 46, item: ["lucky_bamboo", "wood_booster"] }, { into: 47, item: ["water_booster"] }],   // budaye
-  48: [{ into: 49, item: ["metal_booster"] }, { into: 50, item: ["earth_booster"] }],   // ignibus
+  34: [{ into: 35, item: ["earth_booster", "flintstone"] }, { into: 36, item: ["metal_booster", "thunderstone"] }],   // grintot
+  37: [{ into: 38, item: ["earth_booster", "miaow_milk"] }, { into: 39, item: ["metal_booster", "pyramidion"] }, { into: 40, item: ["fire_booster", "pyramidion"] }],   // memnomnom
+  41: [{ into: 42, bond: 100 }, { into: 43, item: ["sweet_sand", "water_booster"] }, { into: 44, item: ["metal_booster", "sea_girdle"] }],   // dollfin
+  45: [{ into: 46, item: ["lucky_bamboo", "wood_booster"] }, { into: 47, item: ["peace_lily", "water_booster"] }],   // budaye
+  48: [{ into: 49, item: ["metal_booster", "stovepipe"] }, { into: 50, item: ["earth_booster", "tectonic_drill"] }],   // ignibus
   51: [{ into: 52, level: 9 }],   // cataspike
   52: [{ into: 53, level: 12 }],   // puparmor
   54: [{ into: 55, level: 9 }],   // vamporm
@@ -58,7 +58,8 @@ export const EVOLUTIONS = {
   113: [{ into: 114, level: 18 }],   // tumbleworm
   119: [{ into: 298, level: 32 }],   // axolightl
   120: [{ into: 121, level: 32 }],   // capiti
-  150: [{ into: 153, level: 24, gender: "f" }, { into: 157, level: 24, gender: "m" }, { into: 155, level: 26 }, { into: 151, tech: "salamander" }],   // vivipere
+  143: [{ into: 144, item: ["booster_tech"] }, { into: 145, item: ["booster_tech"] }, { into: 146, item: ["booster_tech"] }, { into: 147, item: ["booster_tech"] }, { into: 148, item: ["booster_tech"] }],   // botbot
+  150: [{ into: 153, level: 24, gender: "f" }, { into: 157, level: 24, gender: "m" }, { into: 155, level: 26 }, { into: 151, tech: "salamander" }, { into: 156, item: ["petrified_dung"] }],   // vivipere
   158: [{ into: 159, level: 32 }],   // chloragon
   159: [{ into: 160, level: 54 }],   // sapragon
   167: [{ into: 168, level: 30 }],   // foxfire
@@ -69,7 +70,7 @@ export const EVOLUTIONS = {
   175: [{ into: 176, level: 36 }],   // corvix
   177: [{ into: 178, level: 32 }],   // wrougon
   178: [{ into: 179, level: 54 }],   // allagon
-  180: [{ into: 182, level: 20 }],   // seirein
+  180: [{ into: 182, level: 20 }, { into: 181, item: ["flintstone"] }],   // seirein
   182: [{ into: 183, level: 36 }],   // spirain
   187: [{ into: 188, level: 18 }],   // fruitera
   188: [{ into: 189, level: 36 }],   // megafruitera
@@ -117,6 +118,7 @@ export const EVOLUTIONS = {
   295: [{ into: 296, level: 18 }],   // lesmagu
   296: [{ into: 297, level: 36 }],   // shelagu
   299: [{ into: 300, level: 24 }],   // medipup
+  300: [{ into: 378, item: ["ox_stick"] }, { into: 379, item: ["peace_lily"] }],   // doctsky
   303: [{ into: 304, bond: 40 }],   // sheye
   305: [{ into: 306, level: 15 }],   // marvillar
   307: [{ into: 308, level: 8 }],   // scarlant
@@ -125,6 +127,7 @@ export const EVOLUTIONS = {
   311: [{ into: 312, level: 32 }],   // devidra
   316: [{ into: 317, level: 20 }],   // thumpurn
   321: [{ into: 322, level: 32 }],   // sprorm
+  325: [{ into: 326, level: 32, item: ["lima_pie"] }],   // flummby
   327: [{ into: 328, level: 30 }],   // hoarse
   328: [{ into: 329, level: 55 }],   // equill
   335: [{ into: 336, level: 32 }],   // claymorior
@@ -149,7 +152,7 @@ export const EVOLUTIONS = {
   385: [{ into: 386, level: 20 }],   // pickoon
   387: [{ into: 388, level: 15 }],   // kroki
   388: [{ into: 389, level: 35 }],   // krokivip
-  390: [{ into: 391, item: ["earth_booster"] }],   // pawsand
+  390: [{ into: 391, item: ["earth_booster"] }, { into: 392, item: ["sweet_sand"] }, { into: 393, item: ["pyramidion"] }],   // pawsand
   394: [{ into: 395, level: 15 }],   // helipi
   395: [{ into: 396, level: 30 }],   // coppi
   397: [{ into: 398, item: ["metal_booster"] }],   // virware
