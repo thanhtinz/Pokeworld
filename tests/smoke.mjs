@@ -456,6 +456,31 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     daTienHoa.some(id => duong.has(id)), daTienHoa.join(' '));
 }
 
+// Tốc độ của chiêu quyết định ai ra đòn trước (formula.speed_monster)
+{
+  const v = Object.values(MOVES);
+  ok('chiêu nào cũng có mức tốc độ -3..+3',
+    v.every(m => Number.isInteger(m.speed) && m.speed >= -3 && m.speed <= 3));
+  ok('có đủ cả chiêu nhanh lẫn chiêu chậm',
+    v.some(m => m.speed > 0) && v.some(m => m.speed < 0));
+
+  // Hai con y hệt nhau, con dùng chiêu nhanh phải đi trước
+  const nhanh = Object.entries(MOVES).find(([, m]) => m.speed >= 2)[0];
+  const cham = Object.entries(MOVES).find(([, m]) => m.speed <= -2)[0];
+  const lam = (mv) => {
+    const m = newTuxemon(STARTERS[0].sp, 20, { iv: [8, 8, 8, 8, 8, 8],
+      tasteCold: 'bland', tasteWarm: 'savory' });
+    m.moves = [{ id: mv, cd: 0 }];
+    return m;
+  };
+  const b2 = new Battle({ kind: 'wild',
+    sides: [{ kind: 'player', mons: [lam(nhanh)] }, { kind: 'wild', mons: [lam(cham)] }] });
+  b2.submit(0, { t: 'move', i: 0 });
+  b2.submit(1, { t: 'move', i: 0 });
+  ok('chiêu nhanh ra đòn trước chiêu chậm', b2.actionOrder()[0].side === 0,
+    `${nhanh}(${MOVES[nhanh].speed}) vs ${cham}(${MOVES[cham].speed})`);
+}
+
 // Tuxedex: ghi chép, nơi sống, đặc điểm lấy từ db/monster của bản gốc
 {
   const v = Object.values(SPECIES);

@@ -429,10 +429,16 @@ def hieu_ung(t):
     return out
 
 
+# Nhan toc do cua chieu -> so, dung db.py SpeedLabel.numeric_value cua ban goc
+TOC_DO = {'extremely_slow': -3, 'very_slow': -2, 'slow': -1, 'normal': 0,
+          'fast': 1, 'very_fast': 2, 'extremely_fast': 3}
+
+
 def write_moves(techs, disp):
     out = ["// TuxeWorld H5 | data/moves.js | Chiêu thức — TỰ SINH TỪ tools/mktuxemon.py",
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
            '// power là HỆ SỐ như bản gốc (0.4-3.0), acc 0-100, recharge = số lượt chờ.',
+           '// speed -3..+3: chiêu nhanh thì ra đòn trước (xem js/engine/battle.js).',
            '// range: melee (cận chiến vs giáp) · touch (cận chiến vs né) · ranged',
            '// (tầm xa vs né) · reach (tầm xa vs giáp) · reliable (theo cấp, không đỡ được).', '',
            'export const MOVES = {']
@@ -454,9 +460,11 @@ def write_moves(techs, disp):
         if not sfx.startswith('sfx_'):
             sfx = ''
         anim = (t.get('visuals') or {}).get('animation') or ''
-        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, potency: %s, heal: %s%s%s%s },'
+        out.append('  %s: { name: %s, types: %s, range: %s, category: %s, power: %s, acc: %d, recharge: %d, speed: %d, potency: %s, heal: %s%s%s%s },'
                    % (js(slug), js(disp(slug)), js(types), js(rng), js(cat), fmtnum(power), acc,
-                      int(t.get('recharge') or 0), fmtnum(round(float(t.get('potency') or 0), 2)),
+                      int(t.get('recharge') or 0),
+                      TOC_DO.get(t.get('speed') or 'normal', 0),
+                      fmtnum(round(float(t.get('potency') or 0), 2)),
                       fmtnum(round(heal, 2)),
                       (', eff: %s' % js(eff)) if eff else '',
                       (', sfx: %s' % js(sfx)) if sfx else '',

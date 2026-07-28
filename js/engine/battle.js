@@ -22,6 +22,11 @@ const STAT_VI = {
 
 const freshStages = () => ({ armour: 0, dodge: 0, melee: 0, ranged: 0, speed: 0 });
 
+// mods/config_combat.yaml — hệ số tính thứ tự ra đòn
+const SPEED_FACTOR = 0.25;
+const SPEED_BONUS = 1.0;
+const DODGE_MOD = 0.01;
+
 function moveName(mvId) {
   const mv = MOVES[mvId];
   return (mv && mv.name) || mvId;
@@ -133,21 +138,29 @@ export class Battle {
     return true;
   }
 
-  // Độ ưu tiên: run/ball/item/switch trước, move theo priority + speed (par giảm nửa)
+  // Thứ tự ra đòn — bản gốc formula.speed_monster + mods/config_combat.yaml:
+  //   tốc = chỉ_số_tốc * (1 + tốc_độ_chiêu * 0.25) + né * 0.01
+  // Chiêu "cực nhanh" (+3) đi trước hẳn, "cực chậm" (-3) ra sau cùng, nên chọn
+  // chiêu nào cũng là chọn luôn nhịp đánh. Chạy/ném bóng/dùng đồ/đổi con vẫn
+  // đi trước mọi chiêu.
   actionOrder() {
     const entries = [];
     for (let i = 0; i < this.sides.length; i++) {
       const a = this.pending[i];
+      const mon = this.activeMon(i);
       let pri = 0;
+      let tocChieu = 0;
       if (a.t === 'run' || a.t === 'ball' || a.t === 'item' || a.t === 'switch') {
         pri = 10;
-      } else if (a.t === 'move') {
-        const mon = this.activeMon(i);
-        const mv = MOVES[mon.moves[a.i].id];
-        pri = (mv && mv.priority) || 0;
+      } else if (a.t === 'move' && mon) {
+        const mv = MOVES[mon.moves[a.i]?.id];
+        tocChieu = (mv && mv.speed) || 0;
       }
-      const mon = this.activeMon(i);
-      const spe = mon ? stats(mon).speed * speedMult(mon) : 0;
+      const st = mon ? stats(mon) : null;
+      const spe = st
+        ? Math.floor(Math.max(1, st.speed * speedMult(mon)
+            * (SPEED_BONUS + tocChieu * SPEED_FACTOR)) + st.dodge * DODGE_MOD)
+        : 0;
       entries.push({ side: i, pri, spe, tie: rng.float() });
     }
     entries.sort((x, y) => {

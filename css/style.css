@@ -2130,3 +2130,8 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 /* Dau +/- trong nhat ky tran dau (gfx/ui/icons/plusminus cua ban goc) */
 .pm-ico { width: 11px !important; height: 11px !important; image-rendering: pixelated;
   vertical-align: -1px; margin-right: 4px; }
+
+/* Mui ten toc do cua chieu (gfx/ui/icons/speed cua ban goc) */
+.speed-ico { image-rendering: pixelated; vertical-align: middle;
+  height: 11px !important; width: auto !important; flex: none; }
+.move-btn .speed-ico { height: 10px !important; }

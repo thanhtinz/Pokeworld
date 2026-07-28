@@ -84,6 +84,18 @@ export function rangeIcon(range, h = 12) {
     onerror="this.remove()">`;
 }
 
+// Mũi tên tốc độ của chiêu (-3 chậm nhất .. +3 nhanh nhất) — ảnh gfx/ui/icons/speed.
+// Chiêu tốc độ thường (0) thì không cần hiện, đỡ rối mắt.
+const TOC_VI = { '-3': 'Cực chậm', '-2': 'Rất chậm', '-1': 'Chậm', 0: 'Thường',
+  1: 'Nhanh', 2: 'Rất nhanh', 3: 'Cực nhanh' };
+
+export function speedIcon(speed, h = 11) {
+  const n = Number(speed) || 0;
+  if (!n) return '';
+  return `<img class="speed-ico" src="assets/ui/speed/${n}.png" height="${h}"
+    alt="${TOC_VI[n]}" title="${TOC_VI[n]}" onerror="this.remove()">`;
+}
+
 // Icon trạng thái (bỏng, độc, ngủ, tê, băng)
 export function statusIcon(st, size = 14) {
   if (!st) return '';

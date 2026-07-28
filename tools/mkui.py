@@ -47,6 +47,9 @@ ICON_DIRS = {
               'party_icon02': 'status', 'party_icon03': 'faint'},
     'bond': {'bond1': '1', 'bond2': '2', 'bond3': '3', 'bond4': '4'},
     'plusminus': {'plus': 'plus', 'minus': 'minus'},
+    # mui ten toc do cua chieu: -3..+3 (db.py SpeedLabel)
+    'speed': {'extremely_slow': '-3', 'very_slow': '-2', 'slow': '-1',
+              'normal': '0', 'fast': '1', 'very_fast': '2', 'extremely_fast': '3'},
 }
 
 # Icon trang thai: chep het theo dung slug ben ban goc (js/data/statuses.js)

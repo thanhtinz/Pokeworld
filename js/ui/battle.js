@@ -17,7 +17,7 @@ import { textDelay, sfx, getSetting } from '../engine/settings.js';
 import { SFX, MON_CRY } from '../data/sounds.js';
 import { fxFor } from '../data/vfx.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, itemIcon } from './kit.js';
-import { uiIcon, rangeIcon } from './icons.js';
+import { uiIcon, rangeIcon, speedIcon } from './icons.js';
 import { emitStory, rivalTeam } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { show } from '../main.js';
@@ -225,7 +225,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           const dis = busy || (mv.cd || 0) > 0;
           return `<button class="btn move-btn" data-mv="${i}" ${dis ? 'disabled' : ''}>
             <span class="mv-name">${esc(def ? def.name : mv.id)}</span>
-            <span class="mv-sub">${def ? typeBadge(def.types[0]) : ''}${def ? rangeIcon(def.range) : ''}</span>
+            <span class="mv-sub">${def ? typeBadge(def.types[0]) : ''}${
+              def ? rangeIcon(def.range) : ''}${def ? speedIcon(def.speed) : ''}</span>
             <small class="mv-cd">${(mv.cd || 0) > 0
               ? `Chờ ${mv.cd} lượt` : `Hồi ${def ? def.recharge : 0} lượt`}</small>
           </button>`;

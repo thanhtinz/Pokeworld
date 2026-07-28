@@ -22,6 +22,10 @@ Cụ thể đã lấy:
 | Icon vật phẩm | `assets/items/` |
 | 40 nền trận đấu theo môi trường, có cả cảnh đêm (ghép lại cho màn dọc) | `assets/arena/`, `js/data/arenas.js` |
 | 12 bong bóng cảm xúc trên đầu NPC | `assets/ui/bubble/` |
+| Icon bi đội hình, trái tim thân thiết, dấu +/-, mũi tên tốc độ chiêu | `assets/ui/party/`, `assets/ui/bond/`, `assets/ui/plusminus/`, `assets/ui/speed/` |
+| 143 tiếng kêu riêng cho 411 loài (lúc ra trận, lúc gục) | `assets/sfx/cry/`, `js/data/sounds.js` |
+| Ghi chép Tuxedex của 407 loài (nguyên văn tiếng Anh của bản gốc) | `js/data/species.js` |
+| Nơi sống và đặc điểm của từng loài | `js/data/species.js`, `js/data/traits.js` |
 | 25 loại Tuxeball + hệ số bắt của từng loại | `js/data/capdev.js` |
 | 91 vật phẩm kèm hiệu ứng và điều kiện dùng | `js/data/items.js` |
 | 15 hiệu ứng chiêu thức | `assets/vfx/`, `js/data/vfx.js` |

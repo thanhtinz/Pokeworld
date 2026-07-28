@@ -10,7 +10,7 @@ import { MOVES } from '../data/moves.js';
 import { tasteText } from '../data/tastes.js';
 import { monSprite, monBoxIcon, monPath, upgradeImages, esc } from '../util.js';
 import { toast, choose, confirmDlg, hpBar, typeBadge, statusTag, header, holoStyle, itemIcon } from './kit.js';
-import { rangeIcon } from './icons.js';
+import { rangeIcon, speedIcon } from './icons.js';
 import { openSheet } from './sheet.js';
 
 // Sáu chỉ số của Tuxemon
@@ -94,7 +94,7 @@ export function render(el) {
         <div class="move-list-sm">
           ${m.moves.map(mv => {
             const d = MOVES[mv.id];
-            return `<div class="move-row">${d ? typeBadge(d.types[0]) : ''} ${d ? rangeIcon(d.range) : ''}
+            return `<div class="move-row">${d ? typeBadge(d.types[0]) : ''} ${d ? rangeIcon(d.range) : ''}${d ? speedIcon(d.speed) : ''}
               ${esc(d ? d.name : mv.id)} <small>Hồi ${d ? d.recharge : 0} lượt</small></div>`;
           }).join('')}
         </div>
