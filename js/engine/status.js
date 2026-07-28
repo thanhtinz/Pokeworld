@@ -179,11 +179,33 @@ export function survives(mon) {
 }
 
 // Cuối lượt: mất/hồi máu theo trạng thái. Trả { dmg, heal, msg|null }
+// Hệ số nhân sát thương của trạng thái theo HỆ của con đang dính. Bản gốc
+// (modifiers.get_multiplier) gom mọi modifier khớp rồi lấy theo chế độ ghi ở
+// tham số thứ hai — cả bảng chỉ dùng 'weakest', tức lấy số nhỏ nhất; không có
+// modifier nào khớp thì bằng 1. Bỏng: hệ Lửa miễn nhiễm, hệ Băng cháy gấp đôi.
+function heSoTrangThai(mon, s) {
+  if (!s.tmod) return 1;
+  const che = String(s.p?.[1] || 'weakest');
+  const co = typesOf(mon).filter(t => s.tmod[t] !== undefined).map(t => s.tmod[t]);
+  if (!co.length) return 1;
+  if (che === 'strongest') return Math.max(...co);
+  if (che === 'first') return co[0];
+  if (che === 'average') return co.reduce((a, b) => a + b, 0) / co.length;
+  if (che === 'cumulative') return co.reduce((a, b) => a * b, 1);
+  return Math.min(...co);
+}
+
 export function endOfTurn(mon, name) {
   const s = def(mon.status);
   if (!s) return { dmg: 0, heal: 0, msg: null };
   const max = maxHp(mon);
-  const phan = (mac) => Math.max(1, Math.floor(max / so(s.p?.[0], mac)));
+  const he = heSoTrangThai(mon, s);
+  // Hệ số 0 = miễn nhiễm: bản gốc trừ ra 0 máu rồi gỡ luôn trạng thái
+  if (he === 0) {
+    cureStatus(mon);
+    return { dmg: 0, heal: 0, msg: `${name} miễn nhiễm, trạng thái tan biến.` };
+  }
+  const phan = (mac) => Math.max(1, Math.floor(max / so(s.p?.[0], mac) * he));
 
   if (s.kind === 'burnt' || s.kind === 'poisoned' || s.kind === 'lifeleech') {
     const d = phan(s.kind === 'lifeleech' ? 16 : 8);
@@ -196,7 +218,7 @@ export function endOfTurn(mon, name) {
   if (s.kind === 'wasting') {
     // Bản gốc càng để lâu càng nặng
     mon.statusUsed = (mon.statusUsed || 0) + 1;
-    const d = Math.max(1, Math.floor(max / so(s.p?.[0], 16)) * mon.statusUsed);
+    const d = Math.max(1, Math.floor(max / so(s.p?.[0], 16) * he) * mon.statusUsed);
     mon.hpCur = Math.max(0, mon.hpCur - d);
     return { dmg: d, heal: 0, msg: `${name} đang suy kiệt dần!` };
   }

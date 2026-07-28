@@ -707,6 +707,17 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   ok('mã huấn luyện viên cũ vẫn tính là đã thắng', G.p.defeatedTrainers.vo_duong_dat === true);
   ok('cờ shiny cũ đổi thành hoa văn stars',
     G.p.party[0].flair === 'stars' && G.p.party[0].shiny === undefined);
+  // Con vô tính trong bản lưu cũ bị ghi nhầm là cái -> nạp lại phải sửa lại
+  {
+    const voTinh = Object.entries(SPECIES).find(([, x]) => x.gender.n === 1)[0];
+    const con = newTuxemon(voTinh, 10);
+    con.gender = 'f';
+    G.p.party = [con];
+    save();
+    G.p = null; load();
+    ok('giới tính sai trong bản lưu cũ được sửa lại', G.p.party[0].gender === 'n',
+      G.p.party[0].gender);
+  }
 }
 
 // Huy hiệu: dùng đúng bộ của Tuxemon, không phải huy hiệu vùng Kanto
@@ -996,7 +1007,59 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     ok('chiêu phủ đầu trượt vẫn ăn nửa đòn', sut > 0, `${id} ${sut}`);
   }
 
-  // Chuỗi trạng thái dồn lực -> tích lực -> kiệt sức. Trước đây "Đang dồn lực"
+  // Giới tính bốc theo bảng trọng số của bản gốc. Trước đây công cụ sinh data
+// quy gender_weights về một con số "tỉ lệ đực" lấy từ khoá 'male' với mặc định
+// 0.5 — mà 116 loài ghi {neuter: 1.0} và 3 loài ghi {female: 1.0} đều không có
+// khoá đó, nên cả 119 loài thành 50/50: Tuxeball Vô Tính vô dụng và đường tiến
+// hoá theo giới tính không bao giờ bắt được.
+{
+  const nhom = { m: 0, f: 0, n: 0 };
+  for (const sp of Object.values(SPECIES)) {
+    const ds = Object.keys(sp.gender || {});
+    if (ds.length === 1) nhom[ds[0]] += 1;
+  }
+  ok('có loài vô tính', nhom.n >= 100, JSON.stringify(nhom));
+  ok('có loài chỉ một giống', nhom.m > 0 && nhom.f > 0, JSON.stringify(nhom));
+  ok('bảng giới tính nào cũng có trọng số dương',
+    Object.values(SPECIES).every(sp => Object.keys(sp.gender || {}).length
+      && Object.values(sp.gender).every(w => w > 0)));
+
+  const voTinh = Object.entries(SPECIES).find(([, x]) => x.gender.n === 1)[0];
+  const doi = Object.entries(SPECIES).find(([, x]) => x.gender.m === 0.5)[0];
+  const bocVoTinh = new Set();
+  const bocDoi = new Set();
+  for (let k = 0; k < 200; k++) {
+    bocVoTinh.add(newTuxemon(voTinh, 5).gender);
+    bocDoi.add(newTuxemon(doi, 5).gender);
+  }
+  ok('loài vô tính chỉ sinh ra con vô tính',
+    bocVoTinh.size === 1 && bocVoTinh.has('n'), [...bocVoTinh].join());
+  ok('loài 50/50 sinh ra cả đực lẫn cái',
+    bocDoi.size === 2 && bocDoi.has('m') && bocDoi.has('f'), [...bocDoi].join());
+}
+
+// Trạng thái nhân sát thương theo hệ của con đang dính (modifiers bên bản gốc):
+// bỏng thì hệ Lửa miễn nhiễm còn hệ Băng cháy gấp đôi. Trước đây chỉ đọc mỗi
+// hệ số 0 để làm miễn nhiễm, hệ số 2 bị bỏ qua.
+{
+  ok('bỏng có bảng hệ số theo hệ',
+    STATUSES.burn?.tmod?.frost === 2 && STATUSES.burn?.tmod?.fire === 0);
+  const mot = (t) => {
+    const id = Object.entries(SPECIES).find(([, x]) => x.types.length === 1 && x.types[0] === t
+      && !x.glitched)?.[0];
+    return id ? newTuxemon(id, 40) : null;
+  };
+  const bang = mot('frost'), thuong = mot('wood'), lua = mot('fire');
+  for (const m of [bang, thuong, lua]) { if (m) { m.hpCur = maxHp(m); m.status = 'burn'; } }
+  const dBang = endOfTurn(bang, 'X').dmg / maxHp(bang);
+  const dThuong = endOfTurn(thuong, 'X').dmg / maxHp(thuong);
+  ok('hệ Băng cháy gấp đôi', dBang > dThuong * 1.8, `${dBang.toFixed(3)} vs ${dThuong.toFixed(3)}`);
+  const rLua = endOfTurn(lua, 'X');
+  ok('hệ Lửa miễn nhiễm bỏng, trạng thái tan luôn',
+    rLua.dmg === 0 && lua.status === null, String(rLua.dmg));
+}
+
+// Chuỗi trạng thái dồn lực -> tích lực -> kiệt sức. Trước đây "Đang dồn lực"
   // không bao giờ chuyển tiếp (đứng đó vô nghĩa) còn "Tích lực" thì nhân đôi
   // NĂM chỉ số VĨNH VIỄN vì không có gì đẩy nó sang "Kiệt sức".
   {

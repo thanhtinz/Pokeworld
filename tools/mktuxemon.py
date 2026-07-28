@@ -237,6 +237,15 @@ def write_statuses(db, names, disp):
         # He mien nhiem / dinh nang: modifiers kieu type
         imm = [m['values'][0] for m in (st.get('modifiers') or [])
                if m.get('attribute') == 'type' and m.get('multiplier') == 0 and m.get('values')]
+        # He so nhan sat thuong theo he cua NGUOI DINH trang thai. Vi du bong:
+        # he Lua mien nhiem (0), he Bang chay gap doi (2). Ban goc lay he so nay
+        # trong core/effects/burnt.py qua status.modifiers.get_multiplier.
+        tmod = {}
+        for m in st.get('modifiers') or []:
+            if m.get('attribute') != 'type' or not m.get('values'):
+                continue
+            for v in m['values']:
+                tmod[v] = m.get('multiplier', 1.0)
         rows.append((slug, {
             'name': STATUS_VI.get(slug, disp(slug)),
             'cat': st.get('category') or 'negative',
@@ -247,6 +256,7 @@ def write_statuses(db, names, disp):
             'keep': bool((st.get('behaviors') or {}).get('persists_after_combat')),
             # Chuoi trang thai: dung chieu (hoac dung do) xong thi trang thai
             # nay doi thanh trang thai khac. charging -> chargedup -> exhausted.
+            'tmod': tmod,
             'onTech': (st.get('on_tech_use') or '') if st.get('on_tech_use') in co_that else '',
             'onItem': (st.get('on_item_use') or '') if st.get('on_item_use') in co_that else '',
         }))
@@ -258,9 +268,10 @@ def write_statuses(db, names, disp):
            '// onTech/onItem = dùng chiêu (hoặc dùng đồ) xong thì đổi sang trạng thái nào.', '',
            'export const STATUSES = {']
     for slug, r in rows:
-        out.append('  %s: { name: %s, cat: %s, kind: %s, p: %s, mods: %s, immune: %s%s%s%s },'
+        out.append('  %s: { name: %s, cat: %s, kind: %s, p: %s, mods: %s, immune: %s%s%s%s%s },'
                    % (js(slug), js(r['name']), js(r['cat']), js(r['kind']), js(r['p']),
                       js(r['mods']), js(r['immune']), ', keep: true' if r['keep'] else '',
+                      (', tmod: %s' % js(r['tmod'])) if r['tmod'] else '',
                       (', onTech: %s' % js(r['onTech'])) if r['onTech'] else '',
                       (', onItem: %s' % js(r['onItem'])) if r['onItem'] else ''))
     out.append('};')
@@ -437,11 +448,20 @@ def write_species(mons, dex, shapes, disp, elements):
         types = m.get('types') or ['normal']
         out.append('  %d: { name: %s, slug: %s, types: %s,' % (i, js(disp(m['slug'])), js(m['slug']), js(types)))
         out.append('    base: { %s },' % ', '.join('%s: %d' % (k, attr[k]) for k in STAT_KEYS))
-        out.append('    catchRate: %s, catchLo: %s, catchHi: %s, genderRatio: %s,'
+        # Ti le gioi tinh: LAY CA BANG gender_weights chu khong quy ve mot so.
+        # Truoc day cong cu chi doc khoa 'male' voi mac dinh 0.5, ma 116 loai
+        # ghi {neuter: 1.0} va 3 loai ghi {female: 1.0} deu khong co khoa do —
+        # thanh ra ca 119 loai bi coi la 50/50, Tuxeball Vo Tinh vo dung va
+        # duong tien hoa theo gioi tinh khong bao gio bat duoc.
+        gw = m.get('gender_weights') or {'male': 0.5, 'female': 0.5}
+        can = {'m': float(gw.get('male', 0)), 'f': float(gw.get('female', 0)),
+               'n': float(gw.get('neuter', 0))}
+        can = {k: round(v, 3) for k, v in can.items() if v > 0}
+        out.append('    catchRate: %s, catchLo: %s, catchHi: %s, gender: %s,'
                    % (fmtnum(round(float(m.get('catch_rate', 100)), 2)),
                       fmtnum(round(float(m.get('lower_catch_resistance', 1)), 2)),
                       fmtnum(round(float(m.get('upper_catch_resistance', 1)), 2)),
-                      fmtnum(round(float((m.get('gender_weights') or {}).get('male', 0.5)), 3))))
+                      js(can)))
         # Tuxemon co 13 con "glitched" (ten kieu F7U1T3Ra) — de nguyen thi Tuxedex
         # trang dau toan chu loi nhin nhu hong font, nen danh dau de game an di.
         glitch = ', glitched: true' if m.get('species') == 'glitched' else ''

@@ -6,7 +6,7 @@
 
 export const STATUSES = {
   "blinded": { name: "Mù", cat: "negative", kind: "statchange", p: [], mods: {"speed": 0.5, "dodge": 0.5}, immune: [] },
-  "burn": { name: "Bỏng", cat: "negative", kind: "burnt", p: ["8", "weakest"], mods: {}, immune: ["fire"], keep: true },
+  "burn": { name: "Bỏng", cat: "negative", kind: "burnt", p: ["8", "weakest"], mods: {}, immune: ["fire"], keep: true, tmod: {"fire": 0.0, "frost": 2.0} },
   "chargedup": { name: "Tích lực", cat: "positive", kind: "chargedup", p: [], mods: {"armour": 2, "dodge": 2, "melee": 2, "ranged": 2, "speed": 2}, immune: [], onTech: "exhausted" },
   "charging": { name: "Đang dồn lực", cat: "positive", kind: "charging", p: [], mods: {}, immune: [], onTech: "chargedup", onItem: "chargedup" },
   "charmed": { name: "Mê hoặc", cat: "negative", kind: "charmed", p: ["0.5"], mods: {}, immune: [] },
@@ -26,7 +26,7 @@ export const STATUSES = {
   "lifeleech": { name: "Hút máu", cat: "negative", kind: "lifeleech", p: ["16"], mods: {}, immune: [] },
   "lockdown": { name: "Bị khoá", cat: "negative", kind: "lockdown", p: [], mods: {}, immune: [] },
   "noddingoff": { name: "Ngủ gật", cat: "negative", kind: "noddingoff", p: ["0.5"], mods: {}, immune: [] },
-  "poison": { name: "Trúng độc", cat: "negative", kind: "poisoned", p: ["8", "weakest"], mods: {}, immune: ["venom"], keep: true },
+  "poison": { name: "Trúng độc", cat: "negative", kind: "poisoned", p: ["8", "weakest"], mods: {}, immune: ["venom"], keep: true, tmod: {"venom": 0.0} },
   "prickly": { name: "Gai góc", cat: "positive", kind: "prickly", p: ["8", "touch:melee"], mods: {}, immune: [] },
   "recover": { name: "Hồi phục", cat: "positive", kind: "recover", p: ["16"], mods: {}, immune: [] },
   "retaliate": { name: "Đáp trả", cat: "positive", kind: "retaliate", p: [], mods: {}, immune: [] },

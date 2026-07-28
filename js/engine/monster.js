@@ -21,6 +21,16 @@ export const COEFF_STATS = 7;      // config_monster.coeff_stats của bản g�
 const FALLBACK_SPEC = { name: '???', types: ['normal'],
   base: { hp: 6, armour: 6, dodge: 6, melee: 6, ranged: 6, speed: 6 } };
 
+// Bốc giới tính theo bảng trọng số {m, f, n} của loài
+function bocGioiTinh(bang) {
+  const ds = Object.entries(bang || { m: 0.5, f: 0.5 }).filter(([, w]) => w > 0);
+  if (!ds.length) return 'n';
+  const tong = ds.reduce((a, [, w]) => a + w, 0);
+  let x = rng.float() * tong;
+  for (const [g, w] of ds) { x -= w; if (x <= 0) return g; }
+  return ds[ds.length - 1][0];
+}
+
 // Tạo một con mới. opts = { iv, tasteCold, tasteWarm, gender, flair, ball, moves }
 export function newTuxemon(spId, level, opts = {}) {
   const spec = SPECIES[spId];
@@ -41,13 +51,10 @@ export function newTuxemon(spId, level, opts = {}) {
   const tasteCold = opts.tasteCold || rng.pick(COLD_LIST);
   const tasteWarm = opts.tasteWarm || rng.pick(WARM_LIST);
 
-  // Gender theo genderRatio (tỉ lệ đực; -1 = không giới tính)
+  // Giới tính bốc theo BẢNG TRỌNG SỐ của bản gốc (gender_weights): phần lớn
+  // loài 50/50 đực-cái, 116 loài vô tính hoàn toàn, vài loài chỉ một giống.
   let gender = opts.gender;
-  if (!gender) {
-    if (spec.genderRatio === -1) gender = 'n';
-    else if (rng.roll(spec.genderRatio)) gender = 'm';
-    else gender = 'f';
-  }
+  if (!gender) gender = bocGioiTinh(spec.gender);
 
   // Hoa văn hiếm (flair). Tuxemon KHÔNG có shiny — cái bản game này từng gọi là
   // shiny là khái niệm của game khác. Bản gốc có db/flair: hoa văn cosmetic vẽ

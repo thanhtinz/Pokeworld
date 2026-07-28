@@ -3,6 +3,7 @@ import { clamp, todayNum } from './util.js';
 import { QUESTS } from './data/quests.js';
 import { ITEMS } from './data/items.js';
 import { TYPES } from './data/types.js';
+import { SPECIES } from './data/species.js';
 import { loadActiveSave, writeActiveSave, clearActiveSave } from './engine/accounts.js';
 
 // Khoá localStorage đời đầu — giữ nguyên tên để bản lưu cũ không mất.
@@ -89,6 +90,11 @@ function vaMons(list) {
     if (m.shiny !== undefined) { if (m.shiny && !m.flair) m.flair = 'stars'; delete m.shiny; }
     if (m.flair && m.flair !== 'stars') m.flair = 'stars';
     delete m.outOfRange;               // trạng thái chỉ tồn tại trong trận
+    // Bản lưu cũ sinh ra bằng bảng giới tính hỏng: 116 loài vô tính và 3 loài
+    // chỉ có một giống đều bị bốc thành đực/cái bừa. Giới tính nào loài không
+    // có thì trả về giống hợp lệ.
+    const bang = SPECIES[m.sp]?.gender;
+    if (bang && !bang[m.gender]) m.gender = Object.keys(bang)[0];
     if (m.held && !ITEMS[m.held]) delete m.held;   // món cũ đã bỏ khỏi bảng
     // Hệ do quả đổi hệ ghi đè — hệ lạ thì bỏ, để lấy lại hệ gốc của loài
     if (m.types && (!Array.isArray(m.types) || !m.types.every(t => TYPES[t]))) delete m.types;
