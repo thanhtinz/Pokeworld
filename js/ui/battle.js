@@ -202,8 +202,9 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
           const dis = busy || (mv.cd || 0) > 0;
           return `<button class="btn move-btn" data-mv="${i}" ${dis ? 'disabled' : ''}>
             <span class="mv-name">${esc(def ? def.name : mv.id)}</span>
-            <span class="mv-sub">${def ? typeBadge(def.types[0]) : ''}${def ? rangeIcon(def.range) : ''} <small>${
-              (mv.cd || 0) > 0 ? `Chờ ${mv.cd} lượt` : `Hồi ${def ? def.recharge : 0} lượt`}</small></span>
+            <span class="mv-sub">${def ? typeBadge(def.types[0]) : ''}${def ? rangeIcon(def.range) : ''}</span>
+            <small class="mv-cd">${(mv.cd || 0) > 0
+              ? `Chờ ${mv.cd} lượt` : `Hồi ${def ? def.recharge : 0} lượt`}</small>
           </button>`;
         }).join('')}
       </div>

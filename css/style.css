@@ -168,8 +168,9 @@ html, body {
 #bottom-nav[hidden] { display: none; }
 #bottom-nav button {
   flex: 1;
-  padding: 6px 0 7px;
-  font-size: .68rem;
+  min-width: 0;              /* không có dòng này thì "Nhân vật" nong ô ra, đè sang ô bên */
+  padding: 6px 3px 7px;
+  font-size: .62rem;
   font-family: var(--ui);
   font-weight: 600;
   letter-spacing: 0;
@@ -190,6 +191,13 @@ html, body {
   line-height: 1;
   border-radius: 50%;
   transition: background .2s, box-shadow .2s, transform .15s;
+}
+/* Nhãn dài ("Nhân vật", "Tuxedex") phải co lại trong đúng ô của nó, không thì
+   hai chữ dính vào nhau nhìn như bị lệch. */
+#bottom-nav .nav-lb {
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: center;
 }
 #bottom-nav button.active { color: var(--gold-num); }
 #bottom-nav button.active .nav-ico {
@@ -686,10 +694,25 @@ img[src*='sprites'] { image-rendering: pixelated; }
 @keyframes logline { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .bt-actions { flex-shrink: 0; }
 .move-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-.move-btn { display: flex; flex-direction: column; gap: 4px; padding: 10px; text-align: left; }
-.mv-name { font-family: var(--pix); font-weight: 400; font-size: .6rem; line-height: 1.4; }
-.mv-sub { display: flex; align-items: center; gap: 6px; }
-.mv-sub small { color: var(--muted); font-size: .7rem; }
+/* Nut chieu: ba dong CANH GIUA het — ten, huy hieu he + tam danh, so luot hoi.
+   Truoc day ten canh giua con hang huy hieu canh trai, lai them chu "Hoi N luot"
+   nam chung hang nen bi day xuong ba dong, nhin nhu chu bi lech sang trai. */
+.move-btn {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5px; padding: 9px 6px; text-align: center;
+}
+.mv-name {
+  font-family: var(--pix); font-weight: 400; font-size: .58rem; line-height: 1.35;
+  width: 100%; text-align: center;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mv-sub { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.mv-cd { color: var(--muted); font-size: .68rem; white-space: nowrap; line-height: 1; }
+/* Trong o chieu thi huy hieu he phai nho lai moi du cho hai thu tren mot hang */
+.move-btn .type-badge { font-size: .58rem; padding: 1px 7px 1px 2px; gap: 3px; }
+.move-btn .type-ico { width: 16px !important; height: 16px !important; }
+.move-btn .range-ico { height: 11px !important; }
 .bt-subrow { display: flex; gap: 8px; }
 .bt-subrow .btn { padding: 10px; font-size: .88rem; }
 
