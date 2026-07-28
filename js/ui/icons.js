@@ -57,8 +57,11 @@ const ART = {
   book: 'assets/ui/book.png',      // nhật ký -> Tuxedex
   gear: 'assets/ui/gear.png',      // cài đặt
   team: 'assets/ui/team.png',      // đội hình
-  // 'person' của bản gốc là bóng người đen thui, đặt lên nền tối của game này
-  // thì chìm nghỉm — chỗ đó vẫn dùng hình vẽ SVG cho rõ.
+  // 'person' của bản gốc là bóng người đen thui, chìm nghỉm trên nền tối —
+  // tools/mkui.py đổi tông sang màu sáng rồi mới chép sang.
+  person: 'assets/ui/person.png',
+  exit: 'assets/ui/exit.png',      // thoát / đăng xuất
+  save: 'assets/ui/save.png',      // lưu
 };
 
 // size = px, cls thêm class ngoài

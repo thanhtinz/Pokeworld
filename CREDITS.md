@@ -31,7 +31,7 @@ Cụ thể đã lấy:
 | 15 hiệu ứng chiêu thức | `assets/vfx/`, `js/data/vfx.js` |
 | 20 bản đồ Tiled + tileset (đã gom thành atlas riêng từng bản đồ) | `js/data/maps.js`, `assets/maps/` |
 | Phím chữ thập và nút A/B (đã tô lại theo màu game) | `assets/ui/` |
-| Icon giao diện: ba lô, nhật ký, đội hình, cài đặt | `assets/ui/` |
+| Icon giao diện: ba lô, nhật ký, đội hình, cài đặt, nhân vật, thoát, lưu | `assets/ui/` |
 | Icon tầm đánh của chiêu (melee/touch/ranged/reach/reliable) | `assets/ui/range/` |
 | 33 trạng thái + icon (độc, bỏng, mê hoặc, vỏ cứng...) | `js/data/statuses.js`, `assets/ui/status/` |
 | Bảng gặp Tuxemon hoang của từng bản đồ | `js/data/encounters.js` |
@@ -56,7 +56,9 @@ nào, không sửa tay.
 CC BY-SA yêu cầu: ghi công (chính là trang này) và nếu sửa lại ảnh thì bản sửa
 cũng phải để CC BY-SA. Icon nhỏ của 15 con được thu từ chính sprite mặt trước
 của chúng (bản gốc chỉ có ảnh dấu hỏi dùng chung), nên phần sửa đó cũng theo
-CC BY-SA 4.0.
+CC BY-SA 4.0. Icon "nhân vật" của bản gốc là bóng người đen thui, chìm nghỉm
+trên nền tối của game này nên đã đổi tông sang màu sáng — bản đổi màu đó cũng
+theo CC BY-SA 4.0.
 
 ## Âm thanh — `assets/sfx/`, `assets/music/`
 
@@ -76,7 +78,7 @@ Chỉ chép những tệp thật sự dùng (`tools/mksounds.py`), tổng khoả
 | Thứ gì | Làm bằng |
 |---|---|
 | Chữ tiêu đề TuxeWorld (`assets/img/title.png`) | font pixel tự dựng trong script |
-| Icon giao diện | SVG vẽ tay trong `js/ui/icons.js` |
+| Icon nào bản gốc không có (bản đồ, menu, nhiệm vụ, bang hội...) | SVG vẽ tay trong `js/ui/icons.js` |
 
 Các bản đầu của dự án có mượn ảnh cắt từ game thương mại (nền trận đấu, ảnh
 vật phẩm) — đã bỏ sạch, nay chỉ còn asset của chính Tuxemon và đồ tự vẽ.

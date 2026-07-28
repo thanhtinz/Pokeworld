@@ -29,7 +29,14 @@ MENU = {
     'book': 'journal',        # Tuxedex
     'gear': 'settings',       # Cai dat
     'team': 'tuxemon',        # Doi hinh
+    'exit': 'exit',           # Thoat / dang xuat
+    'save': 'save',           # Luu
 }
+
+# Anh 'player' cua ban goc la bong nguoi DEN THUI. Dat len nen tim than cua game
+# nay thi chim nghim, nen doi mau sang cho hop — CC BY-SA cho phep sua, ban sua
+# cung theo CC BY-SA (xem CREDITS.md).
+DOI_MAU = {'person': ('player', (241, 237, 255))}
 
 # Tam danh cua chieu (gfx/ui/icons/range)
 RANGES = ['melee', 'touch', 'ranged', 'reach', 'reliable']
@@ -80,6 +87,25 @@ def main():
             n += 1
         else:
             thieu.append(src)
+
+    for ten, (goc, mau) in DOI_MAU.items():
+        p2 = os.path.join(ui, 'menu', goc + '.png')
+        if os.path.exists(p2):
+            im = Image.open(p2).convert('RGBA')
+            px = im.load()
+            for y in range(im.height):
+                for x in range(im.width):
+                    r, g, b, a = px[x, y]
+                    if a == 0:
+                        continue
+                    # Giu do dam nhat cua net goc, chi doi tong mau
+                    k = 1 - (r + g + b) / 765
+                    px[x, y] = (int(mau[0] * k), int(mau[1] * k), int(mau[2] * k), a)
+            im.resize((im.width * SCALE, im.height * SCALE), Image.NEAREST).save(
+                'assets/ui/%s.png' % ten, optimize=True)
+            n += 1
+        else:
+            thieu.append(goc)
 
     for r in RANGES:
         p = os.path.join(ui, 'icons/range', r + '.png')
