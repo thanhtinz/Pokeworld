@@ -61,6 +61,20 @@ MANG_THEO = {
                        'một nửa cho con ra trận, một nửa chia đều cho những con còn lại.'),
 }
 
+# Bua ho menh: mon HOLDABLE khai immunity_to_status — cam theo la mien nhiem
+# han trang thai do (horseshoe: 'all' = mien tat). Ten tieng Viet + gia dat tay
+# vi ban goc khong ghi gia cho nhung mon nay.
+BUA = {
+    'antidote_grapes': ('Chùm Nho Giải Độc', 1800),
+    'cure_festering': ('Thuốc Trị Mưng Mủ', 1800),
+    'refreshing_slice': ('Lát Cam Mát Lạnh', 1800),
+    'marble': ('Viên Bi', 1500),
+    'feather': ('Chiếc Lông Vũ', 1500),
+    'toy_bear': ('Gấu Bông', 2200),
+    'flute': ('Cây Sáo', 2000),
+    'horseshoe': ('Móng Ngựa May Mắn', 9000),
+}
+
 # Chi so: slug ban goc -> ten tieng Viet
 CHI_SO = {'hp': 'HP', 'armour': 'Giáp', 'dodge': 'Né', 'melee': 'Cận chiến',
           'ranged': 'Tầm xa', 'speed': 'Tốc độ'}
@@ -75,6 +89,13 @@ VI_KHAU_VI = {
     'mild': 'nhạt', 'sweet': 'ngọt', 'soft': 'mềm', 'flakey': 'bở', 'dry': 'khô',
     'bland': 'lạt', 'peppy': 'hăng', 'salty': 'mặn', 'hearty': 'đậm',
     'zesty': 'thanh', 'refined': 'tinh', 'savory': 'bùi',
+}
+
+# Ten trang thai tieng Viet (chi de viet mo ta bua ho menh)
+TEN_TRANG_THAI = {
+    'poison': 'trúng độc', 'festering': 'mưng mủ', 'exhausted': 'kiệt sức',
+    'stuck': 'kẹt cứng', 'grabbed': 'bị ghì', 'lifeleech': 'bị hút máu',
+    'noddingoff': 'ngủ gật',
 }
 
 GIOI_TINH = {'male': 'm', 'female': 'f', 'neuter': 'n'}
@@ -474,11 +495,14 @@ def main():
             continue
         d = yaml.safe_load(open(os.path.join(db, f), encoding='utf-8')) or {}
         eff = [e for e in (d.get('effects') or []) if isinstance(e, dict)]
-        mang_theo = d['slug'] in MANG_THEO and (d.get('behaviors') or {}).get('holdable')
+        holdable = bool((d.get('behaviors') or {}).get('holdable'))
+        mang_theo = d['slug'] in MANG_THEO and holdable
+        # Bua ho menh: mon cam theo de chan han mot trang thai
+        bua = d['slug'] in BUA and holdable and d.get('immunity_to_status')
         # Huy hieu vo duong khong co hieu ung gi — no la vat chung minh da thang,
         # giu lai de lay ten + icon that cua Tuxemon thay cho huy hieu tu che.
         huy_hieu = (d.get('category') or '') == 'badge'
-        if not mang_theo and not huy_hieu:
+        if not mang_theo and not huy_hieu and not bua:
             if not eff or not (set(e['type'] for e in eff) & HIEU_UNG):
                 continue
             # Bo mon hieu ung phu tro chua chay duoc (learn_tm, switch_type...)
@@ -491,7 +515,7 @@ def main():
         if day and (day[0].get('parameters') or [''])[0] not in CHIEU:
             continue
         cat = d.get('category') or 'none'
-        mang = slug in MANG_THEO and (d.get('behaviors') or {}).get('holdable')
+        mang = mang_theo or bool(bua)
         if cat not in NHOM and not mang:
             continue
         # Mon co hai am (bite_of_despair...) khong ban trong shop, bo qua
@@ -521,8 +545,10 @@ def main():
         # chua rai duoc do khap ban do nen cho ban trong shop, khong thi ca
         # dong duong tien hoa thanh vo nghia.
         mac_dinh = 2000 if cat == 'morph' else 0
-        if mang:
+        if mang_theo:
             mac_dinh = MANG_THEO[slug][1]
+        elif bua:
+            mac_dinh = BUA[slug][1]
         mua, ban = gia_goc.get(slug, (d.get('cost') or mac_dinh,
                                       round((d.get('cost') or mac_dinh) * 0.5)))
         trong_tran = 'MainCombatMenuState' in (d.get('usable_in') or [])
@@ -532,18 +558,31 @@ def main():
             trong_tran = ngoai_tran = False
             eff = []
             d = dict(d, conditions=[])
-        rows.append((slug, obj({
-            'name': js(MANG_THEO[slug][0] if mang else (TEN.get(slug) or ten_anh.get(slug) or slug)),
-            'desc': js(MANG_THEO[slug][2] if mang else mo_ta(slug, cat, eff, capdev, tien_hoa)),
+        chan = list(d.get('immunity_to_status') or []) if bua else []
+        if mang_theo:
+            ten, mo = MANG_THEO[slug][0], MANG_THEO[slug][2]
+        elif bua:
+            ten = BUA[slug][0]
+            mo = ('Cầm theo thì miễn nhiễm mọi trạng thái xấu.' if 'all' in chan
+                  else 'Cầm theo thì không bao giờ dính %s.'
+                  % ' / '.join(TEN_TRANG_THAI.get(x, x) for x in chan))
+        else:
+            ten, mo = (TEN.get(slug) or ten_anh.get(slug) or slug), mo_ta(slug, cat, eff, capdev, tien_hoa)
+        row = {
+            'name': js(ten),
+            'desc': js(mo),
             'kind': js('held' if mang else NHOM[cat]),
             'price': js(int(mua)),
             'sell': js(int(ban)),
             'inBattle': js(bool(trong_tran) and not mang),
             'inWorld': js(bool(ngoai_tran) and not mang),
             'held': js(bool(mang)),
-            'eff': '[%s]' % ', '.join(hieu_ung_js(slug, eff, d)),
+            'eff': '[%s]' % ', '.join(hieu_ung_js(slug, eff, d) if not mang else []),
             'cond': '[%s]' % ', '.join(dieu_kien_js(d.get('conditions'))),
-        })))
+        }
+        if chan:
+            row['immuneTo'] = js(chan)
+        rows.append((slug, obj(row)))
 
     out = ['// TuxeWorld H5 | data/items.js | Vật phẩm — TỰ SINH TỪ tools/mkitems.py',
            '// Nguồn: Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',

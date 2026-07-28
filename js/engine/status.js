@@ -7,6 +7,7 @@
 import { rng } from '../util.js';
 import { SPECIES } from '../data/species.js';
 import { STATUSES, statusName } from '../data/statuses.js';
+import { ITEMS } from '../data/items.js';
 import { maxHp, typesOf } from './monster.js';
 
 export { statusName };
@@ -16,18 +17,43 @@ export const STATUS_NAMES = Object.fromEntries(
 const def = (id) => STATUSES[id] || null;
 const so = (v, mac) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : mac; };
 
+// Dính một trạng thái mới lên con đang mang sẵn trạng thái khác thì xử lý ra
+// sao — theo status/transition_engine.py của bản gốc:
+//   · chưa mang gì            -> dính luôn
+//   · đúng trạng thái đang có -> chồng lên, coi như không có gì mới
+//   · đang mang trạng thái tốt-> tra onPos của trạng thái MỚI
+//   · đang mang trạng thái xấu-> tra onNeg của trạng thái MỚI
+// Mặc định của bản gốc là 'replaced' (cái mới đè cái cũ) chứ KHÔNG phải chặn.
+// Bản này trước đây tự đặt luật "tốt không đẩy được xấu và ngược lại", thành
+// ra mấy chiêu buff không còn tác dụng gỡ trạng thái xấu như bên gốc.
+// 'removed' = gỡ trạng thái cũ mà KHÔNG dính cái mới (Tập trung, Vỏ cứng).
 export function applyStatus(mon, id) {
   const s = def(id);
   if (!s) return false;
-  const spec = { types: typesOf(mon) };
-  if ((s.immune || []).some(t => (spec?.types || []).includes(t))) return false;
-  const cu = def(mon.status);
-  if (cu && cu.cat !== s.cat) return false;
+  if (immuneToStatus(mon, id)) return false;
+  if ((s.immune || []).some(t => typesOf(mon).includes(t))) return false;
   if (mon.status === id) return false;
+
+  const cu = def(mon.status);
+  if (cu) {
+    const cach = cu.cat === 'positive' ? (s.onPos || 'replaced')
+      : cu.cat === 'negative' ? (s.onNeg || 'replaced') : 'replaced';
+    if (cach === 'removed') { cureStatus(mon); return false; }
+    if (cach !== 'replaced') return false;
+  }
+
   mon.status = id;
   mon.statusTurns = s.kind === 'noddingoff' ? rng.int(1, 3) : 0;
   mon.statusUsed = 0;
   return true;
+}
+
+// Món đang cầm chặn hẳn một trạng thái (db/item: immunity_to_status).
+// 'all' = chặn tất; bản gốc chỉ xét MÓN ĐANG CẦM, không xét món trong túi.
+export function immuneToStatus(mon, id) {
+  const it = mon.held && ITEMS[mon.held];
+  const ds = it && it.immuneTo;
+  return !!ds && (ds.includes('all') || ds.includes(id));
 }
 
 export function cureStatus(mon) {

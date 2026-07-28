@@ -2,7 +2,8 @@
 // Nguồn: Tuxemon db/status (CC BY-SA 4.0). Đừng sửa tay.
 // kind = kiểu tác động (xem js/engine/status.js), p = tham số của bản gốc,
 // mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận,
-// onTech/onItem = dùng chiêu (hoặc dùng đồ) xong thì đổi sang trạng thái nào.
+// onTech/onItem = dùng chiêu (hoặc dùng đồ) xong thì đổi sang trạng thái nào,
+// onPos/onNeg = dính khi đang mang trạng thái tốt/xấu thì xử lý ra sao.
 
 export const STATUSES = {
   "blinded": { name: "Mù", cat: "negative", kind: "statchange", p: [], mods: {"speed": 0.5, "dodge": 0.5}, immune: [] },
@@ -18,9 +19,9 @@ export const STATUSES = {
   "feedback": { name: "Phản đòn", cat: "positive", kind: "feedback", p: ["8", "ranged:reach"], mods: {}, immune: [] },
   "festering": { name: "Mưng mủ", cat: "negative", kind: "festering", p: [], mods: {}, immune: [] },
   "flinching": { name: "Chùn tay", cat: "negative", kind: "flinching", p: ["0.5"], mods: {}, immune: [] },
-  "focused": { name: "Tập trung", cat: "positive", kind: "statchange", p: [], mods: {"dodge": 1.5}, immune: [] },
+  "focused": { name: "Tập trung", cat: "positive", kind: "statchange", p: [], mods: {"dodge": 1.5}, immune: [], onNeg: "removed" },
   "grabbed": { name: "Bị ghì", cat: "negative", kind: "grabbed", p: ["2", "ranged:reach"], mods: {}, immune: [] },
-  "hardshell": { name: "Vỏ cứng", cat: "positive", kind: "statchange", p: [], mods: {"armour": 1.5}, immune: [] },
+  "hardshell": { name: "Vỏ cứng", cat: "positive", kind: "statchange", p: [], mods: {"armour": 1.5}, immune: [], onNeg: "removed" },
   "harpooned": { name: "Dính lao", cat: "negative", kind: "harpooned", p: ["8"], mods: {}, immune: [] },
   "lifegift": { name: "Ban sinh lực", cat: "negative", kind: "lifegift", p: ["16"], mods: {}, immune: [] },
   "lifeleech": { name: "Hút máu", cat: "negative", kind: "lifeleech", p: ["16"], mods: {}, immune: [] },

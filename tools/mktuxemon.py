@@ -257,6 +257,11 @@ def write_statuses(db, names, disp):
             # Chuoi trang thai: dung chieu (hoac dung do) xong thi trang thai
             # nay doi thanh trang thai khac. charging -> chargedup -> exhausted.
             'tmod': tmod,
+            # Dinh trang thai moi khi dang mang mot trang thai khac:
+            # 'replaced' de trang thai moi thay cho cai cu (mac dinh cua ban goc)
+            # 'removed'  go trang thai cu ma KHONG dinh cai moi (kieu giai doc)
+            'onPos': st.get('on_positive_status') or 'replaced',
+            'onNeg': st.get('on_negative_status') or 'replaced',
             'onTech': (st.get('on_tech_use') or '') if st.get('on_tech_use') in co_that else '',
             'onItem': (st.get('on_item_use') or '') if st.get('on_item_use') in co_that else '',
         }))
@@ -265,13 +270,16 @@ def write_statuses(db, names, disp):
            '// Nguồn: Tuxemon db/status (CC BY-SA 4.0). Đừng sửa tay.',
            '// kind = kiểu tác động (xem js/engine/status.js), p = tham số của bản gốc,',
            '// mods = nhân chỉ số, immune = hệ miễn nhiễm, keep = còn sau khi hết trận,',
-           '// onTech/onItem = dùng chiêu (hoặc dùng đồ) xong thì đổi sang trạng thái nào.', '',
+           '// onTech/onItem = dùng chiêu (hoặc dùng đồ) xong thì đổi sang trạng thái nào,',
+           '// onPos/onNeg = dính khi đang mang trạng thái tốt/xấu thì xử lý ra sao.', '',
            'export const STATUSES = {']
     for slug, r in rows:
-        out.append('  %s: { name: %s, cat: %s, kind: %s, p: %s, mods: %s, immune: %s%s%s%s%s },'
+        out.append('  %s: { name: %s, cat: %s, kind: %s, p: %s, mods: %s, immune: %s%s%s%s%s%s%s },'
                    % (js(slug), js(r['name']), js(r['cat']), js(r['kind']), js(r['p']),
                       js(r['mods']), js(r['immune']), ', keep: true' if r['keep'] else '',
                       (', tmod: %s' % js(r['tmod'])) if r['tmod'] else '',
+                      (', onPos: %s' % js(r['onPos'])) if r['onPos'] != 'replaced' else '',
+                      (', onNeg: %s' % js(r['onNeg'])) if r['onNeg'] != 'replaced' else '',
                       (', onTech: %s' % js(r['onTech'])) if r['onTech'] else '',
                       (', onItem: %s' % js(r['onItem'])) if r['onItem'] else ''))
     out.append('};')

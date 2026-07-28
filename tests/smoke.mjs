@@ -1313,9 +1313,26 @@ ok('có bảng trạng thái Tuxemon', Object.keys(STATUSES).length >= 30, Strin
 ok('trạng thái nào cũng có tên tiếng Việt, nhóm và kiểu tác động',
   Object.values(STATUSES).every(s => s.name && ['positive', 'negative'].includes(s.cat) && s.kind));
 {
+  // Luật thay trạng thái đúng theo status/transition_engine.py: MẶC ĐỊNH là cái
+  // mới đè cái cũ, bất kể tốt hay xấu. Bản này từng tự đặt luật "tốt không đẩy
+  // được xấu và ngược lại" — sai, và làm mấy chiêu buff mất luôn tác dụng gỡ.
   const m = newTuxemon(STARTERS[0].sp, 20);
-  ok('dính trạng thái xấu rồi thì trạng thái tốt không chen vào được',
-    applyStatus(m, 'poison') && !applyStatus(m, 'hardshell') && m.status === 'poison');
+  const deLen = Object.entries(STATUSES).find(([, x]) => x.cat === 'positive'
+    && x.onNeg !== 'removed' && !x.onTech)[0];
+  ok('mặc định trạng thái mới đè trạng thái cũ',
+    applyStatus(m, 'poison') && applyStatus(m, deLen) && m.status === deLen,
+    `${deLen} -> ${m.status}`);
+  removeStatus(m, 'all');
+  // 'removed': Tập trung / Vỏ cứng dính lúc đang mang trạng thái XẤU thì gỡ cái
+  // xấu đi mà không dính vào — đúng hai món này trong bảng gốc
+  const go = Object.entries(STATUSES).filter(([, x]) => x.onNeg === 'removed');
+  ok('có trạng thái kiểu gỡ chứ không đè', go.length === 2, go.map(x => x[0]).join(' '));
+  const m2 = newTuxemon(STARTERS[0].sp, 20);
+  applyStatus(m2, 'poison');
+  ok('trạng thái kiểu gỡ thì gỡ trạng thái xấu mà không tự dính vào',
+    applyStatus(m2, go[0][0]) === false && m2.status === null, String(m2.status));
+
+  applyStatus(m, 'poison');
   const truoc = m.hpCur;
   const r = endOfTurn(m, 'Test');
   ok('độc trừ máu mỗi lượt', r.dmg > 0 && m.hpCur === truoc - r.dmg);
@@ -1326,6 +1343,25 @@ ok('trạng thái nào cũng có tên tiếng Việt, nhóm và kiểu tác đ�
   const lua = Object.values(SPECIES).find(sp => sp.types.includes('fire'));
   const conLua = newTuxemon(Object.keys(SPECIES).find(k => SPECIES[k] === lua) * 1, 10);
   ok('hệ lửa miễn nhiễm bỏng', !applyStatus(conLua, 'burn'));
+
+  // Bùa hộ mệnh: món CẦM THEO chặn hẳn một trạng thái (db/item immunity_to_status)
+  const bua = Object.entries(ITEMS).filter(([, x]) => x.immuneTo?.length);
+  ok('có bùa hộ mệnh chặn trạng thái', bua.length === 8, String(bua.length));
+  ok('bùa nào cũng là món cầm theo', bua.every(([, x]) => x.held && !x.inBattle && !x.inWorld));
+  ok('bùa nào cũng chặn trạng thái có thật',
+    bua.every(([, x]) => x.immuneTo.every(t => t === 'all' || STATUSES[t])),
+    bua.flatMap(([, x]) => x.immuneTo).filter(t => t !== 'all' && !STATUSES[t]).join(' '));
+  const [buaId, buaIt] = bua.find(([, x]) => !x.immuneTo.includes('all'));
+  const cam = newTuxemon(STARTERS[0].sp, 20);
+  cam.held = buaId;
+  ok('cầm bùa thì không dính đúng trạng thái đó',
+    !applyStatus(cam, buaIt.immuneTo[0]) && !cam.status, `${buaId} ${cam.status}`);
+  ok('bùa không chặn trạng thái khác',
+    applyStatus(cam, buaIt.immuneTo[0] === 'poison' ? 'burn' : 'poison'));
+  const tat = newTuxemon(STARTERS[0].sp, 20);
+  tat.held = bua.find(([, x]) => x.immuneTo.includes('all'))[0];
+  ok('bùa "miễn tất" chặn mọi trạng thái',
+    !applyStatus(tat, 'poison') && !applyStatus(tat, 'burn') && !applyStatus(tat, 'hardshell'));
 }
 
 // Chiêu có hiệu ứng phụ lấy đúng từ effects của bản gốc
