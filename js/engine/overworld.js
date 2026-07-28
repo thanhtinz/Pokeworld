@@ -9,6 +9,7 @@ import { vatTheODay } from './estate.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
+import { heSoToc, dangBay, heSoGapHoang } from './mounts.js';
 
 const SPEED = 3.6;              // ô mỗi giây
 const ENC_STEP_MIN = 8;         // đi ít nhất ngần này ô cỏ mới có thể gặp
@@ -302,10 +303,16 @@ function npcAt(map, x, y) {
 // bước nhỏ trong khung hình đều bị từ chối -> đứng chôn chân, không đi đâu được.
 function canWalk(baked, map, x, y, cur) {
   const pad = 0.3;
+  const bay = dangBay();
   const pts = [[x - pad, y - pad], [x + pad, y - pad], [x - pad, y + pad], [x + pad, y + pad]];
   for (const [px, py] of pts) {
     if (px < 0 || py < 0 || px >= map.w || py >= map.h) return false;
-    if (isSolidAt(baked, Math.floor(px), Math.floor(py))) return false;
+    const tx2 = Math.floor(px), ty2 = Math.floor(py);
+    if (!isSolidAt(baked, tx2, ty2)) continue;
+    // Đang cưỡi con biết bay thì mặt nước không còn là tường. Vách đá, nhà cửa
+    // thì vẫn chặn — chỉ riêng ô nước mới bay qua được.
+    if (bay && map.water?.[ty2 * map.w + tx2]) continue;
+    return false;
   }
   const tx = Math.floor(x), ty = Math.floor(y);
   if (cur && tx === cur[0] && ty === cur[1]) return true;   // vẫn trong ô của mình
@@ -325,7 +332,7 @@ export function update(dt, vx, vy) {
   player.moving = true;
   player.dir = Math.abs(nx) > Math.abs(ny) ? (nx > 0 ? 'right' : 'left') : (ny > 0 ? 'down' : 'up');
 
-  const dist = SPEED * dt;
+  const dist = SPEED * heSoToc() * dt;
   const cur = [Math.floor(player.x), Math.floor(player.y)];
   const beforeTile = `${cur[0]},${cur[1]}`;
 
@@ -382,7 +389,7 @@ export function update(dt, vx, vy) {
   // Gặp Tuxemon khi đi trong cỏ cao
   if (isEncAt(baked, tx, ty)) {
     player.steps += 1;
-    if (player.steps >= ENC_STEP_MIN && rng.roll(ENC_CHANCE)) {
+    if (player.steps >= ENC_STEP_MIN && rng.roll(ENC_CHANCE * heSoGapHoang())) {
       player.steps = 0;
       const mon = rollWild(player.mapId);
       if (mon) return { t: 'encounter', mon };

@@ -2521,3 +2521,15 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .deco-zoom .btn { min-width: 38px; padding: 6px 0; }
 .deco-zoom b { min-width: 46px; text-align: center; font-size: .82rem;
   font-variant-numeric: tabular-nums; color: var(--gold); }
+
+/* ==== Nhà Xe ==== */
+.gr-row { display: flex; align-items: center; gap: 10px; }
+.gr-row .gr-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.gr-row .gr-info small { color: var(--muted); line-height: 1.35; }
+.gr-row .gr-toc { color: var(--gold); }
+.gr-img { width: 66px; height: auto; image-rendering: pixelated; flex: none; }
+.gr-mon { width: 48px; height: 48px; image-rendering: pixelated; flex: none; }
+.gr-co { color: var(--green); font-size: .8rem; }
+.gr-khong { color: var(--muted); font-size: .8rem; text-align: right; max-width: 40%; }
+.gr-dang { display: flex; align-items: center; gap: 10px; }
+.gr-dang b { flex: 1; }

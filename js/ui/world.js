@@ -4,7 +4,7 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre,
+  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre, isInside,
   enterMap } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
@@ -12,16 +12,17 @@ import { MAPS } from '../data/maps.js';
 import { FURN_BY_ID } from '../data/estate.js';
 import * as ES from '../engine/estate.js';
 import * as TT from '../engine/furniture.js';
+import * as MT from '../engine/mounts.js';
 
 // Ảnh nhà giữ lại sau lần tải đầu, không tạo <img> mới mỗi khung hình
-const anhNhaCache = new Map();
-function anhNha(src) {
-  if (!anhNhaCache.has(src)) {
+const anhTepCache = new Map();
+function anhTep(src) {
+  if (!anhTepCache.has(src)) {
     const im = new Image();
     im.src = src;
-    anhNhaCache.set(src, im);
+    anhTepCache.set(src, im);
   }
-  return anhNhaCache.get(src);
+  return anhTepCache.get(src);
 }
 import { heal, displayName } from '../engine/monster.js';
 import { statusName } from '../engine/status.js';
@@ -33,7 +34,7 @@ import { ITEMS } from '../data/items.js';
 import { SHOPS } from '../data/shops.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
-import { esc, tien } from '../util.js';
+import { esc, tien, monPath } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
 import { show, drawTopBar } from '../main.js';
@@ -64,6 +65,9 @@ let raf = null;
 
 export function render(el) {
   restorePosition();
+  // Con đang cưỡi có thể đã gục hoặc bị bỏ khỏi đội từ màn khác
+  MT.kiemTraLai();
+  if (isInside()) MT.xuong();
 
   el.innerHTML = `
     <div class="world">
@@ -206,7 +210,7 @@ export function render(el) {
       for (const d of ES.nha().dat) {
         const f = FURN_BY_ID[d.id];
         if (!f) continue;
-        const im = anhNha(f.img);
+        const im = anhTep(f.img);
         if (!im?.complete || !im.naturalWidth) continue;
         const w2 = size * f.w;
         const h2 = w2 * (im.naturalHeight / im.naturalWidth);
@@ -258,7 +262,7 @@ export function render(el) {
     // Căn nhà người chơi đã dựng trên lô đất của mình
     const nhaMinh = nhaTrenBanDo(player.mapId);
     if (nhaMinh) {
-      const im = anhNha(nhaMinh.img);
+      const im = anhTep(nhaMinh.img);
       if (im?.complete && im.naturalWidth) {
         const w2 = size * 3;
         const h2 = w2 * (im.naturalHeight / im.naturalWidth);
@@ -289,6 +293,33 @@ export function render(el) {
     const px = player.x * size - camX;
     const py = (player.y + 0.5) * size - camY + bob;
     // Đang ngồi thì lún xuống một chút, đang nằm thì xoay ngang — nhìn là biết
+    // Đang lái xe / cưỡi Tuxemon thì vẽ cái đang cưỡi thay cho nhân vật
+    const cuoi = MT.dangCuoi();
+    if (cuoi && !ES.dangTrongNha(player.mapId)) {
+      if (cuoi.t === 'xe') {
+        const im = anhTep(MT.VEHICLE_BY_ID[cuoi.id].img[player.dir] || '');
+        if (im?.complete && im.naturalWidth) {
+          const w2 = size * (player.dir === 'up' || player.dir === 'down' ? 1.05 : 1.55);
+          const h2 = w2 * (im.naturalHeight / im.naturalWidth);
+          ctx.drawImage(im, Math.round(px - w2 / 2), Math.round(py - h2 * 0.72),
+            Math.round(w2), Math.round(h2));
+        }
+        drawTitle(px, py - chH + size * 0.34);
+        return;
+      }
+      // Cưỡi thú: con vật ở dưới, người ngồi lên trên
+      const mon = (G.p.party || [])[cuoi.slot];
+      const im = mon && anhTep(monPath(mon.sp));
+      if (im?.complete && im.naturalWidth) {
+        const s2 = size * 2.1;
+        ctx.drawImage(im, Math.round(px - s2 / 2), Math.round(py + size * 0.34 - s2),
+          Math.round(s2), Math.round(s2));
+      }
+      put(avatarImg(), player.dir, player.moving, px, py - size * 0.7);
+      drawTitle(px, py - chH - size * 0.36);
+      return;
+    }
+
     const tt = TT.tuTheHienTai();
     // Nằm/ngồi thì vẽ NGAY TRÊN món đồ chứ không phải chỗ đang đứng — đứng
     // cạnh giường mà nằm thì trông như ngã ra sàn.
@@ -553,6 +584,8 @@ export function render(el) {
         el.querySelector('#world-zone').textContent = currentMap().name;
         playMusic(currentMap().music || 'town');
         toast(`Đã tới ${ev.name}`);
+        // Vào trong nhà thì phải xuống xe — chật thế lái vào đâu được
+        if (isInside() && MT.xuong()) toast('Bạn xuống xe trước khi vào trong.');
       }
       // Tin từ nhà trẻ: mỗi mốc chỉ báo một lần
       const tin = layTinNhaTre();

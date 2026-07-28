@@ -2300,6 +2300,78 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   }
 }
 
+// ==== Phương tiện + cưỡi Tuxemon ====
+{
+  const MT = await import('../js/engine/mounts.js');
+  const { SPECIES } = await import('../js/data/species.js');
+
+  ok('có nhiều mẫu xe để chọn', MT.VEHICLES.length >= 3);
+  ok('xe nào cũng đủ bốn hướng',
+    MT.VEHICLES.every(v => ['up', 'down', 'left', 'right'].every(h => v.img[h])));
+  ok('xe nào cũng có ảnh riêng, không dùng chung',
+    new Set(MT.VEHICLES.flatMap(v => Object.values(v.img))).size
+      === MT.VEHICLES.length * 4);
+  ok('xe càng đắt càng nhanh',
+    MT.VEHICLES.every((v, i) => i === 0
+      || (v.price > MT.VEHICLES[i - 1].price && v.speed > MT.VEHICLES[i - 1].speed)));
+  ok('mọi dáng cưỡi được đều có thật trong bảng loài', (() => {
+    const co = new Set(Object.values(SPECIES).map(s => s.shape));
+    return [...MT.DANG_BON_CHAN, ...MT.DANG_BAY].every(d => co.has(d));
+  })());
+
+  newGame('Tài Xế');
+  G.p.money = 100;
+  ok('không đủ tiền thì không mua được xe', MT.muaXe('xe_den')[1] !== null);
+  G.p.money = 5000000;
+  ok('mua được xe', MT.muaXe('xe_den')[0] !== null && MT.coXe('xe_den'));
+  ok('không mua trùng chiếc đã có', MT.muaXe('xe_den')[1] !== null);
+  ok('chưa có xe thì không lái được', MT.len({ t: 'xe', id: 'xe_do' })[1] !== null);
+  ok('lái được chiếc mình có', MT.len({ t: 'xe', id: 'xe_den' })[0] !== null);
+  ok('đang lái thì đi nhanh hơn', MT.heSoToc() > 1.2, String(MT.heSoToc()));
+  ok('lái xe thì ít gặp hoang hơn', MT.heSoGapHoang() < 1);
+  ok('lái xe không phải là bay', MT.dangBay() === false);
+  ok('xuống xe thì về tốc độ thường',
+    MT.xuong() && MT.heSoToc() === 1 && MT.heSoGapHoang() === 1);
+
+  // Cưỡi Tuxemon: chọn ra một con bốn chân và một con biết bay có thật
+  // SPECIES lấy id làm KHOÁ chứ không có trường id bên trong
+  const timDang = (ds) => Number(Object.entries(SPECIES)
+    .find(([, s]) => ds.includes(s.shape))[0]);
+  G.p.party = [newTuxemon(timDang(MT.DANG_BON_CHAN), 20),
+               newTuxemon(timDang(MT.DANG_BAY), 20)];
+  ok('nhận ra con bốn chân', MT.kieuCuoi(G.p.party[0]) === 'yen');
+  ok('nhận ra con biết bay', MT.kieuCuoi(G.p.party[1]) === 'bay');
+  ok('chưa có đồ nghề thì chưa cưỡi được', MT.len({ t: 'thu', slot: 0 })[1] !== null);
+  ok('chưa có đồ nghề thì danh sách cưỡi được rỗng', MT.conCuoiDuoc().length === 0);
+  ok('mua được yên cương', MT.muaNghe('yen')[0] !== null);
+  ok('có yên rồi thì cưỡi được con bốn chân', MT.len({ t: 'thu', slot: 0 })[0] !== null);
+  ok('cưỡi thú thì nhanh hơn đi bộ', MT.heSoToc() > 1.2);
+  ok('con bốn chân không bay được', MT.dangBay() === false);
+  ok('có yên vẫn chưa cưỡi được con bay', MT.len({ t: 'thu', slot: 1 })[1] !== null);
+  ok('mua được dây cương bay', MT.muaNghe('bay')[0] !== null);
+  ok('có dây bay thì cưỡi được con bay', MT.len({ t: 'thu', slot: 1 })[0] !== null);
+  ok('cưỡi con bay thì bay được', MT.dangBay() === true);
+  ok('bay nhanh hơn cưỡi bộ', MT.heSoToc() > 1.6);
+  // Con gục thì phải tự xuống, không thì cưỡi cả xác mà chạy
+  G.p.party[1].hpCur = 0;
+  ok('con đang cưỡi mà gục thì tự xuống',
+    MT.kiemTraLai() && MT.dangCuoi() === null && MT.dangBay() === false);
+  G.p.party[1].hpCur = 1;
+  ok('con gục thì không trèo lên được',
+    (G.p.party[0].hpCur = 0, MT.len({ t: 'thu', slot: 0 })[1] !== null));
+
+  // Bay thì qua được mặt nước, đi bộ thì không
+  {
+    const { bake, isSolidAt } = await import('../js/engine/mapbake.js');
+    const cong = Object.entries(MAPS).find(([, m]) => (m.water || []).some(v => v));
+    const [mid, m] = cong;
+    const i = m.water.findIndex(v => v);
+    const wx = i % m.w, wy = Math.floor(i / m.w);
+    ok('ô nước vẫn là ô chặn đường khi đi bộ', isSolidAt(bake(mid), wx, wy));
+    ok('bản đồ có nước đánh dấu rõ ràng', m.water[wy * m.w + wx] === 1);
+  }
+}
+
 // ==== Chế tạo ====
 {
   ok('đọc được công thức từ bản gốc', CR.RECIPES.length >= 20, String(CR.RECIPES.length));

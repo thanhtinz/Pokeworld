@@ -60,6 +60,8 @@ python3 tools/mkvfx.py /tmp/Tuxemon        # hiệu ứng chiêu
 python3 tools/mkitems.py /tmp/Tuxemon      # vật phẩm + hệ số Tuxeball + cấu hình câu cá
 python3 tools/mkarena.py /tmp/Tuxemon      # nền trận đấu theo môi trường
 python3 tools/mkworld.py /tmp/Tuxemon      # khu vực, bảng gặp, huấn luyện viên
+python3 tools/mkestate.py /tmp/Tuxemon     # mẫu nhà + 73 món nội thất
+python3 tools/mkmounts.py /tmp/Tuxemon     # sprite phương tiện bốn hướng
 ```
 
 Deploy client: push `main` → CI test + tự đồng bộ nhánh `gh-pages` (GitHub Pages).
