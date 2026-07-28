@@ -641,7 +641,7 @@ export function render(el) {
     if (thing.kind === 'do-noi-that') {
       const [ra, err] = TT.dung(thing.mon);
       if (err) { toast(err); return; }
-      if (ra && ra.moMan) {                 // bếp thì mở thẳng màn Chế Tạo
+      if (ra && ra.moMan) {                 // bếp thì mở thẳng màn Nhà Bếp
         cleanup(); show(ra.moMan, { from: 'world' });
         return;
       }

@@ -1,4 +1,8 @@
-// TuxeWorld H5 | ui/craft.js | Chế Tạo
+// TuxeWorld H5 | ui/craft.js | Nhà Bếp: nấu món ăn cho Tuxemon
+//
+// Tên màn trước đây là "Chế Tạo" — nghe như rèn vũ khí, trong khi cả 25 công
+// thức đều là món ăn. Mã màn vẫn giữ 'craft' để bản lưu và đường dẫn cũ không
+// gãy; chỉ đổi cái tên người chơi nhìn thấy.
 import { esc, fmt } from '../util.js';
 import { toast, header, itemIcon } from './kit.js';
 import { ITEMS } from '../data/items.js';
@@ -22,7 +26,7 @@ export function render(el) {
     const lamDuocSo = RECIPES.filter(lamDuoc).length;
 
     el.innerHTML = `
-      ${header('Chế Tạo', 'menu')}
+      ${header('Nhà Bếp', 'menu')}
       <div class="mail-bar">
         <small>${RECIPES.length} công thức · làm được ngay ${lamDuocSo}</small>
       </div>
@@ -34,10 +38,11 @@ export function render(el) {
         <b>bữa no</b> cộng thẳng chỉ số trong 30–60 phút. Món kỵ miệng thì tụt
         thân thiết và không no.</small>
       </div>
-      <div class="seg-row">
+      ${cacCach.length > 1 ? `
+      <div class="seg-row${cacCach.length > 3 ? ' seg-wrap' : ''}">
         ${cacCach.map(c => `<button type="button" class="seg-btn ${c === cach ? 'active' : ''}"
           data-cach="${esc(c)}">${esc(CACH_LAM[c] || c)}</button>`).join('')}
-      </div>
+      </div>` : ''}
       ${ds.map(r => {
         const duoc = lamDuoc(r);
         const dangMo = mo === r.id;

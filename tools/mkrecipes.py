@@ -80,7 +80,7 @@ def viet_drops(lieu):
         f.write('// SINH TU DONG boi tools/mkrecipes.py — KHONG SUA TAY.\n')
         f.write('//\n')
         f.write('// Bản gốc Tuxemon không có hệ thống rơi đồ: nguyên liệu nấu ăn\n')
-        f.write('// không bán ở đâu, không rơi ở đâu, nên màn Chế Tạo chỉ để ngắm.\n')
+        f.write('// không bán ở đâu, không rơi ở đâu, nên màn Nhà Bếp chỉ để ngắm.\n')
         f.write('// Bảng này gắn mỗi nguyên liệu với vài HỆ cho hợp lẽ — đánh con\n')
         f.write('// hệ Lửa thì ra tiêu, gia vị; con hệ Gỗ thì ra rau, vỏ cây.\n\n')
         f.write('export const TI_LE_ROI = %s;\n\n' % js(TI_LE_ROI))
@@ -129,7 +129,7 @@ def main():
         })
 
     with open('js/data/recipes.js', 'w', encoding='utf-8') as f:
-        f.write('// TuxeWorld H5 | data/recipes.js | Công thức chế tạo\n')
+        f.write('// TuxeWorld H5 | data/recipes.js | Công thức nấu ăn\n')
         f.write('// SINH TU DONG boi tools/mkrecipes.py tu mods/recipes.yaml — KHONG SUA TAY.\n')
         f.write('//\n')
         f.write('// ng  = nguyên liệu cần (mã món -> số lượng)\n')

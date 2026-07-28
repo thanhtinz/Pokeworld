@@ -122,7 +122,7 @@ export function dung(d) {
   }
 
   if (kind === 'nau') {
-    // Bếp thì mở thẳng màn Chế Tạo — nấu ăn đã có sẵn hệ thống công thức rồi,
+    // Bếp thì mở thẳng màn Nhà Bếp — nấu ăn đã có sẵn hệ thống công thức rồi,
     // làm thêm một cái nữa chỉ tổ trùng.
     ghiNhan('nau');
     save();

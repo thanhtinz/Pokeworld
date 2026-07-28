@@ -100,7 +100,7 @@ export function render(el) {
             <small>EXP: ${cur}/${need} tới level sau</small><br>
             <small class="bond-line">Thân thiết ${bondHearts(m.bond ?? 25)} ${m.bond ?? 25}/100</small>
             <br><small class="than-loi">${esc(loiThanThiet(m))}</small>
-            ${chuBuaAn(m) ? `<br><small class="bua-an">${uiIcon('craft', 15)} No bụng: ${esc(chuBuaAn(m))}</small>` : ''}
+            ${chuBuaAn(m) ? `<br><small class="bua-an">${uiIcon('bep', 15)} No bụng: ${esc(chuBuaAn(m))}</small>` : ''}
             ${m.held && ITEMS[m.held] ? `<br><small class="held-line">${
               itemIcon(m.held, '', 18)} Đang cầm ${esc(ITEMS[m.held].name)}</small>` : ''}
             ${m.lv >= cap ? `<br><small class="cap-note">Đã chạm trần Lv.${cap} — lên cấp Trainer để nuôi tiếp</small>` : ''}

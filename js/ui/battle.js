@@ -31,7 +31,7 @@ import { addTrainerExp, trainerLevel, trainerExpFor, monLevelCap } from '../engi
 import { unlockedBetween } from '../engine/unlock.js';
 import { monPx } from '../engine/battlesize.js';
 
-// Mã các nguyên liệu chế tạo — lấy thẳng từ bảng vật phẩm để khỏi ghi tay
+// Mã các nguyên liệu nấu ăn — lấy thẳng từ bảng vật phẩm để khỏi ghi tay
 const NGUYEN_LIEU = Object.keys(ITEMS).filter(id => ITEMS[id].kind === 'lieu');
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
@@ -623,7 +623,7 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       // chẳng biết vừa có thêm cái gì.
       for (const f of unlockedBetween(before, now)) toast(`Mở khoá: ${f.name}! ${f.note}.`, 3200);
     }
-    // Đồ rơi sau trận. Nguyên liệu chế tạo rơi ở đây là nguồn kiếm chính của
+    // Đồ rơi sau trận. Nguyên liệu nấu ăn rơi ở đây là nguồn kiếm chính của
     // chúng — không thì có công thức mà chẳng bao giờ đủ đồ để làm.
     if (Math.random() < 0.30) {
       const pool = Math.random() < 0.6 ? NGUYEN_LIEU : ['tuxeball', 'potion', 'restoration'];

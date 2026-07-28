@@ -1,4 +1,4 @@
-// TuxeWorld H5 | data/recipes.js | Công thức chế tạo
+// TuxeWorld H5 | data/recipes.js | Công thức nấu ăn
 // SINH TU DONG boi tools/mkrecipes.py tu mods/recipes.yaml — KHONG SUA TAY.
 //
 // ng  = nguyên liệu cần (mã món -> số lượng)

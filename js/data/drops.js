@@ -2,7 +2,7 @@
 // SINH TU DONG boi tools/mkrecipes.py — KHONG SUA TAY.
 //
 // Bản gốc Tuxemon không có hệ thống rơi đồ: nguyên liệu nấu ăn
-// không bán ở đâu, không rơi ở đâu, nên màn Chế Tạo chỉ để ngắm.
+// không bán ở đâu, không rơi ở đâu, nên màn Nhà Bếp chỉ để ngắm.
 // Bảng này gắn mỗi nguyên liệu với vài HỆ cho hợp lẽ — đánh con
 // hệ Lửa thì ra tiêu, gia vị; con hệ Gỗ thì ra rau, vỏ cây.
 

@@ -388,7 +388,7 @@ def mo_ta(slug, cat, eff, capdev, tien_hoa):
         return 'Tuxeball cơ bản để bắt Tuxemon hoang.'
 
     if slug in LIEU:
-        return 'Nguyên liệu chế tạo. Tự nó không dùng được, phải đem đi làm món.'
+        return 'Nguyên liệu nấu ăn. Tự nó không dùng được, phải đem vào Nhà Bếp làm món.'
     if slug in KETQUA and not eff:
         return 'Làm hỏng rồi — ăn không nổi, nhưng vứt thì tiếc.'
 

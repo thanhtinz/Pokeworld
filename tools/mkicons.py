@@ -267,14 +267,22 @@ def ve_lich(d):
     d.line((7, 12, 11, 8), fill=C['E'])
 
 
-def ve_craft(d):
-    # De ren + bua: hai thu nay khong lan voi to giay nhiem vu
-    d.rectangle((1, 9, 11, 11), fill=C['S'])       # mat de
-    d.polygon([(11, 9), (14, 10), (11, 11)], fill=C['S'])   # sung de
-    d.rectangle((4, 12, 8, 13), fill=C['S'])       # than de
-    d.rectangle((2, 14, 10, 15), fill=C['S'])      # chan de
-    d.line((7, 7, 12, 2), fill=C['N'], width=2)    # can bua
-    d.rectangle((10, 1, 15, 4), fill=C['W'])       # dau bua
+def ve_bep(d):
+    # Noi nau co nap va hoi bay len: man nay la NAU AN chu khong phai ren dao.
+    d.rectangle((7, 0, 8, 2), fill=C['W'])         # hoi bay len
+    d.rectangle((5, 1, 6, 3), fill=C['S'])
+    d.rectangle((10, 1, 11, 3), fill=C['S'])
+    d.rectangle((7, 3, 8, 4), fill=C['S'])         # num nap
+    d.rectangle((4, 4, 11, 5), fill=C['W'])        # nap
+    d.rectangle((2, 6, 13, 7), fill=C['W'])        # vanh noi
+    d.rectangle((3, 8, 12, 12), fill=C['S'])       # than noi
+    d.rectangle((0, 8, 2, 10), fill=C['S'])        # hai quai
+    d.rectangle((13, 8, 15, 10), fill=C['S'])
+    # Bep lua lien mach duoi day noi. Ve ba ngon rieng thi o co 16px nhin ra
+    # ba cai chan, tuong con vat chu khong phai lua.
+    d.polygon([(2, 15), (4, 12), (6, 14), (8, 11), (10, 14), (12, 12), (13, 15)],
+              fill=C['R'])
+    d.polygon([(5, 15), (7, 13), (8, 14), (9, 13), (11, 15)], fill=C['G'])
 
 
 def ve_daycare(d):
@@ -296,7 +304,7 @@ def ve_compass(d):
 
 ICONS = {
     'home': ve_home, 'car': ve_car,
-    'lich': ve_lich, 'craft': ve_craft, 'daycare': ve_daycare,
+    'lich': ve_lich, 'bep': ve_bep, 'daycare': ve_daycare,
     'compass': ve_compass,
     'coin': ve_coin, 'map': ve_map, 'chat': ve_chat, 'gift': ve_gift,
     'quest': ve_quest, 'shop': ve_shop, 'trophy': ve_trophy, 'guild': ve_guild,

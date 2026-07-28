@@ -1,4 +1,4 @@
-// TuxeWorld H5 | engine/craft.js | Chế tạo — port từ Tuxemon
+// TuxeWorld H5 | engine/craft.js | Nấu ăn — port từ Tuxemon
 //
 // Bản gốc: tuxemon/item/crafting_system.py + mods/recipes.yaml.
 // Một công thức tiêu nguyên liệu rồi BỐC THĂM kết quả theo trọng số — cùng một

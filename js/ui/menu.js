@@ -25,7 +25,7 @@ const HUB = [
   { to: 'achievements', icon: 'star',   label: 'Thành tựu', badge: 'ach' },
   { to: 'park',       icon: 'walk',    label: 'Công viên' },
   { to: 'daycare',    icon: 'daycare', label: 'Nhà trẻ' },
-  { to: 'craft',      icon: 'craft',   label: 'Chế tạo' },
+  { to: 'craft',      icon: 'bep',     label: 'Nhà bếp' },
   { to: 'garage',     icon: 'car',     label: 'Nhà xe' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
   { to: 'boss',       icon: 'battle',  label: 'Săn boss', on: true },

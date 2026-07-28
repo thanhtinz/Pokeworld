@@ -546,7 +546,7 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   // Bóng Công Viên cũng ngoại lệ: bản gốc để usable_in: [MainParkMenuState] và
   // hiệu ứng 'park capture' — nó chỉ ném được trong màn Công Viên, không phải
   // trong trận, nên không có eff/inBattle/inWorld như đồ thường.
-  // Nguyên liệu chế tạo cũng ngoại lệ: bản gốc để category 'none', không hiệu
+  // Nguyên liệu nấu ăn cũng ngoại lệ: bản gốc để category 'none', không hiệu
   // ứng gì — nó chỉ tồn tại để đem đi làm món (mods/recipes.yaml).
   const dung = it.filter(([, x]) => !x.held && !['badge', 'park', 'lieu'].includes(x.kind));
   ok('món nào cũng có ít nhất một hiệu ứng', dung.every(([, x]) => x.eff.length > 0));
@@ -2292,7 +2292,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   {
     const g = timKieu('nau');
     const [ra] = TT.dung({ id: g.id, x: 12, y: 2 });
-    ok('bếp mở thẳng màn chế tạo', ra?.moMan === 'craft');
+    ok('bếp mở thẳng màn Nhà Bếp', ra?.moMan === 'craft');
   }
   ok('món chỉ để nhìn thì không dùng được',
     TT.dung({ id: FURNITURE.find(f => !f.kind).id, x: 1, y: 1 })[1] !== null);
@@ -2355,7 +2355,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   }
 }
 
-// ==== Chế tạo ====
+// ==== Nhà Bếp: nấu ăn ====
 {
   ok('đọc được công thức từ bản gốc', CR.RECIPES.length >= 20, String(CR.RECIPES.length));
   const xauNg = CR.RECIPES.flatMap(r => Object.keys(r.ng)).filter(id => !ITEMS[id]);
@@ -2378,7 +2378,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('đủ đồ thì báo làm được', CR.lamDuoc(r));
   ok('tính đúng số mẻ làm được', CR.soLanLamDuoc(r) === 2, String(CR.soLanLamDuoc(r)));
   const [kq, err] = CR.cheTao(r.id);
-  ok('chế tạo ra một món', !!kq && !err, String(err));
+  ok('nấu ra một món', !!kq && !err, String(err));
   ok('kết quả vào túi', (G.p.bag[kq.id] || 0) >= kq.n);
   ok('nguyên liệu bị tiêu đi',
     Object.entries(r.ng).every(([id, n]) => (G.p.bag[id] || 0) === n));
@@ -2755,7 +2755,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 }
 
 // ==== Mỗi ô trong Menu một icon riêng ====
-// Trước đây Nhiệm vụ và Chế tạo dùng chung tờ giấy, Nhà trẻ thì mượn dấu cộng
+// Trước đây Nhiệm vụ và Nhà bếp dùng chung tờ giấy, Nhà trẻ thì mượn dấu cộng
 // hồi máu — nhìn vào không biết ô nào là ô nào. Bài này đọc thẳng mã nguồn nên
 // không phải dựng DOM chỉ để soi một danh sách.
 {
@@ -2778,7 +2778,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
 // ==== Món ăn phải có icon riêng ====
 // Bản gốc để CẢ 47 món ăn / nguyên liệu trỏ chung vào gfx/items/box.png, nên
-// sau khi chạy mkitems.py là màn Chế Tạo hiện 25 dòng giống hệt nhau.
+// sau khi chạy mkitems.py là màn Nhà Bếp hiện 25 dòng giống hệt nhau.
 // tools/mkfood.py vẽ đè lên; bài này canh cho ai chạy lại mkitems.py mà quên
 // mkfood.py thì biết ngay.
 {
