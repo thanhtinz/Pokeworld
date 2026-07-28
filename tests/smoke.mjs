@@ -2776,6 +2776,41 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('icon pixel nào khai cũng có tệp thật', thieu.length === 0, thieu.join(', '));
 }
 
+// ==== Món ăn phải có icon riêng ====
+// Bản gốc để CẢ 47 món ăn / nguyên liệu trỏ chung vào gfx/items/box.png, nên
+// sau khi chạy mkitems.py là màn Chế Tạo hiện 25 dòng giống hệt nhau.
+// tools/mkfood.py vẽ đè lên; bài này canh cho ai chạy lại mkitems.py mà quên
+// mkfood.py thì biết ngay.
+{
+  const { readFileSync, existsSync, readdirSync } = await import('node:fs');
+  const { createHash } = await import('node:crypto');
+  const { RECIPES } = await import('../js/data/recipes.js');
+  const thu = new URL('../assets/items/', import.meta.url);
+  const bam = (f) => createHash('md5')
+    .update(readFileSync(new URL(f, thu))).digest('hex');
+
+  // Mọi món nhắc tới trong công thức đều phải có ảnh
+  const canh = new Set();
+  for (const r of RECIPES) {
+    Object.keys(r.ng).forEach(id => canh.add(id));
+    r.out.forEach(o => canh.add(o.id));
+  }
+  const thieu = [...canh].filter(id => !existsSync(new URL(`${id}.png`, thu)));
+  ok('món nào trong công thức cũng có ảnh', thieu.length === 0, thieu.join(', '));
+
+  // Và không món nào trong đó dùng chung ảnh với món khác
+  const theoBam = new Map();
+  for (const id of canh) {
+    if (thieu.includes(id)) continue;
+    const h = bam(`${id}.png`);
+    theoBam.set(h, [...(theoBam.get(h) || []), id]);
+  }
+  const dung_chung = [...theoBam.values()].filter(v => v.length > 1);
+  ok('không hai món ăn nào dùng chung một ảnh', dung_chung.length === 0,
+    dung_chung.map(v => v.join('=')).join(' | '));
+  ok('thư mục vật phẩm không rỗng', readdirSync(new URL(thu)).length > 100);
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

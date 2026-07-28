@@ -80,6 +80,9 @@ Chỉ chép những tệp thật sự dùng (`tools/mksounds.py`), tổng khoả
 |---|---|
 | Chữ tiêu đề TuxeWorld (`assets/img/title.png`) | font pixel tự dựng trong script |
 | Icon nào bản gốc không có (bản đồ, menu, nhiệm vụ, bang hội...) | SVG vẽ tay trong `js/ui/icons.js` |
+| Icon giao diện dạng pixel (đồng tiền, lịch, đe rèn, quả trứng, la bàn...) | `tools/mkicons.py`, vẽ bằng hình khối cơ bản |
+| Icon 47 món ăn và nguyên liệu | `tools/mkfood.py` — bản gốc để cả 47 món trỏ chung vào `gfx/items/box.png` nên không có gì để chép |
+| Quà tặng, sprite phương tiện, dữ liệu boss | `tools/mkgifts.py`, `tools/mkmounts.py`, `tools/mkboss.py` |
 
 Các bản đầu của dự án có mượn ảnh cắt từ game thương mại (nền trận đấu, ảnh
 vật phẩm) — đã bỏ sạch, nay chỉ còn asset của chính Tuxemon và đồ tự vẽ.

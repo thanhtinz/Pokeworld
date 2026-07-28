@@ -60,6 +60,11 @@ python3 tools/mkui.py /tmp/Tuxemon         # icon giao diện
 python3 tools/mksounds.py /tmp/Tuxemon     # nhạc nền + tiếng chiêu
 python3 tools/mkvfx.py /tmp/Tuxemon        # hiệu ứng chiêu
 python3 tools/mkitems.py /tmp/Tuxemon      # vật phẩm + hệ số Tuxeball + cấu hình câu cá
+python3 tools/mkfood.py                    # icon 47 món ăn / nguyên liệu (tự vẽ)
+                                           # PHẢI chạy SAU mkitems.py: mkitems.py
+                                           # xoá sạch assets/items trước khi chép,
+                                           # và bản gốc để cả 47 món dùng chung
+                                           # một cái hộp gỗ
 python3 tools/mkarena.py /tmp/Tuxemon      # nền trận đấu theo môi trường
 python3 tools/mkworld.py /tmp/Tuxemon      # khu vực, bảng gặp, huấn luyện viên
 python3 tools/mkestate.py /tmp/Tuxemon     # mẫu nhà + 73 món nội thất
