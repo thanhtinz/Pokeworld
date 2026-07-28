@@ -2,8 +2,9 @@
 //
 // Đây là tính năng của riêng bản này, không có trong Tuxemon (art thì lấy từ
 // tileset của bản gốc). Cách chơi:
-//   1. Đi bộ tới khu đất ở rìa Thị Trấn Taba, mỗi lô cắm một tấm biển BÁN.
-//      Đứng trước biển bấm nút hành động để mua.
+//   1. Từ Thị Trấn Taba đi theo biển chỉ đường vào Khu Dân Cư — một bản đồ
+//      riêng đã chia sẵn sáu lô đất, mỗi lô cắm một tấm biển BÁN. Đứng trước
+//      biển bấm nút hành động để mua.
 //   2. Mua rồi thì bấm lại vào lô để chọn mẫu nhà và trả tiền. Nhà KHÔNG mọc
 //      lên ngay — phải chờ thợ xây xong (mẫu càng to càng lâu).
 //   3. Xây xong thì căn nhà hiện trên bản đồ, đi vào cửa là vào trong nhà.
@@ -13,17 +14,11 @@
 import { G, save, addMoney } from '../state.js';
 import { BASE_BY_ID, FURN_BY_ID, HOUSE_BASES } from '../data/estate.js';
 
-// Các lô đất — nằm ở rìa bắc Thị Trấn Taba. Toạ độ đã dò trên bản đồ thật cho
-// chắc là ô trống, không đè lên nhà cửa / NPC / cổng dịch chuyển có sẵn.
-export const KHU_DAT_MAP = 'taba_town';
-export const LOTS = [
-  { id: 'a1', name: 'Lô A1 — Rìa làng', price: 20000, x: 2, y: 2 },
-  { id: 'a2', name: 'Lô A2 — Rìa làng', price: 20000, x: 8, y: 2 },
-  { id: 'b1', name: 'Lô B1 — Mặt đường', price: 45000, x: 14, y: 2 },
-  { id: 'b2', name: 'Lô B2 — Mặt đường', price: 45000, x: 22, y: 4 },
-  { id: 'c1', name: 'Lô C1 — Gần quảng trường', price: 80000, x: 28, y: 4 },
-  { id: 'c2', name: 'Lô C2 — Gần quảng trường', price: 80000, x: 34, y: 4 },
-];
+// Các lô đất nằm trong KHU DÂN CƯ — một bản đồ riêng, đi hết ngõ phía bắc Thị
+// Trấn Taba là tới. Toạ độ lô, chỗ bác thợ mộc đứng và bản thân bản đồ đều do
+// tools/khudancu.py sinh ra một lượt, nên nền đất luôn khớp với lô đất.
+import { KHU_DAT_MAP, LOTS, THO_MOC, CONG_RA } from '../data/khudancu.js';
+export { KHU_DAT_MAP, LOTS, THO_MOC, CONG_RA };
 export const LOT_BY_ID = Object.fromEntries(LOTS.map(l => [l.id, l]));
 
 // Bên trong nhà mượn mấy bản đồ TRỐNG HẲN của bản gốc (không NPC, không cổng).
@@ -37,8 +32,6 @@ export const MAP_TRONG_NHA = {
 // Mọi bản đồ có thể là nhà của người chơi — dùng để nhận ra đang ở trong nhà
 export const CAC_MAP_NHA = Object.values(MAP_TRONG_NHA);
 export const mapTrongNha = () => MAP_TRONG_NHA[nha().base] || null;
-// Chỗ bác thợ mộc bán nội thất đứng, ngay đầu khu đất
-export const THO_MOC = { x: 5, y: 6 };
 
 export function nha() {
   if (!G.p.estate) G.p.estate = { lot: null, base: null, kho: {}, dat: [] };

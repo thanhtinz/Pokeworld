@@ -2045,6 +2045,67 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       return c.y + 1 >= m.h || m.solid[d];
     });
     ok('lô nào cũng có lối đi tới cửa nhà', kin.length === 0, kin.map(l => l.id).join(', '));
+
+    // Khu dân cư là bản đồ RIÊNG, không mượn góc thị trấn nữa
+    ok('khu đất là bản đồ riêng', ES.KHU_DAT_MAP !== 'taba_town', ES.KHU_DAT_MAP);
+    const cong = (MAPS.taba_town.warps || []).filter(w => w.to === ES.KHU_DAT_MAP);
+    ok('từ thị trấn có cổng vào khu dân cư', cong.length > 0);
+    ok('trong khu dân cư có cổng về thị trấn',
+      (m.warps || []).some(w => w.to === 'taba_town'));
+
+    // Cổng phải nằm trong vùng đi lại chính của thị trấn. Có lần chương trình
+    // sinh tự chọn một góc bị cây và vách đá vây kín — bản đồ vẫn "có cổng"
+    // nhưng người chơi đi cả đời không tới.
+    {
+      const t = MAPS.taba_town;
+      const s = t.spawn;
+      const den = new Set([`${s.x},${s.y}`]);
+      const hang = [[s.x, s.y]];
+      while (hang.length) {
+        const [x, y] = hang.pop();
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= t.w || ny >= t.h) continue;
+          if (t.solid[ny * t.w + nx]) continue;
+          const k = `${nx},${ny}`;
+          if (den.has(k)) continue;
+          den.add(k); hang.push([nx, ny]);
+        }
+      }
+      ok('đi bộ trong thị trấn tới được cổng khu dân cư',
+        cong.every(w => den.has(`${w.x},${w.y}`)),
+        cong.map(w => `${w.x},${w.y}`).join(' '));
+    }
+
+    // Địa hình phân biệt được: phải có mặt nước, và phải có tường bao quanh
+    ok('khu dân cư có mặt nước', (m.water || []).some(v => v));
+    const chan = m.solid.reduce((a, v) => a + v, 0);
+    ok('khu dân cư có vật cản, không phải bãi trống', chan / (m.w * m.h) > 0.15,
+      `${Math.round(chan * 100 / (m.w * m.h))}%`);
+
+    // Đi bộ từ cổng vào phải tới được MỌI cửa nhà và chỗ bác thợ mộc
+    const vao = cong[0];
+    const den = new Set([`${vao.tx},${vao.ty}`]);
+    const hang = [[vao.tx, vao.ty]];
+    while (hang.length) {
+      const [x, y] = hang.pop();
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) continue;
+        if (m.solid[ny * m.w + nx]) continue;
+        const k = `${nx},${ny}`;
+        if (den.has(k)) continue;
+        den.add(k); hang.push([nx, ny]);
+      }
+    }
+    const xa = ES.LOTS.filter(l => !den.has(`${l.x + 1},${l.y + 3}`));
+    ok('đi bộ từ cổng tới được mọi lô đất', xa.length === 0, xa.map(l => l.id).join(', '));
+    ok('đi bộ từ cổng tới được bác thợ mộc',
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) =>
+        den.has(`${ES.THO_MOC.x + dx},${ES.THO_MOC.y + dy}`)));
+    ok('bác thợ mộc không đứng đè lên lô đất nào',
+      ES.LOTS.every(l => ES.THO_MOC.x < l.x || ES.THO_MOC.x > l.x + 2
+        || ES.THO_MOC.y < l.y || ES.THO_MOC.y > l.y + 2));
   }
 
   G.p.money = 1000;

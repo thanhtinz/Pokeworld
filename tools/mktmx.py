@@ -28,6 +28,8 @@ import sys
 import json
 import xml.etree.ElementTree as ET
 
+import khudancu
+
 TILE = 16
 MAX_ATLAS_COLS = 32
 
@@ -911,6 +913,20 @@ def main():
                 w['tx'], w['ty'] = tx, ty
     if lech:
         print('Kéo %d cổng lệch về trong bản đồ: %s' % (len(lech), ', '.join(sorted(set(lech)))))
+
+    # Khu dan cu la ban do RIENG cua ban nay, khong lay tu Tuxemon: tu dat tung
+    # o roi day qua cung mot duong ong. Phai lam sau khi da co taba_town vi no
+    # noi cong hai chieu voi thi tran.
+    kdc = khudancu.them_vao(out_maps, root, tsx_cache, load_tsx)
+    if kdc:
+        remap, cols = build_atlas(kdc, 'assets/maps/%s.png' % khudancu.SLUG)
+        conv = lambda lay: [remap.get(g, -1) if g > 0 else -1 for g in lay]
+        kdc['name'] = khudancu.TEN
+        kdc['cols'] = cols
+        kdc['layers'] = [conv(l) for l in kdc['layers']]
+        kdc['above'] = None
+        out_maps[khudancu.SLUG] = kdc
+        want.append(khudancu.SLUG)
 
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)

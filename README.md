@@ -52,6 +52,8 @@ Sinh lại data/asset từ kho gốc:
 git clone https://github.com/Tuxemon/Tuxemon /tmp/Tuxemon
 python3 tools/mktuxemon.py /tmp/Tuxemon    # loài, chiêu, hệ, trạng thái, tiến hoá
 python3 tools/mktmx.py /tmp/Tuxemon        # bản đồ, NPC, cổng, bảng gặp, mặt nước
+                                           # (kéo theo tools/khudancu.py: dựng bản
+                                           #  đồ Khu Dân Cư của riêng bản này)
 python3 tools/mkui.py /tmp/Tuxemon         # icon giao diện
 python3 tools/mksounds.py /tmp/Tuxemon     # nhạc nền + tiếng chiêu
 python3 tools/mkvfx.py /tmp/Tuxemon        # hiệu ứng chiêu

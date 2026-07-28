@@ -22,8 +22,9 @@ export function render(el, { from = 'menu' } = {}) {
   function veTinhTrang() {
     const t = tomTat();
     if (!t.lot) {
-      return `<div class="card empty-note">Bạn chưa có đất. Ra rìa Thị Trấn Taba,
-        chỗ nào cắm biển <b>BÁN</b> thì đứng trước biển bấm nút hành động để mua.</div>`;
+      return `<div class="card empty-note">Bạn chưa có đất. Từ Thị Trấn Taba đi
+        theo biển chỉ đường vào <b>Khu Dân Cư</b>, lô nào cắm biển <b>BÁN</b> thì
+        đứng trước biển bấm nút hành động để mua.</div>`;
     }
     const dong = [['Lô đất', t.lot.name]];
     if (!t.base) dong.push(['Nhà', 'chưa dựng — bấm vào lô đất trên bản đồ để chọn mẫu']);
