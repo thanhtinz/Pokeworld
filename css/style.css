@@ -122,7 +122,11 @@ html, body {
   background: rgba(255, 255, 255, .05);
 }
 .tb-icon:active { transform: scale(.94); }
-.tb-glyph { font-size: 16px; line-height: 1; filter: saturate(.9); }
+/* Hai nút Hộp thư / Thông báo trên thanh trên: dùng ảnh pixel như mọi icon
+   khác, không để emoji nữa (emoji mỗi máy vẽ một kiểu). */
+.tb-glyph { display: flex; align-items: center; justify-content: center;
+  width: 19px; height: 19px; line-height: 1; }
+.tb-glyph .ui-ico { width: 19px !important; height: 19px !important; }
 .tb-dot {
   position: absolute; top: -5px; right: -5px; min-width: 17px; height: 17px;
   padding: 0 4px; border-radius: 999px;
@@ -1507,6 +1511,11 @@ img[src*='sprites'] { image-rendering: pixelated; }
   border-bottom: 1px solid rgba(255,255,255,.06); font-size: .84rem; }
 .rank-row:last-child, .guild-row:last-child { border-bottom: 0; }
 .rank-row.mine { color: var(--gold); }
+/* Hàng xếp hạng giờ là nút bấm xem thẻ — bỏ kiểu mặc định của <button> đi */
+button.rank-row { width: 100%; background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.06);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; }
+button.rank-row:active { background: rgba(255, 255, 255, .05); }
+button.rank-row .rank-name { text-align: left; }
 .rank-no { width: 28px; color: var(--muted); }
 .rank-name { flex: 1; }
 .rank-val { font-variant-numeric: tabular-nums; }
@@ -2322,3 +2331,11 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .fa-link-mid small { color: var(--muted); font-weight: 500; font-size: .76rem;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fa-link-go { flex: none; color: var(--muted); font-size: 1.3rem; line-height: 1; }
+
+/* Tên bạn trong danh sách là nút mở thẻ huấn luyện viên */
+.fr-name { flex: 1; min-width: 0; background: none; border: 0; padding: 0;
+  color: inherit; font: inherit; text-align: left; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-name:active { color: var(--gold); }
+.prof-when { text-align: center; }
+.prof-when small { color: var(--muted); font-size: .76rem; }

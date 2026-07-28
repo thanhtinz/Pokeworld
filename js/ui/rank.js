@@ -5,6 +5,7 @@ import { isOnlineMode } from '../net/config.js';
 import * as api from '../net/api.js';
 import { net } from '../net/session.js';
 import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
+import { show } from '../main.js';
 
 const METRICS = [['money', 'Tiền'], ['badges', 'Huy hiệu'], ['dex', 'Tuxedex']];
 let metric = 'money';
@@ -32,12 +33,16 @@ export function render(el) {
     if (!list) return;
     if (!r.ok) { list.innerHTML = '<div class="empty-note">Không tải được bảng xếp hạng.</div>'; return; }
     const rows = r.data?.rows || [];
+    // Bấm vào một hàng để xem thẻ huấn luyện viên của người đó
     list.innerHTML = rows.length ? rows.map((e, i) => `
-      <div class="rank-row ${e.username === net.me?.username ? 'mine' : ''}">
+      <button type="button" class="rank-row ${e.username === net.me?.username ? 'mine' : ''}"
+              data-who="${esc(e.username)}">
         <b class="rank-no">${i + 1}</b>
         <span class="rank-name">${esc(e.username)}</span>
         <span class="rank-val">${fmt(e.value ?? 0)}</span>
-      </div>`).join('') : '<div class="empty-note">Chưa có ai trên bảng.</div>';
+      </button>`).join('') : '<div class="empty-note">Chưa có ai trên bảng.</div>';
+    list.querySelectorAll('[data-who]').forEach(b => b.addEventListener('click',
+      () => show('profile', { username: b.dataset.who, from: 'rank' })));
   }
   draw();
 }

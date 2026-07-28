@@ -111,6 +111,17 @@ try {
   ok('bảng xếp hạng có 2 người', lb.data.rows.length === 2, JSON.stringify(lb.data.rows));
   ok('xếp hạng đúng thứ tự', lb.data.rows[0].username === 'AshK');
 
+  // ==== Thẻ huấn luyện viên công khai ====
+  const prof = await api('/api/profile/ashk');
+  ok('xem được thẻ người khác (không cần token)', prof.status === 200, JSON.stringify(prof.data));
+  ok('thẻ trả đúng tên gốc', prof.data.username === 'AshK');
+  ok('thẻ có số liệu Tuxedex', typeof prof.data.dexSeen === 'number');
+  ok('thẻ KHÔNG lộ tiền', prof.data.money === undefined);
+  ok('thẻ KHÔNG lộ túi đồ và đội hình',
+    prof.data.bag === undefined && prof.data.party === undefined);
+  const profX = await api('/api/profile/khong-ton-tai');
+  ok('người không có thì báo 404', profX.status === 404);
+
   // ==== Bạn bè ====
   const fr = await api('/api/friends/request', { method: 'POST', body: { username: 'MistyW' }, token: tokenA });
   ok('gửi lời mời kết bạn', fr.status === 200);

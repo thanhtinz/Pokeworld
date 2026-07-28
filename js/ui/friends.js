@@ -53,7 +53,7 @@ export function render(el) {
         <b>Danh sách bạn (${friends.length})</b>
         ${friends.length ? friends.map(f => `
           <div class="guild-row">
-            <span>${esc(f.username)}</span>
+            <button type="button" class="fr-name" data-card="${esc(f.username)}">${esc(f.username)}</button>
             <span>
               <button class="btn-mini" data-dm="${esc(f.username)}">Nhắn</button>
               <button class="btn-mini" data-pvp="${esc(f.username)}">Đấu</button>
@@ -61,6 +61,10 @@ export function render(el) {
             </span>
           </div>`).join('') : '<div class="empty-note">Chưa có bạn nào.</div>'}
       </div>`;
+
+    // Bấm tên bạn để xem thẻ huấn luyện viên của họ
+    body.querySelectorAll('[data-card]').forEach(b => b.addEventListener('click',
+      () => show('profile', { username: b.dataset.card, from: 'friends' })));
 
     body.querySelector('#fr-add').addEventListener('click', async () => {
       const v = body.querySelector('#fr-name').value.trim();

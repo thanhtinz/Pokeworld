@@ -7,7 +7,7 @@ import {
   sendFriendRequest, respondFriendRequest, listFriends, removeFriend,
   proposeMarriage, respondMarriage, divorce, marriageInfo,
 } from './social.js';
-import { guildRouter } from './guild.js';
+import { guildRouter, guildOf } from './guild.js';
 import { chatRouter } from './chat.js';
 import { publicCosmetics, cosmeticsOf } from './cosmetics.js';
 import {
@@ -75,6 +75,33 @@ const METRICS = {
   level: u => Math.max(0, ...(u.save?.party || []).map(m => m.lv || 0)),
   pvp: u => u.stats?.pvpWin || 0,
 };
+
+// ==== Thẻ huấn luyện viên của người khác ====
+// Chỉ trả những gì người chơi vốn đã khoe công khai (bảng xếp hạng, khung chat)
+// — KHÔNG có tiền, túi đồ hay đội hình, để nhìn thẻ không đoán ra được gì
+// dùng vào việc xấu.
+router.get('/profile/:username', (req, res) => {
+  const ten = String(req.params.username || '').toLowerCase();
+  const u = find('users', x => x.unameLower === ten);
+  if (!u || u.banned) return res.status(404).json({ error: 'Không tìm thấy người chơi.' });
+  const sv = u.save || {};
+  const g = guildOf(u.id);
+  res.json({
+    username: u.username,
+    avatar: u.avatar,
+    look: sv.look || null,
+    cosmetics: cosmeticsOf(u),
+    trainer: sv.trainer || { level: 1, exp: 0 },
+    badges: sv.badges || [],
+    dexSeen: Object.keys(sv.dex?.seen || {}).length,
+    dexCaught: Object.keys(sv.dex?.caught || {}).length,
+    wins: sv.stats?.wins || 0,
+    playSince: sv.stats?.playSince || u.createdAt,
+    pvp: { win: u.stats?.pvpWin || 0, lose: u.stats?.pvpLose || 0 },
+    guild: g ? { name: g.name, tag: g.tag } : null,
+    lastSeen: u.lastSeen,
+  });
+});
 
 router.get('/leaderboard', (req, res) => {
   const metric = String(req.query.metric || 'money');

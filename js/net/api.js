@@ -109,3 +109,6 @@ export const fetchEvents = () => call('/events');
 export const syncEvent = (id, vars) => call(`/events/${encodeURIComponent(id)}/sync`, { method: 'POST', body: { vars } });
 export const buyEvent = (id, shopId) => call(`/events/${encodeURIComponent(id)}/buy`, { method: 'POST', body: { shopId } });
 export const rollEvent = (id, n = 1) => call(`/events/${encodeURIComponent(id)}/roll`, { method: 'POST', body: { n } });
+
+// ==== Thẻ huấn luyện viên của người khác ====
+export const fetchProfile = (username) => call(`/profile/${encodeURIComponent(username)}`);

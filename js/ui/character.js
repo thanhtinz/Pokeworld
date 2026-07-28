@@ -9,19 +9,10 @@ import { esc, fmt } from '../util.js';
 import { header } from './kit.js';
 import { uiIcon } from './icons.js';
 import { upgradeFaces } from './look.js';
-import { cardHtml } from './trainercard.js';
-
-function ensureCss() {
-  if (document.getElementById('char-css')) return;
-  const l = document.createElement('link');
-  l.id = 'char-css';
-  l.rel = 'stylesheet';
-  l.href = 'css/character.css';
-  document.head.appendChild(l);
-}
+import { cardHtml, ensureCardCss } from './trainercard.js';
 
 export function render(el) {
-  ensureCss();
+  ensureCardCss();
   const p = ensureData();
   if (!p) return;
 

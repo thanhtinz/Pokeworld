@@ -178,6 +178,25 @@ def ve_battle(d):
     d.polygon([(5, 11), (2, 14), (4, 14)], fill=C['r'])
 
 
+def ve_mail(d):
+    d.rectangle((1, 3, 14, 12), fill=C['W'])
+    d.rectangle((1, 3, 14, 12), outline=C['S'])
+    # nap thu gap chu V
+    d.line((1, 3, 8, 8), fill=C['S'])
+    d.line((8, 8, 14, 3), fill=C['S'])
+    d.line((1, 4, 8, 9), fill=C['S'])
+    d.line((8, 9, 14, 4), fill=C['S'])
+
+
+def ve_bell(d):
+    d.pieslice((3, 2, 12, 12), 180, 360, fill=C['G'])
+    d.rectangle((3, 7, 12, 11), fill=C['G'])
+    d.rectangle((2, 11, 13, 12), fill=C['g'])
+    d.rectangle((7, 0, 8, 2), fill=C['g'])       # quai chuong
+    d.rectangle((6, 13, 9, 14), fill=C['g'])     # qua lac
+    d.line((5, 4, 5, 9), fill=C['W'])            # danh sang
+
+
 def ve_star(d):
     # ngoi sao 5 canh cho the huan luyen vien — anh 'stars' cua ban goc la chum
     # lap lanh, thu nho con 14px thi khong doc ra la may sao
@@ -199,6 +218,7 @@ ICONS = {
     'quest': ve_quest, 'shop': ve_shop, 'trophy': ve_trophy, 'guild': ve_guild,
     'friends': ve_friends, 'heart': ve_heart, 'flag': ve_flag,
     'server': ve_server, 'heal': ve_heal, 'battle': ve_battle, 'walk': ve_walk, 'star': ve_star,
+    'mail': ve_mail, 'bell': ve_bell,
 }
 
 

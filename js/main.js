@@ -13,6 +13,7 @@ import * as shop from './ui/shop.js';
 import * as mail from './ui/mail.js';
 import * as news from './ui/news.js';
 import * as events from './ui/events.js';
+import * as profile from './ui/profile.js';
 import * as quest from './ui/quest.js';
 import * as starter from './ui/starter.js';
 import * as menu from './ui/menu.js';
@@ -53,7 +54,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };
@@ -148,9 +149,11 @@ export async function hardReload() {
   location.reload();
 }
 
-// Vẽ icon SVG vào mọi chỗ đánh dấu data-ico (thanh dưới, nút chat nổi)
+// Vẽ icon vào mọi chỗ đánh dấu data-ico (thanh trên, thanh dưới, nút chat nổi)
+const CO_ICO = { 'tb-coin': 17, 'tb-glyph': 19 };
 for (const el of document.querySelectorAll('[data-ico]')) {
-  el.innerHTML = uiIcon(el.dataset.ico, el.classList.contains('tb-coin') ? 17 : 26);
+  const co = Object.entries(CO_ICO).find(([c]) => el.classList.contains(c));
+  el.innerHTML = uiIcon(el.dataset.ico, co ? co[1] : 26);
 }
 
 // ==== Thanh trên: avatar, tên, cấp, tiền ====

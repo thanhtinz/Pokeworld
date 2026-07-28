@@ -70,7 +70,7 @@ const ART = {
 // Danh sách phải khớp ICONS bên tệp đó.
 const VE = new Set(['coin', 'map', 'chat', 'gift', 'quest', 'shop', 'trophy',
                     'guild', 'friends', 'heart', 'flag', 'server', 'heal',
-                    'battle', 'walk', 'star']);
+                    'battle', 'walk', 'star', 'mail', 'bell']);
 
 // size = px, cls thêm class ngoài
 export function uiIcon(name, size = 22, cls = '') {

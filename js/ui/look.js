@@ -53,6 +53,13 @@ export function faceHtml(src, cls = '') {
 
 export const myFaceHtml = (cls = '') => faceHtml(avatarFaceSrc(), cls);
 
+// Ảnh mặt của NGƯỜI KHÁC: skin họ đang mặc, không có thì avatar gốc của họ.
+// (skinSrc ở trên luôn lùi về avatar của MÌNH nên không dùng lại được.)
+export function faceSrcOf(look, avatar) {
+  const id = (look?.avatar && look.avatar !== 'auto' ? look.avatar : look?.skin) || 'default';
+  return imgOf(SKINS[id]) || `assets/trainers/${avatar || 'red'}.png`;
+}
+
 // Cả người: ảnh 3x4 thì chỉ lấy một khung đứng yên, ảnh thường hiện nguyên tấm.
 export function bodyHtml(src, cls = '') {
   return `<span class="ava-body ${cls}" data-face="${esc(src)}" style="background-image:${cssUrl(src)}"></span>`;
