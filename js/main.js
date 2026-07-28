@@ -64,8 +64,9 @@ let currentParams = null;
 export function show(name, params = {}) {
   const scr = SCREENS[name];
   if (!scr) { console.warn('screen?', name); return; }
-  // Tính năng mở dần theo cấp huấn luyện viên
-  if (G.p && !isUnlocked(name)) {
+  // Tính năng mở dần theo cấp huấn luyện viên. Cửa hàng THẬT trong thị trấn thì
+  // không khoá — mốc cấp chỉ để hoãn cái cửa hàng tiện lợi mở từ Menu.
+  if (G.p && !isUnlocked(name) && !(name === 'shop' && params.shop)) {
     toast(`${FEATURES[name].name}: ${lockNote(name)}`);
     return;
   }

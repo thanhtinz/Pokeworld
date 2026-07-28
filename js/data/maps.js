@@ -118,7 +118,7 @@ export const MAPS = {
     solid: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     warps: [{"x": 6, "y": 10, "to": "taba_town", "tx": 30, "ty": 12}],
     talks: [{"x": 8, "y": 5, "name": "Bảng hiệu"}, {"x": 8, "y": 8, "name": "Bảng hiệu"}, {"x": 2, "y": 6, "name": "Bảng hiệu"}, {"x": 9, "y": 10, "name": "Bảng hiệu"}, {"x": 10, "y": 10, "name": "Bảng hiệu"}],
-    npcs: [{"x": 1, "y": 5, "dir": "right", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand"}, {"x": 3, "y": 5, "dir": "down", "sprite": "professor", "name": "Giáo Sư", "lines": ["Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.", "Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé."], "ai": "stand"}],
+    npcs: [{"x": 1, "y": 5, "dir": "right", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand", "shop": "tuxe_mart_taba"}, {"x": 3, "y": 5, "dir": "down", "sprite": "professor", "name": "Giáo Sư", "lines": ["Cháu đến rồi à! Tuxemon của cháu trông khoẻ đấy.", "Nhớ ghé phòng thí nghiệm nếu cần ta xem qua đội hình nhé."], "ai": "stand"}],
   },
   taba_house1: {
     name: "Nhà Ông Bà Clawbrew", w: 9, h: 7, cols: 26, music: "town",
@@ -394,7 +394,7 @@ export const MAPS = {
     solid: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     warps: [{"x": 5, "y": 10, "to": "cotton_town", "tx": 30, "ty": 35}],
     talks: [{"x": 7, "y": 6, "name": "Bảng thông báo"}, {"x": 6, "y": 6, "name": "Bảng hiệu"}, {"x": 2, "y": 3, "name": "Bảng hiệu"}, {"x": 0, "y": 8, "name": "Bảng hiệu"}, {"x": 2, "y": 6, "name": "Bảng hiệu"}, {"x": 1, "y": 7, "name": "Bảng hiệu"}, {"x": 2, "y": 4, "name": "Bảng hiệu"}],
-    npcs: [{"x": 0, "y": 5, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand"}, {"x": 7, "y": 7, "dir": "down", "sprite": "heroine_brown", "name": "Bé Na", "lines": ["Muốn qua vùng bên kia thì phải có huy hiệu đấy."], "ai": "wander"}, {"x": 0, "y": 3, "dir": "right", "sprite": "shopkeeper_brown", "name": "Chủ Tiệm", "lines": ["Chào cậu! Chúc cậu lên đường may mắn."], "ai": "wander"}],
+    npcs: [{"x": 0, "y": 5, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand", "shop": "spyder_cotton_scoop"}, {"x": 7, "y": 7, "dir": "down", "sprite": "heroine_brown", "name": "Bé Na", "lines": ["Muốn qua vùng bên kia thì phải có huy hiệu đấy."], "ai": "wander"}, {"x": 0, "y": 3, "dir": "right", "sprite": "shopkeeper_brown", "name": "Chủ Tiệm", "lines": ["Chào cậu! Chúc cậu lên đường may mắn."], "ai": "stand", "shop": "spyder_cotton_tech"}],
   },
   cotton_cafe: {
     name: "Quán Cà Phê Bông", w: 12, h: 12, cols: 32, music: "town",
@@ -940,7 +940,7 @@ export const MAPS = {
     solid: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
     warps: [{"x": 5, "y": 10, "to": "leather_town", "tx": 24, "ty": 10}],
     talks: [{"x": 2, "y": 6, "name": "Bảng hiệu"}],
-    npcs: [{"x": 3, "y": 5, "dir": "right", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand"}],
+    npcs: [{"x": 3, "y": 5, "dir": "right", "sprite": "shopassistant", "name": "Chủ Tiệm Tuxe Mart", "lines": ["Ghé xem hàng đi cậu, bóng và thuốc lúc nào cũng sẵn."], "ai": "stand", "shop": "leather_scoop"}],
   },
   leather_museum: {
     name: "Bảo Tàng Da", w: 30, h: 11, cols: 32, music: "town",
@@ -1151,7 +1151,7 @@ export const MAPS = {
     solid: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     warps: [{"x": 5, "y": 10, "to": "candy_town", "tx": 3, "ty": 13}],
     talks: [{"x": 2, "y": 6, "name": "Bảng hiệu"}, {"x": 1, "y": 7, "name": "Bảng hiệu"}, {"x": 2, "y": 4, "name": "Bảng hiệu"}],
-    npcs: [{"x": 0, "y": 5, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand"}, {"x": 0, "y": 3, "dir": "right", "sprite": "shopkeeper_brown", "name": "Chủ Tiệm", "lines": ["Chào cậu! Chúc cậu lên đường may mắn."], "ai": "wander"}],
+    npcs: [{"x": 0, "y": 5, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand", "shop": "spyder_candy_scoop"}, {"x": 0, "y": 3, "dir": "right", "sprite": "shopkeeper_brown", "name": "Chủ Tiệm", "lines": ["Chào cậu! Chúc cậu lên đường may mắn."], "ai": "stand", "shop": "spyder_candy_tech"}],
   },
   greenwash_greenhouse: {
     name: "Nhà Kính Xanh", w: 32, h: 16, cols: 32, music: "town",
@@ -1541,7 +1541,7 @@ export const MAPS = {
     solid: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     warps: [{"x": 5, "y": 10, "to": "timber_town", "tx": 14, "ty": 12}],
     talks: [{"x": 2, "y": 6, "name": "Bảng hiệu"}, {"x": 1, "y": 7, "name": "Bảng hiệu"}],
-    npcs: [{"x": 0, "y": 5, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand"}],
+    npcs: [{"x": 0, "y": 5, "dir": "down", "sprite": "shopkeeper", "name": "Chủ Tiệm", "lines": ["Ghé xem hàng đi cậu!"], "ai": "stand", "shop": "spyder_timber_scoop"}],
   },
   routee: {
     name: "Đường Sương Mù", w: 20, h: 20, cols: 32, music: "grove",

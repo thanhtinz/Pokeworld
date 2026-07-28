@@ -397,6 +397,61 @@ CAU = {}
 DO_BEN_CAN = {'fishing_rod': 20, 'neptune': 40, 'poseidon': 80}
 
 
+# Ten tieng Viet cho tung cua hang trong db/economy
+TEN_TIEM = {
+    'tuxe_mart_taba': 'Tuxemart Taba',
+    'cotton_scoop': 'Tiệm Tạp Hoá Bông', 'spyder_cotton_scoop': 'Tiệm Tạp Hoá Bông',
+    'spyder_cotton_tech': 'Tiệm Kỹ Thuật Bông',
+    'leather_scoop': 'Tiệm Tạp Hoá Da', 'spyder_leather_scoop': 'Tiệm Tạp Hoá Da',
+    'spyder_flower_scoop': 'Tiệm Tạp Hoá Hoa',
+    'spyder_flower_petshop': 'Tiệm Thú Cưng Hoa',
+    'spyder_timber_scoop': 'Tiệm Tạp Hoá Gỗ',
+    'spyder_paper_scoop': 'Tiệm Tạp Hoá Giấy',
+    'spyder_candy_scoop': 'Tiệm Tạp Hoá Kẹo',
+    'spyder_candy_tech': 'Tiệm Kỹ Thuật Kẹo',
+}
+
+
+def viet_shops(root, co_mon):
+    """db/economy -> js/data/shops.js. co_mon = tap ma vat pham game dang co."""
+    import glob as _glob
+    import json as _json
+    rows = []
+    for f in sorted(_glob.glob(os.path.join(root, 'mods/tuxemon/db/economy/*.yaml'))):
+        d = yaml.safe_load(open(f, encoding='utf-8')) or {}
+        for e in (d if isinstance(d, list) else [d]):
+            if not isinstance(e, dict) or not e.get('slug'):
+                continue
+            its = []
+            for it in (e.get('items') or []):
+                if it.get('slug') not in co_mon:
+                    continue
+                row = {'id': it['slug'], 'price': int(it['price'])}
+                # inventory > 0 = hang co han, ban het la thoi
+                if it.get('inventory') and int(it['inventory']) > 0:
+                    row['stock'] = int(it['inventory'])
+                its.append(row)
+            if not its:
+                continue
+            rows.append((e['slug'], {
+                'name': TEN_TIEM.get(e['slug'], e['slug']),
+                'sell': round(float(e.get('resale_multiplier') or 0.5), 2),
+                'items': its,
+            }))
+    out = ['// TuxeWorld H5 | data/shops.js | Cửa hàng trên bản đồ — TỰ SINH TỪ tools/mkitems.py',
+           '// Nguồn: db/economy của Tuxemon (CC BY-SA 4.0). Đừng sửa tay.',
+           '// Mỗi thị trấn một gian hàng riêng, càng đi xa hàng càng xịn.',
+           '// stock = số lượng có hạn (bán hết là thôi), sell = hệ số bán lại.', '',
+           'export const SHOPS = {']
+    for slug, r in rows:
+        out.append('  %s: %s,' % (_json.dumps(slug), _json.dumps(r, ensure_ascii=False)))
+    out.append('};')
+    out.append('')
+    out.append('export const shopName = (id) => SHOPS[id]?.name || \'Cửa hàng\';')
+    open('js/data/shops.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    return rows
+
+
 def viet_fishing(root):
     """mods/fishing.yaml -> js/data/fishing.js. Tra ve so can cau."""
     import json as _json
@@ -687,7 +742,9 @@ export const itemsOfKind = (kind) => Object.entries(ITEMS).filter(([, it]) => it
     with open('js/data/capdev.js', 'w', encoding='utf-8') as fh:
         viet_capdev(capdev_cfg, fh)
 
+    tiem = viet_shops(root, {sl for sl, _ in rows})
     print('OK: %d cần câu có cấu hình riêng' % len(CAU))
+    print('OK: %d gian hàng trong db/economy' % len(tiem))
     print('OK: %d vật phẩm, %d loại tuxeball có hệ số riêng'
           % (len(rows), len([k for k in capdev if k != 'example'])))
     print('  (%d món lấy đúng giá trong db/economy)'

@@ -13,6 +13,7 @@ import { tradeNames, tradeCandidates, tradeDone, doTrade } from '../engine/trade
 import { isDaytime } from '../engine/daytime.js';
 import { FISHING, isRod } from '../data/fishing.js';
 import { ITEMS } from '../data/items.js';
+import { SHOPS } from '../data/shops.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
 import { esc } from '../util.js';
@@ -387,6 +388,13 @@ export function render(el) {
         ow: thing.face ? null : (thing.sprite || null) };
       // NPC đổi Tuxemon: chào hỏi bằng chính lời mời đổi chứ không nói câu chung
       if (thing.trade) { await moiDoi(thing, who); return; }
+      // Chủ tiệm: mở đúng gian hàng của thị trấn đó (db/economy bên bản gốc)
+      if (thing.shop && SHOPS[thing.shop]) {
+        await playDialog([[who, `Chào cậu! Ghé ${SHOPS[thing.shop].name} xem có gì hợp không.`]]);
+        cleanup();
+        show('shop', { shop: thing.shop, from: 'world' });
+        return;
+      }
       const say = thing.lines?.length ? thing.lines : (thing.text ? [thing.text] : []);
       if (say.length) {
         await playDialog(say.map(t => [who, t]));

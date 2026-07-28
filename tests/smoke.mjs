@@ -1118,6 +1118,41 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   ok('ngủ luôn mất ít nhất một lượt', daiNhat >= 2, String(daiNhat));
 }
 
+// ==== Cửa hàng từng thị trấn (db/economy của bản gốc) ====
+{
+  const { SHOPS } = await import('../js/data/shops.js');
+  const ds = Object.entries(SHOPS);
+  ok('có nhiều gian hàng riêng', ds.length >= 8, String(ds.length));
+  ok('gian hàng nào cũng có tên tiếng Việt',
+    ds.every(([, x]) => x.name && !/^[a-z_]+$/.test(x.name)),
+    ds.filter(([, x]) => /^[a-z_]+$/.test(x.name)).map(x => x[0]).join(' '));
+  ok('món bán ra đều có thật trong bảng vật phẩm',
+    ds.every(([, x]) => x.items.every(i => ITEMS[i.id])),
+    ds.flatMap(([, x]) => x.items).filter(i => !ITEMS[i.id]).map(i => i.id).join(' '));
+  ok('giá nào cũng dương', ds.every(([, x]) => x.items.every(i => i.price > 0)));
+  ok('có gian hàng bán hàng số lượng có hạn',
+    ds.some(([, x]) => x.items.some(i => i.stock > 0)));
+
+  // Hàng càng về sau càng xịn: tiệm Kẹo phải đắt hơn tiệm đầu game
+  const dau = SHOPS.tuxe_mart_taba;
+  const cuoi = SHOPS.spyder_candy_scoop;
+  if (dau && cuoi) {
+    const tb = (x) => x.items.reduce((a, i) => a + i.price, 0) / x.items.length;
+    ok('tiệm cuối game bán hàng đắt hơn tiệm đầu game', tb(cuoi) > tb(dau),
+      `${tb(dau).toFixed(0)} vs ${tb(cuoi).toFixed(0)}`);
+  }
+
+  // Chủ tiệm phải đứng đúng trên bản đồ và trỏ tới gian hàng có thật
+  const chu = [];
+  for (const [id, mp] of Object.entries(MAPS)) {
+    for (const n of mp.npcs || []) if (n.shop) chu.push({ id, n });
+  }
+  ok('có chủ tiệm trên bản đồ', chu.length >= 5, String(chu.length));
+  ok('chủ tiệm nào cũng trỏ tới gian hàng có thật',
+    chu.every(({ n }) => SHOPS[n.shop]), chu.filter(({ n }) => !SHOPS[n.shop]).map(x => x.n.shop).join(' '));
+  ok('chủ tiệm đứng yên sau quầy', chu.every(({ n }) => n.ai === 'stand'));
+}
+
 // ==== Đổi Tuxemon với NPC (lệnh "trading" rải sẵn trong bản đồ gốc) ====
 {
   const { tradeNames, tradeCandidates, tradeDone, doTrade } =

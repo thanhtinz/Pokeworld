@@ -306,9 +306,12 @@ def build_npc(n):
     out = {'x': n['x'], 'y': n['y'], 'dir': n['dir'], 'slug': slug,
            'sprite': sprite, 'name': n.get('ten') or name, 'lines': lines,
            'ai': NPC_AI.get(sprite, 'wander')}
-    # NPC doi Tuxemon: dung mot cho cho de bam, khong di lang thang
+    # NPC doi Tuxemon / ban hang: dung mot cho cho de bam, khong di lang thang
     if n.get('trade'):
         out['trade'] = n['trade']
+        out['ai'] = 'stand'
+    if n.get('shop'):
+        out['shop'] = n['shop']
         out['ai'] = 'stand'
     return out
 
@@ -527,6 +530,13 @@ def parse_map(path, tsx_cache):
                 for slug, d in re.findall(r'char_face\s+([a-z0-9_]+)\s*,\s*(up|down|left|right)', a):
                     if slug in npcs:
                         npcs[slug]['dir'] = d
+
+            # Cua hang: "set_economy <npc>,<ma gian hang>" cho biet nguoi nao
+            # ban gi. Ghep vao dung NPC de bam vao la mo dung gian hang do.
+            for a in acts:
+                m = re.match(r'set_economy\s+([a-z0-9_]+)\s*,\s*([a-z0-9_]+)', a)
+                if m and m.group(1) in npcs:
+                    npcs[m.group(1)]['shop'] = m.group(2)
 
             # Doi Tuxemon voi NPC: ban goc ghi "trading <dua>,<nhan>" kem
             # behav "talk <npc>". Doi mot lan la xong (co bien hastraded).
