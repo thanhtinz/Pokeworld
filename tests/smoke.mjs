@@ -4556,6 +4556,72 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       /veDongHo\(/.test(w2) && /veBangTen\(/.test(w2));
     // Chuồng phải quây kín: con vật chỉ đi trong lòng chuồng
     ok('có vùng lòng chuồng', !!NM.VUNG_THU);
+    // Hàng rào quây quanh CẢ bản đồ, không có cổng nào — đường vào là cửa sau
+    // trong nhà. Rào phải kín: hở một ô là đi lọt ra ngoài mép bản đồ.
+    {
+      const nt6 = MAPS[NM.NONG_TRAI_MAP];
+      const R = NM.RAO_NGOAI;
+      ok('có hàng rào quây quanh bản đồ', !!R);
+      const ho = [];
+      for (let x = R.x; x < R.x + R.w; x++) {
+        for (const y of [R.y, R.y + R.h - 1]) {
+          if (!nt6.solid[y * nt6.w + x]) ho.push(`${x},${y}`);
+        }
+      }
+      for (let y = R.y; y < R.y + R.h; y++) {
+        for (const x of [R.x, R.x + R.w - 1]) {
+          if (!nt6.solid[y * nt6.w + x]) ho.push(`${x},${y}`);
+        }
+      }
+      ok('vòng rào kín, không hở ô nào', ho.length === 0, ho.slice(0, 8).join(' '));
+      // Mọi thứ chơi được phải nằm TRONG rào
+      const trongRao = (x, y) => x > R.x && x < R.x + R.w - 1
+        && y > R.y && y < R.y + R.h - 1;
+      ok('lối đi nằm trong rào',
+        NM.LOI_NGANG.every(y => trongRao(R.x + 1, y)));
+      ok('cả 50 ô ruộng nằm trong rào', NM.O_RUONG.every(o => trongRao(o.x, o.y)));
+      ok('nhà kho, nhà bếp, chuồng, hồ đều trong rào',
+        [NM.NHA_KHO, NM.NHA_BEP, NM.CHUONG].every(n =>
+          trongRao(n.x, n.y) && trongRao(n.x + n.w - 1, n.y + n.h - 1))
+        && trongRao(NM.AO_CA.x0, NM.AO_CA.y0)
+        && trongRao(NM.AO_CA.x1, NM.AO_CA.y1));
+      ok('chỗ đặt chân khi đi nhanh vào cũng trong rào',
+        trongRao(NM.CONG_RA.x, NM.CONG_RA.y - 1));
+      // Đi bộ được từ chỗ đặt chân tới mọi khu
+      const den = new Set();
+      const q = [[NM.CONG_RA.x, NM.CONG_RA.y - 1]];
+      den.add(q[0].join(','));
+      while (q.length) {
+        const [x, y] = q.pop();
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= nt6.w || ny >= nt6.h) continue;
+          if (nt6.solid[ny * nt6.w + nx] || den.has(`${nx},${ny}`)) continue;
+          den.add(`${nx},${ny}`);
+          q.push([nx, ny]);
+        }
+      }
+      ok('đi bộ tới được mọi ô ruộng',
+        NM.O_RUONG.every(o => den.has(`${o.x},${o.y}`)),
+        NM.O_RUONG.filter(o => !den.has(`${o.x},${o.y}`))
+          .map(o => `${o.x},${o.y}`).join(' '));
+      ok('đi bộ vào được lòng chuồng',
+        den.has(`${NM.VUNG_THU.x0},${NM.VUNG_THU.y1}`));
+      ok('đi bộ tới được cửa nhà kho và nhà bếp',
+        den.has(`${NM.NHA_KHO.x},${NM.NHA_KHO.y + NM.NHA_KHO.h}`)
+        && den.has(`${NM.NHA_BEP.x},${NM.NHA_BEP.y + NM.NHA_BEP.h}`));
+      ok('đi bộ tới được ba biển MUA',
+        NM.BIEN.every(b => den.has(`${b.x},${b.y - 1}`)));
+      ok('không lọt ra được ngoài vòng rào',
+        ![...den].some(k => {
+          const [x, y] = k.split(',').map(Number);
+          return !trongRao(x, y);
+        }),
+        [...den].filter(k => {
+          const [x, y] = k.split(',').map(Number);
+          return !trongRao(x, y);
+        }).slice(0, 6).join(' '));
+    }
     // Khu đất trồng: 50 ô cố định, KHÔNG quây rào
     ok('khu đất trồng đúng 50 ô', NM.O_TOI_DA === 50
       && NM.O_RUONG.length === 50, `${NM.O_TOI_DA} / ${NM.O_RUONG.length}`);

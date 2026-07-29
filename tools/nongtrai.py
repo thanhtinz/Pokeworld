@@ -30,7 +30,7 @@ Goi tu tools/mktmx.py, dung chay truc tiep.
 """
 import os
 
-W, H = 50, 16
+W, H = 50, 18
 SLUG = 'nong_trai'
 TEN = 'Nông Trại Bờ Suối'
 
@@ -43,26 +43,32 @@ DAI_CAT, DAI_DAT, DAI_NUOC = CT.DAI_CAT, CT.DAI_DAT, CT.DAI_NUOC
 BUI, HOA, DA_TANG = CT.BUI, CT.HOA, CT.DA_TANG
 
 # ==== Bo cuc ====
+# HANG RAO chay quanh CA BAN DO, khong phai quay tung khu. Ca nong trai la mot
+# manh dat co rao, ben trong thi thoang — dung nhu may cai nong trai that.
+# (Rieng chuong thu va bo ho van co rao rieng: chuong de nhot thu, ho de khoi
+# ai buoc xuong nuoc.)
+RAO_NGOAI = (1, 3, W - 2, H - 3)     # x, y, rong, cao — vong rao quanh ban do
+
 # DUY NHAT mot dai loi di, chay ngang suot ban do.
-DUONG_NGANG = (9, 10)
+DUONG_NGANG = (11, 12)
 # Cho dat chan khi di nhanh vao — ngay truoc cua nha minh. Nong trai KHONG co
 # cong bo cong cong nao: duong vao that la cua sau trong nha.
 CONG = (3, DUONG_NGANG[1])
 
 # Can nha cua nguoi choi o dau dai phia tay. Vung 3x3 giong het lo dat ben Khu
 # Dan Cu, o cua nam giua hang duoi cung.
-NHA_SAU = (2, 5)
+NHA_SAU = (2, 7)
 
 # KHU DAT TRONG khong quay rao: no la mot luoi 50 O RUONG co dinh, o nao mua
 # roi thi hien ra thanh dat, o chua mua thi cam bien BAN. Quay rao thi cai rao
 # lai cat ngang giua may o dat, ma khu nay von la thu se lon dan ra.
-KHU_TRONG = (6, 4, 10, 5)       # luoi o ruong: x, y, rong, cao (o) = 50 o
+KHU_TRONG = (6, 6, 10, 5)       # luoi o ruong: x, y, rong, cao (o) = 50 o
 O_TOI_DA = KHU_TRONG[2] * KHU_TRONG[3]
 
-CHUONG = (17, 3, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
-AO = (25, 4, 30, 8)             # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
-NHA_KHO = (33, 4, 5, 5)         # nha kho: x, y, rong, cao (o)
-NHA_BEP = (39, 2, 9, 7)         # nha bep: x, y, rong, cao (o)
+CHUONG = (17, 5, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
+AO = (25, 6, 30, 10)            # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
+NHA_KHO = (33, 6, 5, 5)         # nha kho: x, y, rong, cao (o)
+NHA_BEP = (39, 4, 9, 7)         # nha bep: x, y, rong, cao (o)
 
 BAC_NONG = (35, DUONG_NGANG[0])   # nguoi coi kho, dung ngay truoc cua
 LAI_CA = (27, DUONG_NGANG[0])     # ong lai ca, dung ngay duoi bo ho
@@ -97,7 +103,7 @@ BIEN = [
 ]
 
 # Vung ke duoc vat the nong trai (x0, y0, x1, y1) — tru vien cay ra.
-VUNG = (2, 3, W - 3, DUONG_NGANG[1] + 1)
+VUNG = (2, RAO_NGOAI[1] + 1, W - 3, DUONG_NGANG[1] + 2)
 
 # Nong trai moi thi TRONG KHONG: chua mua o ruong nao ca. O ruong KHONG con la
 # thu tu ke: cho dat san mot luoi 50 o, moi luot chi hien BIEN BAN o o ke tiep.
@@ -204,17 +210,24 @@ def dung(goc):
             if trong_ban_do(x, y) and (x, y) not in bo:
                 dat_tren(x, y, CT.RAO_DOC)
 
-    def quay_rao(o):
+    def quay_rao(o, co_cong=True):
         ox, oy, ow, oh = o
-        cong = {(ox + ow // 2 - 1, oy + oh - 1), (ox + ow // 2, oy + oh - 1)}
+        cong = set()
+        if co_cong:
+            cong = {(ox + ow // 2 - 1, oy + oh - 1), (ox + ow // 2, oy + oh - 1)}
         rao_ngang(ox, ox + ow - 1, oy)
         rao_ngang(ox, ox + ow - 1, oy + oh - 1, bo=cong)
         rao_doc(ox, oy + 1, oy + oh - 2)
         rao_doc(ox + ow - 1, oy + 1, oy + oh - 2)
         return cong
 
-    # CHI chuong duoc quay rao. Khu dat trong de tran, rao chi cat ngang giua
-    # may o dat roi khien no khong lon ra duoc.
+    # VONG RAO QUANH CA BAN DO. Khong chua cong nao: nong trai la san sau can
+    # nha, duong vao la cua sau trong nha chu khong phai mot cai cong ngoai dong
+    # — de cai cong ma khong noi di dau thi con to hon la khong de.
+    quay_rao(RAO_NGOAI, co_cong=False)
+
+    # Chuong quay rao rieng de nhot thu. Khu dat trong de tran: rao chi cat
+    # ngang giua may o dat roi khien no khong lon ra duoc.
     cong_chuong |= quay_rao(CHUONG)
 
     # Ho quay ba mat, HO MAT phia loi di: dung tren duong quay mat len la
@@ -238,6 +251,13 @@ def dung(goc):
     # Vung phai chua trong cho cay: nha cua, chuong, ho, ruong mac dinh, bien.
     def da_co_chu(x, y):
         if la_nuoc(x, y) or la_nen_cung(x, y):
+            return True
+        # Ngay trong lan vong rao ngoai: chua cho no, khong thi bui hoa moc len
+        # chinh o hang rao
+        rx, ry, rw, rh = RAO_NGOAI
+        if x in (rx, rx + rw - 1) and ry <= y <= ry + rh - 1:
+            return True
+        if y in (ry, ry + rh - 1) and rx <= x <= rx + rw - 1:
             return True
         if tren[idx(x, y)]:
             return True
@@ -268,21 +288,21 @@ def dung(goc):
                     return False
         return not het
 
-    ria = []
+    # Cay dung NGOAI vong rao, doc canh bac: nhin ra la rung o phia sau nong
+    # trai. Truoc cay lam luon vai vien ban do — gio rao lam viec do roi, cay
+    # chen vao trong chi an cho ke ruong.
     for x in range(0, W, 2):
-        ria += [(x, -1), (x, H - 4)]
-    for y in range(4, H - 4, 4):
-        ria += [(0, y), (W - 2, y)]
-    for x, y in ria:
-        if not cho_trong_cay(x, y):
-            continue
-        trong_cay(x, y, CT.kieu_cay(x, y))
+        # Cay cao 4 o, than o hai hang duoi. Trong tu day thi than dung sat
+        # ngoai hang rao, con tan la tho ra ngoai mep ban do.
+        y = RAO_NGOAI[1] - 4
+        if cho_trong_cay(x, y):
+            trong_cay(x, y, CT.kieu_cay(x, y))
 
     # ==== Bui, hoa, da rai cho con trong ====
     # KHONG chan duong: cho nao cung phai ke duoc ruong voi chuong, khong thi
     # nguoi choi bay bo cuc ra roi moi phat hien co mot buoi cay vo hinh.
-    for y in range(1, H - 1):
-        for x in range(1, W - 1):
+    for y in range(RAO_NGOAI[1] + 1, RAO_NGOAI[1] + RAO_NGOAI[3] - 1):
+        for x in range(RAO_NGOAI[0] + 1, RAO_NGOAI[0] + RAO_NGOAI[2] - 1):
             if da_co_chu(x, y) or solid[idx(x, y)]:
                 continue
             r = _rng(x + 5, y + 3, 100)
@@ -301,8 +321,9 @@ def dung(goc):
             tren[idx(x, y)] = 0
             solid[idx(x, y)] = 0
 
+    # Chua hai cot rao hai dau: don ca den mep la thung mot lo ra ngoai ban do.
     for y in DUONG_NGANG:
-        for x in range(1, W - 1):
+        for x in range(RAO_NGOAI[0] + 1, RAO_NGOAI[0] + RAO_NGOAI[2] - 1):
             don(x, y)
     for cho in (BAC_NONG, LAI_CA):
         don(cho[0], cho[1])
@@ -404,6 +425,9 @@ def viet_js(cam=()):
         'export const NONG_TRAI_MAP = "%s";' % SLUG,
         '// Chỗ đặt chân khi đi nhanh vào — ngay trước cửa nhà mình.',
         'export const CONG_RA = { x: %d, y: %d };' % CONG,
+        '// Hàng rào quây quanh CẢ bản đồ (không có cổng: đường vào là cửa sau',
+        '// trong nhà). x, y, rộng, cao tính theo ô.',
+        'export const RAO_NGOAI = { x: %d, y: %d, w: %d, h: %d };' % RAO_NGOAI,
         '// Nông trại là một DẢI NGANG: đúng một lối đi chạy suốt từ tây sang',
         '// đông, sáu khu kê ngay trên dải đó.',
         'export const LOI_NGANG = %s;' % list(DUONG_NGANG),
