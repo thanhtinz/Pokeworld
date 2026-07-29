@@ -2123,6 +2123,7 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .bag-detail-art { flex: none; display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; }
 .bag-detail-mid { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .bag-detail-mid b { font-size: 13px; }
+.bag-detail-so { color: var(--gold-num); }
 .bag-detail-mid small { color: var(--muted); font-size: 11.5px; line-height: 1.4; }
 .bag-how { color: var(--gold) !important; }
 /* Icon lấy thẳng từ ảnh giao diện của Tuxemon (assets/ui) */

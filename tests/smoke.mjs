@@ -2998,6 +2998,33 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
 
 
+// ==== Túi đồ: mỗi ô chứa tối đa 100 món cùng loại ====
+{
+  const { chiaChong } = await import('../js/util.js');
+  ok('ít hơn một ô thì gom đúng một ô',
+    JSON.stringify(chiaChong(7, 100)) === '[7]');
+  ok('vừa đúng một ô thì không tràn',
+    JSON.stringify(chiaChong(100, 100)) === '[100]');
+  ok('quá một chút thì tràn sang ô kế',
+    JSON.stringify(chiaChong(101, 100)) === '[100,1]');
+  ok('250 món chia thành ba ô',
+    JSON.stringify(chiaChong(250, 100)) === '[100,100,50]');
+  ok('không có món nào thì không chiếm ô nào',
+    JSON.stringify(chiaChong(0, 100)) === '[]');
+  ok('số âm cũng không sinh ra ô',
+    JSON.stringify(chiaChong(-5, 100)) === '[]');
+  ok('cộng lại vẫn đúng tổng', (() => {
+    for (const n of [1, 99, 100, 101, 199, 1000, 1234]) {
+      const c = chiaChong(n, 100);
+      if (c.reduce((a, b) => a + b, 0) !== n) return false;
+      if (c.some(x => x > 100 || x <= 0)) return false;
+    }
+    return true;
+  })());
+  ok('cỡ ô hỏng thì vẫn chia được, không kẹt vòng lặp',
+    chiaChong(5, 0).length === 5);
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);

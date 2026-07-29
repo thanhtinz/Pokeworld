@@ -11,7 +11,7 @@ import { isInside, facingWater, setRepellent, enterMap, healSpot } from '../engi
 import { SPECIES } from '../data/species.js';
 import { MOVES } from '../data/moves.js';
 import { ITEMS } from '../data/items.js';
-import { esc } from '../util.js';
+import { esc, chiaChong } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 import { openSheet } from './sheet.js';
 
@@ -49,6 +49,9 @@ const CACH_DUNG = {
 // sẵn chứ không phải danh sách dài ngắn tuỳ lúc.
 const COT = 5;
 const O_TOI_THIEU = 40;
+// Một ô chứa tối đa ngần này món cùng loại. Quá thì tràn sang ô kế tiếp —
+// nhặt 250 Thuốc Hồi thì thành ba ô: 100, 100, 50.
+const MOI_O = 100;
 
 export function render(el) {
   // Xếp mọi món vào MỘT lưới duy nhất, thứ tự theo nhóm cho đồ cùng loại nằm
@@ -56,13 +59,15 @@ export function render(el) {
   // dài dằng dặc, mỗi thẻ vài ô lẻ.
   function moiMon() {
     const thu = new Map(NHOM.map(([k], i) => [k, i]));
-    return Object.keys(G.p.bag)
+    const ds = Object.keys(G.p.bag)
       .filter(id => G.p.bag[id] > 0 && ITEMS[id])
       .sort((a, b) => {
         const ka = thu.get(ITEMS[a].kind) ?? 99;
         const kb = thu.get(ITEMS[b].kind) ?? 99;
         return ka - kb || ITEMS[a].name.localeCompare(ITEMS[b].name, 'vi');
       });
+    // Chẻ thành từng chồng tối đa MOI_O món
+    return ds.flatMap(id => chiaChong(G.p.bag[id], MOI_O).map(n => ({ id, n })));
   }
 
   function draw() {
@@ -73,19 +78,20 @@ export function render(el) {
       ${header('Túi đồ')}
       <div class="card bag-card">
         <div class="bag-slots">
-          ${ds.map(id => {
+          ${ds.map(({ id, n }) => {
             const it = ITEMS[id];
             return `<button type="button" class="bag-slot" data-id="${esc(id)}"
                             title="${esc(it.name)}" aria-label="${esc(it.name)}">
               ${itemIcon(id, '', 40)}
-              ${G.p.bag[id] > 1 ? `<span class="bag-n">${G.p.bag[id]}</span>` : ''}
+              ${n > 1 ? `<span class="bag-n">${n}</span>` : ''}
               ${isRod(id) ? `<span class="bag-wear">${rodLeft(id)}</span>` : ''}
             </button>`;
           }).join('')}
           ${'<span class="bag-slot trong"></span>'.repeat(trong)}
         </div>
       </div>
-      ${ds.length ? `<small class="bag-dem">${ds.length} loại vật phẩm</small>`
+      ${ds.length ? `<small class="bag-dem">${new Set(ds.map(x => x.id)).size} loại
+                       · ${ds.length}/${soO} ô đang dùng</small>`
                   : '<div class="card empty-note">Túi đang trống.</div>'}`;
 
     el.querySelectorAll('.bag-slot[data-id]').forEach(b =>
@@ -103,8 +109,8 @@ export function render(el) {
           <div class="bag-detail">
             <span class="bag-detail-art">${itemIcon(id, '', 64)}</span>
             <div class="bag-detail-mid">
-              <b>${esc(it.name)} <span class="item-n">×${G.p.bag[id]}</span>${
-                isRod(id) ? ` <span class="item-n">còn ${rodLeft(id)} lần thả</span>` : ''}</b>
+              <b class="bag-detail-so">Đang có ×${G.p.bag[id]}${
+                isRod(id) ? ` · còn ${rodLeft(id)} lần thả` : ''}</b>
               <small>${esc(it.desc || '')}</small>
               <small class="bag-how">${esc(CACH_DUNG[it.kind] || '')}</small>
             </div>

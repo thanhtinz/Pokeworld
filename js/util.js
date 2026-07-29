@@ -104,3 +104,16 @@ export const monUpgradeChain = () => '';
 // trong biến CSS được tính theo vị trí file .css chứ không phải theo trang.
 export const absUrl = (path) =>
   (typeof document === 'undefined' ? path : new URL(path, document.baseURI).href);
+
+// Chia n món cùng loại thành từng chồng, mỗi chồng nhiều nhất `moiO` món.
+// Túi đồ dùng để xếp ô: 250 Thuốc Hồi với moiO=100 thì ra [100, 100, 50].
+export function chiaChong(n, moiO) {
+  const ra = [];
+  let con = Math.max(0, Math.floor(n));
+  const cap = Math.max(1, Math.floor(moiO));
+  while (con > 0) {
+    ra.push(Math.min(cap, con));
+    con -= cap;
+  }
+  return ra;
+}
