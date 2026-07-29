@@ -4012,6 +4012,17 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     const s2 = coPng2(D.anhCay(c.id, 0, false));
     return s2.w === D.O && s2.h === D.O;
   }));
+  // Ô ruộng cắt thẳng từ tileset của pack, bản tưới làm tối theo đúng cách
+  // pack làm tối đất. Hai bản phải KHÁC nhau rõ, không thì tưới xong nhìn y hệt
+  // lúc chưa tưới, chẳng biết ô nào còn khát.
+  {
+    const oDat = [false, true].map(u => coPng2(D.anhDat(u)));
+    ok('ô ruộng đúng một ô 16x16',
+      oDat.every(s2 => s2.w === D.O && s2.h === D.O),
+      JSON.stringify(oDat));
+    const byte = [false, true].map(u => readFileSync(join(goc, D.anhDat(u))));
+    ok('ô đất tưới khác hẳn ô đất khô', !byte[0].equals(byte[1]));
+  }
   // Sprite con vật phải đúng khuôn 3 cột x 4 hàng như sprite đi bản đồ, không
   // thì engine cắt khung ra hình vỡ
   ok('sprite con vật đúng khuôn 3 cột x 4 hàng', D.THU.every(t => {

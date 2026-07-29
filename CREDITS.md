@@ -190,10 +190,16 @@ Giấy phép y hệt pack nhân vật: mua rồi thì dùng thương mại tho�
 tán lại chính cái pack**. Nên ở đây cũng chỉ commit phần đã cắt ra `assets/nt/`
 theo đúng định dạng riêng của game, không chép tệp gốc nào.
 
-Một chỗ CỐ Ý không dùng: **nền đất của pack**. Bản đồ nông trại vẫn ghép từ
-tileset ngoài trời của Tuxemon, chỉ mượn pack này mấy thứ Tuxemon không có (cây
-trồng, con vật, nhà nông). Trộn hai bộ NỀN thì lệch phong cách thấy ngay, còn
-trộn VẬT THỂ thì không — mấy pack CraftPix ở Phố Kim Long cũng đang làm vậy.
+Một chỗ CỐ Ý không dùng: **bộ nền địa hình của pack**. Bản đồ nông trại vẫn ghép
+từ tileset ngoài trời của Tuxemon, chỉ mượn pack này mấy thứ Tuxemon không có
+(cây trồng, con vật, nhà nông). Trộn hai bộ NỀN thì lệch phong cách thấy ngay,
+còn trộn VẬT THỂ thì không — mấy pack CraftPix ở Phố Kim Long cũng đang làm vậy.
+
+Ngoại lệ duy nhất là **ô đất trồng**: nó lấy từ `tiles/tiles.png` của pack chứ
+không vẽ tay nữa, vì chính ụ đất trong sprite cây là của pack — vẽ một ô đất
+khác tông rồi đặt cây lên thì thấy ngay cái ụ nổi lên như miếng vá. Bản "đã
+tưới" làm tối theo hệ số ĐO TỪ CHÍNH PACK (so `crops.png` với `crops_wet.png`,
+chỉ lấy pixel màu đất), nên ô đất ướt với cây ướt cùng một tông.
 
 ```bash
 python3 tools/mknongtrai.py "/duong/dan/full version"

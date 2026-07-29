@@ -27,14 +27,14 @@ Sinh ra:
   assets/nt/mon/<ma>.png              — icon nông sản
   assets/nt/thu/<ma>.png              — sprite con vật 3 cột x 4 hàng
   assets/nt/nha/<ma>.png              — nhà nông trại, chuồng, sạp chợ
-  assets/nt/dat/{tho,uot}.png         — ô đất đã cày (vẽ bằng code)
+  assets/nt/dat/{tho,uot}.png         — ô đất đã cày, khô và đã tưới
   js/data/nongtrai.js
 """
 import json
 import os
 import sys
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 O = 16                      # canh mot o cua pack (bang TILE cua game)
 RA = 'assets/nt'
@@ -137,22 +137,71 @@ def luu(im, *phan):
     im.save(duong, optimize=True)
 
 
-def ve_o_dat():
-    """O dat da cay — ve bang code chu khong cat tu pack.
+# O dat trong trong tiles.png cua pack: (cot, hang)
+O_DAT = (5, 9)
 
-    Ly do: sprite cay trong pack da co san u dat cua rieng no, con o dat TRONG
-    (cay xong chua gieo) thi pack khong co o nao rieng. Ve mot o 16x16 co luong
-    cay thi vua khop, ma sua mot dong la ca hai bien the doi theo.
+
+def he_so_uot(goc):
+    """He so lam toi cua 'dat da tuoi', do thang tu chinh pack.
+
+    crops.png va crops_wet.png xep trung khit tung pixel, nen so hai tam la ra
+    dung cach tac gia lam toi dat. Chi lay nhung cap pixel la DAT (mau nau:
+    r > g > b) va ban uot toi hon ban kho — con lai la la, qua, hoa, doi mau
+    theo kieu khac han, tron vao thi ra he so bay ba.
+
+    Tu bia mot cong thuc lam toi thi o dat uot lech tong so voi chinh cay uot
+    dang dung tren no.
     """
-    for ten, nen, luong, vien in (('tho', '#8a6642', '#6f5133', '#5a4128'),
-                                  ('uot', '#5d452c', '#48351f', '#372718')):
-        im = Image.new('RGBA', (O, O), (0, 0, 0, 0))
-        d = ImageDraw.Draw(im)
-        d.rectangle([1, 1, O - 2, O - 2], fill=nen, outline=vien)
-        # ba luong cay chay ngang cho ra dang dat moi xoi
-        for y in (4, 8, 12):
-            d.line([(3, y), (O - 4, y)], fill=luong)
-        luu(im, 'dat', ten + '.png')
+    kho = Image.open(os.path.join(goc, 'farming/crops.png')).convert('RGBA')
+    uot = Image.open(os.path.join(goc, 'farming/crops_wet.png')).convert('RGBA')
+    a = kho.load()
+    b = uot.load()
+    tong = [0.0, 0.0, 0.0]
+    n = 0
+    for y in range(kho.height):
+        for x in range(kho.width):
+            p = a[x, y]
+            q = b[x, y]
+            if p[3] < 200 or q[3] < 200 or p[:3] == q[:3]:
+                continue
+            if not (p[0] > p[1] > p[2] and p[0] > 90):
+                continue                      # khong phai mau dat
+            if q[0] >= p[0] or q[1] >= p[1]:
+                continue                      # khong phai lam toi
+            for i in range(3):
+                tong[i] += q[i] / p[i]
+            n += 1
+    if not n:
+        return (0.86, 0.80, 0.84)             # do duoc tren ban pack hien tai
+    return tuple(t / n for t in tong)
+
+
+def lam_uot(mau, hs):
+    return tuple(max(0, min(255, int(round(mau[i] * hs[i])))) for i in range(3))
+
+
+def cat_o_dat(goc):
+    """O dat da cay: cat thang tu tileset cua pack, ban uot doi mau theo pack.
+
+    Truoc day o nay ve bang code (mot hinh vuong co ba vach ngang) — dat gia,
+    lai co vien den nen ke lien mot luong thi hien ra cai luoi o vuong. O that
+    cua pack thi lien mach, ma u dat cua sprite cay dat len tren cung vua khop.
+    """
+    t = Image.open(os.path.join(goc, 'tiles/tiles.png')).convert('RGBA')
+    c, r = O_DAT
+    kho = t.crop((c * O, r * O, c * O + O, r * O + O))
+    luu(kho, 'dat', 'tho.png')
+
+    hs = he_so_uot(goc)
+    uot = Image.new('RGBA', (O, O))
+    px = kho.load()
+    ra = uot.load()
+    for y in range(O):
+        for x in range(O):
+            p = px[x, y]
+            ra[x, y] = (*lam_uot(p[:3], hs), p[3]) if p[3] else p
+    luu(uot, 'dat', 'uot.png')
+    return hs
 
 
 def cat_cay(goc):
@@ -248,7 +297,7 @@ def main():
 
     n = cat_cay(goc) + cat_hat(goc) + cat_mon(goc) + cat_thu(goc)
     nha = cat_nha(goc)
-    ve_o_dat()
+    hs_uot = cat_o_dat(goc)
 
     dong = [
         '// TuxeWorld H5 | data/nongtrai.js | Cây trồng, con vật, nhà nông trại',
@@ -337,6 +386,8 @@ def main():
     print('OK: %d ảnh + %d nhà -> %s (%.1f KB)' % (n, len(nha), RA, tong / 1024))
     print('OK: %d cây, %d con vật, %d món -> %s'
           % (len(CAY), len(THU), len(CAY) + len(MON_THEM), DL))
+    print('OK: ô đất tưới làm tối theo hệ số đo từ pack: %s'
+          % ', '.join('%.3f' % h for h in hs_uot))
 
 
 if __name__ == '__main__':
