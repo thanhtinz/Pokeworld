@@ -2480,43 +2480,6 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .ach-qua .item-ico img, .ach-qua .ui-ico { flex: none; }
 .ach-row .ach-take { flex: none; align-self: center; min-width: 74px; }
 
-/* ==== Công Viên Pepper (ui/park.js) ==== */
-.park-title { display: block; font-size: 1rem; margin-bottom: 8px; }
-.park-gate p { font-size: .86rem; line-height: 1.6; color: var(--muted); margin-bottom: 10px; }
-.park-rule { list-style: none; padding: 0; margin: 0 0 14px; display: flex;
-  flex-direction: column; gap: 6px; }
-.park-rule li { display: flex; align-items: center; gap: 7px; font-size: .84rem; }
-.park-gate .btn { width: 100%; }
-
-/* Thanh trạng thái: bước / bóng / đã bắt */
-.park-bar { display: flex; gap: 8px; margin-bottom: 10px; }
-/* Phải là con TRỰC TIẾP: để '.park-bar span' thì cái <span> bọc icon bên trong
-   cũng ăn viền + nền, hiện ra thành mấy ô rỗng cạnh con số. */
-.park-bar > span { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
-  padding: 8px 4px; font-size: 0.87rem; color: var(--muted);
-  background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
-.park-bar b { color: var(--gold); font-size: .86rem; font-variant-numeric: tabular-nums; }
-
-.park-stage { text-align: center; min-height: 190px; display: flex;
-  flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
-.park-mon { width: 108px; height: 108px; object-fit: contain; image-rendering: pixelated;
-  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .5)); }
-.park-name { font-size: .95rem; }
-.park-name small { color: var(--gold); }
-.park-turn { color: var(--muted); font-size: 0.83rem; }
-.park-empty { color: var(--muted); font-size: .86rem; padding: 40px 0; }
-.park-say { margin: 6px 0 0; font-size: .84rem; line-height: 1.55; color: var(--text); min-height: 2.6em; }
-
-.park-acts { display: flex; gap: 8px; }
-.park-acts .btn { flex: 1; }
-.park-walk { width: 100%; }
-.park-out { width: 100%; margin-top: 10px; }
-
-.park-sub { display: block; margin: 12px 0 8px; }
-.park-top { display: flex; flex-wrap: wrap; gap: 6px 10px; }
-.park-top-i { display: inline-flex; align-items: center; gap: 5px; font-size: 0.87rem; }
-.park-top-i img { width: 26px; height: 26px; object-fit: contain; image-rendering: pixelated; }
-
 /* ==== Nhà Trẻ (ui/daycare.js) ==== */
 .dc-head p { margin: 8px 0 0; font-size: .84rem; line-height: 1.6; color: var(--muted); }
 .dc-mode { font-size: 1rem; color: var(--muted); }

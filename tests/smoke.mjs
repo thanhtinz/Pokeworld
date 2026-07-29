@@ -67,7 +67,6 @@ import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor, addTrainerExp,
   trainerLevelFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
-import * as P from '../js/engine/park.js';
 import * as DC from '../js/engine/daycare.js';
 import * as ES from '../js/engine/estate.js';
 import * as CR from '../js/engine/craft.js';
@@ -1843,61 +1842,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   }
 }
 
-// ==== Công Viên Pepper ====
-{
-  // Vào cổng MIỄN PHÍ: không xu dính túi vẫn phải vào được. Công viên là chỗ
-  // bắt Tuxemon hiếm, thu vé thì càng nghèo càng không có cửa.
-  newGame('ParkTester');
-  G.p.money = 0;
-  const [x, e1] = P.vaoCongVien();
-  ok('hết sạch tiền vẫn vào công viên được', !!x && !e1, e1 || '');
-  ok('vào cổng không mất đồng nào', G.p.money === 0, String(G.p.money));
-  ok('giá vé đúng là 0', P.GIA_VE === 0, String(P.GIA_VE));
-  P.raCong();
-
-  newGame('ParkTester');
-  G.p.money = 50000;
-  const tienCu = G.p.money;
-  const [vao, e2] = P.vaoCongVien();
-  ok('vào công viên được', !!vao && !e2);
-  ok('vẫn không trừ tiền', G.p.money === tienCu, String(G.p.money));
-  ok('vào là có đủ bước và bóng', P.park.buoc === P.BUOC && P.park.bong === P.SO_BONG);
-  ok('không vào hai lần', P.vaoCongVien()[1] !== null);
-
-  // Đi cho tới khi gặp một con
-  let gap = null;
-  for (let i = 0; i < 400 && !gap; i++) {
-    const ev = P.buocTrongCongVien();
-    if (ev?.t === 'gap') gap = ev;
-    if (ev?.t === 'hetBuoc') break;
-  }
-  ok('đi một lúc thì gặp Tuxemon', !!gap);
-  ok('gặp con nào là ghi vào Tuxedex', !gap || G.p.dex.seen[gap.mon.sp] === true);
-
-  if (gap) {
-    const bongCu = P.park.bong;
-    const r = P.nemBong();
-    ok('ném bóng trừ đúng một quả', P.park.bong === bongCu - 1);
-    ok('ném hụt thì có câu tả bộ dạng', r.bat || !!r.dangVe);
-    ok('bắt được thì con đó vào đội hoặc box',
-      !r.bat || G.p.party.length + G.p.box.length > 0);
-  }
-
-  // Bỏ qua thì hết con trước mặt
-  P.park.gap = P.park.gap || { mon: gap?.mon, luot: 5, chay: 0 };
-  P.boQua();
-  ok('bỏ qua thì con vật đi mất', P.park.gap === null);
-
-  const tk = P.raCong();
-  ok('ra cổng thì hết ở trong công viên', !P.park.dang);
-  ok('tổng kết đếm đúng số lần ném', tk.tong === tk.bat + tk.hut);
-  ok('tổng kết có tỉ lệ bắt hợp lệ', tk.tiLe >= 0 && tk.tiLe <= 1);
-  ok('tổng kết đếm số loài đã gặp', tk.soLoai >= 1, String(tk.soLoai));
-
-  ok('bóng công viên không ném được ngoài trận thường',
-    ITEMS[P.BONG] && ITEMS[P.BONG].kind === 'park' && !ITEMS[P.BONG].inBattle);
-}
-
 // ==== EXP huấn luyện viên: mọi cách kết thúc trận đều phải cho công ====
 // Từng có lỗi: lệnh cộng EXP nằm trong nhánh "thắng trận" nên ai chơi kiểu đi
 // BẮT là kẹt Lv.1 vĩnh viễn, không mở nổi Nhiệm vụ (Lv.2) hay Cửa hàng (Lv.3).
@@ -3191,8 +3135,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   // Công viên bỏ trang riêng trong Menu, dọn về đây dưới dạng màn rời. Mục kiểu
   // `man` không có bản đồ đi bộ, nên phải khai báo `man` thì ui/diadiem.js mới
   // biết đường mở thẳng màn đó.
-  ok('công viên nằm trong danh sách địa điểm',
-    DD.DIA_DIEM.some(d => d.id === 'park' && d.man === 'park'));
   ok('mục địa điểm nào cũng hoặc có bản đồ hoặc có màn riêng',
     DD.DIA_DIEM.every(d => MAPS[d.id] || d.man),
     DD.DIA_DIEM.filter(d => !MAPS[d.id] && !d.man).map(d => d.id).join(' '));
@@ -3305,11 +3247,17 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         const w = MAPS[d.id].warps[0];
         return `${w.tx},${w.ty}`;
       })).size === co.length);
-    // Có biển tên trên mỗi cửa, không thì bốn ô cửa trông y hệt nhau
-    ok('cửa nào cũng có biển tên', cua.every(w =>
-      (kdc.talks || []).some(t => t.x === w.x && t.y === w.y - 1)),
-      cua.filter(w => !(kdc.talks || []).some(t => t.x === w.x && t.y === w.y - 1))
-        .map(w => w.to).join(' '));
+    // Biển tên cắm cạnh bậc thềm (phía trên ô cửa là thân nhà, cắm vào đó thì
+    // biển nằm trong tường). Không có biển thì bốn cái cửa trông y hệt nhau.
+    const coBien = (w) => (kdc.talks || []).some(t =>
+      t.y === w.y + 1 && Math.abs(t.x - w.x) === 1);
+    ok('cửa nào cũng có biển tên cạnh thềm', cua.every(coBien),
+      cua.filter(w => !coBien(w)).map(w => w.to).join(' '));
+    // Thân nhà phải CHẶN đường, chỉ chừa đúng ô cửa — không thì đi xuyên tường
+    ok('thân nhà chặn đường, chỉ hở ô cửa', cua.every(w => {
+      const tren = (w.y - 1) * kdc.w + w.x;
+      return kdc.solid[tren] && !kdc.solid[w.y * kdc.w + w.x];
+    }), cua.filter(w => !kdc.solid[(w.y - 1) * kdc.w + w.x]).map(w => w.to).join(' '));
   }
   ok('bản đồ địa điểm nào cũng có atlas riêng',
     co.every(d => existsSync(join(kho, MAPS[d.id].atlas))),

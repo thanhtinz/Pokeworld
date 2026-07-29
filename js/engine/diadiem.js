@@ -20,9 +20,6 @@ export const DIA_DIEM = [
     mo: 'Đền hoang giữa rừng, đá lở khắp nơi. Nghe đồn có thứ ngủ dưới đó.' },
   { id: 'sanh_bac', ten: 'Sảnh Bạc Kim Long',
     mo: 'Máy quay, bàn xì dách, bàn tiến lên. Đứng trước máy nào bấm A chơi máy đó.' },
-  // Công viên không phải bản đồ đi bộ mà là một màn riêng, nên đánh dấu `man`.
-  { id: 'park', ten: 'Công Viên Pepper', man: 'park',
-    mo: 'Vào cổng miễn phí. Ném bóng bắt Tuxemon hiếm, không đánh nhau.' },
 ];
 
 export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));

@@ -77,11 +77,20 @@ CONG = (DUONG_DOC[0], H - 1)    # o cong o canh duoi ban do
 # dung ngay duoi lam bac them. Ra khoi cho nao la dung ngay truoc cua cho do.
 #   (ma dia diem, o cua x, o cua y, ten bien)
 CUA_DIA_DIEM = [
-    ('nha_nguyen', 5, 4, 'Nhà Nguyện'),
-    ('sanh_bang', 11, 4, 'Sảnh Bang Hội'),
-    ('sanh_bac', 17, 4, 'Sảnh Bạc Kim Long'),
-    ('den_do_nat', 22, 4, 'Đền Đổ Nát'),
+    ('nha_nguyen', 5, 6, 'Nhà Nguyện'),
+    ('sanh_bang', 11, 6, 'Sảnh Bang Hội'),
+    ('sanh_bac', 17, 6, 'Sảnh Bạc Kim Long'),
+    ('den_do_nat', 22, 6, 'Đền Đổ Nát'),
 ]
+
+# ==== Can nha dung tren moi o cua ====
+# Lay tu tileset core_buildings (47 cot): can nha nua go o (0,13)-(4,16).
+# Khoi 5 rong x 4 cao, cua vom nam o COT 3 cua khoi — nen dat sao cho cot do
+# trung dung o cua. Ca khoi chan duong, tru dung o cua.
+NHA_COT = 47
+NHA_W, NHA_H = 5, 4
+NHA_C0, NHA_R0 = 0, 13
+NHA_CUA_DX = 3                  # cot cua trong khoi
 # O nguoi choi dat chan khi buoc ra: ngay duoi o cua
 def bac_them(cx, cy):
     return (cx, cy + 1)
@@ -99,11 +108,13 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     tsdir = os.path.join(root, 'mods/tuxemon/gfx/tilesets')
     ngoai = load_tsx(os.path.join(tsdir, 'core_outdoor.tsx'), tsx_cache)
     nuoc_ts = load_tsx(os.path.join(tsdir, 'core_outdoor_water.tsx'), tsx_cache)
-    if not ngoai or not nuoc_ts:
-        raise SystemExit('Thiếu core_outdoor.tsx hoặc core_outdoor_water.tsx')
+    nha_ts = load_tsx(os.path.join(tsdir, 'core_buildings.tsx'), tsx_cache)
+    if not ngoai or not nuoc_ts or not nha_ts:
+        raise SystemExit('Thiếu core_outdoor.tsx / core_outdoor_water.tsx / core_buildings.tsx')
     g0 = 1
     g1 = 1 + ngoai['count']
-    sets = [(g0, ngoai), (g1, nuoc_ts)]
+    g2 = g1 + nuoc_ts['count']
+    sets = [(g0, ngoai), (g1, nuoc_ts), (g2, nha_ts)]
     # O nuoc phang, tileset co danh dau 'surfable' nen engine biet la mat nuoc
     O_NUOC = 10
 
@@ -226,17 +237,30 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
             for dx, o in enumerate(hang):
                 dat_tren(gx + dx, gy + dy, o)
 
+    # --- can nha cua bon dia diem ---
+    # Truoc chi co o cua tron tren nen co: nhin y het co, khong ai biet do la
+    # loi vao. Gio dung han mot can nha len tren, cua vom trung dung o cua.
+    def dat_nha(x, y, c, r, chan=True):
+        if not (0 <= x < W and 0 <= y < H):
+            return
+        tren[idx(x, y)] = g2 + r * NHA_COT + c
+        solid[idx(x, y)] = 1 if chan else 0
+
+    for _ma, cx, cy, _ten in CUA_DIA_DIEM:
+        x0 = cx - NHA_CUA_DX
+        y0 = cy - (NHA_H - 1)
+        for dy in range(NHA_H):
+            for dx in range(NHA_W):
+                la_cua = (dx == NHA_CUA_DX and dy == NHA_H - 1)
+                dat_nha(x0 + dx, y0 + dy, NHA_C0 + dx, NHA_R0 + dy, chan=not la_cua)
+
     # --- loi vao bon dia diem ---
     # O cua tren nen co trong y het co, khong ai tim ra. Lat mot loi da tu duong
     # ngang len tan cua roi cam hai coc rao hai ben cho ra dang cong vao.
     for _ma, cx, cy, _ten in CUA_DIA_DIEM:
         bx, by = bac_them(cx, cy)
-        for y in range(cy, DUONG_NGANG[0]):
+        for y in range(by, DUONG_NGANG[0]):
             dat_nen(bx, y, DA)
-        dat_nen(cx, cy, DA)
-        for dx in (-1, 1):
-            if 0 <= cx + dx < W:
-                dat_tren(cx + dx, cy, COC_RAO)
 
     # --- don sach nhung o BAT BUOC phai di duoc ---
     # (lo dat, duong, o cua nha, cho dung truoc bac tho moc)
@@ -261,11 +285,13 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
         don(cho[0], cho[1])
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(cho[0] + dx, cho[1] + dy)
-    # O cua cua bon dia diem + bac them + mot o hai ben cho de di doc theo
+    # Bac them truoc cua + hai o hai ben de con di doc theo. KHONG don o cua
+    # (o do la cai vom, phai giu hinh) va tuyet doi khong don than nha.
     for _ma, cx, cy, _ten in CUA_DIA_DIEM:
         bx, by = bac_them(cx, cy)
-        for x, y in ((cx, cy), (bx, by), (bx - 1, by), (bx + 1, by), (bx, by + 1)):
+        for x, y in ((bx, by), (bx - 1, by), (bx + 1, by), (bx, by + 1)):
             don(x, y)
+        solid[idx(cx, cy)] = 0
 
     # --- nguoi trong khu ---
     npcs = [
@@ -298,8 +324,14 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     # Bien ten dat NGAY TREN o cua cho biet cua nao vao dau. Khong co bien thi
     # bon o cua trong y het nhau, dam vao moi biet.
     for _ma, cx, cy, ten in CUA_DIA_DIEM:
-        talks.append({'x': cx, 'y': cy - 1, 'name': 'Biển %s' % ten,
-                      'text': '%s — bước vào ô cửa phía dưới là tới nơi.' % ten})
+        bx, by = bac_them(cx, cy)
+        # Dat NGAY BEN CANH bac them: phia tren la than nha, cam bien vao do
+        # thi bien nam trong tuong, khong ai doc duoc.
+        for dx in (1, -1):
+            if 0 <= bx + dx < W and not solid[idx(bx + dx, by)]:
+                talks.append({'x': bx + dx, 'y': by, 'name': 'Biển %s' % ten,
+                              'text': '%s — bước vào ô cửa là tới nơi.' % ten})
+                break
 
     # Cong tu khu dan cu VAO tung dia diem. Dich den (tx, ty) de tam la o cua
     # cua chinh dia diem do; tools/craftpix.py va tools/casino.py vá lai cho
