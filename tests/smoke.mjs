@@ -3247,7 +3247,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok(`${d.id} còn đủ chỗ đi lại`, diDuoc >= 40, `${diDuoc} ô`);
 
     // Vào rồi phải đứng trong nhà và đi tới được cửa, không thì vào xong là kẹt
-    const [cho, err] = DD.vaoDiaDiem(d.id, { map: 'taba_town', x: 30, y: 20 });
+    const [cho, err] = DD.vaoDiaDiem(d.id);
     ok(`${d.id} vào được`, !err && cho?.map === d.id, err || '');
     if (cho) {
       ok(`${d.id} chỗ đặt chân không nằm trong tường`,
@@ -3266,23 +3266,51 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ok(`${d.id} từ chỗ đứng đi tới được cửa`, tham.has(`${cua.x},${cua.y}`),
         `${tham.size} ô với tới`);
     }
-    // Cổng phải trỏ về ĐÚNG chỗ vừa đứng, không phải về chỗ mặc định
+    // ---- Cửa thật trên Khu Dân Cư ----
+    // Trước đây cổng ra của cả bốn chỗ đều trỏ về MỘT ô chung giữa đồng, còn
+    // màn Địa Điểm thì viết đè đích đến thành chỗ người chơi đang đứng lúc bấm
+    // Menu. Ra khỏi Sảnh Bạc lúc thì ra giữa đồng, lúc thì ra cạnh nhà khác.
+    const kdc = MAPS.khu_dan_cu;
     const cong = m.warps.find(w => w.x === cua.x && w.y === cua.y);
-    ok(`${d.id} cổng trả về đúng chỗ vừa đứng`,
-      cong?.to === 'taba_town' && cong.tx === 30 && cong.ty === 20,
-      JSON.stringify(cong));
     ok(`${d.id} không đẻ thêm cổng chồng lên cửa`,
       m.warps.filter(w => w.x === cua.x && w.y === cua.y).length === 1);
+    ok(`${d.id} cổng ra trỏ về Khu Dân Cư`, cong?.to === 'khu_dan_cu',
+      JSON.stringify(cong));
+    ok(`${d.id} thềm bước ra là ô đi được`,
+      cong && !kdc.solid[cong.ty * kdc.w + cong.tx],
+      JSON.stringify(cong));
+    // Khu Dân Cư phải có ĐÚNG một cửa vào chỗ này, và cửa đó phải nằm ngay
+    // trên cái thềm vừa nói — không thì bước ra một nơi, cửa vào một nẻo.
+    const vao = kdc.warps.filter(w => w.to === d.id);
+    ok(`Khu Dân Cư có đúng một cửa vào ${d.id}`, vao.length === 1,
+      `${vao.length} cửa`);
+    ok(`cửa vào ${d.id} nằm ngay trên thềm bước ra`,
+      vao[0] && cong && vao[0].x === cong.tx && vao[0].y === cong.ty - 1,
+      JSON.stringify({ cua: vao[0], them: cong && [cong.tx, cong.ty] }));
+    ok(`cửa vào ${d.id} thả người chơi vào ô đi được`,
+      vao[0] && !m.solid[vao[0].ty * m.w + vao[0].tx],
+      JSON.stringify(vao[0]));
   }
 
-  DD.roiDiaDiem();
-  ok('rời địa điểm thì cổng về lại đích gốc',
-    co.every(d => {
-      const m = MAPS[d.id];
-      const cua = DD.cuaRa(m);
-      const w = m.warps.find(x => x.x === cua.x && x.y === cua.y);
-      return w && w.to !== 'taba_town' && w.goc === undefined;
-    }));
+  // Bốn cửa phải là bốn ô KHÁC NHAU: chung ô thì ra khỏi chỗ này lại thấy mình
+  // đứng trước cửa chỗ khác, đúng cái lỗi vừa sửa.
+  {
+    const kdc = MAPS.khu_dan_cu;
+    const cua = co.map(d => kdc.warps.find(w => w.to === d.id)).filter(Boolean);
+    ok('mỗi địa điểm một ô cửa riêng',
+      new Set(cua.map(w => `${w.x},${w.y}`)).size === cua.length,
+      cua.map(w => `${w.to}@${w.x},${w.y}`).join(' '));
+    ok('thềm của bốn cửa cũng khác nhau',
+      new Set(co.map(d => {
+        const w = MAPS[d.id].warps[0];
+        return `${w.tx},${w.ty}`;
+      })).size === co.length);
+    // Có biển tên trên mỗi cửa, không thì bốn ô cửa trông y hệt nhau
+    ok('cửa nào cũng có biển tên', cua.every(w =>
+      (kdc.talks || []).some(t => t.x === w.x && t.y === w.y - 1)),
+      cua.filter(w => !(kdc.talks || []).some(t => t.x === w.x && t.y === w.y - 1))
+        .map(w => w.to).join(' '));
+  }
   ok('bản đồ địa điểm nào cũng có atlas riêng',
     co.every(d => existsSync(join(kho, MAPS[d.id].atlas))),
     co.filter(d => !existsSync(join(kho, MAPS[d.id].atlas))).map(d => d.id).join(' '));

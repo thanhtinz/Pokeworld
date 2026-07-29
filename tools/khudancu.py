@@ -67,6 +67,25 @@ TIEM_QUA = (8, 21)              # co ban hoa dung ben kia duong, ban qua tang
 TIEM_AO = (14, 21)              # co Tham ban quan ao cho nhan vat
 CONG = (DUONG_DOC[0], H - 1)    # o cong o canh duoi ban do
 
+# ==== Cua vao bon dia diem roi (nha nguyen, sanh bang, den, sanh bac) ====
+# Truoc day bon cho nay CHI vao duoc tu Menu, tren ban do khong co cua nao.
+# Cong ra cua chung deu tro ve mot o chung o giua dong (16,13), lai con bi
+# viet de tro ve dung cho nguoi choi dang dung luc bam Menu — nen buoc ra khoi
+# Sanh Bac luc thi ra giua dong, luc thi ra canh nha khac.
+#
+# Gio moi cho co MOT o cua co dinh tren hang tren cung cua khu, kem mot o
+# dung ngay duoi lam bac them. Ra khoi cho nao la dung ngay truoc cua cho do.
+#   (ma dia diem, o cua x, o cua y, ten bien)
+CUA_DIA_DIEM = [
+    ('nha_nguyen', 5, 4, 'Nhà Nguyện'),
+    ('sanh_bang', 11, 4, 'Sảnh Bang Hội'),
+    ('sanh_bac', 17, 4, 'Sảnh Bạc Kim Long'),
+    ('den_do_nat', 22, 4, 'Đền Đổ Nát'),
+]
+# O nguoi choi dat chan khi buoc ra: ngay duoi o cua
+def bac_them(cx, cy):
+    return (cx, cy + 1)
+
 
 def _rng(x, y, n):
     """So gia ngau nhien nhung on dinh: chay lai bao nhieu lan cung ra the."""
@@ -207,6 +226,18 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
             for dx, o in enumerate(hang):
                 dat_tren(gx + dx, gy + dy, o)
 
+    # --- loi vao bon dia diem ---
+    # O cua tren nen co trong y het co, khong ai tim ra. Lat mot loi da tu duong
+    # ngang len tan cua roi cam hai coc rao hai ben cho ra dang cong vao.
+    for _ma, cx, cy, _ten in CUA_DIA_DIEM:
+        bx, by = bac_them(cx, cy)
+        for y in range(cy, DUONG_NGANG[0]):
+            dat_nen(bx, y, DA)
+        dat_nen(cx, cy, DA)
+        for dx in (-1, 1):
+            if 0 <= cx + dx < W:
+                dat_tren(cx + dx, cy, COC_RAO)
+
     # --- don sach nhung o BAT BUOC phai di duoc ---
     # (lo dat, duong, o cua nha, cho dung truoc bac tho moc)
     def don(x, y):
@@ -230,6 +261,11 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
         don(cho[0], cho[1])
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(cho[0] + dx, cho[1] + dy)
+    # O cua cua bon dia diem + bac them + mot o hai ben cho de di doc theo
+    for _ma, cx, cy, _ten in CUA_DIA_DIEM:
+        bx, by = bac_them(cx, cy)
+        for x, y in ((cx, cy), (bx, by), (bx - 1, by), (bx + 1, by), (bx, by + 1)):
+            don(x, y)
 
     # --- nguoi trong khu ---
     npcs = [
@@ -259,10 +295,21 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
          'text': 'Tiệm quần áo cô Thắm — áo, quần, giày, mũ, đủ cả.'},
     ]
     talks = [t for t in talks if not solid[idx(t['x'], t['y'])]]
+    # Bien ten dat NGAY TREN o cua cho biet cua nao vao dau. Khong co bien thi
+    # bon o cua trong y het nhau, dam vao moi biet.
+    for _ma, cx, cy, ten in CUA_DIA_DIEM:
+        talks.append({'x': cx, 'y': cy - 1, 'name': 'Biển %s' % ten,
+                      'text': '%s — bước vào ô cửa phía dưới là tới nơi.' % ten})
+
+    # Cong tu khu dan cu VAO tung dia diem. Dich den (tx, ty) de tam la o cua
+    # cua chinh dia diem do; tools/craftpix.py va tools/casino.py vá lai cho
+    # dung o dat chan ben trong sau khi ban do kia dung xong.
+    warps = [{'x': cx, 'y': cy, 'to': ma, 'tx': 0, 'ty': 0}
+             for ma, cx, cy, _ten in CUA_DIA_DIEM]
 
     return {
         'w': W, 'h': H, 'sets': sets, 'layers': [nen, tren], 'above': None,
-        'solid': solid, 'water': water, 'warps': [], 'talks': talks,
+        'solid': solid, 'water': water, 'warps': warps, 'talks': talks,
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'grass', 'envNight': 'night_grass',
         'npcs': npcs,
@@ -368,8 +415,11 @@ def them_vao(out_maps, root, tsx_cache, load_tsx):
     m = dung(root, tsx_cache, load_tsx)
     cx, cy = CONG
     # Di xuong het ngo la ve thi tran; buoc vao cong o thi tran la len dau ngo
+    # GIU lai may cong vao dia diem ma dung() da cam; day chi THEM cong ve
+    # thi tran. Gan de len ca danh sach la bon cai cua kia bien mat.
     m['warps'] = [{'x': cx, 'y': cy, 'to': 'taba_town', 'tx': tx, 'ty': ty + 1},
-                  {'x': cx + 1, 'y': cy, 'to': 'taba_town', 'tx': tx, 'ty': ty + 1}]
+                  {'x': cx + 1, 'y': cy, 'to': 'taba_town', 'tx': tx, 'ty': ty + 1}
+                  ] + m.get('warps', [])
     taba['warps'].append({'x': tx, 'y': ty, 'to': SLUG, 'tx': cx, 'ty': cy - 1})
     if ty > 0 and not taba['solid'][(ty - 1) * taba['w'] + tx]:
         taba['talks'].append({'x': tx, 'y': ty - 1, 'name': 'Biển Chỉ Đường',

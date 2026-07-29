@@ -1075,6 +1075,28 @@ def main():
         out_maps[slug] = cs
         want.append(slug)
 
+    # ==== Noi bon dia diem vao dung cua cua no tren Khu Dan Cu ====
+    # Truoc day cong ra cua ca bon deu tro ve MOT o chung giua dong, con
+    # engine/diadiem.js thi viet de dich den thanh cho nguoi choi dang dung luc
+    # bam Menu. Ket qua: buoc ra khoi Sanh Bac luc thi ra giua dong, luc thi ra
+    # canh nha khac. Gio moi cho co cua rieng, ra la dung ngay truoc cua do.
+    kdc2 = out_maps.get(khudancu.SLUG)
+    if kdc2:
+        for w in kdc2['warps']:
+            dd = out_maps.get(w['to'])
+            if not dd or w['to'] not in [c[0] for c in khudancu.CUA_DIA_DIEM]:
+                continue
+            # Vao: dat chan ngay o spawn ma generator cua dia diem da chon
+            sp = dd.get('spawn') or {'x': 1, 'y': 1}
+            w['tx'], w['ty'] = sp['x'], sp['y']
+            # Ra: cong trong dia diem tro ve bac them ngay duoi o cua
+            bx, by = khudancu.bac_them(w['x'], w['y'])
+            for wo in dd['warps']:
+                if wo.get('to') == khudancu.SLUG:
+                    wo['tx'], wo['ty'] = bx, by
+        print('OK: %d địa điểm có cửa riêng trên %s'
+              % (len(kdc2['warps']), khudancu.SLUG))
+
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)
     print('OK: %d bảng gặp Tuxemon hoang' % n)

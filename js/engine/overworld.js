@@ -65,7 +65,7 @@ export function layTinNguDay() { const t = tinNguDay; tinNguDay = null; return t
 export function nguDay() {
   // Đang sang thăm nhà người khác, hoặc đang ghé một địa điểm, thì đừng lôi về
   // giường — người chơi vừa bấm "vào" xong, kéo về nhà trọ là hỏng cả việc
-  if (dangTham() || dangOChoi()) { daNguDay = true; return null; }
+  if (dangTham() || dangOChoi(player.mapId)) { daNguDay = true; return null; }
   if (daNguDay || !G.p) return null;
   daNguDay = true;
   if (nhaXong()) {

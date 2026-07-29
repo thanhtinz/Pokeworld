@@ -1,12 +1,14 @@
 // TuxeWorld H5 | engine/diadiem.js | Ghé mấy địa điểm dựng từ pack CraftPix
 //
-// Bốn chỗ này (Nhà Nguyện, Sảnh Bang Hội, Đền Đổ Nát, Sảnh Bạc) là bản đồ rời, không nối
-// vào lưới đường của thị trấn. Ghé bằng cách CẮM TẠM một cái
-// cổng đi ra ngay lúc bước vào — y như cách sang thăm nhà người khác bên
-// engine/visit.js — nên đi vào kiểu gì cũng có đường ra.
+// Bốn chỗ này (Nhà Nguyện, Sảnh Bang Hội, Đền Đổ Nát, Sảnh Bạc) giờ có CỬA
+// THẬT trên bản đồ Khu Dân Cư — mỗi chỗ một ô cửa riêng, tools/khudancu.py cắm
+// lúc dựng. Vào bằng cách đi tới đó bấm A, hoặc bấm nhanh từ mục Địa Điểm.
 //
-// Không cắm cổng thì người chơi kẹt cứng trong đó: mấy bản đồ này đánh dấu là
-// "trong nhà", mà trong nhà không có cổng nào thì chỉ còn nước xoá bản lưu.
+// Bản trước không có cửa nào: cổng ra của cả bốn chỗ đều trỏ về MỘT ô chung ở
+// giữa đồng, mà mở từ Menu thì màn này còn viết đè đích đến thành chỗ người
+// chơi đang đứng lúc bấm. Ra khỏi Sảnh Bạc lúc thì ra giữa đồng, lúc thì ra
+// cạnh nhà khác — chẳng bao giờ ra đúng cửa mình vừa bước vào. Giờ cổng để
+// nguyên như dữ liệu, ra chỗ nào là đúng thềm chỗ đó.
 import { MAPS } from '../data/maps.js';
 
 export const DIA_DIEM = [
@@ -25,9 +27,8 @@ export const DIA_DIEM = [
 
 export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));
 
-let ve = null;      // chỗ quay lại: { map, x, y }
-
-export const dangOChoi = () => !!ve;
+/** Có phải đang đứng trong một địa điểm rời không? */
+export const dangOChoi = (mapId) => !!DIA_DIEM_BY_ID[mapId];
 
 /**
  * Ô cửa ra của một địa điểm — ĐỌC THẲNG từ cổng mà tools/craftpix.py đã cắm
@@ -60,42 +61,21 @@ function choDung(m, cua) {
 
 /**
  * Vào một địa điểm. Trả [{map,x,y}, lỗi] để màn bản đồ tự enterMap.
- * @param {string} id mã địa điểm
- * @param {{map:string,x:number,y:number}} tuDau chỗ đang đứng, để còn quay về
+ *
+ * KHÔNG đụng gì tới cổng ra nữa: đích của nó đã là đúng thềm cửa của chính
+ * chỗ này trên Khu Dân Cư (tools/mktmx.py nối lúc dựng bản đồ).
  */
-export function vaoDiaDiem(id, tuDau) {
+export function vaoDiaDiem(id) {
   const m = MAPS[id];
   if (!DIA_DIEM_BY_ID[id] || !m) return [null, 'Chỗ này chưa dựng xong.'];
   const cua = cuaRa(m);
   if (!cua) return [null, 'Chỗ này không có lối vào.'];
-  roiDiaDiem();      // trả cổng của lần ghé trước về đích gốc đã
-  ve = tuDau?.map ? { map: tuDau.map, x: Math.floor(tuDau.x), y: Math.floor(tuDau.y) } : null;
-  // Cổng ra đã có sẵn trong dữ liệu bản đồ (tools/craftpix.py cắm lúc dựng),
-  // ở đây CHỈ đổi đích đến của nó. Cắm thêm một cổng nữa lên đúng ô đó thì
-  // hai cổng chồng nhau, engine bắt trúng cái cũ và trả người chơi về Khu Dân
-  // Cư chứ không về chỗ vừa đứng.
-  const cong = (m.warps || []).find(w => w.x === cua.x && w.y === cua.y);
-  if (cong && ve) {
-    if (cong.goc === undefined) cong.goc = { to: cong.to, tx: cong.tx, ty: cong.ty };
-    cong.to = ve.map;
-    cong.tx = ve.x;
-    cong.ty = ve.y;
-  }
   const dung = choDung(m, cua);
   return [{ map: id, x: dung.x, y: dung.y }, null];
 }
 
-/** Rời địa điểm: trả cổng ra về đích gốc cho bản đồ nguyên trạng. */
-export function roiDiaDiem() {
-  if (!ve) return false;
-  for (const d of DIA_DIEM) {
-    for (const w of MAPS[d.id]?.warps || []) {
-      if (w.goc) {
-        Object.assign(w, w.goc);
-        delete w.goc;
-      }
-    }
-  }
-  ve = null;
-  return true;
+/** Thềm cửa của một địa điểm trên bản đồ ngoài — chỗ bước ra sẽ đứng. */
+export function themCua(id) {
+  const w = (MAPS[id]?.warps || [])[0];
+  return w ? { map: w.to, x: w.tx, y: w.ty } : null;
 }

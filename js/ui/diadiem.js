@@ -5,7 +5,6 @@
 // thường; bước ra cửa là về đúng chỗ vừa đứng.
 import { DIA_DIEM, vaoDiaDiem } from '../engine/diadiem.js';
 import { MAPS } from '../data/maps.js';
-import { player } from '../engine/overworld.js';
 import { esc } from '../util.js';
 import { toast, header } from './kit.js';
 import { show } from '../main.js';
@@ -32,13 +31,11 @@ export function render(el, { from = 'menu' } = {}) {
   el.querySelectorAll('.dd-di').forEach(b => b.addEventListener('click', async () => {
     // Mục kiểu `man`: mở thẳng màn đó, không dính gì tới bản đồ
     if (b.dataset.man) { show(b.dataset.man, { from: 'diadiem' }); return; }
-    // Nhớ chỗ đang đứng để lát bước ra cửa thì về đúng đó
-    const tuDau = { map: player.mapId, x: player.x, y: player.y };
-    const [cho, err] = vaoDiaDiem(b.dataset.id, tuDau);
+    const [cho, err] = vaoDiaDiem(b.dataset.id);
     if (err) { toast(err); return; }
     const { enterMap } = await import('../engine/overworld.js');
     enterMap(cho.map, cho.x, cho.y);
     show('world');
-    toast('Bước ra cửa là về lại chỗ cũ.', 3000);
+    toast('Bước ra cửa là ra ngay trước cửa chỗ này ở Khu Dân Cư.', 3500);
   }));
 }
