@@ -60,12 +60,9 @@ LO = [
     ('c2', 'Lô C2 — Cuối ngõ', 80000, 22, 17),
 ]
 DUONG_NGANG = (12, 13)          # hai hang duong da chay ngang
-DUONG_DOC = (9, 10)             # hai cot duong da chay xuong cong
-HO = (24, 3, 28, 5)             # ho nuoc: x0, y0, x1, y1 (bao gom hai dau)
-THO_MOC = (11, 21)              # bac tho moc dung day, quay mat ra duong
-TIEM_QUA = (8, 21)              # co ban hoa dung ben kia duong, ban qua tang
-TIEM_AO = (14, 21)              # co Tham ban quan ao cho nhan vat
-CONG = (DUONG_DOC[0], H - 1)    # o cong o canh duoi ban do
+DUONG_DOC = (9, 10)             # hai cot duong da chay suot tu bac xuong nam
+CONG = (DUONG_DOC[0], H - 1)    # cong ra thi tran, o canh duoi
+CONG_BAC = (DUONG_DOC[0], 0)    # cong len Nong Trai, o canh tren
 
 
 
@@ -115,7 +112,7 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
         for x in range(2, W - 2):
             dat_nen(x, y, DA)
     for x in DUONG_DOC:
-        for y in range(DUONG_NGANG[0], H):
+        for y in range(H):
             dat_nen(x, y, DA)
 
     # --- san dat cua tung lo (5x5, om lay vung 3x3 cua can nha) ---
@@ -129,21 +126,6 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
                        (lx - 1, ly + 3), (lx + 3, ly + 3)):
             if 0 <= cx < W and 0 <= cy < H:
                 dat_tren(cx, cy, COC_RAO)
-
-    # --- ho nuoc + bo cat ---
-    hx0, hy0, hx1, hy1 = HO
-    for y in range(hy0 - 1, hy1 + 2):
-        for x in range(hx0 - 1, hx1 + 2):
-            # Bo bon goc cho bo ho bot vuong vuc
-            if x in (hx0 - 1, hx1 + 1) and y in (hy0 - 1, hy1 + 1):
-                continue
-            if 0 <= x < W and 0 <= y < H:
-                dat_nen(x, y, CAT)
-    for y in range(hy0, hy1 + 1):
-        for x in range(hx0, hx1 + 1):
-            nen[idx(x, y)] = g1 + O_NUOC
-            water[idx(x, y)] = 1
-            solid[idx(x, y)] = 1
 
     # --- vien cay quanh ban do ---
     def trong_thong_to(x, y):
@@ -166,8 +148,8 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     for y in range(2, H - 2, 2):
         cap += [(0, y), (1, y), (W - 2, y), (W - 1, y)]
     for x, y in cap:
-        if x in DUONG_DOC and y >= H - 2:
-            continue                              # chua cong ra ngoai
+        if x in DUONG_DOC and (y >= H - 2 or y <= 1):
+            continue                              # chua hai cong ra ngoai
         r = _rng(x, y, 10)
         if r < 6:
             dat_tren(x, y, THONG_NHO[0])
@@ -219,7 +201,7 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
         for x in range(2, W - 2):
             don(x, y)
     for x in DUONG_DOC:
-        for y in range(DUONG_NGANG[0], H):
+        for y in range(H):
             don(x, y)
     for _id, _ten, _gia, lx, ly in LO:
         for y in range(ly, ly + 3):
@@ -227,11 +209,6 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
                 don(x, y)
         don(lx + 1, ly + 3)                       # loi vao cua truoc nha
         don(lx + 1, ly + 4)
-    for cho in (THO_MOC, TIEM_QUA, TIEM_AO):
-        don(cho[0], cho[1])
-        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-            don(cho[0] + dx, cho[1] + dy)
-
     # --- nguoi trong khu ---
     npcs = [
         {'x': 6, 'y': 11, 'dir': 'down', 'sprite': 'homemaker', 'name': 'Cô Mai',
@@ -243,13 +220,8 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
         {'x': 16, 'y': 22, 'dir': 'up', 'sprite': 'lady', 'name': 'Chị Lan',
          'lines': ['Trong nhà kê được kha khá đồ đấy. Nhà to thì kê được nhiều hơn.'],
          'ai': 'wander'},
-        # Ong lai ca ngoi canh ho: cho ban ca, xem gio, be nuoi va dex.
-        # Man cauca KHONG con trong Menu nua — muon xem thi phai ra tan noi.
-        {'x': 23, 'y': 6, 'dir': 'right', 'sprite': 'beachcomber', 'name': 'Ông Lái Cá',
-         'lines': ['Câu được con nào thì mang lại đây, tôi mua hết.'],
-         'ai': 'stand', 'mo': 'cauca'},
         {'x': 27, 'y': 21, 'dir': 'left', 'sprite': 'bob', 'name': 'Chú Tám',
-         'lines': ['Đi hết ngõ này là ra lại thị trấn.'],
+         'lines': ['Đi hết ngõ này là ra lại thị trấn. Ngược lên phía bắc thì ra nông trại.'],
          'ai': 'wander'},
     ]
     npcs = [n for n in npcs if not solid[idx(n['x'], n['y'])]]
@@ -257,12 +229,8 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     talks = [
         {'x': DUONG_DOC[0], 'y': H - 3, 'name': 'Bảng Khu Dân Cư',
          'text': 'KHU DÂN CƯ TABA — đất nền đã chia lô, mời bà con vào xem.'},
-        {'x': THO_MOC[0], 'y': THO_MOC[1] - 1, 'name': 'Biển Xưởng Mộc',
-         'text': 'Xưởng mộc bác Tư — nhận đóng bàn ghế giường tủ.'},
-        {'x': TIEM_QUA[0], 'y': TIEM_QUA[1] - 1, 'name': 'Biển Tiệm Quà',
-         'text': 'Tiệm quà cô Hoa — hoa tươi, sô-cô-la, nhẫn cưới.'},
-        {'x': TIEM_AO[0], 'y': TIEM_AO[1] - 1, 'name': 'Biển Tiệm Quần Áo',
-         'text': 'Tiệm quần áo cô Thắm — áo, quần, giày, mũ, đủ cả.'},
+        {'x': DUONG_DOC[1] + 1, 'y': 2, 'name': 'Biển Chỉ Đường',
+         'text': 'Đi tiếp lên bắc là Nông Trại. Chợ búa hàng quán thì ra Phố Kim Long.'},
     ]
     talks = [t for t in talks if not solid[idx(t['x'], t['y'])]]
 
@@ -333,11 +301,15 @@ def cho_cong_ve_taba(taba):
     return ung[0][2], ung[0][0]
 
 
-def viet_js(lo, tho_moc, duong):
+def viet_js(lo, duong, cong_bac):
     """Ghi js/data/khudancu.js — toa do de ben engine dung lai."""
     out = ['// TuxeWorld H5 | data/khudancu.js | TỰ SINH TỪ tools/khudancu.py, đừng sửa tay',
            '// Toạ độ các lô đất trong bản đồ khu dân cư, sinh cùng lúc với bản đồ nên',
            '// không bao giờ lệch khỏi nền đất đã kẻ sẵn.',
+           '//',
+           '// Khu này là ĐẤT Ở THUẦN TUÝ: không hàng quán, không hồ câu. Tiệm xá',
+           '// dời hết ra Phố Kim Long, hồ câu dời lên Nông Trại — trước gom chung',
+           '// một chỗ nên đi mua đất mà cứ lẫn vào chợ búa.',
            '',
            'export const KHU_DAT_MAP = "%s";' % SLUG,
            'export const LOTS = [']
@@ -346,14 +318,10 @@ def viet_js(lo, tho_moc, duong):
                    % (_id, ten, gia, x, y))
     out += [
         '];',
-        '// Bác thợ mộc bán nội thất đứng ở đây',
-        'export const THO_MOC = { x: %d, y: %d };' % tho_moc,
-        '// Cô bán quà tặng đứng ở đây',
-        'export const TIEM_QUA = { x: %d, y: %d };' % TIEM_QUA,
-        '// Cô bán quần áo cho nhân vật đứng ở đây',
-        'export const TIEM_AO = { x: %d, y: %d };' % TIEM_AO,
         '// Ô cổng ra thị trấn — dùng để chỉ đường cho người chơi',
         'export const CONG_RA = { x: %d, y: %d };' % duong,
+        '// Ô cổng lên Nông Trại, ở cạnh trên bản đồ',
+        'export const CONG_BAC = { x: %d, y: %d };' % cong_bac,
         '',
     ]
     with open('js/data/khudancu.js', 'w', encoding='utf-8') as f:
@@ -382,5 +350,5 @@ def them_vao(out_maps, root, tsx_cache, load_tsx):
     if ty > 0 and not taba['solid'][(ty - 1) * taba['w'] + tx]:
         taba['talks'].append({'x': tx, 'y': ty - 1, 'name': 'Biển Chỉ Đường',
                               'text': 'Khu Dân Cư Taba — đất nền chia lô, đi hướng này.'})
-    viet_js(LO, THO_MOC, CONG)
+    viet_js(LO, CONG, CONG_BAC)
     return m

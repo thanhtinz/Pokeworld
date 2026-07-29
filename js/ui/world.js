@@ -5,8 +5,8 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre, layTinNguDay, isInside,
-  enterMap } from '../engine/overworld.js';
+  facingWater, facingTile, setHealSpot, repelLeft, pickedUp, layTinNhaTre, layTinNguDay,
+  isInside, enterMap } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
 import { MAPS } from '../data/maps.js';
@@ -41,6 +41,8 @@ import { SHOPS } from '../data/shops.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
 import * as AV from '../engine/avatar.js';
+import * as NT from '../engine/nongtrai.js';
+import { anhCay, anhThu as anhConThu, anhNha as anhNhaNT, anhDat } from '../data/nongtrai.js';
 import { esc, tien, tienChu } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
@@ -301,6 +303,90 @@ export function render(el) {
     ctx.restore();
   }
 
+  // ==== Vẽ nông trại ====
+  // Ruộng, cây theo giai đoạn, công trình, con vật — tất cả là VẬT THỂ vẽ đè
+  // lên nền, không nướng vào bản đồ: người chơi kê lại lúc nào cũng được.
+  const ntCache = {};
+  function ntAnh(src) {
+    if (!ntCache[src]) {
+      const im = new Image();
+      im.src = src;
+      ntCache[src] = im;
+    }
+    return ntCache[src];
+  }
+
+  function veNongTrai(size, camX, camY) {
+    const gio = Date.now();
+    const ve1 = (src, x, y, w = 1, h = 1) => {
+      const im = ntAnh(src);
+      if (!owReady(im)) return;
+      ctx.drawImage(im, Math.round(x * size - camX), Math.round(y * size - camY),
+        Math.round(w * size), Math.round(h * size));
+    };
+    for (const o of NT.nt().o) {
+      const v = NT.VAT_BY_ID[o.id];
+      if (!v) continue;
+      if (v.loai === 'ruong') {
+        ve1(anhDat(NT.dangUot(o, gio)), o.x, o.y);
+        if (o.cay) {
+          ve1(anhCay(o.cay, NT.giaiDoan(o, gio), NT.dangUot(o, gio)), o.x, o.y);
+          // Chín rồi thì nhấp nháy một chấm vàng cho dễ thấy từ xa
+          if (NT.daChin(o, gio)) veCham(o.x + 0.5, o.y - 0.15, size, camX, camY, '#ffd43b');
+          else if (!NT.dangUot(o, gio)) veCham(o.x + 0.5, o.y - 0.15, size, camX, camY, '#4dabf7');
+        }
+      } else {
+        // Công trình vẽ cao hơn ô nó chiếm: ảnh gốc là mặt tiền nhìn nghiêng,
+        // vẽ đúng bằng số ô thì lùn tịt.
+        ve1(anhNhaNT(o.id), o.x, o.y, v.w, v.h);
+      }
+    }
+    for (const con of NT.nt().thu) {
+      const t = NT.THU_BY_ID[con.id];
+      if (!t) continue;
+      const im = ntAnh(anhConThu(con.id));
+      if (!owReady(im)) continue;
+      const f = owFrame(con.dir || 'down', false, gio, im);
+      // Con vật vẽ đúng cỡ pixel gốc của nó so với ô 16px: con gà một ô, con bò
+      // to hơn hẳn. Ép hết về một ô thì con nào cũng bằng con nào.
+      const w = size * (t.o / 16);
+      ctx.drawImage(im, f.sx, f.sy, f.sw, f.sh,
+        Math.round((con.x + 0.5) * size - camX - w / 2),
+        Math.round((con.y + 1) * size - camY - w),
+        Math.round(w), Math.round(w));
+      if (NT.sanSang(con, gio)) veCham(con.x + 0.5, con.y - 0.1, size, camX, camY, '#ffd43b');
+      else if (!NT.dangDoi(con, gio)) veCham(con.x + 0.5, con.y - 0.1, size, camX, camY, '#ff8787');
+    }
+    // Đang cầm món chờ kê: vẽ bóng mờ ngay ô trước mặt cho biết sẽ đặt vào đâu
+    const cam = NT.choKe();
+    if (cam) {
+      const o = facingTile();
+      const v = NT.VAT_BY_ID[cam];
+      const duoc = NT.keDuoc(cam, o.x, o.y);
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      ve1(cam === 'ruong' ? anhDat(false) : anhNhaNT(cam), o.x, o.y, v.w, v.h);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = duoc ? '#51cf66' : '#ff6b6b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(Math.round(o.x * size - camX), Math.round(o.y * size - camY),
+        Math.round(v.w * size), Math.round(v.h * size));
+      ctx.restore();
+    }
+  }
+
+  // Chấm nhỏ báo "có việc ở đây" trên đầu ruộng/con vật
+  function veCham(x, y, size, camX, camY, mau) {
+    ctx.save();
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(Date.now() / 260);
+    ctx.fillStyle = mau;
+    ctx.beginPath();
+    ctx.arc(Math.round(x * size - camX), Math.round(y * size - camY),
+      Math.max(2, size * 0.12), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   // Vẽ NPC + người chơi (cả ngoài trời lẫn trong nhà)
   function drawActors(map, size, camX, camY) {
     // Nhân vật cao gấp đôi ô: rộng bằng 1 ô, cao 2 ô, chân đặt đúng ô đang đứng
@@ -392,6 +478,10 @@ export function render(el) {
       });
     }
 
+    // ==== Nông trại: ruộng, cây, công trình, con vật ====
+    // Vẽ TRƯỚC nhân vật để người chơi luôn đứng đè lên chứ không bị cây che.
+    if (player.mapId === NT.NONG_TRAI_MAP) veNongTrai(size, camX, camY);
+
     // Biển "BÁN" cắm ở từng lô đất chưa ai mua
     if (player.mapId === KHU_DAT_MAP) {
       for (const l of LOTS) {
@@ -412,14 +502,6 @@ export function render(el) {
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('BÁN', Math.round(bx + bw / 2), Math.round(by - size * 0.3));
         ctx.restore();
-      }
-      // Bác thợ mộc bán nội thất và cô bán quà đứng cố định hai bên ngõ
-      for (const [cho, spr] of [[ES.THO_MOC, 'nurse'], [ES.TIEM_QUA, 'florist'],
-                                [ES.TIEM_AO, 'barmaid_red']]) {
-        const im2 = owImage(spr);
-        if (owReady(im2)) {
-          put(im2, 'down', false, (cho.x + 0.5) * size - camX, (cho.y + 1) * size - camY);
-        }
       }
     }
 
@@ -613,25 +695,9 @@ export function render(el) {
 
   // ==== Nhà đất ====
   async function nhaDat(thing) {
-    const BAC = { name: 'Bác Thợ Mộc', ow: 'nurse' };
+    // Ba tiệm (thợ mộc, quà tặng, quần áo) đã dời ra Phố Kim Long — ở đó chúng
+    // là NPC có sẵn trường `mo`, đi chung đường với mọi quầy hàng khác.
     const BIEN = { name: 'Biển Bán Đất' };
-    if (thing.kind === 'tiem-qua') {
-      await playDialog([[{ name: 'Cô Hoa', ow: 'florist' },
-        'Hoa tươi, sô-cô-la, nhẫn cưới — tặng ai thì người ta quý mình hơn đấy.']]);
-      cleanup(); show('gifts', { from: 'world' });
-      return;
-    }
-    if (thing.kind === 'tiem-ao') {
-      await playDialog([[{ name: 'Cô Thắm', ow: 'barmaid_red' },
-        'Áo quần giày mũ, cô có đủ. Mặc vào cho tươi tất người ra chứ!']]);
-      cleanup(); show('wardrobe', { tab: 'tiem', from: 'world' });
-      return;
-    }
-    if (thing.kind === 'tho-moc') {
-      await playDialog([[BAC, 'Bàn ghế giường tủ, thiếu gì tôi cũng có. Ghé xem đi!']]);
-      cleanup(); show('estate', { tab: 'cho', from: 'world' });
-      return;
-    }
     if (thing.kind === 'lo-nguoi-khac') {
       await playDialog([[BIEN, 'Bạn đã có đất rồi — mỗi người một lô thôi.']]);
       return;
@@ -1090,6 +1156,96 @@ export function render(el) {
     }
   }
 
+  // ==== Nông trại: làm việc NGAY TRÊN BẢN ĐỒ ====
+  //
+  // Cả việc đồng áng lẫn việc kê lại bố cục đều bấm A ngay tại chỗ. Mở panel
+  // riêng cho từng ô ruộng thì trồng một luống mười hai ô là mười hai lần đóng
+  // mở panel — làm một lúc là chán.
+  async function ruongNuong(thing) {
+    // 1) Đang cầm món chờ kê: bấm vào ô trống là đặt xuống
+    if (thing.kind === 'cho-trong') {
+      const [o, err] = NT.keTaiDay(thing.x, thing.y);
+      toast(err || `Đã kê ${NT.VAT_BY_ID[o.id]?.name} vào đây.`);
+      return;
+    }
+
+    // 2) Con vật: cho ăn hoặc thu sản phẩm
+    if (thing.kind === 'thu') {
+      const con = thing.con;
+      const t = NT.THU_BY_ID[con.id];
+      if (NT.sanSang(con)) {
+        const [r, err] = NT.thuThu(con);
+        if (err) { toast(err); return; }
+        await playDialog([[{ name: 'Bạn' },
+          `Lấy được ${NT.MON_BY_ID[r.id]?.name} từ ${t.name}.`]]);
+        return;
+      }
+      const [ok, err] = NT.choAn(con);
+      toast(err || ok);
+      return;
+    }
+
+    // 3) Công trình đã kê: nhấc lên để dời chỗ
+    if (thing.kind === 'congtrinh') {
+      const i = await choose(thing.name, [
+        { label: 'Nhấc lên dời chỗ', sub: 'Kê lại ở đâu cũng được' },
+        { label: 'Để yên đấy' },
+      ]);
+      if (i !== 0) return;
+      const [v, err] = NT.nhac(thing.o);
+      toast(err || `Đang cầm ${v.name} — đứng chỗ nào ưng thì bấm A.`);
+      return;
+    }
+
+    // 4) Ô ruộng
+    const o = thing.o;
+    if (!o.cay) {
+      // Chưa gieo: chọn hạt trong kho. Không có hạt nào thì bảo đi mua.
+      const co = NT.CAY.filter(c => NT.co(NT.maHat(c.id)) > 0);
+      if (!co.length) {
+        const i = await choose('Ô Ruộng', [
+          { label: 'Nhấc ruộng lên', sub: 'Kê sang chỗ khác' },
+          { label: 'Thôi', sub: 'Chưa có hạt nào — mua ở chỗ bác Nông' },
+        ]);
+        if (i === 0) {
+          const [v, err] = NT.nhac(o);
+          toast(err || `Đang cầm ${v.name} — đứng chỗ nào ưng thì bấm A.`);
+        }
+        return;
+      }
+      const i = await choose('Gieo gì?', [
+        ...co.map(c => ({ label: c.name,
+          sub: `còn ${NT.co(NT.maHat(c.id))} gói · chín sau ${c.phut * NT.CHIN} phút` })),
+        { label: 'Nhấc ruộng lên', sub: 'Kê sang chỗ khác' },
+        { label: 'Thôi' },
+      ]);
+      if (i === co.length) {
+        const [v, err] = NT.nhac(o);
+        toast(err || `Đang cầm ${v.name} — đứng chỗ nào ưng thì bấm A.`);
+        return;
+      }
+      if (i < 0 || i > co.length) return;
+      const [ok, err] = NT.gieo(o, co[i].id);
+      toast(err || ok);
+      return;
+    }
+
+    const c = NT.CAY_BY_ID[o.cay];
+    if (NT.daChin(o)) {
+      const [r, err] = NT.thu(o);
+      if (err) { toast(err); return; }
+      await playDialog([[{ name: 'Bạn' },
+        `Thu được ${r.n} ${NT.MON_BY_ID[r.id]?.name || c.name}.`]]);
+      return;
+    }
+    if (!NT.dangUot(o)) {
+      const n = NT.tuoiHet();
+      toast(n > 1 ? `Tưới luôn ${n} ô đang khát.` : `Tưới xong. ${c.name} lớn thêm một đoạn.`);
+      return;
+    }
+    toast(`${c.name} — ${NT.conLaiChu(o)}.`);
+  }
+
   // NPC đổi Tuxemon (bản gốc rải sẵn trong bản đồ bằng lệnh "trading")
   async function moiDoi(npc, who) {
     const t = npc.trade;
@@ -1151,6 +1307,8 @@ export function render(el) {
       if (thing.type === 'estate') { await nhaDat(thing); return; }
       // Bang Đường: cửa hai khu, bục gọi boss, rương thưởng nhiệm vụ
       if (thing.type === 'bang') { await bangDuong(thing); return; }
+      // Nông trại: ruộng, con vật, công trình, chỗ kê đồ
+      if (thing.type === 'nongtrai') { await ruongNuong(thing); return; }
       // NPC bản đồ mang sẵn vài câu thoại (js/data/maps.js), NPC cũ dùng .text
       const who = { name: thing.name, img: thing.face || null,
         ow: thing.face ? null : (thing.sprite || null) };

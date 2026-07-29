@@ -18,18 +18,18 @@ export const HIEM = [
 export const TRONG_SO = {"1": 100, "2": 45, "3": 14, "4": 2};
 
 export const CHO_CAU = [
-  { id: "ho_dan_cu", name: "Hồ Khu Dân Cư", desc: "Hồ nước ngay trong khu đất ở, cá hiền, hợp người mới." },
+  { id: "ao_nong_trai", name: "Ao Nông Trại", desc: "Ao nước ngay trong nông trại, cá hiền, hợp người mới." },
   { id: "song_taba", name: "Sông Taba", desc: "Nước chảy quanh thị trấn, cá to hơn và khó lừa hơn." },
   { id: "bien_pepper", name: "Biển Pepper", desc: "Sóng lớn gió to. Chỗ duy nhất câu được cá quý." },
 ];
 
 // giaCm = tiền trên mỗi cm, nên con càng dài bán càng được giá.
 export const CA = [
-  { id: "ca_ro", name: "Cá Rô", hiem: 1, cho: "ho_dan_cu", dai: [8, 22], giaCm: 4, mau: "#6b7a3a", desc: "Con cá quen mặt nhất ao hồ. Nhỏ mà lì." },
-  { id: "ca_diec", name: "Cá Diếc", hiem: 1, cho: "ho_dan_cu", dai: [10, 26], giaCm: 5, mau: "#8a8f6a", desc: "Thịt lành, dân câu hay bắt được lúc sáng sớm." },
-  { id: "ca_chep", name: "Cá Chép", hiem: 2, cho: "ho_dan_cu", dai: [20, 55], giaCm: 7, mau: "#9a6b2f", desc: "Vảy vàng óng. Câu được con to là cả buổi vui." },
-  { id: "ca_tre", name: "Cá Trê", hiem: 2, cho: "ho_dan_cu", dai: [18, 48], giaCm: 8, mau: "#3f3a33", desc: "Râu dài, trơn tuột, giãy khoẻ hơn vẻ ngoài." },
-  { id: "ca_qua", name: "Cá Quả", hiem: 3, cho: "ho_dan_cu", dai: [30, 70], giaCm: 11, mau: "#3c4a3a", desc: "Săn mồi cỡ bự của hồ. Cắn câu là cần cong hẳn." },
+  { id: "ca_ro", name: "Cá Rô", hiem: 1, cho: "ao_nong_trai", dai: [8, 22], giaCm: 4, mau: "#6b7a3a", desc: "Con cá quen mặt nhất ao hồ. Nhỏ mà lì." },
+  { id: "ca_diec", name: "Cá Diếc", hiem: 1, cho: "ao_nong_trai", dai: [10, 26], giaCm: 5, mau: "#8a8f6a", desc: "Thịt lành, dân câu hay bắt được lúc sáng sớm." },
+  { id: "ca_chep", name: "Cá Chép", hiem: 2, cho: "ao_nong_trai", dai: [20, 55], giaCm: 7, mau: "#9a6b2f", desc: "Vảy vàng óng. Câu được con to là cả buổi vui." },
+  { id: "ca_tre", name: "Cá Trê", hiem: 2, cho: "ao_nong_trai", dai: [18, 48], giaCm: 8, mau: "#3f3a33", desc: "Râu dài, trơn tuột, giãy khoẻ hơn vẻ ngoài." },
+  { id: "ca_qua", name: "Cá Quả", hiem: 3, cho: "ao_nong_trai", dai: [30, 70], giaCm: 11, mau: "#3c4a3a", desc: "Săn mồi cỡ bự của hồ. Cắn câu là cần cong hẳn." },
   { id: "ca_bong", name: "Cá Bống", hiem: 1, cho: "song_taba", dai: [6, 18], giaCm: 5, mau: "#7a6a55", desc: "Nằm sát đáy, hay rúc vào khe đá." },
   { id: "ca_lang", name: "Cá Lăng", hiem: 2, cho: "song_taba", dai: [25, 60], giaCm: 9, mau: "#5a5f6b", desc: "Cá sông thịt chắc, dân sành ăn săn lùng." },
   { id: "ca_chien", name: "Cá Chiên", hiem: 3, cho: "song_taba", dai: [35, 85], giaCm: 13, mau: "#4a4230", desc: "To và dữ. Cần yếu là gãy làm đôi." },

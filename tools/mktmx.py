@@ -35,6 +35,7 @@ import casino
 import craftpix
 import khudancu
 import khupho
+import nongtrai
 import phongtrong
 
 TILE = 16
@@ -1016,6 +1017,20 @@ def main():
         kdc['above'] = None
         out_maps[khudancu.SLUG] = kdc
         want.append(khudancu.SLUG)
+
+        # Nong Trai: di het ngo phia BAC cua Khu Dan Cu la toi. Tach rieng vi
+        # ruong nuong chiem cho, ma khu dat o thi phai de thuan la dat o.
+        nt = nongtrai.them_vao(out_maps, root, tsx_cache, load_tsx,
+                               khudancu.SLUG, khudancu.CONG_BAC)
+        if nt:
+            remapN, colsN = build_atlas(nt, 'assets/maps/%s.png' % nongtrai.SLUG)
+            convN = lambda lay, r=remapN: [r.get(g, -1) if g > 0 else -1 for g in lay]
+            nt['name'] = nongtrai.TEN
+            nt['cols'] = colsN
+            nt['layers'] = [convN(l) for l in nt['layers']]
+            nt['above'] = None
+            out_maps[nongtrai.SLUG] = nt
+            want.append(nongtrai.SLUG)
 
         # Bang Duong noi thang vao Khu Dan Cu: di het ngo la mot ben nha dan,
         # mot ben cong bang hoi.

@@ -3135,3 +3135,49 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 @keyframes cau-hong { 0%, 100% { transform: translateX(-50%); }
   25% { transform: translateX(calc(-50% - 8px)); }
   75% { transform: translateX(calc(-50% + 8px)); } }
+
+/* ==== Nông trại: chợ, đơn hàng dân làng, kho nông sản ==== */
+/* Việc đồng áng làm ngay trên bản đồ; màn này chỉ là chợ với bảng đơn. */
+.nt-tab { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px;
+  scrollbar-width: none; }
+.nt-tab::-webkit-scrollbar { display: none; }
+.nt-h3 { margin: 14px 2px 4px; font-size: .92rem; color: var(--muted); }
+.nt-mo { color: var(--muted); font-size: .8rem; line-height: 1.5; margin: 0 2px 8px; }
+.nt-hang { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.nt-hang .btn { width: auto; }
+.nt-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.nt-o { display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 8px; text-align: center; }
+.nt-o b { font-size: .88rem; }
+.nt-o small { font-size: .74rem; color: var(--muted); line-height: 1.35; }
+.nt-o .btn { width: auto; margin-top: 4px; }
+.nt-dang { color: var(--gold); }
+/* Ảnh pack vẽ ở ô 16px, phóng bằng nearest chứ để trình duyệt làm mượt thì nhoè */
+.nt-anh img { width: 44px; height: 44px; image-rendering: pixelated;
+  object-fit: contain; }
+/* Sprite con vật là tấm 3 cột x 4 hàng: chỉ lộ khung đứng nhìn thẳng */
+.nt-thu { width: 44px; height: 44px; overflow: hidden; display: block; }
+.nt-thu img { width: 132px; height: 176px; object-fit: none;
+  object-position: 0 0; transform: scale(.33); transform-origin: 0 0; }
+.nt-vat img { width: 64px; height: 48px; }
+.nt-tong { display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; flex-wrap: wrap; font-size: .86rem; }
+.nt-tong small { color: var(--muted); font-size: .76rem; }
+/* Đang cầm món chờ kê — nhắc rõ vì việc kê xảy ra ở màn khác (bản đồ) */
+.nt-cam { display: flex; flex-direction: column; gap: 5px;
+  border-color: var(--gold); }
+.nt-cam span { display: flex; align-items: center; gap: 8px; }
+.nt-cam img { width: 32px; height: 32px; image-rendering: pixelated;
+  object-fit: contain; }
+.nt-cam .btn { width: auto; align-self: flex-start; }
+.nt-don { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.nt-don.du { border-color: var(--gold); }
+.nt-donmon { display: flex; flex-wrap: wrap; gap: 6px; }
+.nt-monnho { display: flex; align-items: center; gap: 4px; font-size: .78rem;
+  color: var(--muted); background: rgba(255, 255, 255, .05);
+  border-radius: 8px; padding: 3px 7px; }
+.nt-monnho.du { color: var(--text); }
+.nt-monnho img { width: 18px; height: 18px; image-rendering: pixelated; }
+.nt-dongia { color: var(--gold); font-size: .84rem; }
+.nt-donnut { display: flex; gap: 6px; }
+.nt-donnut .btn { width: auto; }

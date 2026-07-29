@@ -9,7 +9,8 @@
 //      lên ngay — phải chờ thợ xây xong (mẫu càng to càng lâu).
 //   3. Xây xong thì căn nhà hiện trên bản đồ, đi vào cửa là vào trong nhà.
 //   4. Ở trong nhà mới bật được chế độ trang trí: kéo đồ tới chỗ muốn đặt.
-//   5. Đồ nội thất mua ở chỗ bác thợ mộc đứng ngay đầu khu đất.
+//   5. Đồ nội thất mua ở chỗ bác thợ mộc — bác đứng ngoài PHỐ KIM LONG chứ
+//      không phải trong khu đất: khu này để thuần là đất ở.
 //   6. Đã kết hôn thì vợ/chồng vào được nhà nhau (cần nối máy chủ).
 import { G, save, addMoney } from '../state.js';
 import { BASE_BY_ID, FURN_BY_ID, HOUSE_BASES } from '../data/estate.js';
@@ -21,8 +22,8 @@ import { SANH as SANH_BAC, MAY_TAI } from '../data/casino.js';
 // Các lô đất nằm trong KHU DÂN CƯ — một bản đồ riêng, đi hết ngõ phía bắc Thị
 // Trấn Taba là tới. Toạ độ lô, chỗ bác thợ mộc đứng và bản thân bản đồ đều do
 // tools/khudancu.py sinh ra một lượt, nên nền đất luôn khớp với lô đất.
-import { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, TIEM_AO, CONG_RA } from '../data/khudancu.js';
-export { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, TIEM_AO, CONG_RA };
+import { KHU_DAT_MAP, LOTS, CONG_RA, CONG_BAC } from '../data/khudancu.js';
+export { KHU_DAT_MAP, LOTS, CONG_RA, CONG_BAC };
 export const LOT_BY_ID = Object.fromEntries(LOTS.map(l => [l.id, l]));
 
 // Bên trong nhà là PHÒNG TRỐNG dựng riêng (tools/phongtrong.py), không mượn
@@ -183,16 +184,6 @@ export function vatTheODay(mapId, x, y) {
     return null;
   }
   if (mapId === KHU_DAT_MAP) {
-    if (x === THO_MOC.x && y === THO_MOC.y) {
-      return { type: 'estate', kind: 'tho-moc', name: 'Bác Thợ Mộc' };
-    }
-    if (x === TIEM_QUA.x && y === TIEM_QUA.y) {
-      return { type: 'estate', kind: 'tiem-qua', name: 'Cô Hoa' };
-    }
-    // Tiệm quần áo: chỗ duy nhất mua đồ mặc cho nhân vật
-    if (x === TIEM_AO.x && y === TIEM_AO.y) {
-      return { type: 'estate', kind: 'tiem-ao', name: 'Cô Thắm' };
-    }
     const e = nha();
     for (const l of LOTS) {
       // Vùng 3x3 của lô: đứng cạnh ô nào trong đó cũng bấm được

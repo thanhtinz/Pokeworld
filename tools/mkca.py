@@ -27,7 +27,7 @@ O = 32
 # ==== Cho cau: moi cho mot bang ca rieng ====
 # (ma, ten, mo ta)
 CHO = [
-    ('ho_dan_cu', 'Hồ Khu Dân Cư', 'Hồ nước ngay trong khu đất ở, cá hiền, hợp người mới.'),
+    ('ao_nong_trai', 'Ao Nông Trại', 'Ao nước ngay trong nông trại, cá hiền, hợp người mới.'),
     ('song_taba', 'Sông Taba', 'Nước chảy quanh thị trấn, cá to hơn và khó lừa hơn.'),
     ('bien_pepper', 'Biển Pepper', 'Sóng lớn gió to. Chỗ duy nhất câu được cá quý.'),
 ]
@@ -38,15 +38,15 @@ CHO = [
 # Gia ban = dai (cm) * gia_mot_cm, nen con cang to ban cang duoc tien.
 CA = [
     # --- Hồ ---
-    ('ca_ro', 'Cá Rô', 1, 'ho_dan_cu', 8, 22, 4, '#6b7a3a', '#9aad55',
+    ('ca_ro', 'Cá Rô', 1, 'ao_nong_trai', 8, 22, 4, '#6b7a3a', '#9aad55',
      'Con cá quen mặt nhất ao hồ. Nhỏ mà lì.'),
-    ('ca_diec', 'Cá Diếc', 1, 'ho_dan_cu', 10, 26, 5, '#8a8f6a', '#b9bd8e',
+    ('ca_diec', 'Cá Diếc', 1, 'ao_nong_trai', 10, 26, 5, '#8a8f6a', '#b9bd8e',
      'Thịt lành, dân câu hay bắt được lúc sáng sớm.'),
-    ('ca_chep', 'Cá Chép', 2, 'ho_dan_cu', 20, 55, 7, '#9a6b2f', '#d19a4a',
+    ('ca_chep', 'Cá Chép', 2, 'ao_nong_trai', 20, 55, 7, '#9a6b2f', '#d19a4a',
      'Vảy vàng óng. Câu được con to là cả buổi vui.'),
-    ('ca_tre', 'Cá Trê', 2, 'ho_dan_cu', 18, 48, 8, '#3f3a33', '#6b6155',
+    ('ca_tre', 'Cá Trê', 2, 'ao_nong_trai', 18, 48, 8, '#3f3a33', '#6b6155',
      'Râu dài, trơn tuột, giãy khoẻ hơn vẻ ngoài.'),
-    ('ca_qua', 'Cá Quả', 3, 'ho_dan_cu', 30, 70, 11, '#3c4a3a', '#65785c',
+    ('ca_qua', 'Cá Quả', 3, 'ao_nong_trai', 30, 70, 11, '#3c4a3a', '#65785c',
      'Săn mồi cỡ bự của hồ. Cắn câu là cần cong hẳn.'),
     # --- Sông ---
     ('ca_bong', 'Cá Bống', 1, 'song_taba', 6, 18, 5, '#7a6a55', '#a89478',

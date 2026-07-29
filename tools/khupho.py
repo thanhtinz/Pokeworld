@@ -73,12 +73,20 @@ CONG = (13, H - 1)                # cong ra thi tran, o canh duoi
 # hinh cua viec do" (xem js/ui/world.js). Dung dat quay thanh vat the rieng:
 # NPC dung de len o do thi facingThing() bat trung NPC chu khong trung quay,
 # bam A chi ra moi cau thoai — y het loi may cai may trong song bai.
-#   (ma, x, y, ten, sprite, man mo ra, loi chao)
+#   (ma, x, y, ten, sprite, man mo ra, tab, loi chao)
+# Ba quay tho moc / tiem qua / tiem quan ao TRUOC dung o Khu Dan Cu. Khu do la
+# DAT O, nhet hang quan vao thi di mua dat cu lan vao cho bua — don het ra day.
 QUAY = [
-    ('tap_hoa', 7, 12, 'Chú Tạp Hoá', 'ceo', 'shop',
+    ('tap_hoa', 4, 12, 'Chú Tạp Hoá', 'ceo', 'shop', None,
      'Thuốc men, bóng bắt, đồ lặt vặt — thiếu gì tôi cũng có.'),
-    ('lo_ren', 19, 12, 'Bác Thợ Rèn', 'brute', 'craft',
+    ('lo_ren', 8, 12, 'Bác Thợ Rèn', 'brute', 'craft', None,
      'Mang nguyên liệu lại đây, tôi rèn cho.'),
+    ('tho_moc', 12, 12, 'Bác Thợ Mộc', 'nurse', 'estate', 'cho',
+     'Bàn ghế giường tủ, thiếu gì tôi cũng có. Ghé xem đi!'),
+    ('tiem_qua', 16, 12, 'Cô Hoa', 'florist', 'gifts', None,
+     'Hoa tươi, sô-cô-la, nhẫn cưới — tặng ai thì người ta quý mình hơn đấy.'),
+    ('tiem_ao', 20, 12, 'Cô Thắm', 'barmaid_red', 'wardrobe', 'tiem',
+     'Áo quần giày mũ, cô có đủ. Mặc vào cho tươi tất người ra chứ!'),
 ]
 
 
@@ -234,7 +242,7 @@ def dung(root, tsx_cache, load_tsx):
                               'text': '%s — bước vào ô cửa là tới nơi.' % ten})
                 break
 
-    for ma, qx, qy, ten, _sp, _man, _loi in QUAY:
+    for ma, qx, qy, ten, _sp, _man, _tab, _loi in QUAY:
         don(qx, qy)
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(qx + dx, qy + dy)
@@ -246,16 +254,17 @@ def dung(root, tsx_cache, load_tsx):
         {'x': 13, 'y': PHO + 1, 'dir': 'down', 'sprite': 'ceo', 'name': 'Ông Quản Phố',
          'lines': ['Phố này bốn nhà bốn nghề. Cứ đi vào cửa nào cũng được.'],
          'ai': 'stand'},
-        {'x': 20, 'y': PHO, 'dir': 'left', 'sprite': 'catgirl', 'name': 'Cô Bán Dạo',
+        {'x': 24, 'y': PHO, 'dir': 'left', 'sprite': 'catgirl', 'name': 'Cô Bán Dạo',
          'lines': ['Sòng bài ở kia kìa. Đánh vừa thôi nhé.'], 'ai': 'wander'},
-        {'x': 4, 'y': PHO + 1, 'dir': 'right', 'sprite': 'granny', 'name': 'Bà Cụ Bán Trầu',
+        {'x': 2, 'y': PHO + 1, 'dir': 'right', 'sprite': 'granny', 'name': 'Bà Cụ Bán Trầu',
          'lines': ['Ngồi đây cả ngày, ai qua ai lại bà đều biết.'], 'ai': 'stand'},
         {'x': 25, 'y': PHO + 1, 'dir': 'up', 'sprite': 'childactor', 'name': 'Thằng Cu Tí',
          'lines': ['Cháu đang đợi mẹ ra khỏi nhà nguyện!'], 'ai': 'wander'},
     ] + [
         {'x': qx, 'y': qy, 'dir': 'down', 'sprite': sp, 'name': ten,
-         'lines': [loi], 'ai': 'stand', 'mo': man}
-        for _ma, qx, qy, ten, sp, man, loi in QUAY
+         'lines': [loi], 'ai': 'stand', 'mo': man,
+         **({'tab': tab} if tab else {})}
+        for _ma, qx, qy, ten, sp, man, tab, loi in QUAY
     ]
     npcs = [n for n in npcs if not solid[idx(n['x'], n['y'])]]
 

@@ -10,6 +10,7 @@ import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi, dongBoCuaTro } from './inn.js
 import { dangOChoi } from './diadiem.js';
 import { dangTham } from './visit.js';
 import { khoaODay, vatBangDuong } from './bangduong.js';
+import { vatNongTrai } from './nongtrai.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
@@ -502,6 +503,9 @@ export function facingThing() {
   // Bục gọi boss / rương thưởng / cửa khu trong Bang Đường
   const bd = vatBangDuong(player.mapId, x, y);
   if (bd) return bd;
+  // Ruộng / con vật / công trình trên nông trại
+  const nt = vatNongTrai(player.mapId, x, y);
+  if (nt) return nt;
   // Bảng hiệu / bảng thông báo: bản đồ Tuxemon đánh dấu bằng sự kiện thoại
   const talk = talkAt(currentBake(), x, y);
   if (talk) return { type: 'talk', ...talk };

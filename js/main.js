@@ -19,6 +19,7 @@ import * as daycare from './ui/daycare.js';
 import * as estate from './ui/estate.js';
 import * as craft from './ui/craft.js';
 import * as cauca from './ui/cauca.js';
+import * as nongtrai from './ui/nongtrai.js';
 import * as wardrobe from './ui/wardrobe.js';
 import * as diadiem from './ui/diadiem.js';
 import * as casino from './ui/casino.js';
@@ -67,7 +68,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements, daycare, estate, craft, cauca, wardrobe, diadiem, casino, garage, homes, gifts, boss,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements, daycare, estate, craft, cauca, nongtrai, wardrobe, diadiem, casino, garage, homes, gifts, boss,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };

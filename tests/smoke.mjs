@@ -2070,7 +2070,8 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       const quay = (MAPS.khu_pho.npcs || []).filter(n => n.mo);
       ok('phố có ít nhất hai hàng quán', quay.length >= 2, `${quay.length} quầy`);
       ok('quầy nào cũng mở một màn có thật',
-        quay.every(n => ['shop', 'craft', 'daycare', 'gifts', 'wardrobe'].includes(n.mo)),
+        quay.every(n => ['shop', 'craft', 'daycare', 'gifts', 'wardrobe', 'estate',
+          'nongtrai'].includes(n.mo)),
         quay.map(n => `${n.name}:${n.mo}`).join(' '));
       ok('quầy nào cũng đứng trên ô đi được',
         quay.every(n => !MAPS.khu_pho.solid[n.y * MAPS.khu_pho.w + n.x]));
@@ -2087,8 +2088,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         `${(MAPS.khu_pho.npcs || []).length} người`);
     }
 
-    // Địa hình phân biệt được: phải có mặt nước, và phải có tường bao quanh
-    ok('khu dân cư có mặt nước', (m.water || []).some(v => v));
+    // Khu dân cư là ĐẤT Ở THUẦN TUÝ: hàng quán dời hết ra Phố Kim Long, hồ câu
+    // dời lên Nông Trại. Trước gom chung một chỗ nên đi mua đất cứ lẫn vào chợ.
+    ok('khu dân cư không còn mặt nước', !(m.water || []).some(v => v));
+    ok('khu dân cư không còn quầy hàng nào',
+      !(m.npcs || []).some(n => n.mo),
+      (m.npcs || []).filter(n => n.mo).map(n => n.name).join(' '));
     const chan = m.solid.reduce((a, v) => a + v, 0);
     ok('khu dân cư có vật cản, không phải bãi trống', chan / (m.w * m.h) > 0.15,
       `${Math.round(chan * 100 / (m.w * m.h))}%`);
@@ -2110,12 +2115,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     }
     const xa = ES.LOTS.filter(l => !den.has(`${l.x + 1},${l.y + 3}`));
     ok('đi bộ từ cổng tới được mọi lô đất', xa.length === 0, xa.map(l => l.id).join(', '));
-    ok('đi bộ từ cổng tới được bác thợ mộc',
-      [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) =>
-        den.has(`${ES.THO_MOC.x + dx},${ES.THO_MOC.y + dy}`)));
-    ok('bác thợ mộc không đứng đè lên lô đất nào',
-      ES.LOTS.every(l => ES.THO_MOC.x < l.x || ES.THO_MOC.x > l.x + 2
-        || ES.THO_MOC.y < l.y || ES.THO_MOC.y > l.y + 2));
+    ok('đi bộ từ cổng tới được cổng lên nông trại',
+      [[1, 0], [-1, 0], [0, 1]].some(([dx, dy]) =>
+        den.has(`${ES.CONG_BAC.x + dx},${ES.CONG_BAC.y + dy}`)));
   }
 
   G.p.money = 1000;
@@ -2153,8 +2155,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     const l = ES.LOTS[0];
     ok('lô chưa mua thì thấy biển BÁN',
       ES.vatTheODay(ES.KHU_DAT_MAP, l.x + 1, l.y + 1)?.kind === 'lo-ban');
-    ok('chỗ bác thợ mộc bắt được',
-      ES.vatTheODay(ES.KHU_DAT_MAP, ES.THO_MOC.x, ES.THO_MOC.y)?.kind === 'tho-moc');
     ok('bản đồ khác thì không có gì', ES.vatTheODay('route1', l.x + 1, l.y + 1) === null);
 
     ES.muaDat(l.id);
@@ -2428,16 +2428,15 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         && q.price === GIFTS[i].price));
   }
 
-  // Cô bán quà phải đứng ở ô đi tới được và không trùng chỗ bác thợ mộc
+  // Cô bán quà giờ đứng ngoài PHỐ KIM LONG chứ không trong khu đất ở nữa
   {
-    const m = MAPS[ES.KHU_DAT_MAP];
-    const q = ES.TIEM_QUA;
-    ok('cô bán quà đứng trong bản đồ khu dân cư',
-      q.x >= 0 && q.y >= 0 && q.x < m.w && q.y < m.h);
-    ok('cô bán quà không đứng trùng bác thợ mộc',
-      q.x !== ES.THO_MOC.x || q.y !== ES.THO_MOC.y);
-    ok('đứng cạnh cô bán quà thì bấm được',
-      ES.vatTheODay(ES.KHU_DAT_MAP, q.x, q.y)?.kind === 'tiem-qua');
+    const m = MAPS.khu_pho;
+    const q = (m.npcs || []).find(n => n.mo === 'gifts');
+    ok('phố có cô bán quà', !!q);
+    ok('cô bán quà đứng trong bản đồ phố',
+      !!q && q.x >= 0 && q.y >= 0 && q.x < m.w && q.y < m.h);
+    ok('cô bán quà không đứng trùng quầy nào khác',
+      (m.npcs || []).filter(n => n.x === q.x && n.y === q.y).length === 1);
     ok('có ô trống cạnh cô bán quà để đứng',
       [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) =>
         !m.solid[(q.y + dy) * m.w + (q.x + dx)]));
@@ -3234,10 +3233,13 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('khung ô chọn phần mặt vẫn thấy được mắt và râu',
     AV.VUNG_MAT.y <= 9 && AV.VUNG_MAT.y + AV.VUNG_MAT.h >= 25);
 
-  // Tiệm quần áo phải có NPC đứng bán, không thì không ai mở được màn đó
-  ok('có NPC bán quần áo trong Khu Dân Cư',
-    ES.vatTheODay?.('khu_dan_cu', ES.TIEM_AO.x, ES.TIEM_AO.y)?.kind === 'tiem-ao',
-    JSON.stringify(ES.vatTheODay?.('khu_dan_cu', ES.TIEM_AO.x, ES.TIEM_AO.y)));
+  // Tiệm quần áo phải có NPC đứng bán, không thì không ai mở được màn đó.
+  // Tiệm đã dời ra Phố Kim Long cùng thợ mộc và tiệm quà.
+  {
+    const ao = (MAPS.khu_pho.npcs || []).find(n => n.mo === 'wardrobe');
+    ok('có NPC bán quần áo ngoài Phố Kim Long', !!ao && ao.tab === 'tiem',
+      JSON.stringify(ao || null));
+  }
 }
 
 // ==== Địa điểm dựng từ pack CraftPix ====
@@ -3816,9 +3818,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   newGame('Cần Thủ');
   // Giật sớm hay muộn quá đều sổng — không thì bấm bừa lúc nào cũng ăn
-  ok('giật sớm thì sổng', F.giatCan(F.caRia('ho_dan_cu'), -1)[1] !== null);
-  ok('giật muộn quá thì sổng', F.giatCan(F.caRia('ho_dan_cu'), 1e9)[1] !== null);
-  const [duoc] = F.giatCan(F.caRia('ho_dan_cu'), 200);
+  ok('giật sớm thì sổng', F.giatCan(F.caRia('ao_nong_trai'), -1)[1] !== null);
+  ok('giật muộn quá thì sổng', F.giatCan(F.caRia('ao_nong_trai'), 1e9)[1] !== null);
+  const [duoc] = F.giatCan(F.caRia('ao_nong_trai'), 200);
   ok('giật đúng lúc thì được cá', !!duoc && F.kho().gio.length === 1);
   ok('bắt lần đầu thì vào dex', F.soLoaiDaBat() === 1 && F.diemCauCa() > 0);
   // Bán: tiền phải TĂNG đúng bằng giá con cá
@@ -3829,11 +3831,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     `${truoc}+${gia} vs ${G.p.money}`);
   ok('bán rồi vẫn giữ dex', F.soLoaiDaBat() === 1);
   // Bể nuôi
-  F.giatCan(F.caRia('ho_dan_cu'), 200);
+  F.giatCan(F.caRia('ao_nong_trai'), 200);
   ok('thả được vào bể', F.thaVaoBe(0)[1] === null && F.kho().be.length === 1);
   ok('vớt lại được ra giỏ', F.votKhoiBe(0)[1] === null && F.kho().gio.length === 1);
   ok('giỏ đầy thì không câu thêm được', (() => {
-    for (let i = 0; i < F.GIO_TOI_DA + 3; i++) F.giatCan(F.caRia('ho_dan_cu'), 200);
+    for (let i = 0; i < F.GIO_TOI_DA + 3; i++) F.giatCan(F.caRia('ao_nong_trai'), 200);
     return F.kho().gio.length === F.GIO_TOI_DA;
   })(), `${F.kho().gio.length}/${F.GIO_TOI_DA}`);
   // Cá quý phải hiếm hơn cá thường rõ rệt
@@ -3870,9 +3872,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   })());
   ok('bấm trúng vùng thì được cá, trượt thì sổng', (() => {
     newGame('Vach');
-    const con = F.caRia('ho_dan_cu');
+    const con = F.caRia('ao_nong_trai');
     if (F.keoCa(con, false)[1] === null) return false;
-    return F.keoCa(F.caRia('ho_dan_cu'), true)[0] !== null;
+    return F.keoCa(F.caRia('ao_nong_trai'), true)[0] !== null;
   })());
 
   // Máy chủ chấm điểm xếp hạng bằng bản sao của công thức bên client. Lệch một
@@ -3906,14 +3908,19 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     // Thanh lực phải vẽ NGAY TRÊN BẢN ĐỒ, không mở panel
     ok('trên bản đồ có thanh lực', /function thanhLuc/.test(w2)
       && /vungTrung\(/.test(w2) && /trungVach\(/.test(w2) && /keoCa\(/.test(w2));
-    // Muốn xem giỏ/bể/dex thì phải ra tận chỗ ông lái cá
-    const lai = (MAPS.khu_dan_cu.npcs || []).filter(n => n.mo === 'cauca');
-    ok('có ông lái cá đứng cạnh hồ', lai.length === 1, `${lai.length} người`);
+    // Muốn xem giỏ/bể/dex thì phải ra tận chỗ ông lái cá — ông ngồi cạnh ao
+    // NÔNG TRẠI, vì hồ cũ đã dời khỏi khu đất ở.
+    const nt = MAPS.nong_trai;
+    const lai = (nt.npcs || []).filter(n => n.mo === 'cauca');
+    ok('có ông lái cá ngồi cạnh ao nông trại', lai.length === 1, `${lai.length} người`);
     ok('ông lái cá đứng trên ô đi được',
-      lai.every(n => !MAPS.khu_dan_cu.solid[n.y * MAPS.khu_dan_cu.w + n.x]));
+      lai.every(n => !nt.solid[n.y * nt.w + n.x]));
+    ok('ông lái cá ngồi sát mặt nước',
+      lai.every(n => [[1, 0], [-1, 0], [0, 1], [0, -1]]
+        .some(([dx, dy]) => nt.water[(n.y + dy) * nt.w + (n.x + dx)])));
     // Mỗi bản đồ có nước phải ra được một bảng cá có thật
     ok('bản đồ nào cũng quy được về một chỗ câu có thật',
-      ['khu_dan_cu', 'taba_town', 'khu_pho', 'linh_tinh']
+      ['nong_trai', 'taba_town', 'khu_pho', 'linh_tinh']
         .every(m => CHO_CAU.some(c => c.id === F.choTheoMap(m))));
   }
 
@@ -3928,6 +3935,253 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     F.kho().dex[quy.id] = { dai: 100, soLan: 1 };
     ok('cùng chiều dài thì cá quý ăn điểm cao hơn', F.diemCauCa() > dRo,
       `${dRo} vs ${F.diemCauCa()}`);
+  }
+}
+
+// ==== Nông trại: trồng trọt, nuôi thú, đơn hàng dân làng ====
+{
+  const NT = await import('../js/engine/nongtrai.js');
+  const D = await import('../js/data/nongtrai.js');
+  const NM = await import('../js/data/nongtraimap.js');
+  const goc = new URL('../', import.meta.url).pathname;
+  const coTep = (p2) => existsSync(join(goc, p2));
+  const coPng2 = (p2) => {
+    const buf = readFileSync(join(goc, p2));
+    return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  };
+
+  // ---- Đủ ảnh chưa ----
+  const thieuNT = [];
+  for (const c of D.CAY) {
+    for (let g = 0; g < D.GIAI_DOAN; g++) {
+      for (const uot of [false, true]) {
+        if (!coTep(D.anhCay(c.id, g, uot))) thieuNT.push(D.anhCay(c.id, g, uot));
+      }
+    }
+    if (!coTep(D.anhHat(c.id))) thieuNT.push(D.anhHat(c.id));
+    if (!coTep(D.anhMon(c.id))) thieuNT.push(D.anhMon(c.id));
+  }
+  for (const t of D.THU) {
+    if (!coTep(D.anhThu(t.id))) thieuNT.push(D.anhThu(t.id));
+    if (!coTep(D.anhMon(t.sanPham))) thieuNT.push(D.anhMon(t.sanPham));
+  }
+  for (const n of D.NHA) if (!coTep(D.anhNha(n.id))) thieuNT.push(D.anhNha(n.id));
+  for (const u of [false, true]) if (!coTep(D.anhDat(u))) thieuNT.push(D.anhDat(u));
+  ok('nông trại có đủ mọi ảnh trong danh mục', thieuNT.length === 0,
+    `${thieuNT.length} thiếu: ${thieuNT.slice(0, 4).join(', ')}`);
+
+  ok('ảnh cây đúng một ô 16x16', D.CAY.every(c => {
+    const s2 = coPng2(D.anhCay(c.id, 0, false));
+    return s2.w === D.O && s2.h === D.O;
+  }));
+  // Sprite con vật phải đúng khuôn 3 cột x 4 hàng như sprite đi bản đồ, không
+  // thì engine cắt khung ra hình vỡ
+  ok('sprite con vật đúng khuôn 3 cột x 4 hàng', D.THU.every(t => {
+    const s2 = coPng2(D.anhThu(t.id));
+    return s2.w === t.o * 3 && s2.h === t.o * 4;
+  }), D.THU.map(t => `${t.id}:${JSON.stringify(coPng2(D.anhThu(t.id)))}`).join(' '));
+  ok('mã món của cây và của thú không đụng nhau',
+    new Set(D.MON.map(m => m.id)).size === D.MON.length);
+  ok('con vật nào cũng cho một món có thật',
+    D.THU.every(t => !!D.MON_BY_ID[t.sanPham]));
+  ok('thứ kê được nào cũng có ảnh và kích thước dương',
+    D.VAT_THE.every(v => v.w >= 1 && v.h >= 1
+      && coTep(v.id === 'ruong' ? D.anhDat(false) : D.anhNha(v.id))));
+  // Cây lâu ăn phải bán được giá hơn, không thì chẳng ai trồng
+  ok('cây càng lâu chín càng đáng tiền', D.CAY.every((c, i) =>
+    i === 0 || (c.phut >= D.CAY[i - 1].phut && c.giaBan > D.CAY[i - 1].giaBan)),
+    D.CAY.map(c => `${c.id}:${c.phut}p/${c.giaBan}`).join(' '));
+  ok('hạt rẻ hơn tiền bán cả lứa',
+    D.CAY.every(c => c.giaHat < c.giaBan * 2),
+    D.CAY.filter(c => c.giaHat >= c.giaBan * 2).map(c => c.id).join(' '));
+
+  // ---- Bản đồ nông trại ----
+  {
+    const m = MAPS[NM.NONG_TRAI_MAP];
+    ok('có bản đồ nông trại', !!m);
+    ok('nông trại có ao câu', (m.water || []).some(v => v));
+    ok('nông trại nối hai chiều với khu dân cư',
+      (m.warps || []).some(w => w.to === 'khu_dan_cu')
+      && (MAPS.khu_dan_cu.warps || []).some(w => w.to === NM.NONG_TRAI_MAP));
+    const lam = (m.npcs || []).filter(n => n.mo === 'nongtrai');
+    ok('nông trại có chỗ mua bán và bảng đơn hàng', lam.length === 2,
+      lam.map(n => `${n.name}:${n.tab}`).join(' '));
+    ok('người làm việc đứng trên ô đi được',
+      lam.every(n => !m.solid[n.y * m.w + n.x]));
+    // Ô cấm phải trùm hết lối đi: kê ruộng đè lên đường là đi không lọt
+    ok('lối đi chính nằm trong danh sách ô cấm kê',
+      [3, 8, 15, 20].every(y => NM.CAM.has(`14,${y}`)));
+    ok('mặt nước nằm trong danh sách ô cấm kê',
+      NM.CAM.has(`${NM.AO_CA.x0},${NM.AO_CA.y0}`));
+    ok('chỗ người làm việc đứng cũng cấm kê',
+      NM.CAM.has(`${NM.BAC_NONG.x},${NM.BAC_NONG.y}`)
+      && NM.CAM.has(`${NM.BANG_DON.x},${NM.BANG_DON.y}`));
+    // Bố cục mặc định phải kê được thật, không thì nông trại mới đã sai sẵn
+    ok('bố cục mặc định không có món nào rơi vào ô cấm',
+      NM.MAC_DINH.every(o => {
+        const v = D.VAT_BY_ID[o.id];
+        for (let dy = 0; dy < v.h; dy++) {
+          for (let dx = 0; dx < v.w; dx++) {
+            if (NM.CAM.has(`${o.x + dx},${o.y + dy}`)) return false;
+          }
+        }
+        return true;
+      }),
+      NM.MAC_DINH.filter(o => NM.CAM.has(`${o.x},${o.y}`)).map(o => o.id).join(' '));
+  }
+
+  // ---- Trồng trọt ----
+  {
+    newGame('NongDan');
+    G.p.money = 500000;
+    const o = NT.oRuong()[0];
+    ok('nông trại mới đã kê sẵn ruộng và chuồng',
+      NT.oRuong().length >= 6 && NT.sucChua() > 2, JSON.stringify(NT.tomTat()));
+    ok('không có hạt thì không gieo được', NT.gieo(o, 'cu_cai')[1] !== null);
+    NT.muaHat('cu_cai', 3);
+    ok('mua hạt thì hạt vào kho', NT.co(NT.maHat('cu_cai')) === 3);
+    ok('gieo được khi có hạt', NT.gieo(o, 'cu_cai')[0] !== null);
+    ok('gieo xong hạt trừ đi một gói', NT.co(NT.maHat('cu_cai')) === 2);
+    ok('ô đang có cây thì không gieo chồng', NT.gieo(o, 'cu_cai')[1] !== null);
+
+    const c = D.CAY_BY_ID.cu_cai;
+    const t0 = Date.now();
+    // ĐẤT KHÔ THÌ CÂY KHÔNG LỚN — đây là cả cái vòng chơi, sai là bỏ bê cũng
+    // vẫn ăn, chẳng còn việc gì để làm trên nông trại
+    ok('đất khô thì cây đứng nguyên',
+      NT.giaiDoan(o, t0 + 10 * 60 * 60000) === 0,
+      String(NT.giaiDoan(o, t0 + 10 * 60 * 60000)));
+    NT.tuoi(o, t0);
+    ok('tưới xong thì đất ướt', NT.dangUot(o, t0));
+    ok('một lần tưới đủ đúng một giai đoạn',
+      NT.giaiDoan(o, t0 + c.phut * 60000 + 1000) === 1
+      && NT.giaiDoan(o, t0 + 10 * 60 * 60000) === 1,
+      `${NT.giaiDoan(o, t0 + c.phut * 60000 + 1000)} / ${NT.giaiDoan(o, t0 + 10 * 60 * 60000)}`);
+    ok('đất còn ướt thì tưới thêm cũng vô ích', NT.tuoi(o, t0)[1] !== null);
+    ok('chưa chín thì không thu được', NT.thu(o, t0 + c.phut * 60000)[1] !== null);
+    // Tưới đủ CHIN lần thì chín
+    let gio = t0;
+    for (let i = 0; i < NT.CHIN; i++) {
+      gio += c.phut * 60000 + 1000;
+      NT.tuoi(o, gio);
+    }
+    gio += c.phut * 60000 + 1000;
+    ok('tưới đủ số lần thì cây chín', NT.daChin(o, gio),
+      String(NT.giaiDoan(o, gio)));
+    const [duoc] = NT.thu(o, gio, () => 0.5);
+    ok('thu hoạch ra nông sản vào kho',
+      duoc?.id === 'cu_cai' && duoc.n >= 1 && NT.co('cu_cai') === duoc.n);
+    ok('thu xong thì ô ruộng trống lại', !o.cay);
+  }
+
+  // ---- Nuôi thú ----
+  {
+    newGame('NuoiThu');
+    G.p.money = 500000;
+    const cho = NT.choTrongCho();
+    ok('chỗ thả thú mới không rơi vào ô cấm', !NM.CAM.has(`${cho.x},${cho.y}`),
+      `${cho.x},${cho.y}`);
+    const [con, err] = NT.muaThu('ga', cho.x, cho.y);
+    ok('mua được con vật', !!con && !err, err || '');
+    const g = NT.danhSachThu()[0];
+    ok('chưa cho ăn thì chưa có gì để thu', NT.thuThu(g)[1] !== null);
+    ok('hết cỏ khô thì không cho ăn được', NT.choAn(g)[1] !== null);
+    NT.muaCoKho(2);
+    const t0 = Date.now();
+    ok('cho ăn được khi có cỏ', NT.choAn(g, t0)[0] !== null);
+    ok('cho ăn thì trừ cỏ khô', NT.co('co_kho') === 1);
+    ok('đang no thì không nhồi thêm', NT.choAn(g, t0)[1] !== null);
+    const tt = D.THU_BY_ID.ga;
+    ok('chưa tới giờ thì chưa thu được', NT.thuThu(g, t0 + 60000)[1] !== null);
+    const [sp] = NT.thuThu(g, t0 + tt.phut * 60000 + 1000);
+    ok('tới giờ thì thu được sản phẩm', sp?.id === tt.sanPham && NT.co(tt.sanPham) === 1);
+    ok('thu xong thì lại phải cho ăn tiếp', NT.thuThu(g, t0 + 99 * 60000)[1] !== null);
+    // Sức chứa: kê thêm chuồng mới nuôi thêm được
+    const chua = NT.sucChua();
+    while (NT.danhSachThu().length < chua) NT.muaThu('ga', cho.x, cho.y);
+    ok('chuồng đầy thì không mua thêm được', NT.muaThu('ga', cho.x, cho.y)[1] !== null,
+      `${NT.danhSachThu().length}/${chua}`);
+  }
+
+  // ---- Kê đồ trên bản đồ ----
+  {
+    newGame('KeDo');
+    G.p.money = 500000;
+    ok('mua xong thì món nằm trên tay chờ kê',
+      NT.mua('ruong')[0] !== null && NT.choKe() === 'ruong');
+    ok('đang cầm món thì không mua thêm', NT.mua('ruong')[1] !== null);
+    ok('không kê được lên lối đi', NT.keTaiDay(14, 8)[1] !== null);
+    ok('không kê được ra ngoài vùng', NT.keTaiDay(0, 0)[1] !== null);
+    const cu = NT.oRuong()[0];
+    ok('không kê chồng lên món đã kê', NT.keTaiDay(cu.x, cu.y)[1] !== null);
+    const truoc = NT.nt().o.length;
+    const [moi, err] = NT.keTaiDay(9, 4);
+    ok('kê được vào ô trống', !!moi && !err, err || '');
+    ok('kê xong thì tay không còn cầm gì', NT.choKe() === null);
+    ok('kê xong thì nông trại có thêm một món', NT.nt().o.length === truoc + 1);
+    ok('nhấc lên được để dời chỗ',
+      NT.nhac(moi)[0] !== null && NT.choKe() === 'ruong'
+      && NT.nt().o.length === truoc);
+    const tien0 = G.p.money;
+    ok('trả lại thì lấy về nửa tiền', NT.boMonDangCam()[0] === Math.floor(300 / 2)
+      && G.p.money > tien0);
+    // Ruộng đang có cây thì không nhấc — nhấc là mất trắng cả lứa
+    NT.muaHat('cu_cai', 1);
+    NT.gieo(NT.oRuong()[0], 'cu_cai');
+    ok('ruộng đang có cây thì không nhấc được', NT.nhac(NT.oRuong()[0])[1] !== null);
+  }
+
+  // ---- Đơn hàng dân làng ----
+  {
+    newGame('DonHang');
+    G.p.money = 500000;
+    const t0 = Date.now();
+    let seed = 1;
+    const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    NT.lamMoiDon(t0, rnd);
+    const n = NT.nt();
+    ok('bảng dán được đơn', n.don.length >= 1, `${n.don.length} đơn`);
+    ok('bảng không dán quá số đơn cho phép', n.don.length <= NT.DON_TOI_DA);
+    const d = n.don[0];
+    ok('đơn nào cũng có khách, món và tiền',
+      !!d.khach && d.mon.length >= 1 && d.tien > 0 && d.diem >= 1);
+    ok('món trong đơn đều là món có thật',
+      n.don.every(x => x.mon.every(m => !!D.MON_BY_ID[m.id])));
+    // Đơn phải trả CAO HƠN bán lẻ, không thì gom hàng làm gì cho mệt
+    ok('đơn trả cao hơn bán lẻ', n.don.every(x =>
+      x.tien > x.mon.reduce((a, m) => a + D.MON_BY_ID[m.id].gia * m.n, 0)));
+    ok('chưa đủ hàng thì không giao được', NT.giaoDon(d.ma)[1] !== null);
+    for (const m of d.mon) NT.them(m.id, m.n);
+    ok('gom đủ thì giao được', NT.duMon(d));
+    const tien0 = G.p.money;
+    const [r] = NT.giaoDon(d.ma);
+    ok('giao xong thì nhận tiền và uy tín',
+      r.tien === d.tien && G.p.money === tien0 + d.tien && NT.nt().diem === d.diem);
+    ok('giao xong thì hàng trừ khỏi kho', d.mon.every(m => NT.co(m.id) === 0));
+    ok('đơn đã giao thì rời khỏi bảng', !NT.nt().don.some(x => x.ma === d.ma));
+    ok('giao lại đơn cũ thì báo lỗi', NT.giaoDon(d.ma)[1] !== null);
+    // Không được đứng bấm liên tục để xin đơn mới cho tới lúc gặp đơn dễ
+    const con = NT.nt().don.length;
+    NT.lamMoiDon(t0, rnd);
+    ok('chưa tới giờ thì không dán thêm đơn', NT.nt().don.length === con,
+      `${con} -> ${NT.nt().don.length}`);
+    NT.lamMoiDon(t0 + NT.PHUT_RA_DON * 60000 * (NT.DON_TOI_DA + 1), rnd);
+    ok('đủ giờ thì bảng dán lại cho đầy', NT.nt().don.length === NT.DON_TOI_DA,
+      `${NT.nt().don.length}`);
+  }
+
+  // ---- Việc đồng áng phải làm trên BẢN ĐỒ, không phải trong panel ----
+  {
+    const goc2 = new URL('../', import.meta.url).pathname;
+    const w2 = readFileSync(join(goc2, 'js/ui/world.js'), 'utf8');
+    ok('bản đồ có nhánh làm ruộng', /function ruongNuong/.test(w2)
+      && /NT\.gieo\(/.test(w2) && /NT\.tuoiHet\(/.test(w2) && /NT\.thu\(/.test(w2));
+    ok('bản đồ có nhánh cho thú ăn và thu sản phẩm',
+      /NT\.choAn\(/.test(w2) && /NT\.thuThu\(/.test(w2));
+    ok('bản đồ có nhánh kê đồ', /NT\.keTaiDay\(/.test(w2) && /NT\.nhac\(/.test(w2));
+    const u2 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
+    ok('màn nông trại chỉ lo chợ và đơn hàng, không gieo tưới',
+      !/NT\.gieo\(|NT\.tuoi\(|NT\.thu\(/.test(u2));
   }
 }
 

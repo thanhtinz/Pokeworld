@@ -1,6 +1,10 @@
 // TuxeWorld H5 | data/khudancu.js | TỰ SINH TỪ tools/khudancu.py, đừng sửa tay
 // Toạ độ các lô đất trong bản đồ khu dân cư, sinh cùng lúc với bản đồ nên
 // không bao giờ lệch khỏi nền đất đã kẻ sẵn.
+//
+// Khu này là ĐẤT Ở THUẦN TUÝ: không hàng quán, không hồ câu. Tiệm xá
+// dời hết ra Phố Kim Long, hồ câu dời lên Nông Trại — trước gom chung
+// một chỗ nên đi mua đất mà cứ lẫn vào chợ búa.
 
 export const KHU_DAT_MAP = "khu_dan_cu";
 export const LOTS = [
@@ -11,12 +15,8 @@ export const LOTS = [
   { id: "b2", name: "Lô B2 — Mặt đường", price: 45000, x: 13, y: 17 },
   { id: "c2", name: "Lô C2 — Cuối ngõ", price: 80000, x: 22, y: 17 },
 ];
-// Bác thợ mộc bán nội thất đứng ở đây
-export const THO_MOC = { x: 11, y: 21 };
-// Cô bán quà tặng đứng ở đây
-export const TIEM_QUA = { x: 8, y: 21 };
-// Cô bán quần áo cho nhân vật đứng ở đây
-export const TIEM_AO = { x: 14, y: 21 };
 // Ô cổng ra thị trấn — dùng để chỉ đường cho người chơi
 export const CONG_RA = { x: 9, y: 25 };
+// Ô cổng lên Nông Trại, ở cạnh trên bản đồ
+export const CONG_BAC = { x: 9, y: 0 };
 
