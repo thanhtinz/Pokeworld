@@ -1032,10 +1032,12 @@ def main():
             want.append(bangduong.SLUG)
 
         # Pho Kim Long: bon toa nha cong cong. TACH RIENG khoi Khu Dan Cu vi
-        # cho do la dat o cua nguoi choi, dung nha cong cong len day la chiem
-        # cho. Cong noi len tu dau ngo doc cua khu dan cu.
+        # cho do la dat o cua nguoi choi. Va noi thang ra THI TRAN chu khong
+        # phai nap sau khu dat o — kho cong cong ma phai di xuyen qua khu nha
+        # dan moi toi thi khong ai tim ra.
+        cho_kp = khudancu.cho_cong_ve_taba(out_maps.get('taba_town') or {})
         kp0 = khupho.them_vao(out_maps, root, tsx_cache, load_tsx,
-                              khudancu.SLUG, (khudancu.DUONG_DOC[0], 2))
+                              'taba_town', cho_kp) if cho_kp else None
         if kp0:
             remapP, colsP = build_atlas(kp0, 'assets/maps/%s.png' % khupho.SLUG)
             convP = lambda lay, r=remapP: [r.get(g, -1) if g > 0 else -1 for g in lay]

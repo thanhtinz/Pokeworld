@@ -2049,6 +2049,19 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ok('đi bộ trong thị trấn tới được cổng khu dân cư',
         cong.every(w => den.has(`${w.x},${w.y}`)),
         cong.map(w => `${w.x},${w.y}`).join(' '));
+      // Phố Kim Long treo THẲNG vào thị trấn chứ không nấp sau khu đất ở:
+      // kho công cộng mà phải đi xuyên qua khu nhà dân mới tới thì không ai
+      // tìm ra.
+      const congP = t.warps.filter(w => w.to === 'khu_pho');
+      ok('thị trấn có đúng một cổng sang Phố Kim Long', congP.length === 1,
+        `${congP.length} cổng`);
+      ok('đi bộ trong thị trấn tới được cổng Phố Kim Long',
+        congP.every(w => den.has(`${w.x},${w.y}`)),
+        congP.map(w => `${w.x},${w.y}`).join(' '));
+      ok('hai cổng không đè lên nhau',
+        !congP.some(a => cong.some(b => a.x === b.x && a.y === b.y)));
+      ok('Phố Kim Long có đường về thị trấn',
+        (MAPS.khu_pho.warps || []).some(w => w.to === 'taba_town'));
     }
 
     // Địa hình phân biệt được: phải có mặt nước, và phải có tường bao quanh
