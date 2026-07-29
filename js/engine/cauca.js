@@ -107,6 +107,44 @@ export const choTheoMap = (mapId) => MAP_CHO[mapId]
 
 export const giaCa = (c) => Math.max(1, Math.round((CA_BY_ID[c.id]?.giaCm || 1) * c.dai));
 
+// ==== Thanh lực: vạch chạy qua lại, bấm trúng vùng xanh thì được cá ====
+// Canh theo thời gian thì chỉ là phản xạ bấm nhanh, ai cũng như ai. Thanh lực
+// thì NHÌN được: vùng trúng hẹp dần theo bậc hiếm nên cá quý thật sự khó.
+export const VUNG_MIN = 0.09;      // hẹp nhất cũng còn 9% thanh, không thể bất khả
+
+/** Bề rộng vùng trúng (theo tỉ lệ thanh). Cần xịn thì rộng, cá quý thì hẹp. */
+export function vungTrung(bac = canDangDung().bac, hiem = 1) {
+  const r = 0.34 + (bac - 2) * 0.07 - (hiem - 1) * 0.06;
+  return Math.max(VUNG_MIN, Math.min(0.55, r));
+}
+
+/** Vạch chạy hết một vòng qua-lại mất bao lâu (ms). Cá càng quý càng nhanh. */
+export const tocDoVach = (hiem = 1) => Math.max(620, 1500 - (hiem - 1) * 260);
+
+/** Vùng trúng đặt ở đâu trên thanh — chừa mép để không bao giờ dính sát biên. */
+export function choVung(rong, rnd = Math.random) {
+  const le = 0.06;
+  return le + rnd() * Math.max(0, 1 - rong - le * 2);
+}
+
+/** Vạch đang ở `vi` có nằm trong vùng bắt đầu từ `dau` rộng `rong` không? */
+export const trungVach = (vi, dau, rong) => vi >= dau && vi <= dau + rong;
+
+/**
+ * Kéo cá theo kết quả thanh lực. Trượt vạch thì sổng.
+ * Tách khỏi giatCan() vì lời nhắn khác hẳn: trượt vạch chứ không phải trễ tay.
+ */
+export function keoCa(con, trung) {
+  if (!con || !CA_BY_ID[con?.id]) return [null, 'Chưa có con nào cắn câu.'];
+  if (!trung) {
+    const k = kho();
+    k.sotuot += 1;
+    save();
+    return [null, 'Trượt vạch, cá vùng ra mất rồi.'];
+  }
+  return giatCan(con, 0);
+}
+
 /**
  * Giật cần. `tre` = giật muộn bao nhiêu ms so với lúc cá rỉa.
  * Giật sớm (tre < 0) hay muộn quá cửa sổ thì đều sổng.

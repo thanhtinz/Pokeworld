@@ -3767,6 +3767,34 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('cá huyền thoại hiếm hơn hẳn cá thường', quy > 0 && thuong > quy * 8,
       `thường ${thuong} · huyền thoại ${quy}`);
   }
+  // ---- Thanh lực ----
+  // Vùng trúng phải HẸP DẦN theo bậc hiếm và RỘNG RA theo cần, không thì cá
+  // quý với cá rô khó như nhau, sắm cần xịn cũng chẳng để làm gì.
+  ok('cá càng quý vùng trúng càng hẹp',
+    F.vungTrung(4, 1) > F.vungTrung(4, 4),
+    `${F.vungTrung(4, 1).toFixed(2)} vs ${F.vungTrung(4, 4).toFixed(2)}`);
+  ok('cần càng xịn vùng trúng càng rộng',
+    F.vungTrung(4, 2) > F.vungTrung(2, 2),
+    `${F.vungTrung(4, 2).toFixed(2)} vs ${F.vungTrung(2, 2).toFixed(2)}`);
+  ok('vùng trúng không bao giờ hẹp tới mức bất khả',
+    [1, 2, 3, 4].every(b => [1, 2, 3, 4].every(h => F.vungTrung(b, h) >= F.VUNG_MIN)));
+  ok('cá càng quý vạch chạy càng nhanh', F.tocDoVach(4) < F.tocDoVach(1));
+  // Vùng phải nằm gọn trong thanh, không thì nó thò ra ngoài màn hình
+  ok('vùng trúng luôn nằm gọn trong thanh', (() => {
+    for (let i = 0; i < 500; i++) {
+      const r = F.vungTrung(1 + (i % 4), 1 + (i % 4));
+      const d = F.choVung(r, Math.random);
+      if (d < 0 || d + r > 1) return false;
+    }
+    return true;
+  })());
+  ok('bấm trúng vùng thì được cá, trượt thì sổng', (() => {
+    newGame('Vach');
+    const con = F.caRia('ho_dan_cu');
+    if (F.keoCa(con, false)[1] === null) return false;
+    return F.keoCa(F.caRia('ho_dan_cu'), true)[0] !== null;
+  })());
+
   // Máy chủ chấm điểm xếp hạng bằng bản sao của công thức bên client. Lệch một
   // ly là thứ hạng sai mà chẳng ai biết — nên bắt hai bên phải ra CÙNG một số.
   {
@@ -3795,10 +3823,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('Menu không còn ô Câu cá', !/'cauca'|"cauca"/.test(menu2));
     const w2 = readFileSync(join(goc2, 'js/ui/world.js'), 'utf8');
     ok('bản đồ có nhánh câu cá ở mặt nước', /caRia\(/.test(w2) && /facingWater/.test(w2));
-    // Nhịp canh phao phải nằm trên bản đồ: quăng cần xong hiện luôn kết quả
-    // thì chỉ là bấm một nút lấy đồ, chẳng còn là câu cá.
-    ok('trên bản đồ có nhịp chờ rồi giật', /function doiGiat/.test(w2)
-      && /buongCan\(\)/.test(w2) && /cuaSo\(\)/.test(w2));
+    // Thanh lực phải vẽ NGAY TRÊN BẢN ĐỒ, không mở panel
+    ok('trên bản đồ có thanh lực', /function thanhLuc/.test(w2)
+      && /vungTrung\(/.test(w2) && /trungVach\(/.test(w2) && /keoCa\(/.test(w2));
     // Muốn xem giỏ/bể/dex thì phải ra tận chỗ ông lái cá
     const lai = (MAPS.khu_dan_cu.npcs || []).filter(n => n.mo === 'cauca');
     ok('có ông lái cá đứng cạnh hồ', lai.length === 1, `${lai.length} người`);

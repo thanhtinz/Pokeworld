@@ -974,31 +974,57 @@ export function render(el) {
   }
 
   /**
-   * Chờ người chơi bấm A trong `han` ms. Trả số ms trễ so với lúc phao giật,
-   * hoặc `Infinity` nếu để lỡ.
+   * Thanh lực: một cái vạch chạy qua chạy lại, bấm A lúc nó nằm trong vùng
+   * xanh thì kéo được cá lên.
    *
-   * Nhịp canh phao phải nằm NGAY TRÊN BẢN ĐỒ chứ không mở panel: nghe tiếng
-   * "phao giật" rồi bấm mới ra chất câu cá, chứ quăng cần xong hiện luôn kết
-   * quả thì chỉ là bấm một nút lấy đồ.
+   * Canh theo THỜI GIAN (chờ rồi bấm) thì chỉ là phản xạ nhanh tay, cá quý hay
+   * cá rô cũng khó như nhau. Thanh lực thì NHÌN thấy được: vùng xanh hẹp dần
+   * và vạch chạy nhanh dần theo bậc hiếm, nên cá quý khó một cách sờ được.
+   *
+   * Vẽ thẳng lên màn bản đồ, KHÔNG mở panel.
    */
-  function doiGiat(han) {
+  function thanhLuc(hiem) {
     return new Promise(xong => {
+      const rong = CAU.vungTrung(undefined, hiem);
+      const dau = CAU.choVung(rong);
+      const vong = CAU.tocDoVach(hiem);
+      const hop = document.createElement('div');
+      hop.className = 'cau-thanh';
+      hop.innerHTML = `<div class="cau-ray">
+          <i class="cau-vung" style="left:${(dau * 100).toFixed(1)}%;width:${(rong * 100).toFixed(1)}%"></i>
+          <i class="cau-vach"></i>
+        </div>
+        <p class="cau-chu">Bấm A khi vạch vào vùng xanh!</p>`;
+      el.appendChild(hop);
+      const vach = hop.querySelector('.cau-vach');
       const nut = el.querySelector('#btn-act');
-      const luc = Date.now();
-      let het = null;
-      const thoi = (tre) => {
-        clearTimeout(het);
+      const bd = performance.now();
+      let raf = 0;
+      let vi = 0;
+      const chay = (t) => {
+        // Tam giác 0 -> 1 -> 0: vạch chạy qua rồi chạy lại
+        const u = ((t - bd) % vong) / vong;
+        vi = u < 0.5 ? u * 2 : 2 - u * 2;
+        vach.style.left = `${(vi * 100).toFixed(2)}%`;
+        raf = requestAnimationFrame(chay);
+      };
+      raf = requestAnimationFrame(chay);
+      const thoi = (trung) => {
+        cancelAnimationFrame(raf);
         window.removeEventListener('keydown', phim);
         nut?.removeEventListener('click', bam);
         nut?.classList.remove('cau-giat');
-        xong(tre);
+        hop.classList.add(trung ? 'trung' : 'truot');
+        setTimeout(() => hop.remove(), 320);
+        xong(trung);
       };
-      const bam = () => thoi(Date.now() - luc);
+      const bam = () => thoi(CAU.trungVach(vi, dau, rong));
       const phim = (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); bam(); } };
       window.addEventListener('keydown', phim);
       nut?.addEventListener('click', bam);
       nut?.classList.add('cau-giat');
-      het = setTimeout(() => thoi(Infinity), han);
+      // Chần chừ mãi thì cá cũng chán mà đi
+      setTimeout(() => { if (hop.isConnected) thoi(false); }, vong * 6);
     });
   }
 
@@ -1017,12 +1043,10 @@ export function render(el) {
       if (!r.ok) {
         const con = CAU.caRia(CAU.choTheoMap(player.mapId));
         if (!con) { toast('Chờ mãi mà chẳng con nào cắn...'); return; }
-        // Chờ cá rỉa — trong lúc này bấm A là giật SỚM, cá nhả mất
-        const som = await doiGiat(CAU.buongCan());
-        if (som !== Infinity) { CAU.giatCan(con, -1); toast('Giật sớm quá, cá nhả mất rồi.'); return; }
-        toast('PHAO GIẬT! Bấm A ngay!', 1200);
-        const tre = await doiGiat(CAU.cuaSo() + 120);
-        const [duoc, loi] = CAU.giatCan(con, tre === Infinity ? 1e9 : tre);
+        // Cá rỉa rồi thì hiện thanh lực ngay trên bản đồ
+        toast('Có con cắn câu!', 1000);
+        const trung = await thanhLuc(CAU.CA_BY_ID[con.id].hiem);
+        const [duoc, loi] = CAU.keoCa(con, trung);
         if (loi) { toast(loi); return; }
         const d = CAU.CA_BY_ID[duoc.id];
         await playDialog([[{ name: 'Bạn' },
