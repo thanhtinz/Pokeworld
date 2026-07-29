@@ -62,7 +62,10 @@ LO = [
 DUONG_NGANG = (12, 13)          # hai hang duong da chay ngang
 DUONG_DOC = (9, 10)             # hai cot duong da chay suot tu bac xuong nam
 CONG = (DUONG_DOC[0], H - 1)    # cong ra thi tran, o canh duoi
-CONG_BAC = (DUONG_DOC[0], 0)    # cong len Nong Trai, o canh tren
+# Truoc day day la cong bo len Nong Trai. Bo roi: nong trai la SAN SAU cua
+# can nha nguoi choi, vao bang cua sau trong nha chu khong phai bang duong
+# cong cong. Van giu con duong da chay len phia bac cho khu do khoi cut ngang.
+CONG_BAC = (DUONG_DOC[0], 0)
 
 
 
@@ -148,8 +151,8 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     for y in range(2, H - 2, 2):
         cap += [(0, y), (1, y), (W - 2, y), (W - 1, y)]
     for x, y in cap:
-        if x in DUONG_DOC and (y >= H - 2 or y <= 1):
-            continue                              # chua hai cong ra ngoai
+        if x in DUONG_DOC and y >= H - 2:
+            continue                              # chua cong ra thi tran
         r = _rng(x, y, 10)
         if r < 6:
             dat_tren(x, y, THONG_NHO[0])
@@ -229,8 +232,9 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     talks = [
         {'x': DUONG_DOC[0], 'y': H - 3, 'name': 'Bảng Khu Dân Cư',
          'text': 'KHU DÂN CƯ TABA — đất nền đã chia lô, mời bà con vào xem.'},
-        {'x': DUONG_DOC[1] + 1, 'y': 2, 'name': 'Biển Chỉ Đường',
-         'text': 'Đi tiếp lên bắc là Nông Trại. Chợ búa hàng quán thì ra Phố Kim Long.'},
+        {'x': DUONG_DOC[1] + 1, 'y': 15, 'name': 'Biển Chỉ Đường',
+         'text': 'Nông trại nằm sau nhà bạn — vào nhà rồi bước ra cửa sau. '
+                 'Chợ búa hàng quán thì ra Phố Kim Long.'},
     ]
     talks = [t for t in talks if not solid[idx(t['x'], t['y'])]]
 

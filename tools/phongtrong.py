@@ -54,8 +54,13 @@ def mau_phong(m):
     return nen, pho_bien(0), pho_bien(1)
 
 
-def dung(m_goc, w, h, npcs=None, talks=None):
-    """Tra ve dict giong parse_map(): mot can phong chu nhat trong khong."""
+def dung(m_goc, w, h, npcs=None, talks=None, cua_sau=True):
+    """Tra ve dict giong parse_map(): mot can phong chu nhat trong khong.
+
+    `cua_sau` = duc mot o CUA SAU giua buc tuong tren cung. Nong trai la SAN SAU
+    cua nha nguoi choi: buoc ra cua sau la ra thang ngoai ruong. Nha tro chung
+    thi khong co cua nay (khong ai co nong trai sau nha tro).
+    """
     nen, t_tren, t_duoi = mau_phong(m_goc)
     lop = [0] * (w * h)
     solid = [0] * (w * h)
@@ -70,6 +75,14 @@ def dung(m_goc, w, h, npcs=None, talks=None):
                 solid[i] = 1
             else:
                 lop[i] = nen
+    if cua_sau:
+        # Duc thung ca HAI hang tuong: tuong day hai hang, duc moi hang tren thi
+        # dung truoc cua van bi hang duoi chan, khong buoc ra duoc.
+        cx = w // 2
+        for y in (0, 1):
+            i = y * w + cx
+            lop[i] = nen
+            solid[i] = 0
     return {
         'w': w, 'h': h, 'sets': m_goc['sets'], 'layers': [lop], 'above': None,
         'solid': solid, 'water': [0] * (w * h), 'warps': [], 'talks': talks or [],
@@ -99,6 +112,10 @@ def viet_js():
         '',
         'export const MAP_NHA_TRO = "nha_tro";',
         '',
+        '// Ô cửa sau của một căn phòng: đục giữa bức tường trên cùng. Bước ra',
+        '// cửa này là ra sân sau — tức là nông trại. Nhà trọ chung không có.',
+        'export const oCuaSau = (m) => ({ x: Math.floor(m.w / 2), y: 0 });',
+        '',
     ]
     with open('js/data/phongtrong.js', 'w', encoding='utf-8') as f:
         f.write('\n'.join(dong))
@@ -112,7 +129,7 @@ def them_vao(out_maps, parse_map, chon_tep, mdir, tsx_cache):
         if not p:
             print('BO QUA phong', slug, '- khong co ban do goc', goc)
             continue
-        m = dung(parse_map(p, tsx_cache), w, h)
+        m = dung(parse_map(p, tsx_cache), w, h, cua_sau=(slug != 'nha_tro'))
         m['_ten'] = ten
         out_maps[slug] = m
         ra.append(slug)

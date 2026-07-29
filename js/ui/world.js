@@ -494,8 +494,9 @@ export function render(el) {
     // Vẽ TRƯỚC nhân vật để người chơi luôn đứng đè lên chứ không bị cây che.
     if (player.mapId === NT.NONG_TRAI_MAP) veNongTrai(size, camX, camY);
 
-    // Biển "BÁN" cắm ở từng lô đất chưa ai mua
-    if (player.mapId === KHU_DAT_MAP) {
+    // Biển "BÁN" cắm ở từng lô đất — CHỈ khi người chơi chưa có đất. Mua rồi
+    // thì khu dân cư chỉ còn là chỗ ở của mình, không phải cái chợ đất.
+    if (player.mapId === KHU_DAT_MAP && !ES.coDat()) {
       for (const l of LOTS) {
         if (ES.nha().lot === l.id) continue;
         const bx = (l.x + 1) * size - camX, by = (l.y + 2) * size - camY;
@@ -795,6 +796,16 @@ export function render(el) {
       vaoNha();
       return;
     }
+    // Cùng căn nhà đó nhưng nhìn từ phía sân sau (Nông Trại)
+    if (thing.kind === 'cua-sau' || thing.kind === 'nha-sau') {
+      if (thing.kind === 'nha-sau') {
+        const c = ES.oCuaNongTrai();
+        toast(`Cửa sau ở phía dưới căn nhà (ô ${c.x}, ${c.y}).`);
+        return;
+      }
+      vaoNha(true);
+      return;
+    }
   }
 
   // Đang ở trong một căn nhà nào đó (nhà mình hay nhà người ta đang thăm)
@@ -838,8 +849,10 @@ export function render(el) {
 
   // Vào trong nhà: mượn bản đồ nội thất trống của bản gốc, cắm thêm một cổng
   // quay ra đúng chỗ vừa đứng.
-  function vaoNha() {
-    const cho = ES.camCongVeNha();
+  function vaoNha(tuRuong = false) {
+    // Vào bằng cửa nào thì đứng ngay trong cửa đó — vào cửa sau mà bị quăng ra
+    // tận cửa trước thì đi cả căn phòng mới quay lại được ruộng.
+    const cho = tuRuong ? ES.camCongTuNongTrai() : ES.camCongVeNha();
     if (!cho) { toast('Chưa vào được.'); return; }
     enterMap(ES.mapTrongNha(), cho.x, cho.y);
     // Chỉ nhắc khi nhà còn trống trơn; kê được món nào rồi thì thôi, người

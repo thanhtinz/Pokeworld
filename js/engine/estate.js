@@ -8,13 +8,17 @@
 //   2. Mua rồi thì bấm lại vào lô để chọn mẫu nhà và trả tiền. Nhà KHÔNG mọc
 //      lên ngay — phải chờ thợ xây xong (mẫu càng to càng lâu).
 //   3. Xây xong thì căn nhà hiện trên bản đồ, đi vào cửa là vào trong nhà.
+//      Căn nhà đó hiện Ở CẢ HAI NƠI: mặt tiền quay ra Khu Dân Cư, lưng quay ra
+//      Nông Trại. Trong nhà có cửa trước (ra khu dân cư) và cửa sau (ra ruộng),
+//      nên nông trại đúng nghĩa là cái sân sau.
 //   4. Ở trong nhà mới bật được chế độ trang trí: kéo đồ tới chỗ muốn đặt.
 //   5. Đồ nội thất mua ở chỗ bác thợ mộc — bác đứng ngoài PHỐ KIM LONG chứ
 //      không phải trong khu đất: khu này để thuần là đất ở.
 //   6. Đã kết hôn thì vợ/chồng vào được nhà nhau (cần nối máy chủ).
 import { G, save, addMoney } from '../state.js';
 import { BASE_BY_ID, FURN_BY_ID, HOUSE_BASES } from '../data/estate.js';
-import { PHONG_NHA } from '../data/phongtrong.js';
+import { PHONG_NHA, oCuaSau } from '../data/phongtrong.js';
+import { NONG_TRAI_MAP, NHA_SAU } from '../data/nongtraimap.js';
 import { MAPS } from '../data/maps.js';
 import { dangTham } from './visit.js';
 import { SANH as SANH_BAC, MAY_TAI } from '../data/casino.js';
@@ -148,19 +152,26 @@ export function tomTat() {
 // Căn nhà đang đứng ở đâu trên bản đồ — màn bản đồ vẽ theo cái này
 export function nhaTrenBanDo(mapId) {
   const e = nha();
-  if (mapId !== KHU_DAT_MAP || !e.lot || !e.base) return null;
-  const l = LOT_BY_ID[e.lot];
+  if (!e.lot || !e.base) return null;
   const b = BASE_BY_ID[e.base];
-  if (!l || !b) return null;
-  return { x: l.x, y: l.y, img: b.img, name: b.name, xay: dangXay() };
+  if (!b) return null;
+  // Cùng một căn nhà, vẽ ở hai bản đồ: mặt tiền ngoài Khu Dân Cư, lưng ra ruộng
+  const goc = mapId === KHU_DAT_MAP ? LOT_BY_ID[e.lot]
+    : mapId === NONG_TRAI_MAP ? NHA_SAU : null;
+  if (!goc) return null;
+  return { x: goc.x, y: goc.y, img: b.img, name: b.name, xay: dangXay() };
 }
 
-// Ô cửa của căn nhà — đứng vào đó là vào trong
+// Ô cửa mặt tiền (ngoài Khu Dân Cư) — đứng vào đó là vào trong
 export function oCua() {
   const e = nha();
   const l = LOT_BY_ID[e.lot];
   return l ? { x: l.x + 1, y: l.y + 2 } : null;
 }
+
+// Ô cửa phía sân sau (trên Nông Trại). Cùng một căn nhà nên cũng nằm giữa
+// hàng dưới cùng của vùng 3x3, chỉ khác chỗ đứng.
+export const oCuaNongTrai = () => ({ x: NHA_SAU.x + 1, y: NHA_SAU.y + 2 });
 
 // ==== Vật thể trên bản đồ mà nút hành động bắt được ====
 // Trả về một "thing" giống NPC/bảng hiệu để js/engine/overworld.js dùng chung
@@ -182,6 +193,18 @@ export function vatTheODay(mapId, x, y) {
       return { type: 'estate', kind: 'do-noi-that', name: f?.name || 'Đồ đạc', mon: d };
     }
     return null;
+  }
+  // Căn nhà nhìn từ phía sân sau: đứng trước cửa bấm A là vào trong
+  if (mapId === NONG_TRAI_MAP) {
+    const e = nha();
+    if (!e.base || x < NHA_SAU.x || x > NHA_SAU.x + 2
+      || y < NHA_SAU.y || y > NHA_SAU.y + 2) return null;
+    if (dangXay()) return { type: 'estate', kind: 'dang-xay', name: 'Công Trường' };
+    const cs = oCuaNongTrai();
+    if (x === cs.x && y === cs.y) {
+      return { type: 'estate', kind: 'cua-sau', name: mauNha()?.name || 'Nhà' };
+    }
+    return { type: 'estate', kind: 'nha-sau', name: mauNha()?.name || 'Nhà' };
   }
   if (mapId === KHU_DAT_MAP) {
     const e = nha();
@@ -283,14 +306,40 @@ export function catVeKho(d) {
 
 // Cắm cổng đi ra cho bản đồ trong nhà. Gọi trước khi đưa người chơi vào nhà —
 // dù là bước qua cửa hay là mở game lên đã nằm sẵn trong đó.
-export function camCongVeNha() {
+/**
+ * Cắm cả HAI cửa của căn nhà rồi trả về hai chỗ đặt chân bên trong.
+ *
+ * Phòng trong nhà là bản đồ DÙNG CHUNG (mọi người chơi cùng một `nha_go_trong`),
+ * nên cổng không nướng sẵn vào dữ liệu bản đồ được — phải cắm lại mỗi lần bước
+ * vào, theo đúng lô đất của người đang chơi.
+ */
+function camCongNha() {
   const c = oCua();
   const noi = MAPS[mapTrongNha()];
   if (!noi || !c) return null;
-  noi.warps = (noi.warps || []).filter(w => !w.veNha);
+  const sau = oCuaSau(noi);
+  const cs = oCuaNongTrai();
+  noi.warps = (noi.warps || []).filter(w => !w.veNha && !w.raRuong);
+  // Cửa trước: mép dưới phòng -> thềm nhà ngoài Khu Dân Cư
   noi.warps.push({ x: Math.floor(noi.w / 2), y: noi.h - 1, veNha: true,
     to: KHU_DAT_MAP, tx: c.x, ty: c.y + 1 });
-  return { x: Math.floor(noi.w / 2), y: noi.h - 2 };
+  // Cửa sau: lỗ thủng giữa tường trên -> thềm nhà bên Nông Trại
+  noi.warps.push({ x: sau.x, y: sau.y, raRuong: true,
+    to: NONG_TRAI_MAP, tx: cs.x, ty: cs.y + 1 });
+  return {
+    truoc: { x: Math.floor(noi.w / 2), y: noi.h - 2 },
+    sau: { x: sau.x, y: sau.y + 2 },      // đứng lọt hẳn vào trong phòng
+  };
+}
+
+/** Vào nhà từ MẶT TIỀN (Khu Dân Cư). Trả chỗ đặt chân trong nhà. */
+export function camCongVeNha() {
+  return camCongNha()?.truoc || null;
+}
+
+/** Vào nhà từ SÂN SAU (Nông Trại). Trả chỗ đặt chân trong nhà. */
+export function camCongTuNongTrai() {
+  return camCongNha()?.sau || null;
 }
 
 // Cái giường đầu tiên đã kê trong nhà — mở game lên thì nằm lên chính nó

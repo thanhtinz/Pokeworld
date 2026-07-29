@@ -10,6 +10,8 @@
 // cạnh nhà khác — chẳng bao giờ ra đúng cửa mình vừa bước vào. Giờ cổng để
 // nguyên như dữ liệu, ra chỗ nào là đúng thềm chỗ đó.
 import { MAPS } from '../data/maps.js';
+import { NONG_TRAI_MAP, CONG_RA as CONG_NONG_TRAI } from '../data/nongtraimap.js';
+import { KHU_DAT_MAP, CONG_RA as CONG_KHU_DAT } from '../data/khudancu.js';
 
 export const DIA_DIEM = [
   { id: 'nha_nguyen', ten: 'Nhà Nguyện',
@@ -23,6 +25,37 @@ export const DIA_DIEM = [
 ];
 
 export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));
+
+// ==== Đi nhanh ====
+// Khác bốn chỗ trên: đây là bản đồ NỐI THẲNG vào lưới đường, đi bộ tới được.
+// Chỉ là đường bộ hơi xa (Khu Dân Cư -> nhà mình -> cửa sau) nên cho một lối
+// tắt. Không gộp chung DIA_DIEM vì `dangOChoi()` dùng bảng đó để biết lúc mở
+// game lên có nên kéo người chơi về giường không — nông trại thì nên kéo.
+export const DIEM_NHANH = [
+  { id: NONG_TRAI_MAP, ten: 'Nông Trại Bờ Suối',
+    mo: 'Sân sau nhà bạn: ruộng, chuồng thú, ao câu và bảng đơn hàng dân làng.',
+    nhac: 'Đi bộ thì vào nhà mình rồi bước ra cửa sau cũng tới đây.',
+    cho: { x: CONG_NONG_TRAI.x, y: CONG_NONG_TRAI.y - 1 } },
+  // Nông trại KHÔNG có cổng bộ nào. Chưa xây nhà thì cửa sau cũng chưa có,
+  // nên phải luôn có đường quay ra, không thì đi nhanh vào rồi mắc kẹt.
+  { id: KHU_DAT_MAP, ten: 'Khu Dân Cư Taba',
+    mo: 'Khu đất ở đã chia lô. Nhà của bạn dựng ở đây.',
+    cho: { x: CONG_KHU_DAT.x, y: CONG_KHU_DAT.y - 1 } },
+];
+
+/**
+ * Đi nhanh tới một bản đồ trong DIEM_NHANH. Trả [{map,x,y}, lỗi].
+ *
+ * Đặt chân ở ô đã ghi sẵn chứ không dò cổng như `vaoDiaDiem`: nông trại có
+ * nhiều cổng (cổng bộ ở cạnh nam, cửa sau nhà người chơi cắm động lúc vào nhà),
+ * dò cổng đầu tiên thì đi nhanh xong rơi vào đâu tuỳ lúc.
+ */
+export function diNhanh(id) {
+  const d = DIEM_NHANH.find(x => x.id === id);
+  const m = d && MAPS[id];
+  if (!m) return [null, 'Chỗ này chưa dựng xong.'];
+  return [{ map: id, x: d.cho.x, y: d.cho.y }, null];
+}
 
 /** Có phải đang đứng trong một địa điểm rời không? */
 export const dangOChoi = (mapId) => !!DIA_DIEM_BY_ID[mapId];

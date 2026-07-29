@@ -56,6 +56,10 @@ BAC_NONG = (12, 13)             # ban hat giong + co kho, mua lai nong san
 BANG_DON = (17, 13)             # bang don hang cua dan lang
 LAI_CA = (21, 5)                # ong lai ca ngoi canh ao
 QUAN_CA = (16, 2, 5, 4)         # quan ca ben bo ao: x, y, rong, cao (o)
+# Cho dung nha cua nguoi choi: nong trai la SAN SAU cua can nha do, nen can nha
+# quay lung ra ruong, dung sat mep nam. Vung 3x3 giong het lo dat ben Khu Dan
+# Cu, o cua nam giua hang duoi cung.
+NHA_SAU = (10, 17)
 
 # Vung ke duoc vat the nong trai (x0, y0, x1, y1) — tru duong di va ao ra.
 # Ghi ra js de man trang tri biet ke toi dau thi dung.
@@ -208,6 +212,10 @@ def dung(root, tsx_cache, load_tsx):
         don(cho[0], cho[1])
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(cho[0] + dx, cho[1] + dy)
+    # San nha nguoi choi + o dung truoc cua phai di duoc
+    for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
+        for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
+            don(x, y)
 
     # --- quan ca ben bo ao ---
     # Anh quan la mot tep rieng (assets/ca/quan.png, cat tu pack Cozy Fishing)
@@ -261,6 +269,11 @@ def dung(root, tsx_cache, load_tsx):
     for y in range(QUAN_CA[1], QUAN_CA[1] + QUAN_CA[3] + 1):
         for x in range(QUAN_CA[0], QUAN_CA[0] + QUAN_CA[2]):
             cam.add((x, y))
+    # Chua san cho can nha cua nguoi choi (ke ca luc chua xay): ke ruong vao do
+    # roi den luc xay nha xong thi can nha moc de len luong rau.
+    for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
+        for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
+            cam.add((x, y))
 
     talks = [
         {'x': DUONG_DOC[1] + 1, 'y': H - 3, 'name': 'Bảng Nông Trại',
@@ -299,6 +312,10 @@ def viet_js(cam=()):
         '// Fishing) chứ không ở tileset, nên bản đồ chỉ đánh dấu chặn đường,',
         '// còn phần vẽ do js/ui/world.js lo.',
         'export const QUAN_CA = { x: %d, y: %d, w: %d, h: %d };' % QUAN_CA,
+        '// Chỗ dựng nhà của người chơi trên nông trại — vùng 3x3 y hệt lô đất',
+        '// bên Khu Dân Cư, ô cửa nằm giữa hàng dưới cùng. Nông trại là SÂN SAU',
+        '// của căn nhà đó: bước ra cửa sau trong nhà là ra thẳng ngoài ruộng.',
+        'export const NHA_SAU = { x: %d, y: %d };' % NHA_SAU,
         '',
         '// Vùng kê được vật thể nông trại — ngoài vùng này là đường đi, ao, viền cây.',
         'export const VUNG = { x0: %d, y0: %d, x1: %d, y1: %d };' % VUNG,
@@ -325,16 +342,14 @@ def viet_js(cam=()):
 
 
 def them_vao(out_maps, root, tsx_cache, load_tsx, kdc_slug, kdc_cong):
-    """Dung ban do, noi cong hai chieu voi Khu Dan Cu, ghi tep toa do."""
-    kdc = out_maps.get(kdc_slug)
-    if not kdc:
+    """Dung ban do nong trai. Khong noi cong bo voi Khu Dan Cu."""
+    if not out_maps.get(kdc_slug):
         print('BỎ QUA nông trại: chưa có bản đồ %s' % kdc_slug)
         return None
     m = dung(root, tsx_cache, load_tsx)
-    cx, cy = CONG
-    kx, ky = kdc_cong
-    m['warps'] = [{'x': cx, 'y': cy, 'to': kdc_slug, 'tx': kx, 'ty': ky + 1},
-                  {'x': cx + 1, 'y': cy, 'to': kdc_slug, 'tx': kx, 'ty': ky + 1}]
-    kdc['warps'].append({'x': kx, 'y': ky, 'to': SLUG, 'tx': cx, 'ty': cy - 1})
-    kdc['warps'].append({'x': kx + 1, 'y': ky, 'to': SLUG, 'tx': cx, 'ty': cy - 1})
+    # KHONG cam cong bo sang Khu Dan Cu nua. Nong trai la SAN SAU cua can nha:
+    # duong vao la cua sau trong nha minh (js/engine/estate.js cam luc buoc vao
+    # nha), muon di nhanh thi mo trang Dia Diem. Co them mot con duong cong
+    # cong dam thang vao ruong thi cai cua sau thanh vo nghia.
+    m['warps'] = []
     return m

@@ -2115,9 +2115,10 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     }
     const xa = ES.LOTS.filter(l => !den.has(`${l.x + 1},${l.y + 3}`));
     ok('đi bộ từ cổng tới được mọi lô đất', xa.length === 0, xa.map(l => l.id).join(', '));
-    ok('đi bộ từ cổng tới được cổng lên nông trại',
-      [[1, 0], [-1, 0], [0, 1]].some(([dx, dy]) =>
-        den.has(`${ES.CONG_BAC.x + dx},${ES.CONG_BAC.y + dy}`)));
+    // Con đường vẫn chạy suốt lên phía bắc (cho khu đỡ cụt), nhưng ĐẦU BẮC
+    // không còn cổng nào — nông trại giờ nằm sau nhà người chơi.
+    ok('đường trong khu chạy được suốt lên phía bắc',
+      den.has(`${ES.CONG_BAC.x},${ES.CONG_BAC.y + 1}`));
   }
 
   G.p.money = 1000;
@@ -2650,9 +2651,10 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   for (const [base, mid] of Object.entries(PHONG_NHA)) {
     const m = MAPS[mid];
-    // Phòng phải trống: chỉ có hai hàng tường trên cùng là chặn, còn lại đi được
+    // Phòng phải trống: chỉ có hai hàng tường trên cùng là chặn, còn lại đi
+    // được — TRỪ cái cửa sau đục giữa tường (hai ô) để bước ra nông trại
     const chan = m.solid.reduce((a, v) => a + v, 0);
-    ok(`phòng ${base} trống, chỉ có tường trên cùng`, chan === m.w * 2,
+    ok(`phòng ${base} trống, chỉ có tường trên cùng`, chan === m.w * 2 - 2,
       `${chan} ô chặn / ${m.w * 2} mong đợi`);
     ok(`phòng ${base} không có NPC hay đồ vẽ sẵn`,
       (m.npcs || []).length === 0 && (m.items || []).length === 0);
@@ -4036,9 +4038,27 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     const m = MAPS[NM.NONG_TRAI_MAP];
     ok('có bản đồ nông trại', !!m);
     ok('nông trại có ao câu', (m.water || []).some(v => v));
-    ok('nông trại nối hai chiều với khu dân cư',
-      (m.warps || []).some(w => w.to === 'khu_dan_cu')
-      && (MAPS.khu_dan_cu.warps || []).some(w => w.to === NM.NONG_TRAI_MAP));
+    // Nông trại là SÂN SAU của nhà người chơi: không có cổng bộ công cộng nào.
+    // Vào bằng cửa sau trong nhà (estate.js cắm lúc bước vào nhà) hoặc bằng
+    // mục Đi Nhanh trong trang Địa Điểm.
+    ok('không có đường bộ công cộng đâm thẳng vào nông trại',
+      !(MAPS.khu_dan_cu.warps || []).some(w => w.to === NM.NONG_TRAI_MAP),
+      (MAPS.khu_dan_cu.warps || []).map(w => w.to).join(' '));
+    {
+      const DD = await import('../js/engine/diadiem.js');
+      ok('đi nhanh tới được nông trại',
+        DD.DIEM_NHANH.some(d => d.id === NM.NONG_TRAI_MAP));
+      const [cho, err] = DD.diNhanh(NM.NONG_TRAI_MAP);
+      ok('chỗ đặt chân khi đi nhanh vào nông trại là ô đi được',
+        !err && !m.solid[cho.y * m.w + cho.x], err || `${cho?.x},${cho?.y}`);
+      // Chưa xây nhà thì cửa sau chưa có — phải luôn có đường quay ra
+      ok('đi nhanh ra lại được khu dân cư',
+        DD.DIEM_NHANH.some(d => d.id === 'khu_dan_cu'));
+      const [ra, e2] = DD.diNhanh('khu_dan_cu');
+      ok('chỗ đặt chân khi đi nhanh về khu dân cư là ô đi được',
+        !e2 && !MAPS.khu_dan_cu.solid[ra.y * MAPS.khu_dan_cu.w + ra.x],
+        e2 || `${ra?.x},${ra?.y}`);
+    }
     const lam = (m.npcs || []).filter(n => n.mo === 'nongtrai');
     ok('nông trại có chỗ mua bán và bảng đơn hàng', lam.length === 2,
       lam.map(n => `${n.name}:${n.tab}`).join(' '));
@@ -4204,6 +4224,78 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     NT.lamMoiDon(t0 + NT.PHUT_RA_DON * 60000 * (NT.DON_TOI_DA + 1), rnd);
     ok('đủ giờ thì bảng dán lại cho đầy', NT.nt().don.length === NT.DON_TOI_DA,
       `${NT.nt().don.length}`);
+  }
+
+  // ---- Nhà người chơi mở cửa sau ra nông trại ----
+  {
+    const ES2 = await import('../js/engine/estate.js');
+    const { oCuaSau } = await import('../js/data/phongtrong.js');
+    newGame('SanSau');
+    G.p.money = 2000000;
+    ok('chưa xây nhà thì nông trại không có căn nhà nào',
+      ES2.nhaTrenBanDo(NM.NONG_TRAI_MAP) === null);
+    ES2.muaDat(ES2.LOTS[0].id);
+    ES2.dungNha(ES2.HOUSE_BASES[0].id);
+    ES2.nha().xongLuc = 0;                       // cho thợ xây xong ngay
+    ok('nhà xong thì hiện ở CẢ khu dân cư lẫn nông trại',
+      !!ES2.nhaTrenBanDo(ES2.KHU_DAT_MAP) && !!ES2.nhaTrenBanDo(NM.NONG_TRAI_MAP));
+    ok('nhà bên nông trại dựng đúng chỗ đã chừa sẵn',
+      ES2.nhaTrenBanDo(NM.NONG_TRAI_MAP).x === NM.NHA_SAU.x
+      && ES2.nhaTrenBanDo(NM.NONG_TRAI_MAP).y === NM.NHA_SAU.y);
+
+    const noi = MAPS[ES2.mapTrongNha()];
+    const cs = oCuaSau(noi);
+    ok('cửa sau đục thủng cả hai hàng tường',
+      !noi.solid[cs.y * noi.w + cs.x] && !noi.solid[(cs.y + 1) * noi.w + cs.x]);
+
+    const truoc = ES2.camCongVeNha();
+    ok('vào cửa trước thì đứng ở nửa dưới phòng', truoc.y > noi.h / 2,
+      JSON.stringify(truoc));
+    const sau = ES2.camCongTuNongTrai();
+    ok('vào cửa sau thì đứng ngay trong cửa sau', sau.x === cs.x && sau.y <= 3,
+      JSON.stringify(sau));
+    ok('chỗ đặt chân sau cửa sau là ô đi được',
+      !noi.solid[sau.y * noi.w + sau.x]);
+
+    const raRuong = (noi.warps || []).filter(w => w.to === NM.NONG_TRAI_MAP);
+    const veNha = (noi.warps || []).filter(w => w.to === ES2.KHU_DAT_MAP);
+    ok('trong nhà có đúng một cửa trước và một cửa sau',
+      raRuong.length === 1 && veNha.length === 1,
+      `${veNha.length} trước / ${raRuong.length} sau`);
+    ok('cửa sau đổ ra đúng thềm nhà bên nông trại',
+      raRuong[0].tx === ES2.oCuaNongTrai().x
+      && raRuong[0].ty === ES2.oCuaNongTrai().y + 1);
+    const nt3 = MAPS[NM.NONG_TRAI_MAP];
+    ok('thềm nhà bên nông trại đứng được',
+      !nt3.solid[raRuong[0].ty * nt3.w + raRuong[0].tx]);
+
+    // Cắm cổng nhiều lần không được đẻ ra cả đống cửa chồng nhau
+    ES2.camCongVeNha(); ES2.camCongTuNongTrai(); ES2.camCongVeNha();
+    ok('cắm cổng lại nhiều lần vẫn chỉ hai cửa',
+      (noi.warps || []).length === 2, `${(noi.warps || []).length} cổng`);
+
+    // Đứng trước cửa sau bấm A thì vào nhà
+    const c2 = ES2.oCuaNongTrai();
+    ok('đứng trước cửa sau bấm được để vào nhà',
+      ES2.vatTheODay(NM.NONG_TRAI_MAP, c2.x, c2.y)?.kind === 'cua-sau');
+    ok('bấm vào thân nhà thì được chỉ chỗ cửa',
+      ES2.vatTheODay(NM.NONG_TRAI_MAP, NM.NHA_SAU.x, NM.NHA_SAU.y)?.kind === 'nha-sau');
+    ok('chỗ dựng nhà trên nông trại nằm trong danh sách ô cấm kê',
+      [0, 1, 2].every(dx => [0, 1, 2].every(dy =>
+        NM.CAM.has(`${NM.NHA_SAU.x + dx},${NM.NHA_SAU.y + dy}`))));
+
+    // Nhà trọ chung KHÔNG có cửa sau — không ai có nông trại sau nhà trọ
+    const tro = MAPS.nha_tro;
+    const ct = oCuaSau(tro);
+    ok('nhà trọ chung không đục cửa sau', !!tro.solid[ct.y * tro.w + ct.x]);
+  }
+
+  // ---- Khu dân cư: mua đất rồi thì hết biển BÁN ----
+  {
+    const goc4 = new URL('../', import.meta.url).pathname;
+    const w4 = readFileSync(join(goc4, 'js/ui/world.js'), 'utf8');
+    ok('biển BÁN chỉ cắm khi người chơi chưa có đất',
+      /KHU_DAT_MAP && !ES\.coDat\(\)/.test(w4));
   }
 
   // ---- Việc đồng áng phải làm trên BẢN ĐỒ, không phải trong panel ----

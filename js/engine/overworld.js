@@ -63,6 +63,16 @@ let daNguDay = false;
 let tinNguDay = null;
 export function layTinNguDay() { const t = tinNguDay; tinNguDay = null; return t; }
 
+/**
+ * Bỏ qua bước "ngủ dậy" cho lần mở màn bản đồ sắp tới.
+ *
+ * Ai vừa CỐ Ý đặt chân vào một bản đồ (đi nhanh từ trang Địa Điểm) thì đừng
+ * kéo về giường nữa. Trước đây chuyện này chỉ đúng với bốn địa điểm CraftPix vì
+ * `dangOChoi()` nhận ra chúng; đi nhanh tới nông trại thì mở bản đồ lên là bị
+ * quăng thẳng vào nhà trọ.
+ */
+export function boQuaNguDay() { daNguDay = true; }
+
 export function nguDay() {
   // Đang sang thăm nhà người khác, hoặc đang ghé một địa điểm, thì đừng lôi về
   // giường — người chơi vừa bấm "vào" xong, kéo về nhà trọ là hỏng cả việc
