@@ -1,60 +1,89 @@
 // TuxeWorld H5 | engine/avatar.js | Ghép lớp thành sprite nhân vật
 //
-// Nhân vật không còn là một tệp sprite cố định nữa mà ghép từ nhiều LỚP rời
-// (assets/lpc, do tools/mklpc.py cắt từ bộ Liberated Pixel Cup): thân, tai,
-// mắt, mũi, biểu cảm, râu, rồi tới quần áo, cuối cùng là tóc và mũ.
+// Nhân vật không phải một tệp sprite cố định mà ghép từ nhiều LỚP rời
+// (assets/nv, do tools/cozy.py cắt ra): người, mắt, má hồng, son môi, rồi
+// quần áo, rồi tóc, râu, cuối cùng là kính và mũ.
 //
-// Mỗi lớp đã cắt sẵn về đúng khuôn 3 cột × 4 hàng của sprite đi bản đồ, nên
-// ghép xong là dùng thẳng được với js/engine/owsprite.js — không phải sửa gì
-// bên đường vẽ.
+// Ô 32×32, thân người cao 20px — đúng bằng tỉ lệ của NPC Tuxemon (0,625) nên
+// nhân vật chính và NPC cùng một cỡ pixel. Bản trước ghép từ LPC (ô 32×64) tuy
+// đã canh cho cao bằng nhau nhưng pixel vẫn nhỏ gấp đôi, nhìn mịn hơn cả thế
+// giới xung quanh.
+//
+// Mỗi lớp đã cắt sẵn về đúng khuôn 3 cột × 4 hàng của sprite đi bản đồ nên ghép
+// xong dùng thẳng được với js/engine/owsprite.js.
 //
 // Ghép xong thì nướng thành MỘT ảnh (canvas → data URL) rồi nhớ lại theo khoá:
 // vẽ mười mấy lớp mỗi khung hình thì máy yếu tụt khung ngay.
 import { G, save } from '../state.js';
 import { esc } from '../util.js';
-import { THU_MUC, GIOI, THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU,
-  RAU_KIEU, RAU_MAU, O_DO, DO_BY_ID, monBoMau } from '../data/lpc.js';
+import { THU_MUC, GIOI, DA, MAT, MA_HONG, SON_MOI, TOC_KIEU, TOC_MAU,
+  RAU_MAU, DO_MAU, O_DO, DO, DO_BY_ID, monBoMau } from '../data/nhanvat.js';
 
-export const KHUNG_W = 32;      // một khung trong sheet đã cắt
-// 76 chứ không phải 64: tools/mklpc.py đệm thêm 12 hàng trống lên trên đầu để
-// tỉ lệ thân/khung về 0,618 — bằng NPC của Tuxemon (0,625), tức cao 1,25 ô.
-// Để 64 thì thân chiếm 0,734 khung, nhân vật vổng hơn NPC hẳn một cái đầu.
-export const KHUNG_H = 76;
+export const KHUNG_W = 32;
+export const KHUNG_H = 32;
 export const SHEET_W = KHUNG_W * 3;
 export const SHEET_H = KHUNG_H * 4;
 
 const dau = (ds) => ds[0]?.id || '';
+const tepDa = (da) => DA.find(d => d.id === da)?.tep || DA[0].tep;
+
+// ==== Món đồ + màu ====
+// Mỗi món có nhiều bản màu, tệp đặt tên `<id>_<màu>.png`. Chỗ đang mặc cất
+// nguyên tên tệp (không có đuôi) cho `mac` vẫn là một bảng chuỗi phẳng — cất
+// tách {id, màu} thì mọi chỗ đọc `mac` đều phải sửa theo.
+// Có mã là tiền tố của mã khác (`ao_thuy_thu` với `ao_thuy_thu_no`,
+// `khuyen_do` với `khuyen_do_bac`), nên so tiền tố thôi là chưa đủ: phần đuôi
+// còn lại BẮT BUỘC phải là một mã màu có thật, và mã nào dài hơn thì thắng.
+const MAU_HOP_LE = new Set([...DO_MAU.map(m => m.id), 'goc']);
+export const monCua = (khoa) => {
+  const k = String(khoa);
+  let ra = null;
+  for (const d of DO) {
+    if (!k.startsWith(d.id + '_')) continue;
+    if (!MAU_HOP_LE.has(k.slice(d.id.length + 1))) continue;
+    if (!ra || d.id.length > ra.id.length) ra = d;
+  }
+  return ra;
+};
+export const mauCua = (khoa) => {
+  const d = monCua(khoa);
+  return d ? String(khoa).slice(d.id.length + 1) : '';
+};
+/** Món `id` bản màu `mau`; món chỉ có một bản thì màu là "goc". */
+export const khoaDo = (id, mau) => `${id}_${DO_BY_ID[id]?.somau > 1 ? mau : 'goc'}`;
+/** Mấy màu mà món này thật sự có. */
+export const mauCoCua = (id) =>
+  DO_BY_ID[id]?.somau > 1 ? DO_MAU.slice(0, DO_BY_ID[id].somau) : [];
 
 // Ngoại hình mặc định — dùng cho bản lưu cũ chưa có mục này
-export function macDinh(than = 'nam') {
+export function macDinh(gioi = 'nam') {
   return {
-    than,
+    gioi,
     da: dau(DA),
-    tai: '',
-    mui: MUI[2]?.id || dau(MUI),
-    bieucam: '',
     mat: dau(MAT),
-    tocKieu: dau(TOC_KIEU),
+    maHong: '',
+    sonMoi: '',
+    tocKieu: tocTheoGioi(gioi)[0]?.id || dau(TOC_KIEU),
     tocMau: dau(TOC_MAU),
-    rauKieu: '',
-    rauMau: dau(RAU_MAU),
+    rau: '',                       // '' = không để râu, còn lại là mã màu râu
   };
 }
 
-// Trước có bốn dáng (thêm Lực Lưỡng và Mảnh Khảnh); nay chọn giới tính là xong
-// dáng luôn. Bản lưu cũ phải quy về đúng GIỚI của dáng cũ — để rơi về mặc định
-// thì nhân vật nữ dáng Mảnh Khảnh tự dưng thành nam.
-const THAN_CU = { luc: 'nam', gay: 'nu' };
+// Bản lưu cũ dùng bộ LPC: có `than` ('nam'/'nu'/'luc'/'gay') chứ không có
+// `gioi`, và mã của tóc/mắt/da đều là mã bên LPC. Không món nào khớp bộ mới nên
+// chỉ giữ lại đúng GIỚI TÍNH, phần còn lại quay về mặc định — thà nhân vật về
+// mẫu mặc định còn hơn hiện ra một đống lớp thiếu ảnh.
+const GIOI_CU = { nam: 'nam', luc: 'nam', nu: 'nu', gay: 'nu' };
 
 function hopLe(nv) {
   const co = (ds, v) => ds.some(x => x.id === v);
-  const than = THAN_CU[nv?.than] || nv?.than;
-  const m = macDinh(co(THAN, than) ? than : 'nam');
+  const gioi = nv?.gioi || GIOI_CU[nv?.than] || 'nam';
+  const m = macDinh(GIOI.some(g => g.id === gioi) ? gioi : 'nam');
   if (!nv || typeof nv !== 'object') return m;
   const ra = { ...m };
-  for (const [k, ds] of [['da', DA], ['tai', TAI], ['mui', MUI],
-    ['bieucam', BIEU_CAM], ['mat', MAT], ['tocKieu', TOC_KIEU],
-    ['tocMau', TOC_MAU], ['rauKieu', RAU_KIEU], ['rauMau', RAU_MAU]]) {
+  for (const [k, ds] of [['da', DA], ['mat', MAT], ['maHong', MA_HONG],
+    ['sonMoi', SON_MOI], ['tocKieu', TOC_KIEU], ['tocMau', TOC_MAU],
+    ['rau', RAU_MAU]]) {
     if (nv[k] === '' || co(ds, nv[k])) ra[k] = nv[k];
   }
   return ra;
@@ -68,14 +97,12 @@ export function look() {
   L.nv = hopLe(L.nv);
   if (!L.mac || typeof L.mac !== 'object') L.mac = {};
   if (!Array.isArray(L.tuDo)) L.tuDo = [];
-  // Bản lưu cũ có thể đang mặc đồ lệch dáng: dáng "Mảnh Khảnh" trước ăn theo
-  // tủ đồ của nam, đo lại thấy đồ nữ mới vừa người nên đã đổi. Cởi ra ở đây
-  // chứ không thì nhân vật mặc áo cắt cho dáng khác, nhìn lệch hẳn.
-  const kieu = danDo(L.nv.than);
+  // Đồ của bộ LPC cũ không còn tệp nào khớp — bỏ hết, không thì mặc lên là
+  // thủng một mảng trong suốt giữa người.
   for (const o of Object.keys(L.mac)) {
-    const d = DO_BY_ID[L.mac[o]];
-    if (L.mac[o] && (!d || d.than !== kieu)) L.mac[o] = null;
+    if (L.mac[o] && !monCua(L.mac[o])) L.mac[o] = null;
   }
+  L.tuDo = L.tuDo.filter(k => monCua(k));
   return L;
 }
 
@@ -83,21 +110,11 @@ export const nguoi = () => look().nv;
 export const dangMac = () => look().mac;
 export const tuDo = () => look().tuDo;
 
-// Dáng người quyết định lấy quần áo bản nào (LPC chỉ vẽ đồ cho nam và nữ)
-export const danDo = (than = nguoi().than) =>
-  THAN.find(t => t.id === than)?.do || 'nam';
-
 // ==== Giới tính ====
-// Chọn giới tính TRƯỚC, rồi mới tới dáng người trong giới đó.
-export const gioiCua = (than = nguoi().than) =>
-  THAN.find(t => t.id === than)?.gioi || 'nam';
-
-/** Các dáng người thuộc một giới. */
-export const thanTheoGioi = (gioi) => THAN.filter(t => t.gioi === gioi);
-
-/** Dáng mặc định của một giới — dùng lúc vừa chọn xong giới tính. */
-export const thanDauCuaGioi = (gioi) =>
-  (thanTheoGioi(gioi)[0] || THAN[0]).id;
+// Bộ sprite này vẽ chung một thân cho cả hai giới, nên giới tính KHÔNG đổi hình
+// dáng — chỉ dùng để lọc danh sách kiểu tóc bày ra cho chọn.
+export const gioiCua = () => nguoi().gioi;
+export const tocTheoGioi = (gioi) => TOC_KIEU.filter(t => !t.gioi || t.gioi === gioi);
 
 export { GIOI };
 
@@ -105,26 +122,24 @@ export { GIOI };
 export const P = (nhom, ten) => `${THU_MUC}/${nhom}/${ten}.png`;
 
 /** Ảnh của riêng một món đồ (dùng để bày trong tiệm và tủ đồ). */
-export const duongDo = (id) => P('do', id);
+export const duongDo = (khoa) => P(monCua(khoa)?.o || 'ao', khoa);
 
 /**
  * Danh sách lớp theo ĐÚNG thứ tự vẽ, từ trong ra ngoài.
- * Tóc và mũ để cuối: mũ phải trùm lên tóc chứ không phải ngược lại.
+ * Thứ tự này là của chính bộ sprite (xem info.txt của pack): người → mắt →
+ * quần áo → tóc → râu → phụ kiện. Mũ phải sau tóc chứ không thì tóc trùm lên mũ.
  */
 export function cacLop(nv = nguoi(), mac = dangMac()) {
-  const ra = [P('base', `${nv.than}_${nv.da}`)];
-  if (nv.tai) ra.push(P('tai', `${nv.tai}_${nv.da}`));
-  if (nv.mui) ra.push(P('mui', `${nv.mui}_${nv.da}`));
+  const ra = [P('nguoi', `tong${tepDa(nv.da)}`)];
   if (nv.mat) ra.push(P('mat', nv.mat));
-  if (nv.bieucam) ra.push(P('bieucam', `${nv.bieucam}_${nv.da}`));
-  if (nv.rauKieu) ra.push(P('rau', `${nv.rauKieu}_${nv.rauMau}`));
+  if (nv.maHong) ra.push(P('mahong', nv.maHong));
+  if (nv.sonMoi) ra.push(P('sonmoi', nv.sonMoi));
   for (const o of O_DO) {
-    if (o.id === 'mu') continue;                 // mũ vẽ sau tóc
-    const id = mac[o.id];
-    if (id && DO_BY_ID[id]) ra.push(P('do', id));
+    const khoa = mac[o.id];
+    if (khoa && monCua(khoa)) ra.push(P(o.id, khoa));
   }
   if (nv.tocKieu) ra.push(P('toc', `${nv.tocKieu}_${nv.tocMau}`));
-  if (mac.mu && DO_BY_ID[mac.mu]) ra.push(P('do', mac.mu));
+  if (nv.rau) ra.push(P('rau', nv.rau));
   return ra;
 }
 
@@ -202,17 +217,18 @@ export function capNhatO(root = document) {
 // ==== Ảnh xem trước từng phần (không cần canvas) ====
 //
 // Tiệm bày mấy chục món mà chỉ ghi tên thì người chơi phải bấm từng cái mới
-// biết nó ra sao. Mấy hàm dưới cắt đúng KHUNG ĐỨNG NHÌN THẲNG của các lớp
-// bằng CSS (ảnh to hơn khung, kéo lệch cho lộ đúng ô cần) — rẻ hơn hẳn so với
-// dựng một cái canvas cho mỗi món.
-// Đo trên chính bộ ảnh đã cắt (đã tính 12 hàng đệm): mũ chiếm dòng 18..54,
-// tóc 21..63, râu 41..50, và có món rộng hết cả 32 cột. Khung đầu phải trùm đủ chỗ đó, cắt hẹp thì mũ
-// chỉ còn cái chỏm còn tóc dài thì cụt ngang.
-export const VUNG_NGUOI = { x: 0, y: 14, w: KHUNG_W, h: 62 };
-export const VUNG_DAU = { x: 0, y: 17, w: KHUNG_W, h: 43 };
-// Khung hẹp hơn cho mấy ô chọn tóc/râu/tai/mũi/biểu cảm: khung mũ ở trên lấy
-// tới tận ngực, bày trong ô chọn thì cái đầu bé tí, nhìn không ra kiểu gì.
-export const VUNG_MAT = { x: 2, y: 19, w: 28, h: 34 };
+// biết nó ra sao. Mấy hàm dưới cắt đúng KHUNG ĐỨNG NHÌN THẲNG của các lớp bằng
+// CSS (ảnh to hơn khung, kéo lệch cho lộ đúng ô cần) — rẻ hơn hẳn so với dựng
+// một cái canvas cho mỗi món.
+//
+// Đo trên chính bộ ảnh đã cắt (mọi lớp gộp lại): dính pixel ở dòng 8..31, cột
+// 7..24. Người 12..31, tóc 9..31, mũ 8..19, mắt 20..21, râu 21..25.
+// Khung phải trùm từ dòng 7 chứ cắt sát là mũ cao cụt mất nóc.
+export const VUNG_NGUOI = { x: 6, y: 7, w: 20, h: 25 };
+export const VUNG_DAU = { x: 6, y: 7, w: 20, h: 18 };
+// Khung hẹp hơn cho mấy ô chọn tóc/râu/mắt: khung trên lấy tới ngực, bày trong
+// ô chọn thì cái đầu bé tí, nhìn không ra kiểu gì.
+export const VUNG_MAT = { x: 8, y: 8, w: 16, h: 18 };
 
 /**
  * Chồng vài lớp lại thành một ô ảnh tĩnh.
@@ -227,26 +243,28 @@ export function oLop(ds, { cao = 96, vung = VUNG_NGUOI, cls = '' } = {}) {
   </span>`;
 }
 
+const lopNen = (nv) => [P('nguoi', `tong${tepDa(nv.da)}`), 'lop-nen'];
+
 /** Một món đồ, khoác lên thân người mờ làm ma-nơ-canh cho dễ hình dung. */
-export function oMonDo(id, { cao = 96, nv = nguoi() } = {}) {
-  const d = DO_BY_ID[id];
+export function oMonDo(khoa, { cao = 96, nv = nguoi() } = {}) {
+  const d = monCua(khoa);
   if (!d) return '';
-  const tren = d.o === 'mu';           // mũ thì soi phần đầu cho rõ
-  return oLop([[P('base', `${nv.than}_${nv.da}`), 'lop-nen'], [P('do', id), '']],
+  const tren = d.o === 'mu' || d.o === 'kinh' || d.o === 'khuyen' || d.o === 'matna';
+  return oLop([lopNen(nv), [P(d.o, khoa), '']],
     { cao, vung: tren ? VUNG_DAU : VUNG_NGUOI, cls: 'do-o' });
 }
 
-/** Một phần ngoại hình (tóc, râu, tai...) đặt trên đầu người mờ. */
+/** Một phần ngoại hình (tóc, râu, mắt...) đặt trên đầu người mờ. */
 export function oPhanDau(nhom, ten, { cao = 64, nv = nguoi() } = {}) {
-  const ds = [[P('base', `${nv.than}_${nv.da}`), 'lop-nen']];
+  const ds = [lopNen(nv)];
   if (ten) ds.push([P(nhom, ten), '']);
   return oLop(ds, { cao, vung: VUNG_MAT, cls: 'do-o' });
 }
 
 /**
- * Nhân vật ĐẦY ĐỦ (thân, mặt, tóc, quần áo) ở khung đứng nhìn thẳng, không làm
- * mờ lớp nào. Khác `oBoDo` đúng chỗ đó: thẻ chọn bộ đồ thì làm mờ người đi cho
- * bộ đồ nổi lên, còn thẻ chọn giới tính phải thấy nguyên cả con người.
+ * Nhân vật ĐẦY ĐỦ ở khung đứng nhìn thẳng, không làm mờ lớp nào. Khác `oBoDo`
+ * đúng chỗ đó: thẻ chọn bộ đồ thì làm mờ người đi cho bộ đồ nổi lên, còn thẻ
+ * chọn giới tính phải thấy nguyên cả con người.
  */
 export function oNguoiDu(nv = nguoi(), mac = dangMac(), { cao = 128 } = {}) {
   return oLop(cacLop(nv, mac).map(p => [p, '']), { cao, cls: 'do-o' });
@@ -254,35 +272,34 @@ export function oNguoiDu(nv = nguoi(), mac = dangMac(), { cao = 128 } = {}) {
 
 /** Cả một bộ đồ mẫu khoác lên người, dùng cho thẻ chọn bộ lúc tạo nhân vật. */
 export function oBoDo(ds, { cao = 96, nv = nguoi() } = {}) {
-  const lop = [[P('base', `${nv.than}_${nv.da}`), 'lop-nen']];
+  const lop = [lopNen(nv)];
   for (const o of O_DO) {
-    const id = ds.find(x => DO_BY_ID[x]?.o === o.id);
-    if (id) lop.push([P('do', id), '']);
+    const khoa = ds.find(x => monCua(x)?.o === o.id);
+    if (khoa) lop.push([P(o.id, khoa), '']);
   }
   return oLop(lop, { cao, cls: 'do-o' });
 }
 
 // ==== Tủ đồ ====
-export function coDo(id) {
-  return tuDo().includes(id);
+export function coDo(khoa) {
+  return tuDo().includes(khoa);
 }
 
-export function themDo(id) {
+export function themDo(khoa) {
   const L = look();
-  if (!DO_BY_ID[id] || L.tuDo.includes(id)) return false;
-  L.tuDo.push(id);
+  if (!monCua(khoa) || L.tuDo.includes(khoa)) return false;
+  L.tuDo.push(khoa);
   save();
   return true;
 }
 
 /** Mặc một món. Trả [lời nhắn, lỗi]. */
-export function mac(id) {
-  const d = DO_BY_ID[id];
+export function mac(khoa) {
+  const d = monCua(khoa);
   const L = look();
   if (!d) return [null, 'Không có món này.'];
-  if (!L.tuDo.includes(id)) return [null, 'Chưa có món này trong tủ.'];
-  if (d.than !== danDo()) return [null, 'Món này không hợp dáng người của bạn.'];
-  L.mac[d.o] = id;
+  if (!L.tuDo.includes(khoa)) return [null, 'Chưa có món này trong tủ.'];
+  L.mac[d.o] = khoa;
   save();
   return [`Đã mặc ${d.name}.`, null];
 }
@@ -290,36 +307,31 @@ export function mac(id) {
 export function coi(o) {
   const L = look();
   if (!L.mac[o]) return [null, 'Ô này đang trống.'];
-  const ten = DO_BY_ID[L.mac[o]]?.name || 'món đồ';
+  const ten = monCua(L.mac[o])?.name || 'món đồ';
   L.mac[o] = null;
   save();
   return [`Đã cởi ${ten}.`, null];
 }
 
 /** Mặc trọn một bộ mẫu (dùng lúc tạo nhân vật). */
-export function macBoMau(so, than = nguoi().than) {
+export function macBoMau(so) {
   const L = look();
-  const ds = monBoMau(danDo(than), so);
-  for (const id of ds) {
-    if (!L.tuDo.includes(id)) L.tuDo.push(id);
-    const d = DO_BY_ID[id];
-    if (d) L.mac[d.o] = id;
+  const ds = monBoMau(so);
+  for (const khoa of ds) {
+    if (!L.tuDo.includes(khoa)) L.tuDo.push(khoa);
+    const d = monCua(khoa);
+    if (d) L.mac[d.o] = khoa;
   }
   save();
   return ds;
 }
 
-/**
- * Đổi dáng người thì bộ đồ đang mặc có thể không còn hợp — cởi hết món lệch
- * dáng ra, không thì nhân vật mặc áo vẽ cho dáng khác, nhìn lệch hẳn người.
- */
-export function doiThan(than) {
+/** Đổi giới tính. Bộ này chung một thân nên đồ đang mặc không phải cởi ra. */
+export function doiGioi(gioi) {
   const L = look();
-  L.nv.than = THAN.some(t => t.id === than) ? than : 'nam';
-  const kieu = danDo();
-  for (const o of Object.keys(L.mac)) {
-    const d = DO_BY_ID[L.mac[o]];
-    if (d && d.than !== kieu) L.mac[o] = null;
-  }
+  L.nv.gioi = GIOI.some(g => g.id === gioi) ? gioi : 'nam';
+  // Kiểu tóc chỉ dành cho giới kia thì kéo về kiểu đầu của giới mới
+  const ds = tocTheoGioi(L.nv.gioi);
+  if (!ds.some(t => t.id === L.nv.tocKieu)) L.nv.tocKieu = ds[0]?.id || '';
   save();
 }

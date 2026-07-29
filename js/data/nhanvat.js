@@ -84,13 +84,18 @@ export const DO = [
 export const DO_BY_ID = Object.fromEntries(DO.map(d => [d.id, d]));
 
 // Ba bộ đồ mẫu cho chọn lúc tạo nhân vật. Giày tặng kèm cả ba bộ.
+// `mau` = màu của từng ô trong bộ đó.
 export const BO_MAU = [
-  { so: 1, name: "Bộ Đi Học", desc: "Áo thun quần dài, gọn gàng lúc mới lên đường" },
-  { so: 2, name: "Bộ Năng Động", desc: "Áo thể thao, nhẹ và thoáng, tiện chạy nhảy" },
-  { so: 3, name: "Bộ Lịch Sự", desc: "Vest quần âu, chỉn chu ra dáng người có nghề" },
+  { so: 1, name: "Bộ Đi Học", desc: "Áo thun quần dài, gọn gàng lúc mới lên đường", mau: { ao: "xanhduong", quan: "nau", giay: "nau" } },
+  { so: 2, name: "Bộ Năng Động", desc: "Áo thể thao, nhẹ và thoáng, tiện chạy nhảy", mau: { ao: "xanhla", quan: "trangxam", giay: "trangxam" } },
+  { so: 3, name: "Bộ Lịch Sự", desc: "Vest quần âu, chỉn chu ra dáng người có nghề", mau: { ao: "den", quan: "den", giay: "den" } },
 ];
 
-// Món của bộ mẫu số `so`, kèm mấy món tặng chung (bo === 0).
-export const monBoMau = (so) =>
-  DO.filter(d => d.gia === 0 && (d.bo === so || d.bo === 0)).map(d => d.id);
+// Món của bộ mẫu số `so`, kèm mấy món tặng chung (bo === 0). Trả về
+// KHOÁ đầy đủ `<id>_<màu>` chứ không phải mã món trần.
+export const monBoMau = (so) => {
+  const bo = BO_MAU.find(b => b.so === so) || BO_MAU[0];
+  return DO.filter(d => d.gia === 0 && (d.bo === so || d.bo === 0))
+    .map(d => `${d.id}_${d.somau > 1 ? (bo.mau[d.o] || "den") : "goc"}`);
+};
 

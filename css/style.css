@@ -2750,7 +2750,9 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .cc-nguoi { position: relative; flex: none; z-index: 1; }
 .cc-nguoi canvas {
   display: block; image-rendering: pixelated;
-  width: 144px; height: 243px;
+  /* Cỡ CSS phải khớp tỉ lệ canvas (176x143), để số cũ của bộ LPC là nhân vật
+     bị kéo dài ngoẵng ra. */
+  width: 176px; height: 143px;
   position: relative; z-index: 1;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .6));
 }
@@ -2925,7 +2927,9 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   background: radial-gradient(ellipse, rgba(150, 120, 255, .45), transparent 70%);
 }
 .td-xem canvas {
-  image-rendering: pixelated; width: 96px; height: 192px; position: relative;
+  /* Ô sprite giờ vuông (32x32) nên khung xem cũng phải vuông; để 96x192 của
+     bộ LPC cũ là ma-nơ-canh bị kéo dài ngoẵng. */
+  image-rendering: pixelated; width: 128px; height: 128px; position: relative;
   filter: drop-shadow(0 5px 8px rgba(0, 0, 0, .5));
 }
 .td-slot { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 8px; flex: 1; min-width: 0; }

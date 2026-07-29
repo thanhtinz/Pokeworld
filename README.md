@@ -92,12 +92,12 @@ python3 tools/mkboss.py                    # boss thế giới + boss từng khu
 python3 tools/mkrecipes.py /tmp/Tuxemon    # công thức nấu ăn + bảng nguyên
                                            # liệu rơi ra từ Tuxemon hoang
 python3 tools/mkicons.py                   # icon giao diện pixel (tự vẽ)
-python3 tools/mklpc.py /tmp/LPC            # 256 lớp nhân vật ghép được (thân, da,
-                                           # tai, mũi, mắt, râu, tóc) + 84 món
-                                           # quần áo, cắt từ Liberated Pixel Cup:
-                                           #   git clone --depth 1 --filter=blob:none \
-                                           #     --sparse https://github.com/OpenGameArt/\
-                                           #     LiberatedPixelCup.git /tmp/LPC
+python3 tools/cozy.py "/tmp/Character v.2" # 416 lớp nhân vật ghép được: 8 nước da,
+                                           # 14 màu mắt, 13 kiểu tóc x 14 màu,
+                                           # râu, 33 món quần áo và phụ kiện.
+                                           # Ô 32x32, thân 20px — đúng cỡ NPC
+                                           # Tuxemon. Nguồn là pack đã mua, xem
+                                           # CREDITS.md
                                            #   cd /tmp/LPC && git sparse-checkout set sprite
 ```
 

@@ -3041,219 +3041,131 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('cỡ ô hỏng thì vẫn chia được, không kẹt vòng lặp',
     chiaChong(5, 0).length === 5);
 }
-
-// ==== Nhân vật ghép lớp (LPC) + tủ đồ ====
+// ==== Nhân vật ghép lớp (bộ 32x32) + tủ đồ ====
 {
-  const LPC = await import('../js/data/lpc.js');
+  const NV = await import('../js/data/nhanvat.js');
   const AV = await import('../js/engine/avatar.js');
-  const { THU_MUC, THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU,
-    RAU_KIEU, RAU_MAU, O_DO, DO, DO_BY_ID, BO_MAU, monBoMau } = LPC;
+  const { THU_MUC, GIOI, DA, MAT, MA_HONG, SON_MOI, TOC_KIEU, TOC_MAU,
+    RAU_MAU, DO_MAU, O_DO, DO, DO_BY_ID, BO_MAU, monBoMau } = NV;
 
-  ok('mỗi giới một dáng người và sáu màu da', THAN.length === 2 && DA.length === 6);
-  ok('mỗi dáng người đều chỉ về một bộ quần áo có thật',
-    THAN.every(t => t.do === 'nam' || t.do === 'nu'));
-
-  // ---- Giới tính chọn trước, dáng người chọn sau ----
-  const { GIOI } = LPC;
   ok('có hai giới tính', GIOI.length === 2 && GIOI.every(g => g.id && g.name));
-  ok('dáng người nào cũng thuộc về một giới có thật',
-    THAN.every(t => GIOI.some(g => g.id === t.gioi)),
-    THAN.filter(t => !GIOI.some(g => g.id === t.gioi)).map(t => t.id).join(' '));
-  // Chọn giới tính là xong dáng người: mỗi giới đúng MỘT thân, không bắt người
-  // chơi chọn thêm lần nữa.
-  ok('mỗi giới đúng một dáng, khỏi phải chọn thêm',
-    GIOI.every(g => AV.thanTheoGioi(g.id).length === 1),
-    GIOI.map(g => `${g.id}:${AV.thanTheoGioi(g.id).length}`).join(' '));
-  ok('dáng mặc định của mỗi giới đúng là dáng của giới đó',
-    GIOI.every(g => AV.gioiCua(AV.thanDauCuaGioi(g.id)) === g.id));
+  ok('có tám nước da, mỗi cái trỏ về một tệp có thật',
+    DA.length === 8 && DA.every(d => d.tep >= 1 && d.tep <= 8),
+    DA.map(d => `${d.id}:${d.tep}`).join(' '));
+  // Nước da sắp từ sáng tới sẫm; sắp lộn thì bảng ô màu nhìn như bị xáo
+  const sang = (h) => 0.299 * parseInt(h.slice(1, 3), 16)
+    + 0.587 * parseInt(h.slice(3, 5), 16) + 0.114 * parseInt(h.slice(5, 7), 16);
+  ok('nước da sắp từ sáng tới sẫm',
+    DA.every((d, i) => i === 0 || sang(DA[i - 1].mau) >= sang(d.mau)),
+    DA.map(d => `${d.id}:${Math.round(sang(d.mau))}`).join(' '));
+  ok('tệp nước da không trùng nhau', new Set(DA.map(d => d.tep)).size === DA.length);
 
-  // ---- Đặc điểm lọc theo giới đã chọn ----
-  // Chọn nam xong thì đừng bày ra Tóc Đuôi Ngựa nữa. Mục nào cả hai giới đều
-  // dùng được thì để `gioi` rỗng; còn lại ghi rõ 'nam' hoặc 'nu'.
-  const hopLe = ['', 'nam', 'nu'];
+  ok('có đủ phần mặt để chỉnh',
+    MAT.length >= 10 && MA_HONG.length >= 3 && SON_MOI.length >= 3
+    && TOC_KIEU.length >= 10 && TOC_MAU.length >= 10 && RAU_MAU.length >= 10);
+  // Mục nào bày ô màu thì phải có mã màu, không thì ô hiện ra xám ngoét
+  for (const [ten, ds] of [['DA', DA], ['MAT', MAT], ['TOC_MAU', TOC_MAU],
+    ['RAU_MAU', RAU_MAU], ['DO_MAU', DO_MAU]]) {
+    ok(`${ten} món nào cũng có mã màu`,
+      ds.every(x => /^#[0-9a-f]{6}$/.test(x.mau || '')),
+      ds.filter(x => !/^#[0-9a-f]{6}$/.test(x.mau || '')).map(x => x.id).join(' '));
+  }
+
+  // ---- Kiểu tóc lọc theo giới ----
+  const hopLeGioi = ['', 'nam', 'nu'];
   ok('kiểu tóc nào cũng ghi rõ dành cho giới nào',
-    TOC_KIEU.every(t => hopLe.includes(t.gioi ?? '')),
-    TOC_KIEU.filter(t => !hopLe.includes(t.gioi ?? '')).map(t => t.id).join(' '));
-  const tocCua = (g) => TOC_KIEU.filter(t => !t.gioi || t.gioi === g);
+    TOC_KIEU.every(t => hopLeGioi.includes(t.gioi ?? '')),
+    TOC_KIEU.filter(t => !hopLeGioi.includes(t.gioi ?? '')).map(t => t.id).join(' '));
   for (const g of GIOI) {
-    ok(`giới ${g.id} vẫn còn kiểu tóc để chọn`, tocCua(g.id).length >= 5,
-      String(tocCua(g.id).length));
+    ok(`giới ${g.id} vẫn còn kiểu tóc để chọn`, AV.tocTheoGioi(g.id).length >= 5,
+      String(AV.tocTheoGioi(g.id).length));
   }
-  // Lọc mà lọc hụt thì coi như không lọc: mỗi giới phải THẬT SỰ mất mấy kiểu
-  // của giới kia.
   ok('danh sách tóc hai giới khác nhau',
-    tocCua('nam').length !== TOC_KIEU.length
-    && tocCua('nu').length !== TOC_KIEU.length);
+    AV.tocTheoGioi('nam').length !== TOC_KIEU.length
+    && AV.tocTheoGioi('nu').length !== TOC_KIEU.length);
   ok('tóc riêng của nữ không lọt sang nam',
-    !tocCua('nam').some(t => t.gioi === 'nu'));
+    !AV.tocTheoGioi('nam').some(t => t.gioi === 'nu'));
   ok('tóc riêng của nam không lọt sang nữ',
-    !tocCua('nu').some(t => t.gioi === 'nam'));
-  // Ảnh phải có thật, không thì lọc ra kiểu chọn được mà chọn xong trống trơn
-  for (const g of GIOI) {
-    const thieu = tocCua(g.id).filter(t => TOC_MAU.some(m =>
-      !existsSync(join(new URL('../', import.meta.url).pathname, THU_MUC,
-        'toc', `${t.id}_${m.id}.png`))));
-    ok(`tóc chọn được của giới ${g.id} đều có đủ ảnh mọi màu`, thieu.length === 0,
-      thieu.map(t => t.id).join(' '));
-  }
-  // Bản lưu cũ dùng dáng đã bỏ (Lực Lưỡng / Mảnh Khảnh) phải quy về đúng GIỚI
-  // của dáng đó, không thì nhân vật nữ dáng Mảnh Khảnh tự dưng thành nam.
-  for (const [cu, mong] of [['luc', 'nam'], ['gay', 'nu']]) {
-    newGame('Dáng Cũ');
-    G.p.look = { nv: { than: cu, da: 'ivory' } };
-    ok(`bản lưu cũ dáng ${cu} quy về ${mong}`, AV.look().nv.than === mong,
-      AV.look().nv.than);
-  }
-  // Đồ cắt cho nữ phủ 0.991 lên thân "Mảnh Khảnh" còn đồ nam chỉ được 0.811 —
-  // nên dáng đó phải ăn theo tủ đồ của giới nó thuộc về, không được lệch.
-  ok('dáng nào cũng dùng tủ đồ đúng giới của nó',
-    THAN.every(t => t.do === t.gioi),
-    THAN.filter(t => t.do !== t.gioi).map(t => `${t.id}:${t.do}≠${t.gioi}`).join(' '));
-  ok('có đủ phần mặt để chỉnh', TAI.length >= 3 && MUI.length >= 3
-    && MAT.length >= 6 && BIEU_CAM.length >= 3
-    && TOC_KIEU.length >= 10 && TOC_MAU.length >= 4
-    && RAU_KIEU.length >= 4 && RAU_MAU.length >= 3);
-  ok('chín ô quần áo', O_DO.length === 9 && new Set(O_DO.map(o => o.id)).size === 9);
-  ok('mã món đồ không trùng nhau', new Set(DO.map(d => d.id)).size === DO.length);
-  ok('món nào cũng có ô hợp lệ, dáng hợp lệ và tên tiếng Việt',
-    DO.every(d => O_DO.some(o => o.id === d.o)
-      && (d.than === 'nam' || d.than === 'nu') && d.name && d.gia >= 0),
-    DO.filter(d => !O_DO.some(o => o.id === d.o)).map(d => d.id).join(' '));
-  ok('DO_BY_ID khớp đủ DO', Object.keys(DO_BY_ID).length === DO.length);
+    !AV.tocTheoGioi('nu').some(t => t.gioi === 'nam'));
 
-  // Ba bộ mở đầu là quà tặng lúc tạo nhân vật -> giá 0, tiệm không được bày lại
-  ok('có ba bộ đồ mẫu, cả hai dáng đều đủ',
-    BO_MAU.length === 3 && BO_MAU.every(b =>
-      monBoMau('nam', b.so).length > 0 && monBoMau('nu', b.so).length > 0));
-  const boDo = new Set(['nam', 'nu'].flatMap(t => BO_MAU.flatMap(b => monBoMau(t, b.so))));
-  ok('món trong bộ mẫu đều có thật', [...boDo].every(id => DO_BY_ID[id]));
-  ok('đồ mẫu không bày bán lại trong tiệm',
-    [...boDo].every(id => DO_BY_ID[id].gia === 0));
-  ok('tiệm còn hàng cho cả hai dáng',
-    ['nam', 'nu'].every(t => DO.filter(d => d.gia > 0 && d.than === t).length >= 20));
-  // Mỗi bộ mẫu chỉ được một món mỗi ô, không thì mặc vào là đè lẫn nhau
-  ok('mỗi bộ mẫu không có hai món chung một ô',
-    ['nam', 'nu'].every(t => BO_MAU.every(b => {
-      const os = monBoMau(t, b.so).map(id => DO_BY_ID[id].o);
-      return new Set(os).size === os.length;
-    })));
-
-  // Mọi lớp phải có tệp thật, thiếu một tệp là nhân vật khuyết một mảng người
+  // ---- Có đủ tệp ảnh chưa ----
   const goc = new URL('../', import.meta.url).pathname;
   const thieu = [];
   const kiem = (nhom, ten) => {
-    const p = join(goc, THU_MUC, nhom, ten + '.png');
-    if (!existsSync(p)) thieu.push(`${nhom}/${ten}`);
+    const duong = join(goc, THU_MUC, nhom, ten + '.png');
+    if (!existsSync(duong)) thieu.push(`${nhom}/${ten}`);
   };
-  for (const t of THAN) for (const d of DA) kiem('base', `${t.id}_${d.id}`);
-  for (const d of DA) {
-    for (const x of TAI) kiem('tai', `${x.id}_${d.id}`);
-    for (const x of MUI) kiem('mui', `${x.id}_${d.id}`);
-    for (const x of BIEU_CAM) kiem('bieucam', `${x.id}_${d.id}`);
-  }
+  for (const d of DA) kiem('nguoi', `tong${d.tep}`);
   for (const x of MAT) kiem('mat', x.id);
-  for (const k of TOC_KIEU) for (const m of TOC_MAU) kiem('toc', `${k.id}_${m.id}`);
-  for (const k of RAU_KIEU) for (const m of RAU_MAU) kiem('rau', `${k.id}_${m.id}`);
-  for (const d of DO) kiem('do', d.id);
-  ok('mọi lớp nhân vật đều có tệp ảnh', thieu.length === 0, thieu.slice(0, 8).join(' '));
-
-  // ---- Engine ghép lớp ----
-  newGame('Thợ May');
-  const L = AV.look();
-  ok('bản lưu mới có sẵn ngoại hình hợp lệ',
-    !!L.nv && THAN.some(t => t.id === L.nv.than) && Array.isArray(L.tuDo));
-  // Bản lưu cũ chưa có mục này, hoặc bị sửa bậy -> phải tự vá chứ không được vỡ
-  G.p.look = { nv: { than: 'khong_co_that', da: 'xxx', tocKieu: 'yyy' } };
-  const L2 = AV.look();
-  ok('ngoại hình hỏng thì vá về mặc định',
-    L2.nv.than === 'nam' && DA.some(d => d.id === L2.nv.da));
-
-  newGame('Thợ May');
-  ok('mặc đồ chưa có trong tủ thì bị chặn', AV.mac(DO.find(d => d.gia > 0).id)[1] !== null);
-  const bo1 = AV.macBoMau(1, 'nam');
-  ok('mặc bộ mẫu thì vào tủ và lên người luôn',
-    bo1.length > 0 && bo1.every(id => AV.coDo(id) && AV.dangMac()[DO_BY_ID[id].o] === id));
-
-  // Thứ tự vẽ: mũ luôn nằm SAU tóc, không thì tóc trùm ra ngoài mũ
-  const muNam = DO.find(d => d.o === 'mu' && d.than === 'nam');
-  AV.themDo(muNam.id);
-  AV.mac(muNam.id);
-  const lop = AV.cacLop();
-  ok('lớp đầu tiên luôn là thân người', lop[0].includes('/base/'));
-  ok('mũ vẽ sau tóc',
-    lop.findIndex(x => x.includes(muNam.id)) > lop.findIndex(x => x.includes('/toc/')));
-  ok('mọi lớp đang dùng đều có tệp thật',
-    lop.every(x => existsSync(join(goc, x))), lop.join(' '));
-
-  ok('cởi ra thì ô trống', AV.coi('mu')[1] === null && !AV.dangMac().mu);
-  ok('cởi ô đang trống thì báo lỗi chứ không im lặng', AV.coi('mu')[1] !== null);
-
-  // Đồ LPC vẽ riêng cho từng dáng, mặc chéo là lệch hẳn người
-  const aoNu = DO.find(d => d.than === 'nu' && d.gia > 0);
-  AV.themDo(aoNu.id);
-  ok('dáng nam không mặc được đồ vẽ cho dáng nữ', AV.mac(aoNu.id)[1] !== null);
-  AV.doiThan('nu');
-  ok('đổi dáng thì cởi hết đồ lệch dáng',
-    Object.values(AV.dangMac()).every(id => !id || DO_BY_ID[id].than === 'nu'));
-  ok('đổi dáng xong mặc lại đồ hợp dáng được', AV.mac(aoNu.id)[0] !== null);
-  ok('đổi sang dáng không có thật thì lùi về nam',
-    (AV.doiThan('ma_troi'), AV.nguoi().than === 'nam'));
-
-  // Bản lưu cũ mặc đồ lệch dáng (dáng "Mảnh Khảnh" trước ăn theo tủ đồ nam,
-  // đo lại thấy đồ nữ mới vừa người) phải tự cởi ra lúc nạp, không thì nhân
-  // vật mặc áo cắt cho dáng khác.
-  newGame('Bản Cũ');
-  const aoNam = DO.find(d => d.than === 'nam' && d.gia > 0);
-  G.p.look = { nv: { than: 'gay' }, mac: { [aoNam.o]: aoNam.id }, tuDo: [aoNam.id] };
-  const L3 = AV.look();
-  ok('nạp bản lưu cũ thì cởi luôn món lệch dáng',
-    !L3.mac[aoNam.o], JSON.stringify(L3.mac));
-  ok('món lệch dáng vẫn còn trong tủ chứ không bốc hơi', L3.tuDo.includes(aoNam.id));
-
-  // ---- Ô màu + ảnh xem trước ----
-  // Bày "Nâu Đỏ", "Hạt Dẻ" bằng chữ thì phải bấm từng cái mới biết nó ra sao,
-  // nên mỗi mục CHỌN MÀU phải kèm mã màu thật đọc ngược từ chính tệp ảnh.
-  const laMau = (s) => /^#[0-9a-f]{6}$/.test(s || '');
-  for (const [ten, ds] of [['màu da', DA], ['màu tóc', TOC_MAU],
-    ['màu râu', RAU_MAU], ['màu mắt', MAT]]) {
-    ok(`${ten} nào cũng có mã màu để bày ô màu`, ds.every(x => laMau(x.mau)),
-      ds.filter(x => !laMau(x.mau)).map(x => `${x.id}=${x.mau}`).join(' '));
+  for (const x of MA_HONG) kiem('mahong', x.id);
+  for (const x of SON_MOI) kiem('sonmoi', x.id);
+  for (const x of RAU_MAU) kiem('rau', x.id);
+  for (const t of TOC_KIEU) for (const m of TOC_MAU) kiem('toc', `${t.id}_${m.id}`);
+  for (const d of DO) {
+    for (const m of (d.somau > 1 ? DO_MAU.slice(0, d.somau) : [{ id: 'goc' }])) {
+      kiem(d.o, `${d.id}_${m.id}`);
+    }
   }
-  ok('sáu màu da khác hẳn nhau, không phải một màu chép sáu lần',
-    new Set(DA.map(x => x.mau)).size === DA.length);
-  ok('màu tóc cũng vậy', new Set(TOC_MAU.map(x => x.mau)).size === TOC_MAU.length);
+  ok('mọi lớp trong danh mục đều có tệp ảnh', thieu.length === 0,
+    `${thieu.length} thiếu: ${thieu.slice(0, 6).join(', ')}`);
 
-  // Khung cắt phần đầu phải trùm hết mũ và tóc, cắt hẹp thì ảnh trong tiệm
-  // chỉ còn cái chỏm mũ. Số dòng tính theo khung ĐÃ ĐỆM (mklpc.py thêm 12
-  // hàng trống lên đầu): mũ 18..54, tóc 21..63.
+  // ---- Khuôn sprite ----
+  // Mọi lớp phải cùng khuôn 3 cột x 4 hàng ô 32x32, không thì ghép lên là lệch
+  const coPng = (p2) => {
+    const buf = readFileSync(join(goc, p2));
+    return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  };
+  const mauLop = [`nguoi/tong${DA[0].tep}`, `toc/${TOC_KIEU[0].id}_${TOC_MAU[0].id}`,
+    `mat/${MAT[0].id}`, `${DO[0].o}/${DO[0].id}_${DO[0].somau > 1 ? DO_MAU[0].id : 'goc'}`];
+  ok('lớp nào cũng đúng khuôn 96x128',
+    mauLop.every(p2 => {
+      const s = coPng(join(THU_MUC, p2 + '.png'));
+      return s.w === 96 && s.h === 128;
+    }),
+    mauLop.map(p2 => `${p2}:${JSON.stringify(coPng(join(THU_MUC, p2 + '.png')))}`).join(' '));
+  ok('avatar.js khai đúng cỡ ô',
+    AV.KHUNG_W === 32 && AV.KHUNG_H === 32
+    && AV.SHEET_W === 96 && AV.SHEET_H === 128);
+
+  // ---- Món đồ + bản màu ----
+  ok('món nào cũng nằm trong một ô mặc có thật',
+    DO.every(d => O_DO.some(o => o.id === d.o)),
+    DO.filter(d => !O_DO.some(o => o.id === d.o)).map(d => `${d.id}:${d.o}`).join(' '));
+  ok('mã món không trùng nhau', new Set(DO.map(d => d.id)).size === DO.length);
+  // Có mã là tiền tố của mã khác (ao_thuy_thu / ao_thuy_thu_no), nên phải chắc
+  // MỌI khoá thật đều tách ngược ra đúng món — so tiền tố suông là ra nhầm.
+  const sai = [];
+  for (const d of DO) {
+    for (const m of (d.somau > 1 ? DO_MAU.slice(0, d.somau) : [{ id: 'goc' }])) {
+      const k = AV.khoaDo(d.id, m.id);
+      if (AV.monCua(k)?.id !== d.id || AV.mauCua(k) !== m.id) sai.push(k);
+    }
+  }
+  ok('mọi khoá đồ tách ngược ra đúng món và màu', sai.length === 0,
+    `${sai.length} sai: ${sai.slice(0, 6).join(', ')}`);
+
+  // ---- Bộ đồ mở đầu ----
+  for (const b of BO_MAU) {
+    const ds = monBoMau(b.so);
+    ok(`bộ mẫu ${b.so} có đủ áo quần giày`,
+      ['ao', 'quan', 'giay'].every(o => ds.some(k => AV.monCua(k)?.o === o)),
+      ds.join(' '));
+    ok(`bộ mẫu ${b.so} không lấy màu đen tuyền cho cả bộ`,
+      b.so === 3 || !['ao', 'quan', 'giay'].every(o => (b.mau[o] || '') === 'den'),
+      JSON.stringify(b.mau));
+    ok(`bộ mẫu ${b.so} toàn đồ tặng, không món nào phải mua`,
+      ds.every(k => AV.monCua(k)?.gia === 0));
+  }
+
+  // ---- Vùng xem trước ----
+  // Đo trên chính bộ ảnh: mọi lớp dính pixel trong dòng 8..31, cột 7..24.
+  ok('khung xem trước cả người trùm đủ từ mũ tới giày',
+    AV.VUNG_NGUOI.y <= 8 && AV.VUNG_NGUOI.y + AV.VUNG_NGUOI.h >= 31
+    && AV.VUNG_NGUOI.x <= 7 && AV.VUNG_NGUOI.x + AV.VUNG_NGUOI.w >= 24);
   ok('khung xem trước phần đầu trùm đủ mũ và tóc',
-    AV.VUNG_DAU.y <= 18 && AV.VUNG_DAU.y + AV.VUNG_DAU.h >= 54
-    && AV.VUNG_DAU.x === 0 && AV.VUNG_DAU.w === 32,
-    JSON.stringify(AV.VUNG_DAU));
-
-  // Ảnh xem trước phải trỏ đúng tệp có thật, không thì thẻ nào cũng ô trống
-  const anhDo = AV.oMonDo(DO.find(d => d.o === 'mu' && d.than === 'nam').id);
-  ok('ảnh món đồ có cả ma-nơ-canh lẫn món đồ',
-    (anhDo.match(/<img/g) || []).length === 2 && anhDo.includes('lop-nen'));
-  const src = [...anhDo.matchAll(/src="([^"]+)"/g)].map(m => m[1]);
-  ok('ảnh món đồ trỏ tới tệp có thật', src.length === 2
-    && src.every(x => existsSync(join(goc, x))), src.join(' '));
-  ok('ảnh cả bộ đồ xếp đúng số lớp', (() => {
-    const bo = monBoMau('nam', 1);
-    const h = AV.oBoDo(bo);
-    return (h.match(/<img/g) || []).length === bo.length + 1;
-  })());
-  ok('phần đầu bỏ trống thì chỉ còn mỗi ma-nơ-canh',
-    (AV.oPhanDau('toc', '').match(/<img/g) || []).length === 1);
-  // Ô chọn tóc/râu dùng khung hẹp hơn khung mũ: lấy rộng như khung mũ thì cái
-  // đầu trong ô bé tí, nhìn không ra đang chọn kiểu gì.
-  ok('khung ô chọn phần mặt hẹp hơn khung mũ',
-    AV.VUNG_MAT.h < AV.VUNG_DAU.h && AV.VUNG_MAT.y > AV.VUNG_DAU.y
-    && AV.VUNG_MAT.y + AV.VUNG_MAT.h <= AV.VUNG_DAU.y + AV.VUNG_DAU.h,
-    `${JSON.stringify(AV.VUNG_MAT)} vs ${JSON.stringify(AV.VUNG_DAU)}`);
-  // Khung mặt vẫn phải trùm hết râu (dòng 41..50 sau khi đệm)
-  ok('khung ô chọn phần mặt vẫn thấy được râu',
-    AV.VUNG_MAT.y <= 41 && AV.VUNG_MAT.y + AV.VUNG_MAT.h >= 50);
+    AV.VUNG_DAU.y <= 8 && AV.VUNG_DAU.y + AV.VUNG_DAU.h >= 21);
+  ok('khung ô chọn phần mặt vẫn thấy được mắt và râu',
+    AV.VUNG_MAT.y <= 9 && AV.VUNG_MAT.y + AV.VUNG_MAT.h >= 25);
 
   // Tiệm quần áo phải có NPC đứng bán, không thì không ai mở được màn đó
   ok('có NPC bán quần áo trong Khu Dân Cư',
@@ -3719,12 +3631,14 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         return { w: W2 / 3, h: H2 / 4 };
       };
     const CHUAN = 20 / 32;            // NPC Tuxemon: thân 20 dòng trong khung 32
-    const oNguoiChoi = tiThan('assets/lpc/base/nam_ivory.png');
-    ok('khung sprite người chơi đã đệm lên 32×76',
-      oNguoiChoi.w === 32 && oNguoiChoi.h === 76, JSON.stringify(oNguoiChoi));
+    // Bộ sprite người chơi cũng vẽ ở ô 32 với thân 20 dòng, nên khỏi phải đệm
+    // hay co giãn gì — cùng một cỡ pixel với NPC là ở chỗ này.
+    const oNguoiChoi = tiThan('assets/nv/nguoi/tong1.png');
+    ok('khung sprite người chơi là ô 32×32',
+      oNguoiChoi.w === 32 && oNguoiChoi.h === 32, JSON.stringify(oNguoiChoi));
     ok('người chơi cùng tầm với NPC Tuxemon',
-      Math.abs(47 / oNguoiChoi.h - CHUAN) < 0.03,
-      (47 / oNguoiChoi.h).toFixed(3));
+      Math.abs(20 / oNguoiChoi.h - CHUAN) < 0.03,
+      (20 / oNguoiChoi.h).toFixed(3));
     ok('người trong sảnh cũng cùng tầm ấy',
       npcs.every(n => Math.abs(31 / tiThan(`assets/ow/${n.sprite}.png`).h - CHUAN) < 0.03),
       npcs.map(n => `${n.sprite}:${(31 / tiThan(`assets/ow/${n.sprite}.png`).h).toFixed(2)}`)

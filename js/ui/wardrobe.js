@@ -8,11 +8,12 @@
 // sao. Nay mỗi món hiện luôn ảnh khoác trên ma-nơ-canh, và bấm vào là MẶC THỬ:
 // nhân vật ở trên đổi đồ ngay, ưng thì mới trả tiền.
 //
-// Quần áo bên LPC vẽ riêng cho dáng nam và dáng nữ, không phải một mẫu hai bản.
-// Nên tiệm chỉ bày đồ hợp dáng người của người chơi.
+// Bộ sprite mới vẽ chung một thân cho cả hai giới nên không phải lọc theo dáng
+// nữa; đổi lại mỗi món có nhiều BẢN MÀU. Danh sách bày mỗi món một thẻ, chọn
+// màu nằm trong thanh "đang thử" — bày cả 10 màu của 18 món thì thành 180 thẻ.
 import { G, save } from '../state.js';
 import * as AV from '../engine/avatar.js';
-import { DO, DO_BY_ID, O_DO } from '../data/lpc.js';
+import { DO, O_DO, DO_MAU } from '../data/nhanvat.js';
 import { owFrame, owReady } from '../engine/owsprite.js';
 import { esc, tien, tienChu } from '../util.js';
 import { toast, header } from './kit.js';
@@ -22,22 +23,29 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
   const tiem = tab === 'tiem';
   let raf = null;
   let loc = '';                     // ô đang lọc, '' là xem tất cả
-  let thu = null;                   // món đang mặc thử (chưa mua / chưa mặc thật)
+  let thu = null;                   // món đang mặc thử: { id, mau }
 
-  const hopDang = (d) => d.than === AV.danDo();
+  const khoaThu = () => (thu ? AV.khoaDo(thu.id, thu.mau) : null);
 
   // Bộ đồ đang HIỂN THỊ = đồ thật, đè lên món đang thử
   function macXem() {
     const m = { ...AV.dangMac() };
-    if (thu && DO_BY_ID[thu]) m[DO_BY_ID[thu].o] = thu;
+    const k = khoaThu();
+    if (k) m[AV.monCua(k).o] = k;
     return m;
   }
 
-  function oHtml(d, dangMac2, coRoi) {
-    const dangThu = thu === d.id;
+  // Trong tủ: món nào có bản màu nào. Ở tiệm thì bày hết bản màu của món.
+  const mauCoTrongTu = (id) => {
+    const co = AV.tuDo();
+    return AV.mauCoCua(id).filter(m => co.includes(AV.khoaDo(id, m.id)));
+  };
+
+  function oHtml(d, khoaBay, dangMac2, coRoi) {
+    const dangThu = thu?.id === d.id;
     return `<button type="button" class="card td-o ${dangThu ? 'thu' : ''} ${dangMac2 ? 'mac' : ''}"
       data-thu="${esc(d.id)}">
-      <span class="td-anh">${AV.oMonDo(d.id, { cao: 88 })}</span>
+      <span class="td-anh">${AV.oMonDo(khoaBay, { cao: 88 })}</span>
       ${dangMac2 ? '<span class="td-co-mac">Đang mặc</span>'
         : dangThu ? '<span class="td-dang-thu">Đang thử</span>' : ''}
       <b>${esc(d.name)}</b>
@@ -58,25 +66,29 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
     const xem = macXem();
     const co = AV.tuDo();
     const tatCa = tiem
-      ? DO.filter(d => d.gia > 0 && hopDang(d))
-      : DO.filter(d => co.includes(d.id) && hopDang(d));
+      ? DO.filter(d => d.gia > 0)
+      : DO.filter(d => co.some(k => AV.monCua(k)?.id === d.id));
     // Ô nào không có món nào thì không bày nút lọc cho rối mắt
     const oCo = O_DO.filter(o => tatCa.some(d => d.o === o.id));
     if (loc && !oCo.some(o => o.id === loc)) loc = '';
     const ds = loc ? tatCa.filter(d => d.o === loc) : tatCa;
-    const mThu = thu && DO_BY_ID[thu];
+    const dThu = thu ? DO.find(d => d.id === thu.id) : null;
+    // Ở tiệm thì chọn được mọi màu; trong tủ chỉ mấy màu đã sắm
+    const mauThu = dThu
+      ? (tiem ? AV.mauCoCua(dThu.id) : mauCoTrongTu(dThu.id))
+      : [];
 
     el.innerHTML = `
       ${header(tiem ? 'Tiệm Quần Áo Cô Thắm' : 'Tủ Đồ', from)}
       <div class="card td-xem">
         <div class="td-buc">
           <div class="td-sang"></div>
-          <canvas id="td-canvas" width="96" height="192"></canvas>
+          <canvas id="td-canvas" width="128" height="128"></canvas>
         </div>
         <div class="td-slot">
           ${O_DO.map(o => {
-            const d = xem[o.id] && DO_BY_ID[xem[o.id]];
-            const laThu = mThu && mThu.o === o.id;
+            const d = xem[o.id] && AV.monCua(xem[o.id]);
+            const laThu = dThu && dThu.o === o.id;
             return `<span class="td-oo ${d ? 'co' : ''} ${laThu ? 'thu' : ''}">
               <small>${esc(o.name)}</small>
               <b>${d ? esc(d.name) : '—'}</b>
@@ -85,14 +97,19 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
         </div>
       </div>
 
-      ${mThu ? `<div class="card td-thanh">
-        <span class="td-thanh-chu">Đang thử <b>${esc(mThu.name)}</b></span>
+      ${dThu ? `<div class="card td-thanh">
+        <span class="td-thanh-chu">Đang thử <b>${esc(dThu.name)}</b></span>
+        ${mauThu.length > 1 ? `<span class="td-mau">
+          ${mauThu.map(m => `<button type="button" class="td-mau-o ${m.id === thu.mau ? 'chon' : ''}"
+            data-mau="${esc(m.id)}" title="${esc(m.name)}"
+            style="background:${esc(m.mau)}"></button>`).join('')}
+        </span>` : ''}
         <span class="td-thanh-nut">
           ${tiem
-            ? (co.includes(mThu.id)
-              ? '<button class="btn btn-sm btn-primary td-mac" data-id="' + esc(mThu.id) + '">Mặc luôn</button>'
-              : '<button class="btn btn-sm btn-primary td-mua" data-id="' + esc(mThu.id) + '">Mua ' + tien(mThu.gia) + '</button>')
-            : '<button class="btn btn-sm btn-primary td-mac" data-id="' + esc(mThu.id) + '">Mặc luôn</button>'}
+            ? (co.includes(khoaThu())
+              ? `<button class="btn btn-sm btn-primary td-mac" data-id="${esc(dThu.id)}">Mặc luôn</button>`
+              : `<button class="btn btn-sm btn-primary td-mua" data-id="${esc(dThu.id)}">Mua ${tien(dThu.gia)}</button>`)
+            : `<button class="btn btn-sm btn-primary td-mac" data-id="${esc(dThu.id)}">Mặc luôn</button>`}
           <button class="btn btn-sm td-thoi">Thôi</button>
         </span>
       </div>` : ''}
@@ -103,10 +120,17 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
           data-loc="${esc(o.id)}">${esc(o.name)}</button>`).join('')}
       </div>` : ''}
       ${ds.length
-        ? `<div class="td-luoi">${ds.map(d =>
-            oHtml(d, mac[d.o] === d.id, co.includes(d.id))).join('')}</div>`
+        ? `<div class="td-luoi">${ds.map(d => {
+            // Thẻ bày bản màu đang thử nếu đang thử món này, không thì bản đang
+            // mặc, không nữa thì bản màu đầu tiên có được.
+            const cua = co.filter(k => AV.monCua(k)?.id === d.id);
+            const khoaBay = (thu?.id === d.id && khoaThu())
+              || (AV.monCua(mac[d.o])?.id === d.id ? mac[d.o] : null)
+              || cua[0] || AV.khoaDo(d.id, DO_MAU[0].id);
+            return oHtml(d, khoaBay, mac[d.o] === khoaBay, cua.length > 0);
+          }).join('')}</div>`
         : `<div class="card empty-note">${tiem
-            ? 'Hôm nay hết hàng hợp dáng của bạn rồi.'
+            ? 'Hôm nay cô Thắm chưa dọn hàng ra.'
             : 'Tủ đang trống. Ghé tiệm quần áo trong Khu Dân Cư mà sắm.'}</div>`}
     `;
 
@@ -114,17 +138,27 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
       loc = b.dataset.loc;
       ve();
     }));
+    el.querySelectorAll('[data-mau]').forEach(b => b.addEventListener('click', () => {
+      thu = { ...thu, mau: b.dataset.mau };
+      ve();
+    }));
     // Bấm vào cả cái thẻ là mặc thử; bấm lại lần nữa thì thôi
     el.querySelectorAll('[data-thu]').forEach(b => b.addEventListener('click', (e) => {
       if (e.target.closest('.td-mua, .td-mac, .td-coi')) return;   // mấy nút kia lo phần việc riêng
-      thu = thu === b.dataset.thu ? null : b.dataset.thu;
+      const id = b.dataset.thu;
+      if (thu?.id === id) { thu = null; ve(); return; }
+      const dsm = tiem ? AV.mauCoCua(id) : mauCoTrongTu(id);
+      thu = { id, mau: dsm[0]?.id || 'goc' };
       ve();
     }));
     el.querySelector('.td-thoi')?.addEventListener('click', () => { thu = null; ve(); });
 
     el.querySelectorAll('.td-mac').forEach(b => b.addEventListener('click', (e) => {
       e.stopPropagation();
-      const [okMac, err] = AV.mac(b.dataset.id);
+      const id = b.dataset.id;
+      const k = thu?.id === id ? khoaThu()
+        : (co.find(x => AV.monCua(x)?.id === id) || AV.khoaDo(id, DO_MAU[0].id));
+      const [okMac, err] = AV.mac(k);
       toast(err || okMac);
       if (!err) thu = null;
       ve();
@@ -137,12 +171,13 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
     }));
     el.querySelectorAll('.td-mua').forEach(b => b.addEventListener('click', (e) => {
       e.stopPropagation();
-      const d = DO_BY_ID[b.dataset.id];
+      const d = DO.find(x => x.id === b.dataset.id);
       if (!d) return;
       if ((G.p.money || 0) < d.gia) { toast('Không đủ tiền.'); return; }
+      const k = thu?.id === d.id ? khoaThu() : AV.khoaDo(d.id, DO_MAU[0].id);
       G.p.money -= d.gia;
-      AV.themDo(d.id);
-      AV.mac(d.id);
+      AV.themDo(k);
+      AV.mac(k);
       save();
       toast(`Mua ${d.name} hết ${tienChu(d.gia)} — mặc luôn cho nóng.`);
       thu = null;

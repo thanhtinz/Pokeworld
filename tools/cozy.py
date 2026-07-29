@@ -122,10 +122,16 @@ O_DO = [
     ('kinh', 'Kính'), ('mu', 'Mũ'),
 ]
 
+# (so, ten, mo, mau ao, mau quan, mau giay)
+# Phai ghi mau tung bo: lay mau dau bang la ca ba bo deu den si, bay len the
+# nen toi thi khong phan biet noi bo nao voi bo nao.
 BO_MAU = [
-    (1, 'Bộ Đi Học', 'Áo thun quần dài, gọn gàng lúc mới lên đường'),
-    (2, 'Bộ Năng Động', 'Áo thể thao, nhẹ và thoáng, tiện chạy nhảy'),
-    (3, 'Bộ Lịch Sự', 'Vest quần âu, chỉn chu ra dáng người có nghề'),
+    (1, 'Bộ Đi Học', 'Áo thun quần dài, gọn gàng lúc mới lên đường',
+     'xanhduong', 'nau', 'nau'),
+    (2, 'Bộ Năng Động', 'Áo thể thao, nhẹ và thoáng, tiện chạy nhảy',
+     'xanhla', 'trangxam', 'trangxam'),
+    (3, 'Bộ Lịch Sự', 'Vest quần âu, chỉn chu ra dáng người có nghề',
+     'den', 'den', 'den'),
 ]
 
 
@@ -168,11 +174,16 @@ def mau_chinh(ra):
 
 
 def mau_da(ra):
-    """Mau da: lay o giua mat khung dung nhin thang cho khoi dinh toc/vien."""
+    """Mau da: quet ca than nguoi tran (khung dung nhin thang).
+
+    Truoc chi lay vung mat, ma mat thi day pixel danh sang nen tam nao cung ra
+    mot mau hong hong giong nhau — bay tam o mau ra man chon thi bon tong dau
+    khong phan biet noi.
+    """
     im = Image.open(os.path.join(RA, ra + '.png')).convert('RGBA')
     dem = {}
-    for y in range(14, 22):
-        for x in range(11, 21):
+    for y in range(13, 31):
+        for x in range(10, 22):
             r, g, b, a = im.getpixel((x, y))
             if a > 200:
                 dem[(r, g, b)] = dem.get((r, g, b), 0) + 1
@@ -308,13 +319,19 @@ def main():
     dong += ['];', '',
              'export const DO_BY_ID = Object.fromEntries(DO.map(d => [d.id, d]));', '',
              '// Ba bộ đồ mẫu cho chọn lúc tạo nhân vật. Giày tặng kèm cả ba bộ.',
+             '// `mau` = màu của từng ô trong bộ đó.',
              'export const BO_MAU = [']
-    for so, ten, mo in BO_MAU:
-        dong.append('  { so: %d, name: %s, desc: %s },' % (so, js(ten), js(mo)))
+    for so, ten, mo, mao, mq, mg in BO_MAU:
+        dong.append('  { so: %d, name: %s, desc: %s, mau: { ao: %s, quan: %s, giay: %s } },'
+                    % (so, js(ten), js(mo), js(mao), js(mq), js(mg)))
     dong += ['];', '',
-             '// Món của bộ mẫu số `so`, kèm mấy món tặng chung (bo === 0).',
-             'export const monBoMau = (so) =>',
-             '  DO.filter(d => d.gia === 0 && (d.bo === so || d.bo === 0)).map(d => d.id);',
+             '// Món của bộ mẫu số `so`, kèm mấy món tặng chung (bo === 0). Trả về',
+             '// KHOÁ đầy đủ `<id>_<màu>` chứ không phải mã món trần.',
+             'export const monBoMau = (so) => {',
+             '  const bo = BO_MAU.find(b => b.so === so) || BO_MAU[0];',
+             '  return DO.filter(d => d.gia === 0 && (d.bo === so || d.bo === 0))',
+             '    .map(d => `${d.id}_${d.somau > 1 ? (bo.mau[d.o] || "den") : "goc"}`);',
+             '};',
              '']
 
     with open(DL, 'w', encoding='utf-8') as f:

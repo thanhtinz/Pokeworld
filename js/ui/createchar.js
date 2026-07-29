@@ -11,8 +11,8 @@
 import { activeAccount, setAvatar, setCharCreated } from '../engine/accounts.js';
 import { G, newGame, save, hasSave } from '../state.js';
 import * as AV from '../engine/avatar.js';
-import { GIOI, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU, RAU_KIEU, RAU_MAU,
-  BO_MAU, DO_BY_ID, monBoMau } from '../data/lpc.js';
+import { GIOI, DA, MAT, MA_HONG, SON_MOI, TOC_KIEU, TOC_MAU, RAU_MAU,
+  BO_MAU, monBoMau } from '../data/nhanvat.js';
 import { owFrame, owReady } from '../engine/owsprite.js';
 import { esc } from '../util.js';
 import { toast } from './kit.js';
@@ -23,18 +23,18 @@ import { show } from '../main.js';
 //   'dau'  — ảnh cái đầu         (tóc, râu, tai, mũi, biểu cảm)
 // `trong` = cho phép để trống (không có phần đó).
 // `phu`   = mục chọn màu đi kèm, bày ngay dưới cùng một thẻ.
-// Không có mục "Dáng": chọn giới tính ở bước một là xong dáng người luôn.
+// Bộ sprite này vẽ chung một thân cho cả hai giới nên không có mục "Dáng";
+// giới tính chỉ dùng để lọc kiểu tóc và gợi ý mục son/má hồng.
 const MUC = [
   { k: 'da', ten: 'Da', ds: DA, kieu: 'mau' },
   { k: 'tocKieu', ten: 'Tóc', ds: TOC_KIEU, kieu: 'dau', nhom: 'toc', trong: 'Hói',
     phu: { k: 'tocMau', ten: 'Màu tóc', ds: TOC_MAU } },
   { k: 'mat', ten: 'Mắt', ds: MAT, kieu: 'mau' },
-  // LPC chỉ vẽ râu cho dáng nam, nên bên nữ không bày mục này
-  { k: 'rauKieu', ten: 'Râu', ds: RAU_KIEU, kieu: 'dau', nhom: 'rau', trong: 'Không',
-    gioi: 'nam', phu: { k: 'rauMau', ten: 'Màu râu', ds: RAU_MAU } },
-  { k: 'tai', ten: 'Tai', ds: TAI, kieu: 'dau', nhom: 'tai', trong: 'Thường' },
-  { k: 'mui', ten: 'Mũi', ds: MUI, kieu: 'dau', nhom: 'mui', trong: 'Thường' },
-  { k: 'bieucam', ten: 'Biểu cảm', ds: BIEU_CAM, kieu: 'dau', nhom: 'bieucam', trong: 'Bình thường' },
+  // Râu chỉ có một kiểu, chọn màu là xong — nên đây là mục MÀU chứ không phải
+  // mục kiểu, và bên nữ thì không bày.
+  { k: 'rau', ten: 'Râu', ds: RAU_MAU, kieu: 'mau', trong: 'Không', gioi: 'nam' },
+  { k: 'maHong', ten: 'Má Hồng', ds: MA_HONG, kieu: 'dau', nhom: 'mahong', trong: 'Không' },
+  { k: 'sonMoi', ten: 'Son Môi', ds: SON_MOI, kieu: 'dau', nhom: 'sonmoi', trong: 'Không' },
 ];
 
 const HUONG = [
@@ -42,11 +42,10 @@ const HUONG = [
   { id: 'up', ten: 'Sau' }, { id: 'right', ten: 'Phải' },
 ];
 
-// Số dòng trống trên đỉnh khung sprite (chỗ chừa cho mũ cao) cắt đi khi xem
-// trước, kèm cỡ canvas tính ra từ đó: rộng 32 -> 144 nên tỉ lệ phóng là 4,5.
-// 22 = 12 hàng đệm của mklpc.py + 10 dòng trống vốn có trên đỉnh đầu
-const BO_TREN = 22;
-const XEM_W = 144;
+// Ô sprite là 32x32 nhưng sáu dòng trên cùng luôn trống (chỗ chừa cho mũ cao
+// nhất trong pack), cắt đi cho nhân vật khỏi lọt thỏm giữa khung.
+const BO_TREN = 6;
+const XEM_W = 176;
 const XEM_H = (AV.KHUNG_H - BO_TREN) * (XEM_W / AV.KHUNG_W);
 
 const bocNgauNhien = (ds) => ds[Math.floor(Math.random() * ds.length)]?.id ?? '';
@@ -54,7 +53,7 @@ const bocNgauNhien = (ds) => ds[Math.floor(Math.random() * ds.length)]?.id ?? ''
 export function render(el) {
   const acc = activeAccount();
   let gioi = acc?.avatar === 'leaf' ? 'nu' : 'nam';
-  const nv = AV.macDinh(AV.thanDauCuaGioi(gioi));
+  const nv = AV.macDinh(gioi);
   let buoc = 'gioi';                // 'gioi' = chọn giới tính, 'chinh' = chỉnh dáng
   let boDo = 1;
   let muc = 'da';                   // mục đang mở
@@ -62,9 +61,9 @@ export function render(el) {
   let raf = null;
 
   // Bộ đồ ở đây chỉ để XEM TRƯỚC; mặc thật lúc bấm Bắt đầu
-  const monTrongBo = (so) => monBoMau(AV.danDo(nv.than), so);
+  const monTrongBo = (so) => monBoMau(so);
   const macThu = () => Object.fromEntries(
-    monTrongBo(boDo).map(id => [DO_BY_ID[id].o, id]));
+    monTrongBo(boDo).map(k => [AV.monCua(k).o, k]));
 
   // Danh sách lựa chọn của một mục, kèm ô trống nếu mục đó bỏ được
   const mucHienCo = () => MUC.filter(x => !x.gioi || x.gioi === gioi);
@@ -79,9 +78,7 @@ export function render(el) {
     }
     if (m.kieu === 'dau') {
       // Tóc/râu xem theo màu đang chọn, không thì bày một màu khác hẳn đầu
-      const ten = m.k === 'tocKieu' ? (o.id && `${o.id}_${nv.tocMau}`)
-        : m.k === 'rauKieu' ? (o.id && `${o.id}_${nv.rauMau}`)
-          : (o.id && `${o.id}_${nv.da}`);
+      const ten = m.k === 'tocKieu' ? (o.id && `${o.id}_${nv.tocMau}`) : o.id;
       return AV.oPhanDau(m.nhom, ten, { cao: 54, nv });
     }
     return '';
@@ -107,11 +104,12 @@ export function render(el) {
           <p class="cc-nho">Chọn xong là tới phần chỉnh khuôn mặt.</p>
           <div class="cc-gioi">
             ${GIOI.map(g => {
-              const t = AV.thanDauCuaGioi(g.id);
-              // Mỗi bên một kiểu tóc khác nhau cho dễ phân biệt ngay từ ảnh
-              const xem = { ...AV.macDinh(t), tocKieu: g.id === 'nu' ? 'dai' : 'thang' };
-              const mac = Object.fromEntries(monBoMau(AV.danDo(t), 1)
-                .map(id => [DO_BY_ID[id].o, id]));
+              // Bộ này chung một thân, nên hai thẻ phải khác nhau ở TÓC và ĐỒ
+              // thì người chơi mới phân biệt được đang bấm vào bên nào.
+              const xem = { ...AV.macDinh(g.id),
+                tocKieu: g.id === 'nu' ? 'ponytail' : 'gentleman' };
+              const mac = Object.fromEntries(monBoMau(g.id === 'nu' ? 1 : 3)
+                .map(k => [AV.monCua(k).o, k]));
               return `<button type="button" class="card cc-gioi-o ${g.id === gioi ? 'chon' : ''}"
                 data-gioi="${esc(g.id)}">
                 ${AV.oNguoiDu(xem, mac, { cao: 150 })}
@@ -130,14 +128,14 @@ export function render(el) {
 
   const tenGioi = () => GIOI.find(g => g.id === gioi)?.name || 'Nam';
 
-  // Đổi giới thì thân người phải nhảy theo, không thì nhân vật vẫn giữ thân cũ
-  // mà tủ đồ lại là của bên kia.
+  // Bộ này chung một thân nên đổi giới không đổi hình dáng — chỉ đổi những mục
+  // bày ra cho chọn, và kéo mấy lựa chọn của giới kia về đúng chỗ.
   function doiGioi(g) {
     if (gioi === g) return;
     gioi = g;
-    nv.than = AV.thanDauCuaGioi(g);
-    // Râu chỉ vẽ cho dáng nam; đổi sang nữ mà còn râu thì trông rất kỳ
-    if (gioi === 'nu') nv.rauKieu = '';
+    nv.gioi = g;
+    // Râu chỉ bày bên nam; đổi sang nữ mà còn râu thì trông rất kỳ
+    if (gioi === 'nu') nv.rau = '';
     // Đang để kiểu tóc chỉ dành cho giới kia thì kéo về kiểu đầu của giới mới
     for (const m of mucHienCo()) {
       const ds = dsCua(m);
@@ -292,7 +290,7 @@ export function render(el) {
     if (name.length < 2) { toast('Tên nhân vật tối thiểu 2 ký tự!'); return; }
     // Ảnh 2D cũ vẫn dùng ở vài chỗ (hộp thoại, danh sách tài khoản) nên vẫn
     // ghi lại nam/nữ cho khớp.
-    setAvatar(AV.danDo(nv.than) === 'nu' ? 'leaf' : 'red');
+    setAvatar(nv.gioi === 'nu' ? 'leaf' : 'red');
     setCharCreated(true);
     // Không còn bản lưu của tài khoản này -> dựng ván mới, tuyệt đối không
     // xài lại G.p còn sót của tài khoản vừa đăng xuất.
@@ -302,7 +300,7 @@ export function render(el) {
     L.nv = { ...nv };
     L.mac = {};
     L.tuDo = [];
-    AV.macBoMau(boDo, nv.than);
+    AV.macBoMau(boDo);
     save();
     show('intro');
   }
