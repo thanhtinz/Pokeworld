@@ -21,12 +21,10 @@ import { show } from '../main.js';
 // Từng mục chỉnh. `kieu` quyết định cách bày lựa chọn:
 //   'mau'  — ô màu tròn          (màu da, màu mắt)
 //   'dau'  — ảnh cái đầu         (tóc, râu, tai, mũi, biểu cảm)
-//   'chu'  — nút chữ             (dáng người)
 // `trong` = cho phép để trống (không có phần đó).
 // `phu`   = mục chọn màu đi kèm, bày ngay dưới cùng một thẻ.
-// `ds` để hàm — danh sách dáng người đổi theo giới tính đã chọn ở bước một.
+// Không có mục "Dáng": chọn giới tính ở bước một là xong dáng người luôn.
 const MUC = [
-  { k: 'than', ten: 'Dáng', ds: (gioi) => AV.thanTheoGioi(gioi), kieu: 'chu' },
   { k: 'da', ten: 'Da', ds: DA, kieu: 'mau' },
   { k: 'tocKieu', ten: 'Tóc', ds: TOC_KIEU, kieu: 'dau', nhom: 'toc', trong: 'Hói',
     phu: { k: 'tocMau', ten: 'Màu tóc', ds: TOC_MAU } },
@@ -58,7 +56,7 @@ export function render(el) {
   const nv = AV.macDinh(AV.thanDauCuaGioi(gioi));
   let buoc = 'gioi';                // 'gioi' = chọn giới tính, 'chinh' = chỉnh dáng
   let boDo = 1;
-  let muc = 'than';                 // mục đang mở
+  let muc = 'da';                   // mục đang mở
   let huong = 0;                    // đang nhìn hướng nào
   let raf = null;
 
@@ -69,7 +67,7 @@ export function render(el) {
 
   // Danh sách lựa chọn của một mục, kèm ô trống nếu mục đó bỏ được
   const mucHienCo = () => MUC.filter(x => !x.gioi || x.gioi === gioi);
-  const dsCua = (m) => (typeof m.ds === 'function' ? m.ds(gioi) : m.ds);
+  const dsCua = (m) => m.ds;
   const luaChon = (m) => (m.trong ? [{ id: '', name: m.trong }, ...dsCua(m)] : dsCua(m));
 
   // Ảnh/màu của một lựa chọn — đây là chỗ làm màn này hết giống trang thiết lập
@@ -95,15 +93,16 @@ export function render(el) {
   </button>`;
 
   // ==== Bước một: chọn giới tính ====
-  // Dáng người của LPC chia hẳn theo giới (đồ cắt riêng cho từng bên, mặc chéo
-  // là lệch người), nên phải chốt giới tính trước rồi mới bày dáng của giới đó.
+  // LPC vẽ đồ riêng cho từng giới (mặc chéo là lệch người), nên phải chốt giới
+  // tính trước. Chọn xong là có luôn dáng người của giới đó, không bắt chọn
+  // thêm lần nữa.
   function veGioi() {
     el.innerHTML = `
       <div class="splash create-scr">
         <div class="splash-bg"></div>
         <div class="splash-inner cc-wrap cc-gioi-man">
           <h2 class="login-title cc-title">Chọn giới tính</h2>
-          <p class="cc-nho">Chọn xong mới tới phần chỉnh dáng và khuôn mặt.</p>
+          <p class="cc-nho">Chọn xong là tới phần chỉnh khuôn mặt.</p>
           <div class="cc-gioi">
             ${GIOI.map(g => {
               const t = AV.thanDauCuaGioi(g.id);
@@ -115,7 +114,6 @@ export function render(el) {
                 data-gioi="${esc(g.id)}">
                 ${AV.oNguoiDu(xem, mac, { cao: 150 })}
                 <b>${esc(g.name)}</b>
-                <small>${AV.thanTheoGioi(g.id).map(x => esc(x.name)).join(' · ')}</small>
               </button>`;
             }).join('')}
           </div>
@@ -128,10 +126,10 @@ export function render(el) {
     }));
   }
 
-  // Đổi giới thì dáng người phải nhảy sang dáng của giới mới, không thì nhân
-  // vật vẫn giữ thân cũ mà tủ đồ lại là của bên kia.
   const tenGioi = () => GIOI.find(g => g.id === gioi)?.name || 'Nam';
 
+  // Đổi giới thì thân người phải nhảy theo, không thì nhân vật vẫn giữ thân cũ
+  // mà tủ đồ lại là của bên kia.
   function doiGioi(g) {
     if (gioi === g) return;
     gioi = g;

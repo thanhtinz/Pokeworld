@@ -2963,3 +2963,11 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 /* Ô ảnh nhân vật ghép lớp dùng trong giao diện */
 .nv-o { display: inline-block; overflow: hidden; position: relative; }
 .nv-o img { position: absolute; left: 0; top: 0; image-rendering: pixelated; max-width: none; }
+
+/* ==== Địa điểm ghé thăm (bản đồ dựng từ pack CraftPix) ==== */
+.dd-luoi { display: grid; gap: 8px; }
+.dd-o { display: flex; flex-direction: column; gap: 4px; }
+.dd-o b { font-size: .95rem; }
+.dd-o small { color: var(--muted); font-size: .8rem; line-height: 1.4; }
+.dd-co { color: var(--muted); font-size: .74rem; }
+.dd-o .btn { margin-top: 4px; }

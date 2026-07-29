@@ -7,6 +7,7 @@ import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
 import { vatTheODay, nhaXong, mapTrongNha, camCongVeNha, giuongTrongNha } from './estate.js';
 import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi, dongBoCuaTro } from './inn.js';
+import { dangOChoi } from './diadiem.js';
 import { dangTham } from './visit.js';
 import { khoaODay, vatBangDuong } from './bangduong.js';
 import { newTuxemon, maxHp } from './monster.js';
@@ -62,9 +63,9 @@ let tinNguDay = null;
 export function layTinNguDay() { const t = tinNguDay; tinNguDay = null; return t; }
 
 export function nguDay() {
-  // Đang sang thăm nhà người khác thì đừng lôi về giường — người chơi vừa bấm
-  // "vào nhà" xong, kéo về nhà trọ là hỏng cả việc
-  if (dangTham()) { daNguDay = true; return null; }
+  // Đang sang thăm nhà người khác, hoặc đang ghé một địa điểm, thì đừng lôi về
+  // giường — người chơi vừa bấm "vào" xong, kéo về nhà trọ là hỏng cả việc
+  if (dangTham() || dangOChoi()) { daNguDay = true; return null; }
   if (daNguDay || !G.p) return null;
   daNguDay = true;
   if (nhaXong()) {

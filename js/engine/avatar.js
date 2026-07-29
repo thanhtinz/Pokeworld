@@ -38,9 +38,15 @@ export function macDinh(than = 'nam') {
   };
 }
 
+// Trước có bốn dáng (thêm Lực Lưỡng và Mảnh Khảnh); nay chọn giới tính là xong
+// dáng luôn. Bản lưu cũ phải quy về đúng GIỚI của dáng cũ — để rơi về mặc định
+// thì nhân vật nữ dáng Mảnh Khảnh tự dưng thành nam.
+const THAN_CU = { luc: 'nam', gay: 'nu' };
+
 function hopLe(nv) {
   const co = (ds, v) => ds.some(x => x.id === v);
-  const m = macDinh(co(THAN, nv?.than) ? nv.than : 'nam');
+  const than = THAN_CU[nv?.than] || nv?.than;
+  const m = macDinh(co(THAN, than) ? than : 'nam');
   if (!nv || typeof nv !== 'object') return m;
   const ra = { ...m };
   for (const [k, ds] of [['da', DA], ['tai', TAI], ['mui', MUI],

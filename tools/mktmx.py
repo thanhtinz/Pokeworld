@@ -28,7 +28,10 @@ import sys
 import json
 import xml.etree.ElementTree as ET
 
+CRAFTPIX_DIR = '/tmp/craftpix'
+
 import bangduong
+import craftpix
 import khudancu
 import phongtrong
 
@@ -916,6 +919,10 @@ def js(v):
 
 
 def main():
+    # Pack CraftPix giai nen o dau (khong bat buoc — thieu thi bo qua may
+    # dia diem do, phan con lai van dung binh thuong).
+    global CRAFTPIX_DIR
+    CRAFTPIX_DIR = sys.argv[2] if len(sys.argv) > 2 else '/tmp/craftpix'
     if len(sys.argv) < 2:
         raise SystemExit(__doc__)
     root = sys.argv[1]
@@ -1043,6 +1050,18 @@ def main():
         pt['cols'] = cols3
         pt['layers'] = [conv3(l) for l in pt['layers']]
         pt['above'] = None
+        want.append(slug)
+
+    # Dia diem dung tu pack CraftPix (chapel, guild hall, ruined temple, home).
+    # Chi nuong ATLAS vao kho, khong chep tep goc cua pack — xem tools/craftpix.py.
+    for slug, cp in craftpix.them_vao(out_maps, CRAFTPIX_DIR).items():
+        remap4, cols4 = build_atlas(cp, 'assets/maps/%s.png' % slug)
+        conv4 = lambda lay, r=remap4: [r.get(g, -1) if g > 0 else -1 for g in lay]
+        cp['cols'] = cols4
+        cp['above'] = conv4(cp['above']) if cp['above'] else None
+        cp['layers'] = [conv4(l) for l in cp['layers']]
+        cp.pop('thieu', None)
+        out_maps[slug] = cp
         want.append(slug)
 
     write_js(out_maps, want)

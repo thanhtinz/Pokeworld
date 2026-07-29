@@ -54,11 +54,12 @@ GIOI = [('nam', 'Nam'), ('nu', 'Nữ')]
 # tung than nguoi. Ao cat cho NU dat 0.991 tren than androgynous, con ao cat
 # cho NAM chi duoc 0.811 — nen than do phai an theo tu do cua nu. Nguoc lai
 # than luc luong an theo tu do cua nam (0.996).
+#
+# Chon gioi tinh la xong dang nguoi luon: moi gioi mot than, khong bat nguoi
+# choi chon them lan nua.
 THAN = [
-    ('nam',   'Thường',     'Human_male',          'nam', 'nam'),
-    ('luc',   'Lực Lưỡng',  'Human_male_muscular', 'nam', 'nam'),
-    ('nu',    'Thường',     'Human_female',        'nu',  'nu'),
-    ('gay',   'Mảnh Khảnh', 'Human_androgynous',   'nu',  'nu'),
+    ('nam',   'Nam',  'Human_male',   'nam', 'nam'),
+    ('nu',    'Nữ',   'Human_female', 'nu',  'nu'),
 ]
 
 DA = [

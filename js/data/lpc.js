@@ -14,10 +14,8 @@ export const GIOI = [{ id: "nam", name: "Nam" }, { id: "nu", name: "Nữ" }];
 // Dáng người. `do` = lấy quần áo bản của dáng nào (LPC chỉ vẽ đồ cho
 // nam/nữ), `gioi` = thuộc giới tính nào.
 export const THAN = [
-  { id: "nam", name: "Thường", do: "nam", gioi: "nam" },
-  { id: "luc", name: "Lực Lưỡng", do: "nam", gioi: "nam" },
-  { id: "nu", name: "Thường", do: "nu", gioi: "nu" },
-  { id: "gay", name: "Mảnh Khảnh", do: "nu", gioi: "nu" },
+  { id: "nam", name: "Nam", do: "nam", gioi: "nam" },
+  { id: "nu", name: "Nữ", do: "nu", gioi: "nu" },
 ];
 
 export const DA = [{ id: "ivory", name: "Ngà", mau: "#f9d5ba" }, { id: "gold", name: "Vàng Ấm", mau: "#fdd082" }, { id: "copper", name: "Đồng", mau: "#aa6030" }, { id: "sienna", name: "Nâu Đỏ", mau: "#d68c61" }, { id: "coffee", name: "Nâu Đậm", mau: "#603429" }, { id: "dove", name: "Xám Nhạt", mau: "#e5e6c7" }];

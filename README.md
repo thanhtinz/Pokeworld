@@ -56,6 +56,18 @@ python3 tools/mktmx.py /tmp/Tuxemon        # bản đồ, NPC, cổng, bảng g�
                                            #  tools/bangduong.py, tools/phongtrong.py:
                                            #  dựng Khu Dân Cư, Bang Đường, phòng
                                            #  trong nhà và nhà trọ chung)
+                                           # Truyền thêm đường dẫn thứ hai để
+                                           # nạp các pack CraftPix thành địa
+                                           # điểm mới (tools/craftpix.py):
+                                           #   python3 tools/mktmx.py /tmp/Tuxemon /tmp/craftpix
+                                           # Giải nén 4 pack miễn phí bên
+                                           # craftpix.net/freebies vào
+                                           #   /tmp/craftpix/{chapel,guild,temple,home}/
+                                           # Thiếu thư mục đó thì bỏ qua mấy
+                                           # địa điểm này, phần còn lại vẫn dựng
+                                           # bình thường. CHỈ atlas đã nướng
+                                           # vào kho, không chép tệp gốc của
+                                           # pack — xem CREDITS.md.
 python3 tools/mkui.py /tmp/Tuxemon         # icon giao diện
 python3 tools/mksounds.py /tmp/Tuxemon     # nhạc nền + tiếng chiêu
 python3 tools/mkvfx.py /tmp/Tuxemon        # hiệu ứng chiêu
@@ -74,7 +86,7 @@ python3 tools/mkboss.py                    # boss thế giới + boss từng khu
 python3 tools/mkrecipes.py /tmp/Tuxemon    # công thức nấu ăn + bảng nguyên
                                            # liệu rơi ra từ Tuxemon hoang
 python3 tools/mkicons.py                   # icon giao diện pixel (tự vẽ)
-python3 tools/mklpc.py /tmp/LPC            # 268 lớp nhân vật ghép được (thân, da,
+python3 tools/mklpc.py /tmp/LPC            # 256 lớp nhân vật ghép được (thân, da,
                                            # tai, mũi, mắt, râu, tóc) + 84 món
                                            # quần áo, cắt từ Liberated Pixel Cup:
                                            #   git clone --depth 1 --filter=blob:none \

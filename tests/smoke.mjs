@@ -3043,7 +3043,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   const { THU_MUC, THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU,
     RAU_KIEU, RAU_MAU, O_DO, DO, DO_BY_ID, BO_MAU, monBoMau } = LPC;
 
-  ok('có đủ bốn dáng người và sáu màu da', THAN.length === 4 && DA.length === 6);
+  ok('mỗi giới một dáng người và sáu màu da', THAN.length === 2 && DA.length === 6);
   ok('mỗi dáng người đều chỉ về một bộ quần áo có thật',
     THAN.every(t => t.do === 'nam' || t.do === 'nu'));
 
@@ -3053,16 +3053,21 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('dáng người nào cũng thuộc về một giới có thật',
     THAN.every(t => GIOI.some(g => g.id === t.gioi)),
     THAN.filter(t => !GIOI.some(g => g.id === t.gioi)).map(t => t.id).join(' '));
-  ok('giới nào cũng có ít nhất hai dáng để chọn',
-    GIOI.every(g => AV.thanTheoGioi(g.id).length >= 2),
+  // Chọn giới tính là xong dáng người: mỗi giới đúng MỘT thân, không bắt người
+  // chơi chọn thêm lần nữa.
+  ok('mỗi giới đúng một dáng, khỏi phải chọn thêm',
+    GIOI.every(g => AV.thanTheoGioi(g.id).length === 1),
     GIOI.map(g => `${g.id}:${AV.thanTheoGioi(g.id).length}`).join(' '));
   ok('dáng mặc định của mỗi giới đúng là dáng của giới đó',
     GIOI.every(g => AV.gioiCua(AV.thanDauCuaGioi(g.id)) === g.id));
-  ok('tên dáng trong cùng một giới không trùng nhau',
-    GIOI.every(g => {
-      const ten = AV.thanTheoGioi(g.id).map(t => t.name);
-      return new Set(ten).size === ten.length;
-    }));
+  // Bản lưu cũ dùng dáng đã bỏ (Lực Lưỡng / Mảnh Khảnh) phải quy về đúng GIỚI
+  // của dáng đó, không thì nhân vật nữ dáng Mảnh Khảnh tự dưng thành nam.
+  for (const [cu, mong] of [['luc', 'nam'], ['gay', 'nu']]) {
+    newGame('Dáng Cũ');
+    G.p.look = { nv: { than: cu, da: 'ivory' } };
+    ok(`bản lưu cũ dáng ${cu} quy về ${mong}`, AV.look().nv.than === mong,
+      AV.look().nv.than);
+  }
   // Đồ cắt cho nữ phủ 0.991 lên thân "Mảnh Khảnh" còn đồ nam chỉ được 0.811 —
   // nên dáng đó phải ăn theo tủ đồ của giới nó thuộc về, không được lệch.
   ok('dáng nào cũng dùng tủ đồ đúng giới của nó',
@@ -3217,6 +3222,69 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('có NPC bán quần áo trong Khu Dân Cư',
     ES.vatTheODay?.('khu_dan_cu', ES.TIEM_AO.x, ES.TIEM_AO.y)?.kind === 'tiem-ao',
     JSON.stringify(ES.vatTheODay?.('khu_dan_cu', ES.TIEM_AO.x, ES.TIEM_AO.y)));
+}
+
+// ==== Địa điểm dựng từ pack CraftPix ====
+{
+  const DD = await import('../js/engine/diadiem.js');
+  const kho = new URL('../', import.meta.url).pathname;
+  const co = DD.DIA_DIEM.filter(d => MAPS[d.id]);
+  ok('dựng được cả bốn địa điểm từ pack', co.length === 4,
+    DD.DIA_DIEM.filter(d => !MAPS[d.id]).map(d => d.id).join(' '));
+
+  for (const d of co) {
+    const m = MAPS[d.id];
+    // Mấy bản đồ này đánh dấu "trong nhà"; trong nhà mà không cổng nào thì
+    // người chơi kẹt cứng, chỉ còn nước xoá bản lưu.
+    ok(`${d.id} có cổng đi ra`, (m.warps || []).length >= 1);
+    const cua = DD.cuaRa(m);
+    ok(`${d.id} cửa ra đứng được`, !!cua && !m.solid[cua.y * m.w + cua.x],
+      JSON.stringify(cua));
+
+    // Vào rồi phải đứng trong nhà và đi tới được cửa, không thì vào xong là kẹt
+    const [cho, err] = DD.vaoDiaDiem(d.id, { map: 'taba_town', x: 30, y: 20 });
+    ok(`${d.id} vào được`, !err && cho?.map === d.id, err || '');
+    if (cho) {
+      ok(`${d.id} chỗ đặt chân không nằm trong tường`,
+        !m.solid[cho.y * m.w + cho.x], JSON.stringify(cho));
+      // Loang từ chỗ đặt chân: phải chạm được ô cửa
+      const tham = new Set();
+      const hang = [[cho.x, cho.y]];
+      while (hang.length) {
+        const [x, y] = hang.pop();
+        const k = `${x},${y}`;
+        if (tham.has(k) || x < 0 || y < 0 || x >= m.w || y >= m.h) continue;
+        if (m.solid[y * m.w + x]) continue;
+        tham.add(k);
+        hang.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+      }
+      ok(`${d.id} từ chỗ đứng đi tới được cửa`, tham.has(`${cua.x},${cua.y}`),
+        `${tham.size} ô với tới`);
+    }
+    // Cổng phải trỏ về ĐÚNG chỗ vừa đứng, không phải về chỗ mặc định
+    const cong = m.warps.find(w => w.x === cua.x && w.y === cua.y);
+    ok(`${d.id} cổng trả về đúng chỗ vừa đứng`,
+      cong?.to === 'taba_town' && cong.tx === 30 && cong.ty === 20,
+      JSON.stringify(cong));
+    ok(`${d.id} không đẻ thêm cổng chồng lên cửa`,
+      m.warps.filter(w => w.x === cua.x && w.y === cua.y).length === 1);
+  }
+
+  DD.roiDiaDiem();
+  ok('rời địa điểm thì cổng về lại đích gốc',
+    co.every(d => {
+      const m = MAPS[d.id];
+      const cua = DD.cuaRa(m);
+      const w = m.warps.find(x => x.x === cua.x && x.y === cua.y);
+      return w && w.to !== 'taba_town' && w.goc === undefined;
+    }));
+  ok('bản đồ địa điểm nào cũng có atlas riêng',
+    co.every(d => existsSync(join(kho, MAPS[d.id].atlas))),
+    co.filter(d => !existsSync(join(kho, MAPS[d.id].atlas))).map(d => d.id).join(' '));
+  // Chỉ nướng atlas vào kho, KHÔNG chép tệp gốc của pack — giấy phép CraftPix
+  // cấm phát tán lại chính bộ asset.
+  ok('không chép nguyên tệp gốc của pack vào kho',
+    !existsSync(join(kho, 'assets/craftpix')));
 }
 
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài

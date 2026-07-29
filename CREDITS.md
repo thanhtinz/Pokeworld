@@ -100,6 +100,36 @@ màn tạo nhân vật và tiệm quần áo.
 Vì là CC BY-SA / GPL nên phần asset nhân vật của game này cũng phải giữ nguyên
 giấy phép đó khi phát hành lại.
 
+## CraftPix — bốn địa điểm
+
+Bốn chỗ ghé thăm trong mục **Địa Điểm** dựng từ các pack top-down miễn phí của
+**[CraftPix](https://craftpix.net/freebies/)** (ô 16×16, đúng cỡ ô của game):
+
+| Địa điểm | Pack |
+|---|---|
+| Nhà Nguyện | Chapel Pixel Art Top Down Asset Pack |
+| Sảnh Bang Hội | Top Down Pixel Art Guild Hall Asset Pack |
+| Đền Đổ Nát | Ruined Temple Top Down Location Pixel Art |
+| Nhà Riêng | Main Character's Home Free Top Down Pixel Art Asset |
+
+**Giấy phép khác hẳn phần còn lại — đọc kỹ.** CraftPix cho dùng tệp miễn phí
+trong game, kể cả game bán tiền, không bắt ghi công (ghi thì họ cảm ơn), NHƯNG
+**cấm bán lại hoặc phát tán lại chính các tệp gốc dưới dạng bộ asset**. Xem
+[craftpix.net/file-licenses](https://craftpix.net/file-licenses/).
+
+Nên trong kho này:
+
+- **không có tệp gốc nào của pack** — muốn dựng lại thì tự tải pack về máy
+- chỉ có **atlas đã nướng của từng bản đồ** (`assets/maps/nha_nguyen.png`,
+  `sanh_bang.png`, `den_do_nat.png`, `nha_rieng.png`): mỗi tệp chỉ gom đúng
+  những ô bản đồ đó thật sự dùng, xếp lại theo thứ tự khác, là một phần của
+  game chứ không còn là bộ asset
+
+Ai fork kho này thì **đừng nhặt riêng mấy tệp atlas đó ra bán lại** — phần này
+KHÔNG phải CC BY-SA như art của Tuxemon.
+
+Pack *Free Pixel Art Plants For Farm* đã tải về nhưng chưa dùng tới.
+
 ## Của riêng dự án
 
 | Thứ gì | Làm bằng |
