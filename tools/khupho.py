@@ -16,6 +16,8 @@ Goi tu tools/mktmx.py, dung chay truc tiep.
 """
 import os
 
+from PIL import Image
+
 W, H = 28, 18
 SLUG = 'khu_pho'
 TEN = 'Phố Kim Long'
@@ -40,8 +42,14 @@ GHE = [[_o(30, 33), _o(31, 33)], [_o(30, 34), _o(31, 34)]]
 # ==== Nha lay tu tileset core_buildings (47 cot) ====
 # Khoi 5 rong x 4 cao, cua vom nam o cot 3 cua khoi.
 NHA_COT = 47
-NHA_W, NHA_H = 5, 4
+# Can nha that su cao 5 hang (13..17) chu khong phai 4: hang cuoi la chan
+# tuong cua gian phu ben trai + bac da truoc cua. Ban truoc cat co 4 hang nen
+# gian phu cut ngang, nhin nhu nha bi xen mat mot khuc.
+NHA_W, NHA_H = 5, 5
 NHA_CUA_DX = 3
+# Cua chiem HAI hang duoi cung cua cot 3: hang tren la cai vom, hang duoi la
+# bac da. Ca hai phai di duoc.
+NHA_CUA_DY = (NHA_H - 2, NHA_H - 1)
 # Ca bon dung CHUNG mot mat tien: chi khoi (0,13) la da soi ky va biet chac
 # cot 3 dung la cai cua vom. May khoi khac trong tileset co khoi cot do la cua
 # so, dat cong len day thi nguoi choi chui vao cua so. Muon moi toa mot kieu
@@ -93,11 +101,26 @@ def dung(root, tsx_cache, load_tsx):
         if chan:
             solid[idx(x, y)] = 1
 
+    # Trong khoi 5x5 co may o gan nhu RONG (goc duoi ben phai gian chinh). Dat
+    # dai ca khoi thi may o do thanh tuong vo hinh chan duong. Do thang do phu
+    # alpha tren chinh tep tileset chu khong doan bang mat.
+    tsp = Image.open(os.path.join(tsdir, 'core_buildings.png')).convert('RGBA')
+    tspx = tsp.load()
+
+    def _do_phu(c, r):
+        return sum(1 for yy in range(16) for xx in range(16)
+                   if tspx[c * 16 + xx, r * 16 + yy][3] > 8)
+
     def dat_nha(x, y, c, r, chan=True):
         if not (0 <= x < W and 0 <= y < H):
             return
+        phu = _do_phu(c, r)
+        if phu <= 16:                 # o rong: de nguyen nen co, khong chan
+            return
         tren[idx(x, y)] = g1 + r * NHA_COT + c
-        solid[idx(x, y)] = 1 if chan else 0
+        # Chi chan khi o do THAT SU day tuong; o thua thot (bac da truoc cua)
+        # ve thi ve nhung van di qua duoc.
+        solid[idx(x, y)] = 1 if (chan and phu > 128) else 0
 
     # --- nen: co khap noi, mat pho lat da ---
     for y in range(H):
@@ -129,10 +152,10 @@ def dung(root, tsx_cache, load_tsx):
     # --- bon toa nha ---
     for _ma, cx, cy, _ten, c0, r0 in TOA:
         x0 = cx - NHA_CUA_DX
-        y0 = cy - (NHA_H - 1)
+        y0 = cy - NHA_CUA_DY[0]       # o cua nam o hang NHA_CUA_DY[0]
         for dy in range(NHA_H):
             for dx in range(NHA_W):
-                la_cua = (dx == NHA_CUA_DX and dy == NHA_H - 1)
+                la_cua = (dx == NHA_CUA_DX and dy in NHA_CUA_DY)
                 dat_nha(x0 + dx, y0 + dy, c0 + dx, r0 + dy, chan=not la_cua)
 
     # --- vat trang tri doc pho, tranh loi di ---
@@ -171,12 +194,14 @@ def dung(root, tsx_cache, load_tsx):
             don(x, y)
     don(*CONG)
     don(CONG[0] + 1, H - 1)
-    # Bac them truoc tung cua + duong noi xuong mat pho
+    # Duong noi tu bac them xuong mat pho. KHONG don o cua lan bac da truoc
+    # cua — hai o do co hinh cua nha, don di la thung mot mang giua tuong.
     for _ma, cx, cy, _ten, _c, _r in TOA:
         bx, by = bac_them(cx, cy)
-        for y in range(by, PHO + 1):
+        for y in range(by + 1, PHO + 1):
             don(bx, y)
-        solid[idx(cx, cy)] = 0        # o cua giu hinh cai vom nhung di duoc
+        solid[idx(cx, cy)] = 0
+        solid[idx(bx, by)] = 0
 
     talks = [{'x': CONG[0] + 1, 'y': H - 3, 'name': 'Bảng Phố Kim Long',
               'text': 'PHỐ KIM LONG — nhà nguyện, bang hội, sòng bài và lối lên đền.'}]
