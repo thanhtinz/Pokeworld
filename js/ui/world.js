@@ -855,9 +855,6 @@ export function render(el) {
     const cho = tuRuong ? ES.camCongTuNongTrai() : ES.camCongVeNha();
     if (!cho) { toast('Chưa vào được.'); return; }
     enterMap(ES.mapTrongNha(), cho.x, cho.y);
-    // Chỉ nhắc khi nhà còn trống trơn; kê được món nào rồi thì thôi, người
-    // chơi biết nút Trang trí nằm đâu, nhắc lại mỗi lần vào nhà chỉ tổ phiền.
-    if (!ES.nha().dat.length) toast('Bấm nút Trang trí để kê đồ.');
   }
 
   function draw() {
@@ -1238,7 +1235,7 @@ export function render(el) {
       ]);
       if (i !== 0) return;
       const [v, err] = NT.nhac(thing.o);
-      toast(err || `Đang cầm ${v.name} — đứng chỗ nào ưng thì bấm A.`);
+      toast(err || `Đang cầm ${v.name}.`);
       return;
     }
 
@@ -1254,7 +1251,7 @@ export function render(el) {
         ]);
         if (i === 0) {
           const [v, err] = NT.nhac(o);
-          toast(err || `Đang cầm ${v.name} — đứng chỗ nào ưng thì bấm A.`);
+          toast(err || `Đang cầm ${v.name}.`);
         }
         return;
       }
@@ -1266,7 +1263,7 @@ export function render(el) {
       ]);
       if (i === co.length) {
         const [v, err] = NT.nhac(o);
-        toast(err || `Đang cầm ${v.name} — đứng chỗ nào ưng thì bấm A.`);
+        toast(err || `Đang cầm ${v.name}.`);
         return;
       }
       if (i < 0 || i > co.length) return;

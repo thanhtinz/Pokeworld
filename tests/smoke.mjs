@@ -4064,6 +4064,33 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       lam.map(n => `${n.name}:${n.tab}`).join(' '));
     ok('người làm việc đứng trên ô đi được',
       lam.every(n => !m.solid[n.y * m.w + n.x]));
+    // Lối đi phải LIỀN MẠCH: sân đất quanh chỗ người làm việc đứng không được
+    // trét đè lên đường đá, không thì con đường đứt khúc, nhìn lem nhem.
+    {
+      const nen = m.layers[0];
+      const o = (x, y) => nen[y * m.w + x];
+      const duongDoc = new Set();
+      for (let y = 2; y < m.h - 2; y++) { duongDoc.add(o(14, y)); duongDoc.add(o(15, y)); }
+      const duongNgang = new Set();
+      for (let x = 2; x < m.w - 2; x++) { duongNgang.add(o(x, 11)); duongNgang.add(o(x, 12)); }
+      ok('lối đi dọc lát toàn đá, không lẫn ô lạ', duongDoc.size <= 3,
+        `${duongDoc.size} loại ô`);
+      ok('lối đi ngang lát toàn đá, không lẫn ô lạ', duongNgang.size <= 3,
+        `${duongNgang.size} loại ô`);
+      ok('hai lối đi dùng chung một bộ ô đá',
+        [...duongNgang].every(g => duongDoc.has(g)));
+      // Sân đất phải là ô KHÁC hẳn ô đường; trùng nghĩa là có chỗ trét đè lên
+      const san = new Set();
+      for (const c of [NM.BAC_NONG, NM.BANG_DON]) {
+        for (let dy = 0; dy < 2; dy++) {
+          for (let dx = -1; dx <= 1; dx++) san.add(o(c.x + dx, c.y + dy));
+        }
+      }
+      ok('sân đất không lấn sang ô nào của lối đi',
+        ![...san].some(g => duongDoc.has(g)),
+        `${san.size} loại ô sân`);
+    }
+
     // Ô cấm phải trùm hết lối đi: kê ruộng đè lên đường là đi không lọt
     ok('lối đi chính nằm trong danh sách ô cấm kê',
       [3, 8, 15, 20].every(y => NM.CAM.has(`14,${y}`)));

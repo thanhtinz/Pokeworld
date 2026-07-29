@@ -138,7 +138,7 @@ export function gieo(o, cayId) {
   o.moc = Date.now();
   o.uotDen = 0;
   save();
-  return [`Đã gieo ${c.name}. Nhớ tưới, không tưới thì không lớn.`, null];
+  return [`Đã gieo ${c.name} — nhớ tưới.`, null];
 }
 
 /** Tưới một ô: đủ nước cho đúng một giai đoạn. */
@@ -150,7 +150,7 @@ export function tuoi(o, gio = Date.now()) {
   donTienDo(o, gio);
   o.uotDen = gio + c.phut * PHUT;
   save();
-  return [`Tưới xong. ${c.name} lớn thêm một đoạn nữa.`, null];
+  return [`Tưới xong ${c.name}.`, null];
 }
 
 /** Tưới hết mọi ô đang khát — đỡ phải chạy từng ô một. */
@@ -230,7 +230,7 @@ export function choAn(con, gio = Date.now()) {
   if (!bot('co_kho', t.an || 1)) return [null, 'Hết cỏ khô rồi — mua ở chỗ bác Nông.'];
   con.sanLuc = gio + t.phut * PHUT;
   save();
-  return [`${t.name} ăn xong, một lúc nữa quay lại lấy ${MON_BY_ID[t.sanPham]?.name}.`, null];
+  return [`${t.name} ăn xong rồi.`, null];
 }
 
 /** Thu sản phẩm của một con. */

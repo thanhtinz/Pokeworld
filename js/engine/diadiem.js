@@ -34,7 +34,6 @@ export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));
 export const DIEM_NHANH = [
   { id: NONG_TRAI_MAP, ten: 'Nông Trại Bờ Suối',
     mo: 'Sân sau nhà bạn: ruộng, chuồng thú, ao câu và bảng đơn hàng dân làng.',
-    nhac: 'Đi bộ thì vào nhà mình rồi bước ra cửa sau cũng tới đây.',
     cho: { x: CONG_NONG_TRAI.x, y: CONG_NONG_TRAI.y - 1 } },
   // Nông trại KHÔNG có cổng bộ nào. Chưa xây nhà thì cửa sau cũng chưa có,
   // nên phải luôn có đường quay ra, không thì đi nhanh vào rồi mắc kẹt.

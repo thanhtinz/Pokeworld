@@ -45,8 +45,6 @@ export function render(el, { from = 'menu' } = {}) {
     boQuaNguDay();
     enterMap(cho.map, cho.x, cho.y);
     show('world');
-    const d = DIEM_NHANH.find(x => x.id === b.dataset.id);
-    if (d?.nhac) toast(d.nhac, 3500);
   }));
 
   el.querySelectorAll('.dd-di').forEach(b => b.addEventListener('click', async () => {
@@ -56,6 +54,5 @@ export function render(el, { from = 'menu' } = {}) {
     boQuaNguDay();
     enterMap(cho.map, cho.x, cho.y);
     show('world');
-    toast('Bước ra cửa là ra ngay trước cửa chỗ này ở Khu Dân Cư.', 3500);
   }));
 }

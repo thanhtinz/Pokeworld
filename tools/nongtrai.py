@@ -41,7 +41,6 @@ THONG_TO = [[_o(25, 27), _o(26, 27)],
             [_o(25, 29), _o(26, 29)]]
 BUI = [_o(24, 30), _o(25, 30), _o(26, 30), _o(27, 30)]
 DA_TANG = [_o(30, 30), _o(31, 30)]
-COC_RAO = _o(17, 27)
 HOA = [_o(28, 25), _o(29, 25), _o(30, 25), _o(28, 26), _o(29, 26)]
 NAM = [_o(29, 29), _o(30, 29)]
 
@@ -109,6 +108,10 @@ def dung(root, tsx_cache, load_tsx):
         if chan:
             solid[idx(x, y)] = 1
 
+    def la_duong(x, y):
+        """O nay co phai loi di lat da khong."""
+        return x in DUONG_DOC or y in DUONG_NGANG
+
     # --- nen co ---
     for y in range(H):
         for x in range(W):
@@ -123,10 +126,12 @@ def dung(root, tsx_cache, load_tsx):
             dat_nen(x, y, DA)
 
     # --- san dat quanh cho lam viec (bac nong, bang don) ---
+    # San NAM HAN DUOI loi di ngang chu khong trum len no: dat de len duong da
+    # thi nhin nhu vet vet lem, ma cai loi di lai dut khuc.
     for cx, cy in (BAC_NONG, BANG_DON):
-        for y in range(cy - 1, cy + 2):
+        for y in range(cy, cy + 2):
             for x in range(cx - 1, cx + 2):
-                if 0 <= x < W and 0 <= y < H:
+                if 0 <= x < W and 0 <= y < H and not la_duong(x, y):
                     dat_nen(x, y, DAT)
 
     # --- ao ca + bo cat ---
@@ -170,11 +175,6 @@ def dung(root, tsx_cache, load_tsx):
             dat_tren(x, y + 1, BUI[_rng(y + 1, x, len(BUI))])
     for x, y in ((4, 0), (20, 0)):
         trong_thong_to(x, y)
-
-    # --- hang coc rao vien lay khu ruong, cho ra dang nong trai ---
-    # Coc rao khong chan duong: no nam trong vung ke vat the.
-    for x in range(2, 8):
-        dat_tren(x, 2, COC_RAO, chan=False)
 
     # --- trang tri cho con lai ---
     def trong(x, y):

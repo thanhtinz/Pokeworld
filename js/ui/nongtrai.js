@@ -167,12 +167,12 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
       // Con vật thả ngay vào nông trại, đứng cạnh cổng cho dễ tìm
       const cho = NT.choTrongCho();
       const [t, err] = NT.muaThu(b.dataset.thu, cho.x, cho.y);
-      toast(err || `${t.name} về nông trại rồi — cho nó ăn cỏ khô đi.`);
+      toast(err || `${t.name} về nông trại rồi.`);
       ve();
     }));
     el.querySelectorAll('.nt-muavat').forEach(b => b.addEventListener('click', () => {
       const [v, err] = NT.mua(b.dataset.vat);
-      toast(err || `Cầm ${v.name} ra bản đồ, đứng chỗ nào ưng thì bấm A.`);
+      toast(err || `Đã mua ${v.name}.`);
       ve();
     }));
     el.querySelector('#nt-bo')?.addEventListener('click', () => {
