@@ -4,7 +4,7 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre, layTinNhatTB, layTinNguDay, isInside,
+  facingWater, setHealSpot, repelLeft, pickedUp, layTinNhaTre, layTinNguDay, isInside,
   enterMap } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
@@ -399,8 +399,7 @@ export function render(el) {
         ctx.restore();
       }
       // Bác thợ mộc bán nội thất và cô bán quà đứng cố định hai bên ngõ
-      for (const [cho, spr] of [[ES.THO_MOC, 'nurse'], [ES.TIEM_QUA, 'florist'],
-                                [ES.LO_REN, 'miner']]) {
+      for (const [cho, spr] of [[ES.THO_MOC, 'nurse'], [ES.TIEM_QUA, 'florist']]) {
         const im2 = owImage(spr);
         if (owReady(im2)) {
           put(im2, 'down', false, (cho.x + 0.5) * size - camX, (cho.y + 1) * size - camY);
@@ -586,13 +585,6 @@ export function render(el) {
       await playDialog([[{ name: 'Cô Hoa', ow: 'florist' },
         'Hoa tươi, sô-cô-la, nhẫn cưới — tặng ai thì người ta quý mình hơn đấy.']]);
       cleanup(); show('gifts', { from: 'world' });
-      return;
-    }
-    if (thing.kind === 'lo-ren') {
-      await playDialog([[{ name: 'Bác Thép', ow: 'miner' },
-        'Trang bị thì tôi không bán — thứ đó phải tự đi đánh mà lấy. '
-        + 'Đá cường hoá với đá ngôi sao thì có, cần bao nhiêu lấy bấy nhiêu.']]);
-      cleanup(); show('gear', { tab: 'da', from: 'world' });
       return;
     }
     if (thing.kind === 'tho-moc') {
@@ -804,8 +796,6 @@ export function render(el) {
       if (tin === 'sansang') toast('Nhà trẻ báo: có con non chờ bạn tới đón!');
       else if (tin === 'nuaduong') toast('Nhà trẻ báo: hai con đã quen nhau lắm rồi.');
       else if (tin === 'hettien') toast('Hết tiền trả nhà trẻ — việc rèn luyện tạm dừng.');
-      const tb = layTinNhatTB();
-      if (tb) toast(`Nhặt được ${tb} bên vệ đường! Xem trong Túi đồ.`, 3000);
       if (ev?.t === 'pickup') {
         const it = ITEMS[ev.id];
         toast(`Nhặt được ${it ? it.name : ev.id}${ev.n > 1 ? ` ×${ev.n}` : ''}!`);

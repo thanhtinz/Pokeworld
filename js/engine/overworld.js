@@ -5,8 +5,6 @@ import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
-import { moiBuoc as gearBuoc } from './gear.js';
-import { GEAR_BY_ID } from '../data/gear.js';
 import { vatTheODay, nhaXong, mapTrongNha, camCongVeNha, giuongTrongNha } from './estate.js';
 import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi, dongBoCuaTro } from './inn.js';
 import { dangTham } from './visit.js';
@@ -163,9 +161,6 @@ export function facingWater() {
 let tinNhaTre = null;
 export function layTinNhaTre() { const t = tinNhaTre; tinNhaTre = null; return t; }
 
-// Món trang bị vừa nhặt được bên vệ đường — màn bản đồ đọc rồi xoá
-let tinNhatTB = null;
-export function layTinNhatTB() { const t = tinNhatTB; tinNhatTB = null; return t; }
 
 export const pickKey = (mapId, it) => `${mapId}:${it.x},${it.y}:${it.id}`;
 export const pickedUp = (mapId, it) => !!G.p?.picked?.[pickKey(mapId, it)];
@@ -403,12 +398,6 @@ export function update(dt, vx, vy) {
   // Mốc đáng báo thì để dành, màn bản đồ nhặt ra hiện toast.
   const nt = daycareBuoc(1);
   if (nt && nt.t !== 'exp') tinNhaTre = nt.t;
-  // Thi thoảng nhặt được một món trang bị rơi bên vệ đường. Rất thưa (khoảng
-  // 900 bước một lần) và chỉ ngoài trời — trong nhà thì lấy đâu ra đồ mà rơi.
-  if (!isInside()) {
-    const tb = gearBuoc();
-    if (tb) tinNhatTB = GEAR_BY_ID[tb.id]?.name || null;
-  }
 
   // Đồ rơi trên bản đồ: giẫm lên là nhặt, mỗi món chỉ nhặt được một lần
   // (bản gốc gác bằng biến <tên>:yes trong sự kiện add_item).

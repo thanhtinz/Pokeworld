@@ -73,8 +73,6 @@ python3 tools/mkgifts.py                   # quà tặng (tự vẽ, không cầ
 python3 tools/mkboss.py                    # boss thế giới + boss từng khu
 python3 tools/mkrecipes.py /tmp/Tuxemon    # công thức nấu ăn + bảng nguyên
                                            # liệu rơi ra từ Tuxemon hoang
-python3 tools/mkgear.py                    # trang bị cho Tuxemon: 18 món × 5 bậc
-                                           # sao, mỗi bậc một hình riêng (tự vẽ)
 python3 tools/mkicons.py                   # icon giao diện pixel (tự vẽ)
 ```
 

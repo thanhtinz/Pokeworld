@@ -20,8 +20,8 @@ import { dangTham } from './visit.js';
 // Các lô đất nằm trong KHU DÂN CƯ — một bản đồ riêng, đi hết ngõ phía bắc Thị
 // Trấn Taba là tới. Toạ độ lô, chỗ bác thợ mộc đứng và bản thân bản đồ đều do
 // tools/khudancu.py sinh ra một lượt, nên nền đất luôn khớp với lô đất.
-import { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, LO_REN, CONG_RA } from '../data/khudancu.js';
-export { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, LO_REN, CONG_RA };
+import { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, CONG_RA } from '../data/khudancu.js';
+export { KHU_DAT_MAP, LOTS, THO_MOC, TIEM_QUA, CONG_RA };
 export const LOT_BY_ID = Object.fromEntries(LOTS.map(l => [l.id, l]));
 
 // Bên trong nhà là PHÒNG TRỐNG dựng riêng (tools/phongtrong.py), không mượn
@@ -181,10 +181,6 @@ export function vatTheODay(mapId, x, y) {
     }
     if (x === TIEM_QUA.x && y === TIEM_QUA.y) {
       return { type: 'estate', kind: 'tiem-qua', name: 'Cô Hoa' };
-    }
-    // Lò rèn: chỗ DUY NHẤT bán đá nâng cấp. Trang bị thì không bán ở đâu cả.
-    if (x === LO_REN.x && y === LO_REN.y) {
-      return { type: 'estate', kind: 'lo-ren', name: 'Bác Thép' };
     }
     const e = nha();
     for (const l of LOTS) {

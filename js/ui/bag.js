@@ -14,9 +14,6 @@ import { ITEMS } from '../data/items.js';
 import { esc } from '../util.js';
 import { toast, choose, confirmDlg, header, itemIcon } from './kit.js';
 import { openSheet } from './sheet.js';
-import * as GR from '../engine/gear.js';
-import { GEAR_BY_ID, anhGear, SAO_TOI_DA } from '../data/gear.js';
-import { show } from '../main.js';
 
 // Thứ tự nhóm hiện trong túi
 const NHOM = [
@@ -48,70 +45,51 @@ const CACH_DUNG = {
   held: 'Cho một Tuxemon cầm theo, có tác dụng cả khi ngồi dự bị.',
 };
 
+// Ít nhất ngần này ô, và luôn kín hàng — túi trông như một cái kệ có ngăn
+// sẵn chứ không phải danh sách dài ngắn tuỳ lúc.
+const COT = 5;
+const O_TOI_THIEU = 40;
+
 export function render(el) {
-  function itemsOfKind(kind) {
+  // Xếp mọi món vào MỘT lưới duy nhất, thứ tự theo nhóm cho đồ cùng loại nằm
+  // gần nhau. Trước đây mỗi nhóm một thẻ riêng nên mở túi ra là một chồng thẻ
+  // dài dằng dặc, mỗi thẻ vài ô lẻ.
+  function moiMon() {
+    const thu = new Map(NHOM.map(([k], i) => [k, i]));
     return Object.keys(G.p.bag)
-      .filter(id => G.p.bag[id] > 0 && ITEMS[id] && ITEMS[id].kind === kind);
+      .filter(id => G.p.bag[id] > 0 && ITEMS[id])
+      .sort((a, b) => {
+        const ka = thu.get(ITEMS[a].kind) ?? 99;
+        const kb = thu.get(ITEMS[b].kind) ?? 99;
+        return ka - kb || ITEMS[a].name.localeCompare(ITEMS[b].name, 'vi');
+      });
   }
 
   function draw() {
-    const nhom = NHOM.map(([k, label]) => [label, itemsOfKind(k)]).filter(([, ids]) => ids.length);
-    const tong = nhom.reduce((n, [, ids]) => n + ids.length, 0);
+    const ds = moiMon();
+    const soO = Math.max(O_TOI_THIEU, Math.ceil((ds.length + COT) / COT) * COT);
+    const trong = soO - ds.length;
     el.innerHTML = `
       ${header('Túi đồ')}
-      ${trangBiHtml()}
-      ${nhom.map(([label, ids]) => `
-        <div class="card bag-group">
-          <div class="bag-head"><b>${esc(label)}</b><small>${ids.length} loại</small></div>
-          <div class="bag-grid">
-            ${ids.map(id => {
-              const it = ITEMS[id];
-              return `<button type="button" class="bag-cell" data-id="${esc(id)}" title="${esc(it.name)}">
-                <span class="bag-n">×${G.p.bag[id]}</span>
-                ${isRod(id) ? `<span class="bag-wear">${rodLeft(id)}</span>` : ''}
-                <span class="bag-art">${itemIcon(id, '', 40)}</span>
-                <b class="bag-name">${esc(it.name)}</b>
-              </button>`;
-            }).join('')}
-          </div>
-        </div>`).join('')}
-      ${tong === 0 && !GR.kho().length ? '<div class="card empty-note">Túi đang trống.</div>' : ''}`;
-
-    el.querySelectorAll('.bag-cell').forEach(b =>
-      b.addEventListener('click', () => openItem(b.dataset.id)));
-    const mo = el.querySelector('#bag-gear');
-    if (mo) mo.addEventListener('click', () => show('gear', { from: 'bag' }));
-  }
-
-  // Trang bị nằm ngay trong túi cho khỏi phải nhớ nó ở màn nào. Bấm vào là
-  // sang màn Trang Bị để đeo / cường hoá / nâng sao.
-  function trangBiHtml() {
-    const ds = GR.kho();
-    const da = Object.entries(GR.DA).filter(([k]) => GR.soDa(k) > 0);
-    if (!ds.length && !da.length) return '';
-    return `
-      <div class="card bag-group">
-        <div class="bag-head"><b>Trang bị</b><small>${ds.length} món</small></div>
-        <div class="bag-grid">
-          ${da.map(([k, d]) => `<div class="bag-cell tb-cell" title="${esc(d.name)}">
-            <span class="bag-n">×${GR.soDa(k)}</span>
-            <span class="bag-art"><img class="px-icon" src="${d.img}" width="40" height="40" alt=""></span>
-            <b class="bag-name">${esc(d.name)}</b>
-          </div>`).join('')}
-          ${ds.map(v => {
-            const m = GEAR_BY_ID[v.id];
-            const chu = GR.aiDangDeo(v.u);
-            return `<div class="bag-cell tb-cell${chu ? ' dang-deo' : ''}" title="${esc(m.name)}">
-              ${v.cuong ? `<span class="bag-n">+${v.cuong}</span>` : ''}
-              <span class="bag-art"><img class="px-icon" src="${anhGear(v.id, v.sao)}"
-                width="40" height="40" alt="" loading="lazy"></span>
-              <b class="bag-name">${esc(m.name)}</b>
-              <small class="bag-sao">${'★'.repeat(v.sao)}</small>
-            </div>`;
+      <div class="card bag-card">
+        <div class="bag-slots">
+          ${ds.map(id => {
+            const it = ITEMS[id];
+            return `<button type="button" class="bag-slot" data-id="${esc(id)}"
+                            title="${esc(it.name)}" aria-label="${esc(it.name)}">
+              ${itemIcon(id, '', 40)}
+              ${G.p.bag[id] > 1 ? `<span class="bag-n">${G.p.bag[id]}</span>` : ''}
+              ${isRod(id) ? `<span class="bag-wear">${rodLeft(id)}</span>` : ''}
+            </button>`;
           }).join('')}
+          ${'<span class="bag-slot trong"></span>'.repeat(trong)}
         </div>
-        ${ds.length ? '<button class="btn btn-sm" id="bag-gear">Đeo / cường hoá / nâng sao</button>' : ''}
-      </div>`;
+      </div>
+      ${ds.length ? `<small class="bag-dem">${ds.length} loại vật phẩm</small>`
+                  : '<div class="card empty-note">Túi đang trống.</div>'}`;
+
+    el.querySelectorAll('.bag-slot[data-id]').forEach(b =>
+      b.addEventListener('click', () => openItem(b.dataset.id)));
   }
 
   // Bảng chi tiết một vật phẩm

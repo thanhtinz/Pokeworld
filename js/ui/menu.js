@@ -26,7 +26,6 @@ const HUB = [
   { to: 'park',       icon: 'walk',    label: 'Công viên' },
   { to: 'daycare',    icon: 'daycare', label: 'Nhà trẻ' },
   { to: 'craft',      icon: 'bep',     label: 'Nhà bếp' },
-  { to: 'gear',       icon: 'gear2',   label: 'Trang bị' },
   { to: 'garage',     icon: 'car',     label: 'Nhà xe' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
   { to: 'boss',       icon: 'battle',  label: 'Săn boss', on: true },

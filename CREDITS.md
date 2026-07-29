@@ -82,7 +82,6 @@ Chỉ chép những tệp thật sự dùng (`tools/mksounds.py`), tổng khoả
 | Icon nào bản gốc không có (bản đồ, menu, nhiệm vụ, bang hội...) | SVG vẽ tay trong `js/ui/icons.js` |
 | Icon giao diện dạng pixel (đồng tiền, lịch, đe rèn, quả trứng, la bàn...) | `tools/mkicons.py`, vẽ bằng hình khối cơ bản |
 | Icon 47 món ăn và nguyên liệu | `tools/mkfood.py` — bản gốc để cả 47 món trỏ chung vào `gfx/items/box.png` nên không có gì để chép |
-| Trang bị cho Tuxemon (18 món × 5 bậc sao = 90 ảnh) + hai loại đá nâng cấp | `tools/mkgear.py` — Tuxemon không có art trang bị, và máy dựng bản này không tải được asset ngoài |
 | Quà tặng, sprite phương tiện, dữ liệu boss | `tools/mkgifts.py`, `tools/mkmounts.py`, `tools/mkboss.py` |
 
 Các bản đầu của dự án có mượn ảnh cắt từ game thương mại (nền trận đấu, ảnh
@@ -94,20 +93,3 @@ vật phẩm) — đã bỏ sạch, nay chỉ còn asset của chính Tuxemon v�
 — kho asset cộng đồng cho romhack Gen 3, chia theo từng tác giả, dùng thì phải
 ghi công đúng tác giả của từng tệp. Là nguồn tốt nếu sau này cần thêm sprite
 nhân vật trên bản đồ hoặc tileset.
-
-### Bộ icon trang bị CC0 (định dùng, chưa tải được)
-
-Trang bị hiện do `tools/mkgear.py` tự vẽ (18 món × 5 bậc sao). Mấy bộ dưới đây hợp hơn hẳn nếu sau
-này muốn thay art thật — tất cả đều **CC0** (miễn phí, không cần ghi công, dùng
-được cả cho mục đích thương mại). Máy dựng bản này chặn mạng ra ngoài nên chưa
-tải về được; muốn dùng thì tải tay rồi bỏ vào `assets/gear/` theo đúng tên tệp
-mà `mkgear.py` đang sinh, không phải sửa dòng mã nào khác.
-
-| Bộ | Có gì | Địa chỉ |
-|---|---|---|
-| Armor Icons by Equipment Slot | 5 ô (đầu, thân, tay, chân, giày) × 5 chất liệu (vải, áo choàng, da, giáp xích, giáp tấm), 64×64 — chính là thứ hợp nhất cho hệ nâng sao vì năm chất liệu xếp thành năm bậc | [opengameart.org](https://opengameart.org/content/armor-icons-by-equipment-slot) |
-| CC0 Jewelry Icons | Dây chuyền, nhẫn, bùa 32×32 | [opengameart.org](https://opengameart.org/content/cc0-jewelry-icons) |
-| CC0 Hand Wear Icons | Găng tay, bao tay giáp 32×32 | [opengameart.org](https://opengameart.org/content/cc0-hand-wear-icons) |
-| CC0 Gem Icons | Đá quý — hợp làm đá cường hoá / đá ngôi sao | [opengameart.org](https://opengameart.org/content/cc0-gem-icons) |
-| Idylwild's Armory | Giáp + 4 nhẫn + 4 bùa theo bốn hạng đồng/sắt/bạc/vàng | [opengameart.org](https://opengameart.org/content/idylwilds-armory) |
-| Ring Collection 32×32 | 222 chiếc nhẫn đủ kiểu | [opengameart.org](https://opengameart.org/content/ring-collection-32x32-pixels-222-assorted-color-styles) |

@@ -13,7 +13,6 @@ import { LEARNSETS } from '../data/learnsets.js';
 import { TASTES_COLD, TASTES_WARM, COLD_LIST, WARM_LIST } from '../data/tastes.js';
 import { expForLevel } from './exp.js';
 import { heSoAn } from './meal.js';
-import { congTrangBi } from './gear.js';
 
 // Thứ tự chỉ số trong mảng iv/tp (khớp schema save)
 export const STAT_KEYS = ['hp', 'armour', 'dodge', 'melee', 'ranged', 'speed'];
@@ -142,9 +141,6 @@ export function stats(mon) {
     if (warm?.stat === key) val = Math.floor(val * warm.mult);
     // Bữa no do món ăn tự nấu để lại (engine/meal.js) — hết giờ là tự hết
     val = Math.floor(val * heSoAn(mon, key));
-    // Trang bị cộng THẲNG số điểm ghi trên món (engine/gear.js), không nhân
-    // phần trăm — nhìn con số trên món là biết ngay được thêm bao nhiêu.
-    val += congTrangBi(mon, key);
     out[key] = val;
   }
   return out;

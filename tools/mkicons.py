@@ -285,14 +285,6 @@ def ve_bep(d):
     d.polygon([(5, 15), (7, 13), (8, 14), (9, 13), (11, 15)], fill=C['G'])
 
 
-def ve_gear(d):
-    """Trang bi: cai khien co ngoi sao — khong lan voi icon nao dang co."""
-    d.polygon([(8, 1), (14, 3), (14, 9), (8, 15), (2, 9), (2, 3)], fill=C['S'])
-    d.polygon([(8, 3), (12, 4), (12, 8), (8, 13), (4, 8), (4, 4)], fill=C['W'])
-    d.polygon([(8, 4), (9, 7), (12, 7), (10, 9), (11, 12),
-               (8, 10), (5, 12), (6, 9), (4, 7), (7, 7)], fill=C['G'])
-
-
 def ve_daycare(d):
     # Qua trung trong o rom — nha tre giu Tuxemon con
     d.ellipse((4, 3, 12, 13), fill=C['W'])
@@ -313,7 +305,7 @@ def ve_compass(d):
 ICONS = {
     'home': ve_home, 'car': ve_car,
     'lich': ve_lich, 'bep': ve_bep, 'daycare': ve_daycare,
-    'compass': ve_compass, 'gear2': ve_gear,
+    'compass': ve_compass,
     'coin': ve_coin, 'map': ve_map, 'chat': ve_chat, 'gift': ve_gift,
     'quest': ve_quest, 'shop': ve_shop, 'trophy': ve_trophy, 'guild': ve_guild,
     'friends': ve_friends, 'heart': ve_heart, 'flag': ve_flag,
