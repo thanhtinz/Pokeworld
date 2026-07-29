@@ -3229,7 +3229,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   const DD = await import('../js/engine/diadiem.js');
   const kho = new URL('../', import.meta.url).pathname;
   const co = DD.DIA_DIEM.filter(d => MAPS[d.id]);
-  ok('dựng được cả bốn địa điểm từ pack', co.length === 4,
+  ok('dựng được cả ba địa điểm từ pack', co.length === 3,
     DD.DIA_DIEM.filter(d => !MAPS[d.id]).map(d => d.id).join(' '));
 
   for (const d of co) {
@@ -3240,6 +3240,15 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     const cua = DD.cuaRa(m);
     ok(`${d.id} cửa ra đứng được`, !!cua && !m.solid[cua.y * m.w + cua.x],
       JSON.stringify(cua));
+    // Ô không có nền phải bị chặn, không thì người chơi bước thẳng ra khoảng
+    // đen ngoài nhà — và cửa ra cũng bị đặt ra giữa chỗ trống đó.
+    const nen = MAPS[d.id].layers[0];
+    const hong = [];
+    for (let i = 0; i < nen.length; i++) {
+      if (!m.solid[i] && MAPS[d.id].layers.every(l => l[i] < 0)) hong.push(i);
+    }
+    ok(`${d.id} không có ô trống nào đi được`, hong.length === 0,
+      `${hong.length} ô`);
 
     // Vào rồi phải đứng trong nhà và đi tới được cửa, không thì vào xong là kẹt
     const [cho, err] = DD.vaoDiaDiem(d.id, { map: 'taba_town', x: 30, y: 20 });

@@ -88,21 +88,21 @@ rời, lấy từ **[OpenGameArt/LiberatedPixelCup](https://github.com/OpenGameA
 
 | Lấy gì | Vào đâu |
 |---|---|
-| 4 dáng người × 6 màu da, tai, mũi, mắt, biểu cảm, tóc, râu | `assets/lpc/` |
+| 2 dáng người (nam/nữ) × 6 màu da, tai, mũi, mắt, biểu cảm, tóc, râu | `assets/lpc/` |
 | 84 món quần áo chia 9 ô (áo, quần, giày, mũ, thắt lưng, bao tay, giáp vai, cổ, găng) | `assets/lpc/do/` |
 
 Khung gốc của LPC là 64×64, mỗi phần một tấm riêng. `tools/mklpc.py` cắt về
 đúng khuôn 3 cột × 4 hàng (32×64 mỗi khung) mà `js/engine/owsprite.js` đang
 dùng, rồi `js/engine/avatar.js` chồng các lớp lại thành một ảnh duy nhất.
-Tổng cộng **268 lớp, khoảng 0,6 MB** — chỉ chép đúng phần thật sự bày ra trong
+Tổng cộng **256 lớp, khoảng 0,6 MB** — chỉ chép đúng phần thật sự bày ra trong
 màn tạo nhân vật và tiệm quần áo.
 
 Vì là CC BY-SA / GPL nên phần asset nhân vật của game này cũng phải giữ nguyên
 giấy phép đó khi phát hành lại.
 
-## CraftPix — bốn địa điểm
+## CraftPix — ba địa điểm
 
-Bốn chỗ ghé thăm trong mục **Địa Điểm** dựng từ các pack top-down miễn phí của
+Ba chỗ ghé thăm trong mục **Địa Điểm** dựng từ các pack top-down miễn phí của
 **[CraftPix](https://craftpix.net/freebies/)** (ô 16×16, đúng cỡ ô của game):
 
 | Địa điểm | Pack |
@@ -110,7 +110,6 @@ Bốn chỗ ghé thăm trong mục **Địa Điểm** dựng từ các pack top-
 | Nhà Nguyện | Chapel Pixel Art Top Down Asset Pack |
 | Sảnh Bang Hội | Top Down Pixel Art Guild Hall Asset Pack |
 | Đền Đổ Nát | Ruined Temple Top Down Location Pixel Art |
-| Nhà Riêng | Main Character's Home Free Top Down Pixel Art Asset |
 
 **Giấy phép khác hẳn phần còn lại — đọc kỹ.** CraftPix cho dùng tệp miễn phí
 trong game, kể cả game bán tiền, không bắt ghi công (ghi thì họ cảm ơn), NHƯNG
@@ -121,14 +120,18 @@ Nên trong kho này:
 
 - **không có tệp gốc nào của pack** — muốn dựng lại thì tự tải pack về máy
 - chỉ có **atlas đã nướng của từng bản đồ** (`assets/maps/nha_nguyen.png`,
-  `sanh_bang.png`, `den_do_nat.png`, `nha_rieng.png`): mỗi tệp chỉ gom đúng
-  những ô bản đồ đó thật sự dùng, xếp lại theo thứ tự khác, là một phần của
-  game chứ không còn là bộ asset
+  `sanh_bang.png`, `den_do_nat.png`): mỗi tệp chỉ gom đúng những ô bản đồ đó
+  thật sự dùng, xếp lại theo thứ tự khác, là một phần của game chứ không còn
+  là bộ asset
 
 Ai fork kho này thì **đừng nhặt riêng mấy tệp atlas đó ra bán lại** — phần này
 KHÔNG phải CC BY-SA như art của Tuxemon.
 
-Pack *Free Pixel Art Plants For Farm* đã tải về nhưng chưa dùng tới.
+Hai pack tải về nhưng **chưa dùng**: *Free Pixel Art Plants For Farm* (bộ cây
+trồng, không phải bản đồ) và *Main Character's Home* — bản đồ mẫu của pack đó
+xếp mấy mẫu phòng cạnh nhau trên cùng một khung, tường cụt ngang, cửa mở ra
+khoảng không; nhập thẳng vào game thì nhìn như chắp vá nên đã bỏ. Muốn dùng
+tileset của nó thì phải tự xếp từng ô như `tools/khudancu.py`.
 
 ## Của riêng dự án
 

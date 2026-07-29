@@ -1,7 +1,7 @@
 // TuxeWorld H5 | engine/diadiem.js | Ghé mấy địa điểm dựng từ pack CraftPix
 //
-// Bốn chỗ này (Nhà Nguyện, Sảnh Bang Hội, Đền Đổ Nát, Nhà Riêng) là bản đồ
-// rời, không nối vào lưới đường của thị trấn. Ghé bằng cách CẮM TẠM một cái
+// Ba chỗ này (Nhà Nguyện, Sảnh Bang Hội, Đền Đổ Nát) là bản đồ rời, không nối
+// vào lưới đường của thị trấn. Ghé bằng cách CẮM TẠM một cái
 // cổng đi ra ngay lúc bước vào — y như cách sang thăm nhà người khác bên
 // engine/visit.js — nên đi vào kiểu gì cũng có đường ra.
 //
@@ -16,8 +16,6 @@ export const DIA_DIEM = [
     mo: 'Đại sảnh của bang: bảng nhiệm vụ, cờ hiệu và bộ xương rồng giữa nhà.' },
   { id: 'den_do_nat', ten: 'Đền Đổ Nát',
     mo: 'Đền hoang giữa rừng, đá lở khắp nơi. Nghe đồn có thứ ngủ dưới đó.' },
-  { id: 'nha_rieng', ten: 'Nhà Riêng',
-    mo: 'Căn nhà gạch có bếp, bàn ăn và lò sưởi — yên tĩnh hơn nhà trọ.' },
 ];
 
 export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));
@@ -42,8 +40,8 @@ export function cuaRa(m) {
 /**
  * Chỗ đặt chân khi vừa vào: một ô KỀ ngay cửa, ưu tiên phía trong.
  *
- * Không dò thẳng lên theo cột: cửa nhà riêng có tường ngay phía trên, dò kiểu
- * đó thì trượt một mạch lên tận mép trên bản đồ, tức là đứng ngoài nhà.
+ * Không dò thẳng lên theo cột: có bản đồ ngay trên cửa là tường, dò kiểu đó
+ * thì trượt một mạch lên tận mép trên, tức là đứng ra ngoài nhà.
  */
 function choDung(m, cua) {
   const trong = (x, y) => x >= 0 && y >= 0 && x < m.w && y < m.h

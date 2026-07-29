@@ -9,8 +9,13 @@ Nguon: mua pack mien phi ben https://craftpix.net/freebies/ roi giai nen ra
   chapel        Chapel Pixel Art Top Down Asset Pack
   guild         Top Down Pixel Art Guild Hall Asset Pack
   temple        Ruined Temple Top Down Location Pixel Art
-  home          Main Character's Home Free Top Down Pixel Art Asset
-  farm          Free Pixel Art Plants For Farm
+
+KHONG PHAI TMX NAO CUNG DUNG DUOC
+Vai pack ve san mot canh DEMO chu khong phai mot can phong choi duoc: pack
+"Main Character's Home" xep may mau phong canh nhau tren cung mot khung, tuong
+cut ngang, cua mo ra khoang khong. Nhap thang vao game thi nhin nhu chap va
+tung manh, nen bo. Muon dung tileset cua pack do thi phai TU XEP tung o nhu
+tools/khudancu.py dang lam.
 
 GIAY PHEP — DOC KY
 CraftPix cho dung tep mien phi trong game (ke ca game ban tien), khong bat ghi
@@ -149,6 +154,14 @@ def doc_tmx(path):
         for i, g in enumerate(o):
             if g:
                 solid[i] = 1
+    # O NAO KHONG CO NEN THI CHAN LUON. Khong lam thi khoang trong quanh can
+    # phong (ban do cua pack khong lat het khung) tinh la di duoc: nguoi choi
+    # buoc thang ra vung den ngoai nha, va tham chi cai cua ra cung bi dat ra
+    # giua cho khong co gi vi no la "o di duoc thap nhat".
+    if nen:
+        for i in range(w * h):
+            if not any(l[i] for l in nen):
+                solid[i] = 1
     layers = nen + ([tren] if any(tren) else [])
     if not layers:
         layers = [[0] * (w * h)]
@@ -199,8 +212,6 @@ CAC_MAP = [
      'Tiled_files/Interior_1st_floor.tmx', 'town'),
     ('den_do_nat', 'Đền Đổ Nát', 'temple',
      'Tiled_files/Ruined_temple_interior.tmx', 'arena'),
-    ('nha_rieng', 'Nhà Riêng', 'home',
-     'Tiled_files/Interior1.tmx', 'town'),
 ]
 
 

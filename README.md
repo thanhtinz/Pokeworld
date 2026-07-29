@@ -60,9 +60,9 @@ python3 tools/mktmx.py /tmp/Tuxemon        # bản đồ, NPC, cổng, bảng g�
                                            # nạp các pack CraftPix thành địa
                                            # điểm mới (tools/craftpix.py):
                                            #   python3 tools/mktmx.py /tmp/Tuxemon /tmp/craftpix
-                                           # Giải nén 4 pack miễn phí bên
+                                           # Giải nén 3 pack miễn phí bên
                                            # craftpix.net/freebies vào
-                                           #   /tmp/craftpix/{chapel,guild,temple,home}/
+                                           #   /tmp/craftpix/{chapel,guild,temple}/
                                            # Thiếu thư mục đó thì bỏ qua mấy
                                            # địa điểm này, phần còn lại vẫn dựng
                                            # bình thường. CHỈ atlas đã nướng
