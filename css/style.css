@@ -2694,7 +2694,9 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   position: absolute; image-rendering: pixelated; max-width: none;
 }
 /* Thân người chỉ làm ma-nơ-canh: mờ đi cho món đồ nổi lên */
-.lop-o .lop-nen { opacity: .3; filter: grayscale(.55); }
+/* Thân người chỉ làm ma-nơ-canh nên phải mờ cho món đồ nổi lên, nhưng mờ quá
+   thì trên nền tối coi như biến mất, món đồ hoá ra lơ lửng giữa không trung. */
+.lop-o .lop-nen { opacity: .55; filter: grayscale(.35); }
 
 /* ==== Tạo nhân vật (ghép lớp LPC) ==== */
 .cc-wrap { gap: 10px; padding-bottom: 4px; }

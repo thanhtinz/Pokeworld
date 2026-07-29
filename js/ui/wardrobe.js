@@ -13,7 +13,7 @@
 // màu nằm trong thanh "đang thử" — bày cả 10 màu của 18 món thì thành 180 thẻ.
 import { G, save } from '../state.js';
 import * as AV from '../engine/avatar.js';
-import { DO, O_DO, DO_MAU } from '../data/nhanvat.js';
+import { DO, O_DO } from '../data/nhanvat.js';
 import { owFrame, owReady } from '../engine/owsprite.js';
 import { esc, tien, tienChu } from '../util.js';
 import { toast, header } from './kit.js';
@@ -39,6 +39,16 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
   const mauCoTrongTu = (id) => {
     const co = AV.tuDo();
     return AV.mauCoCua(id).filter(m => co.includes(AV.khoaDo(id, m.id)));
+  };
+
+  // Màu bày trên thẻ. KHÔNG lấy màu đầu bảng (Đen): thẻ nền tối mà đồ cũng đen
+  // thì cả gian hàng nhìn như trống trơn. Xoay vòng theo vị trí món cho quầy
+  // hàng có màu có sắc, mà vẫn cố định chứ không đổi mỗi lần vẽ lại.
+  const mauBay = (d) => {
+    const ds = AV.mauCoCua(d.id);
+    if (ds.length < 2) return 'goc';
+    const i = DO.findIndex(x => x.id === d.id);
+    return ds[1 + (i % (ds.length - 1))].id;
   };
 
   function oHtml(d, khoaBay, dangMac2, coRoi) {
@@ -126,7 +136,7 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
             const cua = co.filter(k => AV.monCua(k)?.id === d.id);
             const khoaBay = (thu?.id === d.id && khoaThu())
               || (AV.monCua(mac[d.o])?.id === d.id ? mac[d.o] : null)
-              || cua[0] || AV.khoaDo(d.id, DO_MAU[0].id);
+              || cua[0] || AV.khoaDo(d.id, mauBay(d));
             return oHtml(d, khoaBay, mac[d.o] === khoaBay, cua.length > 0);
           }).join('')}</div>`
         : `<div class="card empty-note">${tiem
@@ -147,8 +157,10 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
       if (e.target.closest('.td-mua, .td-mac, .td-coi')) return;   // mấy nút kia lo phần việc riêng
       const id = b.dataset.thu;
       if (thu?.id === id) { thu = null; ve(); return; }
+      const d0 = DO.find(x => x.id === id);
       const dsm = tiem ? AV.mauCoCua(id) : mauCoTrongTu(id);
-      thu = { id, mau: dsm[0]?.id || 'goc' };
+      const bay = mauBay(d0);
+      thu = { id, mau: dsm.some(m => m.id === bay) ? bay : (dsm[0]?.id || 'goc') };
       ve();
     }));
     el.querySelector('.td-thoi')?.addEventListener('click', () => { thu = null; ve(); });
@@ -156,8 +168,9 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
     el.querySelectorAll('.td-mac').forEach(b => b.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = b.dataset.id;
+      const d0 = DO.find(x => x.id === id);
       const k = thu?.id === id ? khoaThu()
-        : (co.find(x => AV.monCua(x)?.id === id) || AV.khoaDo(id, DO_MAU[0].id));
+        : (co.find(x => AV.monCua(x)?.id === id) || AV.khoaDo(id, mauBay(d0)));
       const [okMac, err] = AV.mac(k);
       toast(err || okMac);
       if (!err) thu = null;
@@ -174,7 +187,7 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
       const d = DO.find(x => x.id === b.dataset.id);
       if (!d) return;
       if ((G.p.money || 0) < d.gia) { toast('Không đủ tiền.'); return; }
-      const k = thu?.id === d.id ? khoaThu() : AV.khoaDo(d.id, DO_MAU[0].id);
+      const k = thu?.id === d.id ? khoaThu() : AV.khoaDo(d.id, mauBay(d));
       G.p.money -= d.gia;
       AV.themDo(k);
       AV.mac(k);
