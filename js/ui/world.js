@@ -1035,6 +1035,14 @@ export function render(el) {
           thing.text || BANG_NOI[thing.name] || 'Không đọc được gì rõ ràng.']]);
         return;
       }
+      // Sảnh bạc: đứng trước máy/bàn nào thì mở đúng trò đó.
+      // interact() rẽ theo thing.TYPE, nên nhánh này phải nằm ở đây — nhét vào
+      // nhaDat() thì không bao giờ chạy tới vì type khác 'estate'.
+      if (thing.type === 'casino') {
+        cleanup();
+        show('casino', { tro: thing.tro, from: 'world' });
+        return;
+      }
       // Nhà đất: biển bán, lô của mình, công trường, cửa nhà, bác thợ mộc
       if (thing.type === 'estate') { await nhaDat(thing); return; }
       // Bang Đường: cửa hai khu, bục gọi boss, rương thưởng nhiệm vụ

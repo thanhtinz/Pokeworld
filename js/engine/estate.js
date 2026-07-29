@@ -16,6 +16,7 @@ import { BASE_BY_ID, FURN_BY_ID, HOUSE_BASES } from '../data/estate.js';
 import { PHONG_NHA } from '../data/phongtrong.js';
 import { MAPS } from '../data/maps.js';
 import { dangTham } from './visit.js';
+import { SANH as SANH_BAC, MAY_TAI } from '../data/casino.js';
 
 // Các lô đất nằm trong KHU DÂN CƯ — một bản đồ riêng, đi hết ngõ phía bắc Thị
 // Trấn Taba là tới. Toạ độ lô, chỗ bác thợ mộc đứng và bản thân bản đồ đều do
@@ -164,6 +165,12 @@ export function oCua() {
 // Trả về một "thing" giống NPC/bảng hiệu để js/engine/overworld.js dùng chung
 // một đường với mọi thứ khác.
 export function vatTheODay(mapId, x, y) {
+  // Sảnh bạc: đứng quay mặt vào máy/bàn nào thì bấm A ra đúng trò đó
+  if (mapId === SANH_BAC) {
+    const m = MAY_TAI(x, y);
+    if (m) return { type: 'casino', kind: 'may-bac', name: m.ten, tro: m.tro };
+    return null;
+  }
   // Đang là khách trong nhà người ta thì không đụng vào đồ của chủ nhà
   if (dangTham()) return null;
   // Trong nhà mình: đứng trước món nào thì bắt được món đó, để còn nằm/ngồi/ăn

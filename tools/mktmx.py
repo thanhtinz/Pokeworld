@@ -31,6 +31,7 @@ import xml.etree.ElementTree as ET
 CRAFTPIX_DIR = '/tmp/craftpix'
 
 import bangduong
+import casino
 import craftpix
 import khudancu
 import phongtrong
@@ -1062,6 +1063,16 @@ def main():
         cp['layers'] = [conv4(l) for l in cp['layers']]
         cp.pop('thieu', None)
         out_maps[slug] = cp
+        want.append(slug)
+
+    # Sanh bac: tu xep tay tu tileset casino cua Jephed
+    for slug, cs in casino.them_vao(out_maps, CRAFTPIX_DIR).items():
+        remap5, cols5 = build_atlas(cs, 'assets/maps/%s.png' % slug)
+        conv5 = lambda lay, r=remap5: [r.get(g, -1) if g > 0 else -1 for g in lay]
+        cs['cols'] = cols5
+        cs['above'] = conv5(cs['above']) if cs['above'] else None
+        cs['layers'] = [conv5(l) for l in cs['layers']]
+        out_maps[slug] = cs
         want.append(slug)
 
     write_js(out_maps, want)

@@ -3235,7 +3235,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   const DD = await import('../js/engine/diadiem.js');
   const kho = new URL('../', import.meta.url).pathname;
   const co = DD.DIA_DIEM.filter(d => MAPS[d.id]);
-  ok('dựng được cả ba địa điểm từ pack', co.length === 3,
+  ok('dựng được cả bốn địa điểm', co.length === 4,
     DD.DIA_DIEM.filter(d => !MAPS[d.id]).map(d => d.id).join(' '));
 
   for (const d of co) {
@@ -3258,7 +3258,10 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     // Mỗi lớp đồ đạc của pack phải giữ RIÊNG một lớp. Gộp hết vào một lớp thì
     // hai lớp cùng đặt tile lên một ô là lớp sau đè mất lớp trước — tường bị
     // đồ trang trí đục thủng từng mảng, nhìn như cắt hỏng.
-    ok(`${d.id} giữ đủ lớp, không gộp dẹp`, MAPS[d.id].layers.length >= 5,
+    // Sảnh bạc tự xếp tay nên chỉ cần 2 lớp; mấy chỗ nhập từ TMX của pack thì
+    // phải giữ đủ lớp, gộp dẹp là tường bị đục thủng.
+    const toiThieu = d.id === 'sanh_bac' ? 2 : 5;
+    ok(`${d.id} giữ đủ lớp, không gộp dẹp`, MAPS[d.id].layers.length >= toiThieu,
       `${MAPS[d.id].layers.length} lớp`);
     // Và phải còn đủ chỗ mà đi: chặn quá tay thì thành phòng kín
     const diDuoc = (() => {
@@ -3597,6 +3600,33 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   })());
   ok('về nhất ăn đậm nhất, hạng ba tư mất trắng',
     TL.heTienLen(0) > TL.heTienLen(1) && TL.heTienLen(2) === 0 && TL.heTienLen(3) === 0);
+
+  // ---- Sảnh bạc trên bản đồ ----
+  const { MAY, SANH } = await import('../js/data/casino.js');
+  ok('sảnh bạc có trong bản đồ', !!MAPS[SANH]);
+  ok('trò nào cũng có ít nhất một máy trên sàn',
+    CS.TRO.every(t => MAY.some(m => m.tro === t.id)),
+    CS.TRO.filter(t => !MAY.some(m => m.tro === t.id)).map(t => t.id).join(' '));
+  {
+    const m = MAPS[SANH];
+    // Máy phải CHẶN đường (đứng đè lên máy thì bấm vào đâu) và phải có ít nhất
+    // một ô trống ngay cạnh để còn đứng mà bấm
+    const ke = (x, y) => [[0, 1], [0, -1], [1, 0], [-1, 0]]
+      .some(([dx, dy]) => {
+        const nx = x + dx, ny = y + dy;
+        return nx >= 0 && ny >= 0 && nx < m.w && ny < m.h && !m.solid[ny * m.w + nx];
+      });
+    ok('ô máy nào cũng chặn đường', MAY.every(o => m.solid[o.y * m.w + o.x]));
+    ok('máy nào cũng có chỗ đứng bên cạnh để bấm', MAY.every(o => ke(o.x, o.y)),
+      MAY.filter(o => !ke(o.x, o.y)).map(o => `${o.tro}@${o.x},${o.y}`).join(' '));
+    // engine/estate.js phải nhận ra đúng ô đó
+    ok('đứng trước máy thì bắt được đúng trò', MAY.every(o => {
+      const t = ES.vatTheODay(SANH, o.x, o.y);
+      return t && t.type === 'casino' && t.tro === o.tro;
+    }));
+    ok('ô sàn thường thì không bắt nhầm thành máy',
+      ES.vatTheODay(SANH, m.spawn.x, m.spawn.y) === null);
+  }
 
   // Không có đường nào nạp tiền thật vào sòng — chỉ tiêu vàng kiếm trong game
   ok('sòng bài không dính tới tiền thật', (() => {

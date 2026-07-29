@@ -63,6 +63,9 @@ python3 tools/mktmx.py /tmp/Tuxemon        # bản đồ, NPC, cổng, bảng g�
                                            # Giải nén 3 pack miễn phí bên
                                            # craftpix.net/freebies vào
                                            #   /tmp/craftpix/{chapel,guild,temple}/
+                                           # Tileset casino của Jephed thì để ở
+                                           #   /tmp/craftpix/casino/
+                                           # (tools/casino.py xếp tay Sảnh Bạc)
                                            # Thiếu thư mục đó thì bỏ qua mấy
                                            # địa điểm này, phần còn lại vẫn dựng
                                            # bình thường. CHỈ atlas đã nướng

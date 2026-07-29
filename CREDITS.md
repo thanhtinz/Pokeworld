@@ -133,21 +133,20 @@ xếp mấy mẫu phòng cạnh nhau trên cùng một khung, tường cụt nga
 khoảng không; nhập thẳng vào game thì nhìn như chắp vá nên đã bỏ. Muốn dùng
 tileset của nó thì phải tự xếp từng ô như `tools/khudancu.py`.
 
-## Sòng bài — asset chưa dùng
+## CraftPix / Jephed — Sảnh Bạc Kim Long
 
-Năm pack tải về cho phần sòng bài, hiện **chưa chép tệp nào vào kho**:
+Bản đồ sòng bài dựng từ **2D Top Down Pixel Art Tileset Casino** của
+**Jephed — Game Between The Lines**
+([gamebetweenthelines.com](https://gamebetweenthelines.com/)).
+`ReadMe.txt` của pack ghi rõ: miễn phí cho cả mục đích thương mại lẫn phi
+thương mại, ghi công thì tốt — chính là dòng này.
 
-| Pack | Tình trạng |
-|---|---|
-| 2D Top Down Pixel Art Tileset Casino — Jephed | để dựng bản đồ sòng bài, **chưa dựng** |
-| Pixel Fantasy Slot Machine / Playing Cards / Coin Flip / Icons Valentine's — Caz | **chưa dùng**, xem lý do dưới |
+`tools/casino.py` tự xếp từng ô (thảm, tường, máy quay, bàn) rồi nướng ra
+`assets/maps/sanh_bac.png`. Như mấy pack khác: **không chép tệp gốc của pack
+vào kho**, chỉ có atlas đã nướng gồm đúng những ô bản đồ này dùng.
 
-Tileset casino của **Jephed (Game Between The Lines,
-[gamebetweenthelines.com](https://gamebetweenthelines.com/))** ghi rõ trong
-`ReadMe.txt`: miễn phí cho cả mục đích thương mại lẫn phi thương mại, ghi công
-thì tốt. Dùng được, chỉ là chưa dựng bản đồ.
-
-Bốn pack **Pixel Fantasy của Caz** thì EULA nằm trong một tệp Google Docs mà ở
+Còn bốn pack **Pixel Fantasy của Caz** (máy quay, bài tây, coin flip, icon
+Valentine) vẫn **chưa dùng**. EULA nằm trong một tệp Google Docs mà ở
 đây mở không được. Caz có bộ miễn phí để CC BY 4.0, nhưng bộ trả tiền thì **cấm
 chia lại cho người chưa mua**. Không đọc được đúng điều khoản của mấy pack này
 thì không dám đẩy ảnh của họ lên một kho công khai — nên phần bài, xúc xắc, máy

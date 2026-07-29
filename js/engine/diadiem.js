@@ -1,6 +1,6 @@
 // TuxeWorld H5 | engine/diadiem.js | Ghé mấy địa điểm dựng từ pack CraftPix
 //
-// Ba chỗ này (Nhà Nguyện, Sảnh Bang Hội, Đền Đổ Nát) là bản đồ rời, không nối
+// Bốn chỗ này (Nhà Nguyện, Sảnh Bang Hội, Đền Đổ Nát, Sảnh Bạc) là bản đồ rời, không nối
 // vào lưới đường của thị trấn. Ghé bằng cách CẮM TẠM một cái
 // cổng đi ra ngay lúc bước vào — y như cách sang thăm nhà người khác bên
 // engine/visit.js — nên đi vào kiểu gì cũng có đường ra.
@@ -16,6 +16,8 @@ export const DIA_DIEM = [
     mo: 'Đại sảnh của bang: bảng nhiệm vụ, cờ hiệu và bộ xương rồng giữa nhà.' },
   { id: 'den_do_nat', ten: 'Đền Đổ Nát',
     mo: 'Đền hoang giữa rừng, đá lở khắp nơi. Nghe đồn có thứ ngủ dưới đó.' },
+  { id: 'sanh_bac', ten: 'Sảnh Bạc Kim Long',
+    mo: 'Máy quay, bàn xì dách, bàn tiến lên. Đứng trước máy nào bấm A chơi máy đó.' },
 ];
 
 export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));
