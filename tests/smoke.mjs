@@ -2062,6 +2062,29 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         !congP.some(a => cong.some(b => a.x === b.x && a.y === b.y)));
       ok('Phố Kim Long có đường về thị trấn',
         (MAPS.khu_pho.warps || []).some(w => w.to === 'taba_town'));
+      // ---- Hàng quán ngoài phố ----
+      // Quầy KHÔNG được làm thành vật thể riêng: NPC đứng đè lên ô đó thì
+      // facingThing() bắt trúng NPC chứ không trúng quầy, bấm A chỉ ra mỗi câu
+      // thoại. Nên gắn thẳng trường `mo` vào chính NPC — đường này engine đã
+      // có sẵn cho NPC làm việc.
+      const quay = (MAPS.khu_pho.npcs || []).filter(n => n.mo);
+      ok('phố có ít nhất hai hàng quán', quay.length >= 2, `${quay.length} quầy`);
+      ok('quầy nào cũng mở một màn có thật',
+        quay.every(n => ['shop', 'craft', 'daycare', 'gifts', 'wardrobe'].includes(n.mo)),
+        quay.map(n => `${n.name}:${n.mo}`).join(' '));
+      ok('quầy nào cũng đứng trên ô đi được',
+        quay.every(n => !MAPS.khu_pho.solid[n.y * MAPS.khu_pho.w + n.x]));
+      ok('quầy nào cũng có chỗ đứng trước mặt để bấm',
+        quay.every(n => !MAPS.khu_pho.solid[(n.y + 1) * MAPS.khu_pho.w + n.x]),
+        quay.filter(n => MAPS.khu_pho.solid[(n.y + 1) * MAPS.khu_pho.w + n.x])
+          .map(n => n.name).join(' '));
+      ok('quầy nào cũng có lời chào và sprite',
+        quay.every(n => n.name && n.lines?.length && n.sprite));
+      ok('không hai quầy nào đứng chồng ô',
+        new Set(quay.map(n => `${n.x},${n.y}`)).size === quay.length);
+      // Phố phải có người, không thì đi vào thấy trống hoác
+      ok('phố có đủ người qua lại', (MAPS.khu_pho.npcs || []).length >= 5,
+        `${(MAPS.khu_pho.npcs || []).length} người`);
     }
 
     // Địa hình phân biệt được: phải có mặt nước, và phải có tường bao quanh

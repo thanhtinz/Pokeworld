@@ -65,7 +65,21 @@ TOA = [
     ('den_do_nat', 22, 8, 'Đền Đổ Nát', 'go_sang'),
 ]
 PHO = 10                          # hang mat pho chay ngang
-CONG = (13, H - 1)                # cong ra Khu Dan Cu, o canh duoi
+CONG = (13, H - 1)                # cong ra thi tran, o canh duoi
+
+# ==== Hang quan doc pho ====
+# Khong dung he thong moi: moi quay la mot NPC dung mot o co dinh, mang san
+# truong `mo` — engine da co san duong "NPC lam viec: noi xong thi mo dung man
+# hinh cua viec do" (xem js/ui/world.js). Dung dat quay thanh vat the rieng:
+# NPC dung de len o do thi facingThing() bat trung NPC chu khong trung quay,
+# bam A chi ra moi cau thoai — y het loi may cai may trong song bai.
+#   (ma, x, y, ten, sprite, man mo ra, loi chao)
+QUAY = [
+    ('tap_hoa', 7, 12, 'Chú Tạp Hoá', 'ceo', 'shop',
+     'Thuốc men, bóng bắt, đồ lặt vặt — thiếu gì tôi cũng có.'),
+    ('lo_ren', 19, 12, 'Bác Thợ Rèn', 'brute', 'craft',
+     'Mang nguyên liệu lại đây, tôi rèn cho.'),
+]
 
 
 def bac_them(cx, cy):
@@ -220,12 +234,28 @@ def dung(root, tsx_cache, load_tsx):
                               'text': '%s — bước vào ô cửa là tới nơi.' % ten})
                 break
 
+    for ma, qx, qy, ten, _sp, _man, _loi in QUAY:
+        don(qx, qy)
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            don(qx + dx, qy + dy)
+        if qy - 1 >= 0 and not solid[idx(qx, qy - 1)]:
+            talks.append({'x': qx, 'y': qy - 1, 'name': 'Biển %s' % ten,
+                          'text': '%s — đứng trước mặt bấm A.' % ten})
+
     npcs = [
         {'x': 13, 'y': PHO + 1, 'dir': 'down', 'sprite': 'ceo', 'name': 'Ông Quản Phố',
          'lines': ['Phố này bốn nhà bốn nghề. Cứ đi vào cửa nào cũng được.'],
          'ai': 'stand'},
         {'x': 20, 'y': PHO, 'dir': 'left', 'sprite': 'catgirl', 'name': 'Cô Bán Dạo',
          'lines': ['Sòng bài ở kia kìa. Đánh vừa thôi nhé.'], 'ai': 'wander'},
+        {'x': 4, 'y': PHO + 1, 'dir': 'right', 'sprite': 'granny', 'name': 'Bà Cụ Bán Trầu',
+         'lines': ['Ngồi đây cả ngày, ai qua ai lại bà đều biết.'], 'ai': 'stand'},
+        {'x': 25, 'y': PHO + 1, 'dir': 'up', 'sprite': 'childactor', 'name': 'Thằng Cu Tí',
+         'lines': ['Cháu đang đợi mẹ ra khỏi nhà nguyện!'], 'ai': 'wander'},
+    ] + [
+        {'x': qx, 'y': qy, 'dir': 'down', 'sprite': sp, 'name': ten,
+         'lines': [loi], 'ai': 'stand', 'mo': man}
+        for _ma, qx, qy, ten, sp, man, loi in QUAY
     ]
     npcs = [n for n in npcs if not solid[idx(n['x'], n['y'])]]
 
