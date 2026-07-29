@@ -26,13 +26,14 @@ import { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, SUC_CHUA_GOC } from '../data/nongtrai.js';
 import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG, VUNG_THU,
-  CHUONG, NHA_KHO, NHA_BEP, BIEN, KHU_TRONG, O_RUONG,
-  O_TOI_DA } from '../data/nongtraimap.js';
+  CHUONG, NHA_KHO, NHA_BEP, NGUOI_BAN, KHU_TRONG, O_RUONG,
+  O_TOI_DA, RAO_NGOAI } from '../data/nongtraimap.js';
 
 export { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG, VUNG_THU,
-  CHUONG, NHA_KHO, NHA_BEP, BIEN, KHU_TRONG, O_RUONG, O_TOI_DA };
+  CHUONG, NHA_KHO, NHA_BEP, NGUOI_BAN, KHU_TRONG, O_RUONG, O_TOI_DA,
+  RAO_NGOAI };
 
 const PHUT = 60000;
 export const CHIN = GIAI_DOAN - 1;      // giai đoạn cuối là lúc chín
@@ -50,6 +51,9 @@ export function nt() {
   if (!n.kho || typeof n.kho !== 'object') n.kho = {};
   if (!Array.isArray(n.don)) n.don = [];
   if (typeof n.diem !== 'number') n.diem = 0;
+  // Bản lưu cũ chưa có mục thú canh. Bản lưu giữa đường có thể cất một cái mã
+  // trỏ vào đội thay vì cả con — mã đó vô nghĩa rồi, dọn đi.
+  if (n.canh && !n.canh.sp) n.canh = null;
   if (typeof n.donLuc !== 'number') n.donLuc = 0;
   // Bản lưu cũ có thể lẫn mã không còn tồn tại — bỏ đi còn hơn vẽ ra ô trống
   n.o = n.o.filter(o => VAT_BY_ID[o.id]);
@@ -232,19 +236,22 @@ export const thuTaiO = (x, y) => nt().thu.find(t => t.x === x && t.y === y) || n
  * chỗ thả là chuyện đã định trước — không còn phải dò xem người chơi đã kê cái
  * chuồng ở đâu, cũng không còn cảnh cả đàn bị dồn vào mấy ô kẹt giữa đường.
  */
-export function choTrongCho() {
+export function choTrongCho(id = null) {
   const co_ = (x, y) => !CAM.has(`${x},${y}`) && !oTaiO(x, y) && !thuTaiO(x, y);
-  const gx = Math.floor((VUNG_THU.x0 + VUNG_THU.x1) / 2);
-  const gy = Math.floor((VUNG_THU.y0 + VUNG_THU.y1) / 2);
-  const rMax = Math.max(VUNG_THU.x1 - VUNG_THU.x0, VUNG_THU.y1 - VUNG_THU.y0);
+  // Thú 4 chân thả vào chuồng; gia cầm thả ngay giữa chuồng luôn cho dễ tìm
+  // lần đầu, rồi nó tự đi ra.
+  const v = VUNG_THU;
+  const gx = Math.floor((v.x0 + v.x1) / 2);
+  const gy = Math.floor((v.y0 + v.y1) / 2);
+  const rMax = Math.max(v.x1 - v.x0, v.y1 - v.y0);
+  void id;
   for (let r = 0; r <= rMax; r++) {
     for (let dy = -r; dy <= r; dy++) {
       for (let dx = -r; dx <= r; dx++) {
         if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
         const x = gx + dx;
         const y = gy + dy;
-        if (x < VUNG_THU.x0 || x > VUNG_THU.x1) continue;
-        if (y < VUNG_THU.y0 || y > VUNG_THU.y1) continue;
+        if (x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1) continue;
         if (co_(x, y)) return { x, y };
       }
     }
@@ -274,20 +281,34 @@ export function muaThu(id, x, y) {
 // mặt lại cho dễ bấm.
 const TOC_THU = 0.85;        // ô mỗi giây — chậm hơn hẳn người chơi
 const CHO_THU = 2.2;         // giây giữa hai lần nghĩ tới chuyện bước đi
-const XA_THU = 4;            // đi xa nhất bấy nhiêu ô so với chỗ được thả
+const XA_THU = 4;            // thú 4 chân đi xa nhất bấy nhiêu ô so với chỗ thả
+const XA_GIA_CAM = 14;       // gia cầm thả rông thì đi xa hơn hẳn
+const xaDuoc = (con) => (THU_BY_ID[con?.id]?.chan === 2 ? XA_GIA_CAM : XA_THU);
 const GAN_THU = 2;           // người chơi trong bấy nhiêu ô thì quay mặt lại
 const HUONG = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];
 
 /**
- * Con vật bước được sang ô này không.
+ * Vùng đi lại của một con, theo SỐ CHÂN.
  *
- * Giới hạn là LÒNG CHUỒNG, không phải cả nông trại: chuồng đã quây rào kín thì
- * con vật lang ra tận ngoài ruộng là vô lý, mà tìm con để thu sản phẩm cũng
- * thành đi soi khắp bản đồ.
+ * Gia cầm (2 chân) thả rông khắp nông trại — gà vịt vốn là thứ đi lang quang
+ * khắp sân, nhốt vào chuồng thì vô lý. Thú 4 chân thì chỉ trong lòng chuồng: bò
+ * dê lợn lang ra ruộng là phá hết, mà tìm con để vắt sữa cũng thành đi soi cả
+ * bản đồ.
  */
-export function thuDiDuoc(x, y, boQua = null) {
-  if (x < VUNG_THU.x0 || x > VUNG_THU.x1) return false;
-  if (y < VUNG_THU.y0 || y > VUNG_THU.y1) return false;
+export function vungCuaThu(con) {
+  const t = THU_BY_ID[con?.id];
+  if (t && t.chan === 2) return VUNG;
+  return VUNG_THU;
+}
+
+/**
+ * Con vật bước được sang ô này không. `con` để biết nó được đi trong vùng nào —
+ * không truyền thì lấy vùng rộng nhất (cả nông trại).
+ */
+export function thuDiDuoc(x, y, boQua = null, con = boQua) {
+  const v = vungCuaThu(con);
+  if (x < v.x0 || x > v.x1) return false;
+  if (y < v.y0 || y > v.y1) return false;
   if (CAM.has(`${x},${y}`)) return false;
   if (oTaiO(x, y)) return false;                  // không giẫm lên ruộng với máy
   // Phải tránh cả con ĐANG ĐI TỚI ô đó, không thì hai con cùng nhắm một ô rồi
@@ -341,7 +362,7 @@ export function diChuyenThu(dt, nx = null, ny = null, rnd = Math.random) {
     const ty = t.y + dy;
     t.dir = dir;
     const xa = Math.abs(tx - t.goc.x) + Math.abs(ty - t.goc.y);
-    if (xa > XA_THU || !thuDiDuoc(tx, ty, t)) {
+    if (xa > xaDuoc(t) || !thuDiDuoc(tx, ty, t)) {
       // Hướng đó bị chặn thì nghĩ lại NHANH thôi, không thì con nào bị kẹp
       // giữa mấy con khác cứ đứng đơ cả buổi
       t.cho = 0.3 + rnd() * 0.5;
@@ -695,6 +716,7 @@ export const tomTat = () => {
     kho: Object.values(n.kho).reduce((a, v) => a + v, 0),
     don: n.don.length,
     diem: n.diem,
+    capCanh: n.canh?.lv || 0,   // máy chủ tính tỉ lệ bị cướp theo cấp con canh
   };
 };
 
@@ -739,19 +761,74 @@ export function chuDongHo(ms) {
   return gio ? `${gio}:${hai(p)}:${hai(gy)}` : `${p}:${hai(gy)}`;
 }
 
+// ==== Thú canh nông trại ====
+//
+// Bộ asset của pack KHÔNG có con chó nào (chỉ có gia súc với mấy con slime), nên
+// thay vì vẽ tay một con chó lệch hẳn phong cách, việc canh nông trại giao cho
+// chính TUXEMON của người chơi. Cắt một con ra đứng canh: nó không đánh nhau
+// được trong lúc đó, nhưng làm giảm tỉ lệ bị người khác cướp nông sản.
+//
+// Con càng khoẻ thì canh càng chắc — lấy theo CẤP, vì cấp là thứ người chơi vun
+// vào chứ không phải thứ bốc được.
+export const CUOP_GOC = 0.75;        // chưa có thú canh thì cướp gần như chắc ăn
+export const CUOP_SAN = 0.20;        // canh giỏi nhất cũng chỉ chặn xuống mức này
+
+/**
+ * Con đang canh. null nếu chưa cắt con nào.
+ *
+ * Cất HẲN con vật ở đây chứ không cất một cái mã trỏ vào đội, giống hệt cách
+ * nhà trẻ giữ con (engine/daycare.js): Tuxemon trong bản này không có mã riêng
+ * nào cả, mà đội thì xếp lại được — trỏ theo ô là canh xong đổi đội một cái là
+ * trỏ sang con khác.
+ */
+export const thuCanh = () => nt().canh || null;
+
+/** Tỉ lệ một lần cướp thành công, đã tính thú canh. */
+export function tiLeBiCuop(capCanh = 0) {
+  if (!capCanh) return CUOP_GOC;
+  const giam = Math.min(CUOP_GOC - CUOP_SAN, 0.011 * capCanh);
+  return Math.max(CUOP_SAN, CUOP_GOC - giam);
+}
+
+/** Cắt con ở ô `slot` trong đội ra canh nông trại. Trả [con, lỗi]. */
+export function catThuCanh(slot) {
+  const n = nt();
+  const doi = G.p?.party || [];
+  const con = doi[slot];
+  if (!con) return [null, 'Không có con nào ở ô đó.'];
+  // Đang có con canh thì con đó về đội, nên vẫn còn con để đi đường — ĐỔI con
+  // canh khác hẳn với việc cắt nốt con cuối cùng.
+  const veLai = n.canh ? 1 : 0;
+  if (doi.length + veLai <= 1) {
+    return [null, 'Chỉ còn một con trong đội — cắt đi thì đánh nhau bằng gì.'];
+  }
+  // Cho con canh cũ về đội TRƯỚC, không thì nó bốc hơi
+  if (n.canh) doi.push(n.canh);
+  doi.splice(slot, 1);
+  n.canh = con;
+  save();
+  return [con, null];
+}
+
+/** Gọi con canh về đội. Trả [con, lỗi]. */
+export function goiThuCanhVe() {
+  const n = nt();
+  if (!n.canh) return [null, 'Chưa cắt con nào canh cả.'];
+  const cu = n.canh;
+  n.canh = null;
+  (G.p.party ||= []).push(cu);
+  save();
+  return [cu, null];
+}
+
 // ==== Vật thể trên bản đồ mà nút hành động bắt được ====
 // Trả về một "thing" giống NPC/biển hiệu để js/engine/overworld.js dùng chung
 // một đường với mọi thứ khác.
-const BIEN_BY_O = Object.fromEntries(BIEN.map(b => [`${b.x},${b.y}`, b]));
-
 /** Toạ độ nằm trong một toà nhà cố định (nhà kho / nhà bếp)? */
 const trongNha = (n, x, y) => x >= n.x && x < n.x + n.w && y >= n.y && y < n.y + n.h;
 
 export function vatNongTrai(mapId, x, y) {
   if (mapId !== NONG_TRAI_MAP) return null;
-  // Biển MUA cắm dưới lối đi: bấm ra bảng chọn ngay trên bản đồ
-  const bien = BIEN_BY_O[`${x},${y}`];
-  if (bien) return { type: 'nongtrai', kind: 'bien', name: bien.ten, ma: bien.ma };
   // Hai toà nhà cố định — bấm vào chỗ nào của nhà cũng vào được, khỏi phải dò
   // đúng một ô cửa trên cái mặt tiền rộng tám ô
   if (trongNha(NHA_KHO, x, y)) {

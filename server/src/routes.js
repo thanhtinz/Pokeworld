@@ -12,6 +12,7 @@ import { guildRouter, guildOf } from './guild.js';
 import { onlineList } from './hub.js';
 import { chatRouter } from './chat.js';
 import { homeRouter } from './homes.js';
+import { farmRouter } from './farms.js';
 import { giftRouter } from './gifts.js';
 import { bossRouter, datHookDanhBoss } from './boss.js';
 import { ghiCong } from './guildquest.js';
@@ -29,6 +30,7 @@ router.use('/guild', guildRouter);
 router.use('/chat', chatRouter);
 // Thăm nhà bạn + tường nhà
 router.use('/home', homeRouter);
+router.use('/farm', farmRouter);
 // Quà tặng + điểm thân mật
 router.use('/gift', giftRouter);
 // Boss thế giới + boss từng khu. Đánh xong thì ghi công vào nhiệm vụ tuần của

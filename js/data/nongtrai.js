@@ -29,15 +29,18 @@ export const CAY_BY_ID = Object.fromEntries(CAY.map(c => [c.id, c]));
 
 // Con vật. `phut` = bao lâu ra một lứa sản phẩm, `an` = mỗi lứa ăn
 // mấy bó cỏ khô. Không cho ăn thì đứng không, chẳng ra gì cả.
+//
+// `chan` = số chân, và nó quyết định con đó đi lại ở đâu: 2 chân
+// (gà, gà tây) thả rông khắp nông trại, 4 chân thì chỉ trong chuồng.
 export const THU = [
-  { id: "ga", name: "Gà Mái", o: 16, sanPham: "trung_trang", gia: 1200, phut: 8, an: 1 },
-  { id: "ga_nau", name: "Gà Nâu", o: 16, sanPham: "trung_nau", gia: 1800, phut: 10, an: 1 },
-  { id: "tho", name: "Thỏ", o: 17, sanPham: "len_trang", gia: 2600, phut: 14, an: 1 },
-  { id: "cuu", name: "Cừu", o: 17, sanPham: "len_xam", gia: 4200, phut: 18, an: 1 },
-  { id: "de", name: "Dê", o: 19, sanPham: "sua_de", gia: 6000, phut: 22, an: 1 },
-  { id: "lon", name: "Lợn", o: 20, sanPham: "thit_xong_khoi", gia: 8500, phut: 28, an: 1 },
-  { id: "ga_tay", name: "Gà Tây", o: 17, sanPham: "long_ga_tay", gia: 11000, phut: 34, an: 1 },
-  { id: "bo", name: "Bò Sữa", o: 24, sanPham: "sua_bo", gia: 16000, phut: 40, an: 1 },
+  { id: "ga", name: "Gà Mái", o: 16, sanPham: "trung_trang", gia: 1200, phut: 8, an: 1, chan: 2 },
+  { id: "ga_nau", name: "Gà Nâu", o: 16, sanPham: "trung_nau", gia: 1800, phut: 10, an: 1, chan: 2 },
+  { id: "tho", name: "Thỏ", o: 17, sanPham: "len_trang", gia: 2600, phut: 14, an: 1, chan: 4 },
+  { id: "cuu", name: "Cừu", o: 17, sanPham: "len_xam", gia: 4200, phut: 18, an: 1, chan: 4 },
+  { id: "de", name: "Dê", o: 19, sanPham: "sua_de", gia: 6000, phut: 22, an: 1, chan: 4 },
+  { id: "lon", name: "Lợn", o: 20, sanPham: "thit_xong_khoi", gia: 8500, phut: 28, an: 1, chan: 4 },
+  { id: "ga_tay", name: "Gà Tây", o: 17, sanPham: "long_ga_tay", gia: 11000, phut: 34, an: 1, chan: 2 },
+  { id: "bo", name: "Bò Sữa", o: 24, sanPham: "sua_bo", gia: 16000, phut: 40, an: 1, chan: 4 },
 ];
 
 export const THU_BY_ID = Object.fromEntries(THU.map(t => [t.id, t]));

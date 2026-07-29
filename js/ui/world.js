@@ -2,7 +2,11 @@
 import { G, save } from '../state.js';
 import * as CAU from '../engine/cauca.js';
 import { ANH_BONG, BONG_KHUNG, BONG_NHIP } from '../data/ca.js';
-import { NHA_KHO, NHA_BEP, BIEN } from '../data/nongtraimap.js';
+import { NHA_KHO, NHA_BEP, CONG_RA } from '../data/nongtraimap.js';
+
+// Chỗ thú canh đứng: ngay cạnh ô đặt chân, nên ai vào nông trại cũng gặp nó
+// trước tiên.
+const CHO_CANH = { x: CONG_RA.x + 2, y: CONG_RA.y };
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
@@ -46,7 +50,7 @@ import * as AV from '../engine/avatar.js';
 import * as NT from '../engine/nongtrai.js';
 import { anhCay, anhThu as anhConThu, anhNha as anhNhaNT, anhMay, anhDat,
   NHIP_MAY } from '../data/nongtrai.js';
-import { esc, tien, tienChu } from '../util.js';
+import { esc, tien, tienChu, monPath } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
 import { show, drawTopBar } from '../main.js';
@@ -401,12 +405,27 @@ export function render(el) {
       ctx.restore();
     }
 
+    // Thú canh: đứng ngay chỗ đặt chân, tức là ai vào nông trại cũng gặp nó
+    // trước. Pack không có con chó nào nên việc canh giao cho chính Tuxemon của
+    // người chơi — sprite thì đã có sẵn, mà cũng hợp game hơn một con chó lạc.
+    {
+      const c = NT.thuCanh();
+      if (c) {
+        const im = ntAnh(monPath(c.sp));
+        if (owReady(im)) {
+          const cao = size * 1.4;
+          ctx.drawImage(im, Math.round(CHO_CANH.x * size - camX - (cao - size) / 2),
+            Math.round((CHO_CANH.y + 1) * size - camY - cao),
+            Math.round(cao), Math.round(cao));
+        }
+      }
+    }
+
     // Bảng tên + mũi tên vàng trên mọi chỗ bấm được. Vẽ CUỐI để nằm trên hết,
     // không thì cái mặt tiền cao bảy ô của nhà bếp che mất bảng của chính nó.
     for (const [ten, n] of [['Nhà Kho', NHA_KHO], ['Nhà Bếp', NHA_BEP]]) {
       veBangTen(ten, n.x + n.w / 2, n.y + n.h, size, camX, camY);
     }
-    for (const b of BIEN) veBangTen(b.ten, b.x + 0.5, b.y, size, camX, camY);
     // Ô đất kế tiếp: cắm đúng MỘT cái biển bán kèm giá. Hiện cả 50 cái một lần
     // thì khu trồng thành một bãi biển bán, mà người mới cũng không biết mua ô nào.
     const oBan = NT.oDangBan();
@@ -416,6 +435,9 @@ export function render(el) {
       // tienChu() là chuỗi chữ thuần.
       veChip(tienChu(oBan.gia), oBan.x + 0.5, oBan.y - 0.55, size, camX, camY,
         'rgba(20,18,30,0.82)');
+    }
+    if (NT.thuCanh()) {
+      veBangTen('Thú Canh', CHO_CANH.x + 0.5, CHO_CANH.y, size, camX, camY);
     }
     const nhaMinh = ES.nhaTrenBanDo(NT.NONG_TRAI_MAP);
     if (nhaMinh) {
@@ -1324,13 +1346,15 @@ export function render(el) {
   }
 
   /**
-   * Ba cái biển MUA cắm dưới lối đi. Bấm vào là ra bảng chọn NGAY TRÊN BẢN ĐỒ:
-   * mua hạt thì đứng cạnh ruộng mà mua, mua thú thì đứng cạnh chuồng — khỏi mở
-   * panel rồi lại đi tìm xem mình đang ở đâu.
+   * Người bán hàng đứng dưới lối đi, đối diện khu của mình. Nói chuyện là ra
+   * bảng chọn NGAY TRÊN BẢN ĐỒ: mua hạt thì đứng cạnh ruộng mà mua, mua thú thì
+   * đứng cạnh chuồng — khỏi mở panel rồi lại đi tìm xem mình đang ở đâu.
+   *
+   * Trước đây mấy chỗ này chỉ là một cái cọc gỗ cắm biển. Bấm vào cái cọc để
+   * mua hạt thì lấy đâu ra người bán.
    */
-  async function bienMua(thing) {
-    if (thing.ma === 'can') { await chonCan({ name: 'Biển Cần Câu' }); return; }
-    if (thing.ma === 'hat') {
+  async function nguoiBan(thing) {
+    if (thing.banHang === 'hat') {
       const ds = NT.CAY;
       const i = await choose('Hạt Giống', ds.map(c => ({
         label: c.name,
@@ -1342,7 +1366,7 @@ export function render(el) {
       toast(err || `Mua một gói hạt ${ds[i].name}, trả ${tienChu(gia)}.`);
       return;
     }
-    if (thing.ma === 'thu') {
+    if (thing.banHang === 'thu') {
       const t = NT.tomTat();
       const ds = NT.THU;
       const i = await choose(`Con Vật (${t.thu}/${t.chua} chuồng)`, ds.map(a => ({
@@ -1373,7 +1397,7 @@ export function render(el) {
       show('craft', { from: 'world' });
       return;
     }
-    if (thing.kind === 'bien') { await bienMua(thing); return; }
+
     // Ô đất kế tiếp đang cắm biển bán: mua ngay tại chỗ nó
     if (thing.kind === 'o-ban') {
       const i = await choose(`Ô Đất Số ${thing.thu}/${NT.O_TOI_DA}`, [
@@ -1629,6 +1653,8 @@ export function render(el) {
       // Ông Lái Cá: bán cần, thu cá, mở sổ. Trước đây mấy việc này nằm trong
       // thẻ 'Câu' của panel câu cá — mà panel thì đứng ở đâu cũng bấm được.
       if (thing.laiCa) { await laiCa(who); return; }
+      // Người bán hạt giống / con vật đứng dưới lối đi, đối diện khu của mình
+      if (thing.banHang) { await nguoiBan(thing); return; }
       // NPC làm việc: nói xong thì mở đúng màn hình của việc đó (nhiệm vụ bang,
       // gọi Thủ Hộ...). Bản đồ tự sinh gắn sẵn trường 'mo' cho mấy NPC này.
       if (thing.mo) {

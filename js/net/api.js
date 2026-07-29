@@ -145,3 +145,10 @@ export const hitGuildBoss = (bossId, dmg) =>
 
 // ==== Nhà trọ chung ====
 export const fetchInn = () => call('/nhatro');
+
+// ==== Nông trại: thăm và cướp ====
+// Luật cướp nằm HẲN ở máy chủ (server/src/farms.js): kho của người bị cướp là
+// dữ liệu của người khác, để client tự tính thì ai sửa được client là vét sạch.
+export const fetchFarm = (username) => call(`/farm/${encodeURIComponent(username)}`);
+export const raidFarm = (username) => call(`/farm/${encodeURIComponent(username)}/cuop`, { method: 'POST' });
+export const fetchFarmLog = () => call('/farm/me/nhatky');

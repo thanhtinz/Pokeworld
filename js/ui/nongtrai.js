@@ -13,8 +13,11 @@
 import { G } from '../state.js';
 import * as NT from '../engine/nongtrai.js';
 import { anhHat, anhMon, anhThu, anhNha, anhMay, anhDat } from '../data/nongtrai.js';
-import { esc, tien, tienChu } from '../util.js';
-import { toast, header } from './kit.js';
+import { esc, tien, tienChu, monPath } from '../util.js';
+import { displayName as tenHien } from '../engine/monster.js';
+import { toast, header, choose, confirmDlg } from './kit.js';
+import { isOnlineMode } from '../net/config.js';
+import * as api from '../net/api.js';
 
 const anhVat = (id) => {
   const loai = NT.VAT_BY_ID[id]?.loai;
@@ -154,6 +157,92 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
       }).join('')}</div>`;
   }
 
+  // ==== Thẻ Canh Gác ====
+  //
+  // Gom cả ba việc liên quan tới chuyện bị cướp vào một chỗ: cắt con canh, xem
+  // nhật ký ai đã mò vào, và ghé nông trại người khác. Rải ra ba màn thì người
+  // chơi bị cướp xong chẳng biết vào đâu mà xử.
+  let nhatKy = null;          // null = chưa tải
+  let ntBan = null;           // nông trại vừa ghé
+
+  function veCanh() {
+    const c = NT.thuCanh();
+    const ti = Math.round(NT.tiLeBiCuop(c?.lv || 0) * 100);
+    const doi = (G.p?.party || []);
+    return `
+      <div class="card nt-canh">
+        <b>Thú canh nông trại</b>
+        ${c ? `<span class="nt-canh-con">
+            <img src="${esc(monPath(c.sp))}" alt="">
+            <span><b>${esc(tenHien({ sp: c.sp }))}</b><small>Lv.${c.lv}</small></span>
+          </span>`
+          : '<small>Chưa cắt con nào. Nông trại không có ai canh.</small>'}
+        <small>Tỉ lệ bị cướp mỗi lần có người mò vào: <b>${ti}%</b></small>
+        <span class="nt-donnut">
+          <button class="btn btn-sm btn-primary" id="nt-cat-canh">
+            ${c ? 'Đổi con khác' : 'Cắt một con ra canh'}</button>
+          ${c ? '<button class="btn btn-sm" id="nt-goi-canh">Gọi về đội</button>' : ''}
+        </span>
+        <small class="nt-dang">Con đang canh không đánh nhau được. Đội đang có
+          ${doi.length} con.</small>
+      </div>
+
+      <h3 class="nt-h3">Ai đã mò vào</h3>
+      ${!isOnlineMode()
+        ? '<div class="card empty-note">Chế độ Offline thì không ai vào được.</div>'
+        : nhatKy === null
+          ? '<div class="card empty-note">Đang tải...</div>'
+          : (nhatKy.length
+            ? `<div class="nt-luoi">${nhatKy.map(r => `<div class="card nt-don">
+                <b>${esc(r.ai)}</b>
+                <small>${r.duoc
+                  ? `lấy mất ${r.so} ${esc(NT.MON_BY_ID[r.mon]?.name || r.mon)}`
+                  : 'về không'}${r.coCanh ? ' · có thú canh' : ' · không ai canh'}</small>
+                <small class="nt-dang">${esc(khiNao(r.ts))}</small>
+              </div>`).join('')}</div>`
+            : '<div class="card empty-note">Chưa ai mò vào nông trại.</div>')}
+
+      <h3 class="nt-h3">Ghé nông trại người khác</h3>
+      <p class="nt-mo">Ghé xem rồi lấy bớt nông sản của họ. Nông trại nào có thú
+        canh thì khó ăn hơn hẳn, mà chủ nhà cũng luôn biết là bạn đã tới.</p>
+      ${!isOnlineMode()
+        ? '<div class="card empty-note">Cần chơi ở máy chủ online.</div>'
+        : `<div class="nt-hang">
+            <input id="nt-ten-ban" type="text" maxlength="20" placeholder="Tên người chơi">
+            <button class="btn btn-sm btn-primary" id="nt-ghe">Ghé</button>
+          </div>
+          ${ntBan ? theNongTraiBan(ntBan) : ''}`}`;
+  }
+
+  function theNongTraiBan(f) {
+    const cho = f.choCuopMs > 0;
+    return `<div class="card nt-don ${cho ? '' : 'du'}">
+      <b>${esc(f.username)}</b>
+      <small>${f.ruong} ô ruộng · ${f.thu} con · uy tín ${f.diem}</small>
+      <small>${f.canh
+        ? `Có <b>${esc(tenHien({ sp: f.canh.sp }))} Lv.${f.canh.lv}</b> canh`
+        : 'Không ai canh'} · lấy được ~<b>${Math.round(f.tiLeCuop * 100)}%</b></small>
+      <small>${f.coGi.length
+        ? `Trong kho: ${f.coGi.map(id => esc(NT.MON_BY_ID[id]?.name || id)).join(', ')}`
+        : 'Kho đang trống'}</small>
+      <span class="nt-donnut">
+        <button class="btn btn-sm btn-primary" id="nt-cuop"
+          ${f.laMinh || cho || !f.coGi.length ? 'disabled' : ''}>
+          ${f.laMinh ? 'Nông trại của bạn'
+            : cho ? `Chờ ${Math.ceil(f.choCuopMs / 3600000)} giờ`
+            : f.coGi.length ? 'Lấy bớt' : 'Chẳng có gì'}</button>
+      </span>
+    </div>`;
+  }
+
+  const khiNao = (ts) => {
+    const p = Math.floor((Date.now() - ts) / 60000);
+    if (p < 1) return 'vừa xong';
+    if (p < 60) return `${p} phút trước`;
+    if (p < 1440) return `${Math.floor(p / 60)} giờ trước`;
+    return `${Math.floor(p / 1440)} ngày trước`;
+  };
+
   // Một dòng gọn: nông trại đang có việc gì chờ tay người. Mọi thứ ở đây chạy
   // theo giờ THẬT nên quay lại mà phải đi soi từng ô thì mệt.
   function veViec() {
@@ -171,11 +260,14 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
       ${header('Nông Trại', from)}
       ${veViec()}
       <div class="nt-tab">
-        ${[['cho', 'Chợ'], ['don', 'Đơn Hàng'], ['kho', 'Kho']]
+        ${[['cho', 'Chợ'], ['don', 'Đơn Hàng'], ['kho', 'Kho'], ['canh', 'Canh Gác']]
           .map(([k, t]) => `<button type="button" class="seg-btn ${tab === k ? 'active' : ''}"
             data-tab="${k}">${t}</button>`).join('')}
       </div>
-      ${tab === 'cho' ? veCho() : tab === 'don' ? veDon() : veKho()}`;
+      ${tab === 'cho' ? veCho() : tab === 'don' ? veDon()
+        : tab === 'canh' ? veCanh() : veKho()}`;
+
+    if (tab === 'canh') nutCanh();
 
     el.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
       tab = b.dataset.tab; ve();
@@ -230,6 +322,58 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
       const t = NT.banHet();
       toast(t ? `Bán sạch kho, thu ${tienChu(t)}.` : 'Không có gì để bán.');
       ve();
+    });
+  }
+
+  // ==== Nút của thẻ Canh Gác ====
+  function nutCanh() {
+    if (tab === 'canh' && nhatKy === null && isOnlineMode()) {
+      api.fetchFarmLog().then(r => { nhatKy = r.nhatKy || []; ve(); })
+        .catch(() => { nhatKy = []; ve(); });
+    }
+    el.querySelector('#nt-cat-canh')?.addEventListener('click', async () => {
+      const doi = (G.p?.party || []);
+      if (doi.length <= 1) {
+        toast('Chỉ còn một con trong đội — cắt đi thì đánh nhau bằng gì.');
+        return;
+      }
+      const i = await choose('Cắt con nào ra canh', doi.map(m => ({
+        label: tenHien(m), sub: `Lv.${m.lv}` })).concat([{ label: 'Thôi' }]));
+      if (i < 0 || i >= doi.length) return;
+      const [con, err] = NT.catThuCanh(i);
+      toast(err || `${tenHien(con)} ra canh nông trại.`);
+      ve();
+    });
+    el.querySelector('#nt-goi-canh')?.addEventListener('click', () => {
+      const [, err] = NT.goiThuCanhVe();
+      toast(err || 'Đã gọi về đội. Nông trại không còn ai canh.');
+      ve();
+    });
+    el.querySelector('#nt-ghe')?.addEventListener('click', async () => {
+      const ten = el.querySelector('#nt-ten-ban')?.value.trim();
+      if (!ten) { toast('Nhập tên người chơi đã.'); return; }
+      try {
+        ntBan = await api.fetchFarm(ten);
+        ve();
+      } catch (e) { toast(e.message || 'Không xem được nông trại đó.'); }
+    });
+    el.querySelector('#nt-cuop')?.addEventListener('click', async () => {
+      if (!ntBan) return;
+      if (!await confirmDlg(`Lấy bớt nông sản của ${ntBan.username}? Chủ nhà sẽ biết.`,
+        'Lấy bớt')) return;
+      try {
+        const r = await api.raidFarm(ntBan.username);
+        if (r.rong) toast('Kho họ trống trơn, chẳng có gì mà lấy.');
+        else if (r.duoc) {
+          NT.them(r.mon, r.so);
+          toast(`Lấy được ${r.so} ${NT.MON_BY_ID[r.mon]?.name || r.mon}.`);
+        } else {
+          toast(r.canh ? 'Thú canh chặn được, về không.' : 'Không lấy được gì.');
+        }
+        ntBan = await api.fetchFarm(ntBan.username);
+        nhatKy = null;
+        ve();
+      } catch (e) { toast(e.message || 'Không lấy được.'); }
     });
   }
 

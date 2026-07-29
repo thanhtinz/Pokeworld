@@ -69,16 +69,22 @@ GIAI_DOAN = 6               # crops.png co 6 cot: gieo -> chin
 
 # ==== Con vat ====
 # (ma, ten, ten tep trong animals/, canh o, ma san pham, giá mua,
-#  số phút ra một lứa sản phẩm)
+#  số phút ra một lứa sản phẩm, số chân)
+#
+# SO CHAN quyet dinh con do di lai o dau:
+#   2 chan (ga, ga tay) — tha rong, di khap nong trai. Gia cam von la thu di
+#                         lang quang khap san, nhot vao chuong thi vo ly.
+#   4 chan              — CHI trong long chuong. Bo de lon lang ra ruong thi
+#                         pha het, ma tim con de vat sua cung thanh di soi ca map.
 THU = [
-    ('ga', 'Gà Mái', 'chicken animation.png', 16, 'trung_trang', 1200, 8),
-    ('ga_nau', 'Gà Nâu', 'chicken_brown animation.png', 16, 'trung_nau', 1800, 10),
-    ('tho', 'Thỏ', 'bunny_animations.png', 17, 'len_trang', 2600, 14),
-    ('cuu', 'Cừu', 'sheep animation.png', 17, 'len_xam', 4200, 18),
-    ('de', 'Dê', 'goat animation.png', 19, 'sua_de', 6000, 22),
-    ('lon', 'Lợn', 'pig animation.png', 20, 'thit_xong_khoi', 8500, 28),
-    ('ga_tay', 'Gà Tây', 'turkey animation.png', 17, 'long_ga_tay', 11000, 34),
-    ('bo', 'Bò Sữa', 'cow animation.png', 24, 'sua_bo', 16000, 40),
+    ('ga', 'Gà Mái', 'chicken animation.png', 16, 'trung_trang', 1200, 8, 2),
+    ('ga_nau', 'Gà Nâu', 'chicken_brown animation.png', 16, 'trung_nau', 1800, 10, 2),
+    ('tho', 'Thỏ', 'bunny_animations.png', 17, 'len_trang', 2600, 14, 4),
+    ('cuu', 'Cừu', 'sheep animation.png', 17, 'len_xam', 4200, 18, 4),
+    ('de', 'Dê', 'goat animation.png', 19, 'sua_de', 6000, 22, 4),
+    ('lon', 'Lợn', 'pig animation.png', 20, 'thit_xong_khoi', 8500, 28, 4),
+    ('ga_tay', 'Gà Tây', 'turkey animation.png', 17, 'long_ga_tay', 11000, 34, 2),
+    ('bo', 'Bò Sữa', 'cow animation.png', 24, 'sua_bo', 16000, 40, 4),
 ]
 
 # ==== May che bien ====
@@ -392,10 +398,14 @@ def main():
              '',
              '// Con vật. `phut` = bao lâu ra một lứa sản phẩm, `an` = mỗi lứa ăn',
              '// mấy bó cỏ khô. Không cho ăn thì đứng không, chẳng ra gì cả.',
+             '//',
+             '// `chan` = số chân, và nó quyết định con đó đi lại ở đâu: 2 chân',
+             '// (gà, gà tây) thả rông khắp nông trại, 4 chân thì chỉ trong chuồng.',
              'export const THU = [']
-    for ma, ten, _t, o, sp, gia, phut in THU:
-        dong.append('  { id: %s, name: %s, o: %d, sanPham: %s, gia: %d, phut: %d, an: 1 },'
-                    % (js(ma), js(ten), o, js(sp), gia, phut))
+    for ma, ten, _t, o, sp, gia, phut, chan in THU:
+        dong.append('  { id: %s, name: %s, o: %d, sanPham: %s, gia: %d, phut: %d, '
+                    'an: 1, chan: %d },'
+                    % (js(ma), js(ten), o, js(sp), gia, phut, chan))
     dong += ['];', '',
              'export const THU_BY_ID = Object.fromEntries(THU.map(t => [t.id, t]));',
              '',

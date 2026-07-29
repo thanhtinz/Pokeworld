@@ -3170,6 +3170,11 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   object-fit: contain; }
 .nt-cam .btn { width: auto; align-self: flex-start; }
 .nt-don { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+/* Thẻ Canh Gác: xếp dọc, không thì tên con với cấp với tỉ lệ dính liền một dòng */
+.nt-canh { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.nt-canh-con { display: flex; align-items: center; gap: 10px; }
+.nt-canh-con img { width: 48px; height: 48px; image-rendering: pixelated; }
+.nt-canh-con > span { display: flex; flex-direction: column; }
 .nt-don.du { border-color: var(--gold); }
 .nt-donmon { display: flex; flex-wrap: wrap; gap: 6px; }
 .nt-monnho { display: flex; align-items: center; gap: 4px; font-size: .78rem;

@@ -30,7 +30,7 @@ Goi tu tools/mktmx.py, dung chay truc tiep.
 """
 import os
 
-W, H = 50, 18
+W, H = 65, 18
 SLUG = 'nong_trai'
 TEN = 'Nông Trại Bờ Suối'
 
@@ -62,16 +62,23 @@ NHA_SAU = (2, 7)
 # KHU DAT TRONG khong quay rao: no la mot luoi 50 O RUONG co dinh, o nao mua
 # roi thi hien ra thanh dat, o chua mua thi cam bien BAN. Quay rao thi cai rao
 # lai cat ngang giua may o dat, ma khu nay von la thu se lon dan ra.
-KHU_TRONG = (6, 6, 10, 5)       # luoi o ruong: x, y, rong, cao (o) = 50 o
-O_TOI_DA = KHU_TRONG[2] * KHU_TRONG[3]
+# O ruong xep THUA: cach nhau dung mot o. Xep sat nhau thi ca 50 o dinh lien
+# thanh mot mang nau phang, khong con thay tung o dau ca — ma nhin ky thi cai
+# ranh co giua may o moi la thu lam no ra hinh cai ruong.
+# Cao 7 hang de xep du 4 HANG o ruong khi da cach nhau mot o (hang 4, 6, 8, 10).
+KHU_TRONG = (6, 4, 25, 7)       # vung luoi o ruong: x, y, rong, cao (o)
+BUOC_O = 2                      # hai o ruong cach nhau bay nhieu o
+O_TOI_DA = 50
 
-CHUONG = (17, 5, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
-AO = (25, 6, 30, 10)            # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
-NHA_KHO = (33, 6, 5, 5)         # nha kho: x, y, rong, cao (o)
-NHA_BEP = (39, 4, 9, 7)         # nha bep: x, y, rong, cao (o)
+CHUONG = (33, 5, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
+AO = (41, 6, 46, 10)            # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
+NHA_KHO = (49, 6, 5, 5)         # nha kho: x, y, rong, cao (o)
+# Cot cuoi cua nha bep phai cach vong rao mot o: san truoc cua duoc don sach
+# solid, don trum len cot rao la thung mot lo ra ngoai ban do.
+NHA_BEP = (54, 4, 9, 7)         # nha bep: x, y, rong, cao (o)
 
-BAC_NONG = (35, DUONG_NGANG[0])   # nguoi coi kho, dung ngay truoc cua
-LAI_CA = (27, DUONG_NGANG[0])     # ong lai ca, dung ngay duoi bo ho
+BAC_NONG = (51, DUONG_NGANG[0])   # nguoi coi kho, dung ngay truoc cua
+LAI_CA = (43, DUONG_NGANG[0])     # ong lai ca, dung ngay duoi bo ho
 
 # Long chuong — con vat chi di lai trong day (x0, y0, x1, y1)
 VUNG_THU = (CHUONG[0] + 1, CHUONG[1] + 1,
@@ -81,25 +88,28 @@ VUNG_THU = (CHUONG[0] + 1, CHUONG[1] + 1,
 def cac_o_ruong():
     """Thu tu 50 o ruong: hang sat loi di truoc, roi lui dan ve phia sau.
 
-    Nguoi choi mua tu duoi len nen khu ruong lon dan ra XA loi di — nhin ra la
-    mot cai ruong dang duoc mo rong, chu khong phai may o dat roi rac.
+    Cac o cach nhau BUOC_O o theo ca hai chieu, nen giua chung luon con mot
+    ranh co. Nguoi choi mua tu duoi len nen khu ruong lon dan ra XA loi di —
+    nhin ra la mot cai ruong dang duoc mo rong, chu khong phai may o dat roi rac.
     """
     x0, y0, w, h = KHU_TRONG
     ds = []
-    for y in range(y0 + h - 1, y0 - 1, -1):
-        for x in range(x0, x0 + w):
+    for y in range(y0 + h - 1, y0 - 1, -BUOC_O):
+        for x in range(x0, x0 + w, BUOC_O):
             ds.append((x, y))
+            if len(ds) >= O_TOI_DA:
+                return ds
     return ds
 
 
 O_RUONG = cac_o_ruong()
 
-# Bien MUA cam duoi loi di, doi dien tung khu. (ma, x, y)
-#   hat — hat giong        thu — con vat        can — can cau
-BIEN = [
-    ('hat', KHU_TRONG[0] + 4, DUONG_NGANG[1] + 1),
-    ('thu', CHUONG[0] + 2, DUONG_NGANG[1] + 1),
-    ('can', AO[0] + 2, DUONG_NGANG[1] + 1),
+# NGUOI BAN HANG dung duoi loi di, doi dien tung khu. Truoc day chi la mot cai
+# coc go cam bien — bam vao cai coc de mua hat thi lam gi co ai ban cho.
+#   (ma hang, ten, sprite, x, y)
+NGUOI_BAN = [
+    ('hat', 'Cô Hạt Giống', 'homemaker', KHU_TRONG[0] + 4, DUONG_NGANG[1] + 1),
+    ('thu', 'Anh Lái Thú', 'cooldude', CHUONG[0] + 2, DUONG_NGANG[1] + 1),
 ]
 
 # Vung ke duoc vat the nong trai (x0, y0, x1, y1) — tru vien cay ra.
@@ -272,7 +282,7 @@ def dung(goc):
                 return True
         if ax0 - 2 <= x <= ax1 + 2 and ay0 - 2 <= y <= ay1 + 1:
             return True
-        for _ma, sx, sy in BIEN:
+        for _ma, _t, _sp, sx, sy in NGUOI_BAN:
             if sx - 1 <= x <= sx + 1 and sy - 1 <= y <= sy + 1:
                 return True
         return False
@@ -355,12 +365,6 @@ def dung(goc):
         for x in range(n[0], n[0] + n[2]):
             don(x, n[1] + n[3])
 
-    # ==== Bien MUA ====
-    # Chi la mot cai coc go cho de nhin; phan chu do js/ui/world.js ve.
-    for _ma, sx, sy in BIEN:
-        if trong_ban_do(sx, sy):
-            dat_tren(sx, sy, CT.RAO_COT)
-
     npcs = [
         {'x': BAC_NONG[0], 'y': BAC_NONG[1], 'dir': 'up', 'sprite': 'picnicker',
          'name': 'Bác Nông', 'ai': 'stand', 'mo': 'nongtrai', 'tab': 'cho',
@@ -370,6 +374,10 @@ def dung(goc):
         {'x': LAI_CA[0], 'y': LAI_CA[1], 'dir': 'up', 'sprite': 'beachcomber',
          'name': 'Ông Lái Cá', 'ai': 'stand', 'laiCa': True,
          'lines': ['Hồ này cá hiền, hợp người mới tập câu. Câu được thì bán cho tôi.']},
+    ] + [
+        {'x': sx, 'y': sy, 'dir': 'up', 'sprite': sp, 'name': ten, 'ai': 'stand',
+         'banHang': ma, 'lines': [LOI_BAN[ma]]}
+        for ma, ten, sp, sx, sy in NGUOI_BAN
     ]
     npcs = [n for n in npcs if not solid[idx(n['x'], n['y'])]]
 
@@ -393,8 +401,6 @@ def dung(goc):
     for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
         for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
             cam.add((x, y))
-    for _ma, sx, sy in BIEN:
-        cam.add((sx, sy))
     # 50 o ruong la cho DA DANH SAN cho dat trong: ke may hay chuong de len thi
     # mua o dat den luot do la dam vao nhau.
     cam |= set(O_RUONG)
@@ -412,7 +418,10 @@ def dung(goc):
     }
 
 
-TEN_BIEN = {'hat': 'Mua Hạt Giống', 'thu': 'Mua Con Vật', 'can': 'Mua Cần Câu'}
+LOI_BAN = {
+    'hat': 'Hạt giống đây! Mua rồi thì gieo vào ô ruộng của mình nhé.',
+    'thu': 'Gà vịt thả rông cả nông trại được, còn bò dê lợn thì phải có chuồng.',
+}
 
 
 def viet_js(cam=()):
@@ -455,12 +464,12 @@ def viet_js(cam=()):
         '// của căn nhà đó: bước ra cửa sau trong nhà là ra thẳng ngoài ruộng.',
         'export const NHA_SAU = { x: %d, y: %d };' % NHA_SAU,
         '',
-        '// Biển MUA cắm dưới lối đi, đối diện từng khu. Bấm vào là ra bảng chọn',
-        '// ngay trên bản đồ chứ không mở panel.',
-        'export const BIEN = [',
+        '// Người bán hàng đứng dưới lối đi, đối diện từng khu. Nói chuyện là ra',
+        '// bảng chọn ngay trên bản đồ chứ không mở panel.',
+        'export const NGUOI_BAN = [',
     ]
-    for ma, x, y in BIEN:
-        out.append('  { ma: "%s", ten: "%s", x: %d, y: %d },' % (ma, TEN_BIEN[ma], x, y))
+    for ma, ten, _sp, x, y in NGUOI_BAN:
+        out.append('  { ma: "%s", ten: "%s", x: %d, y: %d },' % (ma, ten, x, y))
     out += [
         '];',
         '',

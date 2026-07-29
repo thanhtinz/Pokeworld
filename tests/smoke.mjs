@@ -4610,8 +4610,8 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ok('đi bộ tới được cửa nhà kho và nhà bếp',
         den.has(`${NM.NHA_KHO.x},${NM.NHA_KHO.y + NM.NHA_KHO.h}`)
         && den.has(`${NM.NHA_BEP.x},${NM.NHA_BEP.y + NM.NHA_BEP.h}`));
-      ok('đi bộ tới được ba biển MUA',
-        NM.BIEN.every(b => den.has(`${b.x},${b.y - 1}`)));
+      ok('đi bộ tới được chỗ mấy người bán hàng',
+        NM.NGUOI_BAN.every(b => den.has(`${b.x},${b.y - 1}`)));
       ok('không lọt ra được ngoài vòng rào',
         ![...den].some(k => {
           const [x, y] = k.split(',').map(Number);
@@ -4680,22 +4680,112 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       !/veChip\([^)]*\btien\(/.test(w4) && !/veBangTen\([^)]*\btien\(/.test(w4));
     const u4 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
     ok('danh sách kê không còn ô ruộng', /loai !== 'ruong'/.test(u4));
-    ok('con vật không bước ra khỏi lòng chuồng',
-      !NT.thuDiDuoc(NM.VUNG_THU.x0 - 1, NM.VUNG_THU.y0)
-      && !NT.thuDiDuoc(NM.VUNG_THU.x1 + 1, NM.VUNG_THU.y0)
-      && !NT.thuDiDuoc(NM.VUNG_THU.x0, NM.VUNG_THU.y1 + 1));
+
+    // ---- Thú canh nông trại ----
+    {
+      newGame('ThuCanh');
+      ok('nông trại mới chưa có thú canh', NT.thuCanh() === null);
+      ok('chưa canh thì tỉ lệ bị cướp là tỉ lệ gốc',
+        NT.tiLeBiCuop(0) === NT.CUOP_GOC);
+      G.p.party = [newTuxemon(STARTERS[0].sp, 12)];
+      ok('còn một con trong đội thì không cắt được', NT.catThuCanh(0)[1] !== null);
+      // Thêm một con nữa vào đội rồi mới cắt được
+      G.p.party.push(newTuxemon(STARTERS[1].sp, 30));
+      G.p.party[1].lv = 30;
+      const spCanh = G.p.party[1].sp;
+      ok('cắt được con ra canh', NT.catThuCanh(1)[0] !== null);
+      ok('thú canh ghi đúng con và cấp',
+        NT.thuCanh()?.sp === spCanh && NT.thuCanh()?.lv === 30);
+      ok('con ra canh thì rời khỏi đội',
+        G.p.party.length === 1 && G.p.party[0].sp !== spCanh,
+        G.p.party.map(m => m.sp).join(' '));
+      ok('có thú canh thì tỉ lệ bị cướp giảm',
+        NT.tiLeBiCuop(30) < NT.CUOP_GOC, String(NT.tiLeBiCuop(30)));
+      ok('con càng cao cấp càng chặn khoẻ',
+        NT.tiLeBiCuop(60) < NT.tiLeBiCuop(30));
+      ok('canh giỏi tới đâu cũng không chặn hết',
+        NT.tiLeBiCuop(9999) === NT.CUOP_SAN, String(NT.tiLeBiCuop(9999)));
+      ok('cấp thú canh đi kèm bản tóm tắt gửi máy chủ',
+        NT.tomTat().capCanh === 30);
+      ok('gọi về được', NT.goiThuCanhVe()[0] !== null && NT.thuCanh() === null);
+      ok('gọi về thì con quay lại đội',
+        G.p.party.length === 2 && G.p.party.some(m => m.sp === spCanh));
+      ok('không có con nào canh thì gọi về báo lỗi', NT.goiThuCanhVe()[1] !== null);
+      ok('không cắt được ô trống', NT.catThuCanh(9)[1] !== null);
+      // Đổi con canh: con cũ phải về đội, không được bốc hơi
+      NT.catThuCanh(0);
+      const cuSp = NT.thuCanh().sp;
+      NT.catThuCanh(0);
+      ok('đổi con canh thì con cũ về đội, không mất',
+        NT.thuCanh().sp !== cuSp && G.p.party.some(m => m.sp === cuSp),
+        `canh ${NT.thuCanh().sp} · đội ${G.p.party.map(m => m.sp).join(' ')}`);
+      // Client và máy chủ phải dùng CÙNG một công thức, lệch là hiện một tỉ lệ
+      // rồi bốc theo một tỉ lệ khác
+      const SF = await import('../server/src/farms.js');
+      ok('client và máy chủ tính tỉ lệ bị cướp y hệt',
+        [0, 1, 15, 30, 50, 100, 9999].every(c => SF.tiLeBiCuop(c) === NT.tiLeBiCuop(c)),
+        [0, 15, 50].map(c => `${c}: ${SF.tiLeBiCuop(c)} vs ${NT.tiLeBiCuop(c)}`).join(' | '));
+      ok('hai bên cùng một mốc gốc và mốc sàn',
+        SF.CUOP_GOC === NT.CUOP_GOC && SF.CUOP_SAN === NT.CUOP_SAN);
+      const rt2 = readFileSync(join(goc2, 'server/src/routes.js'), 'utf8');
+      ok('máy chủ có cắm đường nông trại', /\/farm/.test(rt2));
+      const fs2 = readFileSync(join(goc2, 'server/src/farms.js'), 'utf8');
+      ok('không cướp hạt giống với cỏ khô của người ta',
+        /hat_/.test(fs2) && /co_kho/.test(fs2));
+      ok('chủ nhà luôn được báo khi có người mò vào', /sendMail\(/.test(fs2));
+      ok('cướp có thời gian chờ giữa hai lần', /CHO_CUOP/.test(fs2));
+      const ap = readFileSync(join(goc2, 'js/net/api.js'), 'utf8');
+      ok('client có gọi ba đường nông trại',
+        /fetchFarm/.test(ap) && /raidFarm/.test(ap) && /fetchFarmLog/.test(ap));
+    }
+    // Thú 4 chân KHÔNG ra khỏi chuồng; gia cầm 2 chân thì đi khắp nông trại
+    {
+      const bo = { id: 'bo' };
+      const ga = { id: 'ga' };
+      ok('thú bốn chân không bước ra khỏi lòng chuồng',
+        !NT.thuDiDuoc(NM.VUNG_THU.x0 - 1, NM.VUNG_THU.y0, bo, bo)
+        && !NT.thuDiDuoc(NM.VUNG_THU.x1 + 1, NM.VUNG_THU.y0, bo, bo)
+        && !NT.thuDiDuoc(NM.VUNG_THU.x0, NM.VUNG_THU.y1 + 1, bo, bo));
+      ok('vùng của thú bốn chân đúng là lòng chuồng',
+        NT.vungCuaThu(bo) === NM.VUNG_THU);
+      ok('vùng của gia cầm là cả nông trại', NT.vungCuaThu(ga) === NM.VUNG);
+      // Gia cầm bước ra được một ô ngoài chuồng (chọn ô không cấm)
+      const raNgoai = [];
+      for (let x = NM.VUNG.x0; x <= NM.VUNG.x1; x++) {
+        for (let y = NM.VUNG.y0; y <= NM.VUNG.y1; y++) {
+          const trongChuong = x >= NM.VUNG_THU.x0 && x <= NM.VUNG_THU.x1
+            && y >= NM.VUNG_THU.y0 && y <= NM.VUNG_THU.y1;
+          if (!trongChuong && NT.thuDiDuoc(x, y, ga, ga)) raNgoai.push(`${x},${y}`);
+        }
+      }
+      ok('gia cầm đi được ra ngoài chuồng', raNgoai.length > 20,
+        `${raNgoai.length} ô`);
+      ok('con nào cũng khai đúng số chân',
+        D.THU.every(t => t.chan === 2 || t.chan === 4),
+        D.THU.map(t => `${t.id}:${t.chan}`).join(' '));
+      ok('có cả gia cầm lẫn thú bốn chân',
+        D.THU.some(t => t.chan === 2) && D.THU.some(t => t.chan === 4));
+    }
     ok('chỗ thả con vật mới nằm trong lòng chuồng', (() => {
       const c = NT.choTrongCho();
       return c.x >= NM.VUNG_THU.x0 && c.x <= NM.VUNG_THU.x1
         && c.y >= NM.VUNG_THU.y0 && c.y <= NM.VUNG_THU.y1;
     })());
-    // Ba biển MUA phải bấm được từ lối đi: đứng trên đường quay mặt xuống
-    ok('có ba biển MUA cắm dưới lối đi', (NM.BIEN || []).length === 3,
-      (NM.BIEN || []).map(b => b.ma).join(' '));
-    ok('biển nào cũng nằm ngay dưới lối đi',
-      NM.BIEN.every(b => b.y === Math.max(...NM.LOI_NGANG) + 1));
-    ok('bấm vào biển ra bảng chọn ngay trên bản đồ',
-      /'bien'/.test(w2) && /bienMua\(/.test(w2));
+    // Chỗ mua hàng phải có NGƯỜI bán, không phải một cái cọc cắm biển
+    ok('có người bán hạt giống và người bán con vật',
+      (NM.NGUOI_BAN || []).length === 2,
+      (NM.NGUOI_BAN || []).map(b => `${b.ma}:${b.ten}`).join(' '));
+    ok('người bán nào cũng đứng ngay dưới lối đi',
+      NM.NGUOI_BAN.every(b => b.y === Math.max(...NM.LOI_NGANG) + 1));
+    ok('người bán là NPC thật trên bản đồ', (() => {
+      const ds = (MAPS[NM.NONG_TRAI_MAP].npcs || []).filter(n => n.banHang);
+      return ds.length === 2 && ds.every(n => NM.NGUOI_BAN
+        .some(b => b.ma === n.banHang && b.x === n.x && b.y === n.y));
+    })(), (MAPS[NM.NONG_TRAI_MAP].npcs || [])
+      .filter(n => n.banHang).map(n => n.name).join(' '));
+    ok('nói chuyện với người bán ra bảng chọn ngay trên bản đồ',
+      /thing\.banHang/.test(w2) && /nguoiBan\(/.test(w2));
+    ok('không còn cọc gỗ cắm biển nào', !/'bien'/.test(w2));
     // Hồ phải hở mặt phía lối đi, không thì đứng đâu cũng không buông cần được
     {
       const nt3 = MAPS[NM.NONG_TRAI_MAP];
