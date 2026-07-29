@@ -199,6 +199,23 @@ trộn VẬT THỂ thì không — mấy pack CraftPix ở Phố Kim Long cũng 
 python3 tools/mknongtrai.py "/duong/dan/full version"
 ```
 
+Pack **Cozy Fishing của shubibubi** (itch.io) — cũng cùng tác giả. Lấy ba thứ:
+icon 14 loài cá (cắt từ `fish_all.png`, đánh số đúng theo `fish list.txt` của
+pack), dải bóng cá bơi dưới nước 15 khung, và cái quán cá bên bờ ao.
+
+`license.txt` của pack ghi rõ: dùng được cho mọi dự án thương mại lẫn phi
+thương mại, sửa thoải mái, **cấm bán lại / phát tán lại chính cái pack**. Nên
+ở đây cũng chỉ commit phần đã cắt ra `assets/ca/`.
+
+Trước đây icon cá vẽ bằng hình khối trong `tools/mkca.py` vì Tuxemon không có
+con cá nào. Nay cắt từ pack, nhưng **giữ nguyên đường vẽ bằng code**: chạy
+`tools/mkca.py` mà không truyền đường dẫn pack thì nó tự vẽ lại như cũ, để ai
+clone kho về mà không có pack vẫn sinh lại được bộ dữ liệu.
+
+```bash
+python3 tools/mkca.py "/duong/dan/fishing_full"
+```
+
 ## Của riêng dự án
 
 | Thứ gì | Làm bằng |

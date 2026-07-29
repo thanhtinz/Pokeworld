@@ -56,3 +56,12 @@ export const CAN_BY_ID = Object.fromEntries(CAN.map(c => [c.id, c]));
 /** Ảnh icon của một loài cá. */
 export const anhCa = (id) => `${THU_MUC_CA}/${id}.png`;
 
+// Bóng cá bơi dưới nước: một dải 15 khung ô 16x16, vẽ ngay trên mặt
+// ao lúc chờ cắn câu. Chờ mà mặt nước phẳng lì thì không biết có cá hay không.
+export const ANH_BONG = `${THU_MUC_CA}/bong.png`;
+export const BONG_KHUNG = 15;
+export const BONG_NHIP = 140;   // ms mỗi khung
+
+// Quán cá bên bờ ao, chỗ ông lái cá ngồi.
+export const ANH_QUAN = `${THU_MUC_CA}/quan.png`;
+

@@ -2,21 +2,27 @@
 # -*- coding: utf-8 -*-
 """Sinh danh muc CA + icon cho tinh nang cau ca.
 
-    python3 tools/mkca.py
+    python3 tools/mkca.py /duong/dan/fishing_full
 
-Khong doc kho ngoai nao: icon tu ve bang hinh khoi co ban (giong
-tools/mkfood.py va tools/mkicons.py), du lieu thi khai ngay trong tep nay.
+Icon cat tu pack "Cozy Fishing" (da mua, khong phat tan lai ban goc). Truoc day
+ve bang hinh khoi co ban vi Tuxemon khong co con ca nao; gio co pack that thi
+dung pack, con ca nhin ra con ca.
 
-Vi sao tu ve: ca khong co san trong kho Tuxemon, ma di kiem pack ngoai thi lai
-vuong giay phep. Ve bang code thi khong phu thuoc ai, va sua mot dong la ca bo
-doi theo.
+Khong truyen duong dan thi QUAY VE ve bang code — de ai clone kho ve ma khong
+co pack van chay lai duoc bo sinh.
+
+Bo nguon xep: fish_all.png 160x160 = luoi 10x10 o 16x16, thu tu dung y
+"fish list.txt" cua pack (1..100).
 
 Sinh ra:
-  assets/ca/<ma>.png     — icon 32x32 tung loai
+  assets/ca/<ma>.png     — icon tung loai
+  assets/ca/bong.png     — bong ca boi duoi nuoc (15 khung 16x16)
+  assets/ca/quan.png     — quan ca ben bo ao
   js/data/ca.js          — danh muc ca + bang cho cau
 """
 import json
 import os
+import sys
 
 from PIL import Image, ImageDraw
 
@@ -33,46 +39,51 @@ CHO = [
 ]
 
 # ==== Danh muc ca ====
-# (ma, ten, hiem, cho, dai_min, dai_max, gia_mot_cm, mau than, mau vay, mo ta)
+# (ma, ten, hiem, cho, dai_min, dai_max, gia_mot_cm, mau than, mau vay, mo ta,
+#  so thu tu trong "fish list.txt" cua pack)
 #   hiem: 1 thuong · 2 kha · 3 hiem · 4 huyen thoai
 # Gia ban = dai (cm) * gia_mot_cm, nen con cang to ban cang duoc tien.
 CA = [
     # --- Hồ ---
     ('ca_ro', 'Cá Rô', 1, 'ao_nong_trai', 8, 22, 4, '#6b7a3a', '#9aad55',
-     'Con cá quen mặt nhất ao hồ. Nhỏ mà lì.'),
+     'Con cá quen mặt nhất ao hồ. Nhỏ mà lì.', 85),
     ('ca_diec', 'Cá Diếc', 1, 'ao_nong_trai', 10, 26, 5, '#8a8f6a', '#b9bd8e',
-     'Thịt lành, dân câu hay bắt được lúc sáng sớm.'),
+     'Thịt lành, dân câu hay bắt được lúc sáng sớm.', 53),
     ('ca_chep', 'Cá Chép', 2, 'ao_nong_trai', 20, 55, 7, '#9a6b2f', '#d19a4a',
-     'Vảy vàng óng. Câu được con to là cả buổi vui.'),
+     'Vảy vàng óng. Câu được con to là cả buổi vui.', 82),
     ('ca_tre', 'Cá Trê', 2, 'ao_nong_trai', 18, 48, 8, '#3f3a33', '#6b6155',
-     'Râu dài, trơn tuột, giãy khoẻ hơn vẻ ngoài.'),
+     'Râu dài, trơn tuột, giãy khoẻ hơn vẻ ngoài.', 72),
     ('ca_qua', 'Cá Quả', 3, 'ao_nong_trai', 30, 70, 11, '#3c4a3a', '#65785c',
-     'Săn mồi cỡ bự của hồ. Cắn câu là cần cong hẳn.'),
+     'Săn mồi cỡ bự của hồ. Cắn câu là cần cong hẳn.', 76),
     # --- Sông ---
     ('ca_bong', 'Cá Bống', 1, 'song_taba', 6, 18, 5, '#7a6a55', '#a89478',
-     'Nằm sát đáy, hay rúc vào khe đá.'),
+     'Nằm sát đáy, hay rúc vào khe đá.', 89),
     ('ca_lang', 'Cá Lăng', 2, 'song_taba', 25, 60, 9, '#5a5f6b', '#8b91a0',
-     'Cá sông thịt chắc, dân sành ăn săn lùng.'),
+     'Cá sông thịt chắc, dân sành ăn săn lùng.', 69),
     ('ca_chien', 'Cá Chiên', 3, 'song_taba', 35, 85, 13, '#4a4230', '#7d7150',
-     'To và dữ. Cần yếu là gãy làm đôi.'),
+     'To và dữ. Cần yếu là gãy làm đôi.', 73),
     ('ca_anh_vu', 'Cá Anh Vũ', 4, 'song_taba', 28, 62, 26, '#8b3a3a', '#d46a5a',
-     'Xưa chỉ dành tiến vua. Cả tháng chưa chắc gặp một con.'),
+     'Xưa chỉ dành tiến vua. Cả tháng chưa chắc gặp một con.', 96),
     # --- Biển ---
     ('ca_nuc', 'Cá Nục', 1, 'bien_pepper', 12, 28, 6, '#5f7a8a', '#93b0be',
-     'Đi thành đàn, cắn câu liên tục.'),
+     'Đi thành đàn, cắn câu liên tục.', 31),
     ('ca_thu', 'Cá Thu', 2, 'bien_pepper', 30, 75, 10, '#3d5a6b', '#6f93a5',
-     'Bơi nhanh như tên. Kéo mỏi cả tay.'),
+     'Bơi nhanh như tên. Kéo mỏi cả tay.', 2),
     ('ca_ngu', 'Cá Ngừ', 3, 'bien_pepper', 50, 120, 15, '#2f4a5e', '#5b7f9a',
-     'Nặng như hòn đá, khoẻ như con trâu.'),
+     'Nặng như hòn đá, khoẻ như con trâu.', 9),
     ('ca_mu_do', 'Cá Mú Đỏ', 3, 'bien_pepper', 35, 80, 17, '#9b3730', '#d4675a',
-     'Đỏ au, nấp trong rạn. Nhà hàng trả giá cao.'),
+     'Đỏ au, nấp trong rạn. Nhà hàng trả giá cao.', 33),
     ('ca_rong_bien', 'Cá Rồng Biển', 4, 'bien_pepper', 60, 150, 30, '#2b6b6b', '#4fb3a8',
-     'Người ta đồn thấy nó thì cả năm gặp may.'),
+     'Người ta đồn thấy nó thì cả năm gặp may.', 6),
 ]
 
 # Ten hien cua tung bac hiem
 HIEM = [(1, 'Thường', '#9aa4b2'), (2, 'Khá', '#5bc0eb'),
         (3, 'Hiếm', '#c77dff'), (4, 'Huyền Thoại', '#ffd43b')]
+
+# Bong ca boi: fish_shadow.png cua pack dai 15 khung, nhip 100-200ms
+BONG_KHUNG = 15
+BONG_NHIP = 140
 
 # Xac suat can cau theo bac hiem (cang hiem cang kho). Chuan hoa trong js.
 TRONG_SO = {1: 100, 2: 45, 3: 14, 4: 2}
@@ -86,6 +97,32 @@ CAN = [
     ('can_go', 'Cần Gỗ', 3500, 3, 'goc', 'Dẻo hơn, kéo được cá hiếm mà không gãy.'),
     ('can_thep', 'Cần Thép', 18000, 4, 'xanh', 'Lõi thép. Cá huyền thoại cũng gồng được.'),
 ]
+
+
+LUOI = 16          # canh mot o trong fish_all.png
+
+
+def cat_pack(goc):
+    """Cat icon ca + bong ca + quan ca tu pack. Tra ve so anh da cat.
+
+    fish_all.png xep 10 cot, thu tu dung y "fish list.txt" (danh so tu 1).
+    """
+    sheet = Image.open(os.path.join(goc, 'Fish Forage Items/fish_all.png')).convert('RGBA')
+    cot = sheet.width // LUOI
+    n = 0
+    for ma, _t, _h, _c, _mn, _mx, _g, _than, _vay, _mo, so in CA:
+        i = so - 1
+        o = sheet.crop(((i % cot) * LUOI, (i // cot) * LUOI,
+                        (i % cot) * LUOI + LUOI, (i // cot) * LUOI + LUOI))
+        o.save(os.path.join(RA, ma + '.png'), optimize=True)
+        n += 1
+    # Bong ca boi duoi nuoc: dai 15 khung, ve ngay tren mat ao luc cho can cau
+    bong = Image.open(os.path.join(goc, 'Fish Forage Items/fish_shadow_transparent.png')).convert('RGBA')
+    bong.save(os.path.join(RA, 'bong.png'), optimize=True)
+    # Quan ca ben bo ao — cho ong lai ca ngoi
+    quan = Image.open(os.path.join(goc, 'Buildings/fishshop1.png')).convert('RGBA')
+    quan.save(os.path.join(RA, 'quan.png'), optimize=True)
+    return n + 2
 
 
 def ve_ca(ma, than, vay, dai_max):
@@ -123,10 +160,18 @@ def js(v):
 
 
 def main():
-    for f in os.listdir(RA) if os.path.isdir(RA) else []:
+    goc = sys.argv[1] if len(sys.argv) > 1 else None
+    os.makedirs(RA, exist_ok=True)
+    for f in os.listdir(RA):
         os.remove(os.path.join(RA, f))
-    for ma, _t, _h, _c, _mn, mx, _g, than, vay, _mo in CA:
-        ve_ca(ma, than, vay, mx)
+    if goc and os.path.isfile(os.path.join(goc, 'Fish Forage Items/fish_all.png')):
+        cat_pack(goc)
+        tu_ve = False
+    else:
+        # Khong co pack thi ve bang code — bo sinh van chay lai duoc
+        for ma, _t, _h, _c, _mn, mx, _g, than, vay, _mo, _so in CA:
+            ve_ca(ma, than, vay, mx)
+        tu_ve = True
 
     dong = [
         '// TuxeWorld H5 | data/ca.js | Danh mục cá + chỗ câu + cần câu',
@@ -151,7 +196,7 @@ def main():
     dong += ['];', '',
              '// giaCm = tiền trên mỗi cm, nên con càng dài bán càng được giá.',
              'export const CA = [']
-    for ma, ten, hiem, cho, mn, mx, gia, than, vay, mo in CA:
+    for ma, ten, hiem, cho, mn, mx, gia, than, vay, mo, _so in CA:
         dong.append('  { id: %s, name: %s, hiem: %d, cho: %s, dai: [%d, %d], '
                     'giaCm: %d, mau: %s, desc: %s },'
                     % (js(ma), js(ten), hiem, js(cho), mn, mx, gia, js(than), js(mo)))
@@ -169,6 +214,15 @@ def main():
              '',
              '/** Ảnh icon của một loài cá. */',
              'export const anhCa = (id) => `${THU_MUC_CA}/${id}.png`;',
+             '',
+             '// Bóng cá bơi dưới nước: một dải %d khung ô %dx%d, vẽ ngay trên mặt' % (BONG_KHUNG, LUOI, LUOI),
+             '// ao lúc chờ cắn câu. Chờ mà mặt nước phẳng lì thì không biết có cá hay không.',
+             'export const ANH_BONG = `${THU_MUC_CA}/bong.png`;',
+             'export const BONG_KHUNG = %d;' % BONG_KHUNG,
+             'export const BONG_NHIP = %d;   // ms mỗi khung' % BONG_NHIP,
+             '',
+             '// Quán cá bên bờ ao, chỗ ông lái cá ngồi.',
+             'export const ANH_QUAN = `${THU_MUC_CA}/quan.png`;',
              '']
 
     with open(DL, 'w', encoding='utf-8') as f:
@@ -198,8 +252,9 @@ def main():
         f.write('\n'.join(sv) + '\n')
 
     tong = sum(os.path.getsize(os.path.join(RA, f)) for f in os.listdir(RA))
-    print('OK: %d loài cá, %d chỗ câu, %d cần -> %s (%.1f KB icon)'
-          % (len(CA), len(CHO), len(CAN), DL, tong / 1024))
+    print('OK: %d loài cá, %d chỗ câu, %d cần -> %s (%.1f KB icon, %s)'
+          % (len(CA), len(CHO), len(CAN), DL, tong / 1024,
+             'vẽ bằng code' if tu_ve else 'cắt từ pack Cozy Fishing'))
 
 
 if __name__ == '__main__':

@@ -3918,6 +3918,42 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('ông lái cá ngồi sát mặt nước',
       lai.every(n => [[1, 0], [-1, 0], [0, 1], [0, -1]]
         .some(([dx, dy]) => nt.water[(n.y + dy) * nt.w + (n.x + dx)])));
+    // Icon cá cắt từ pack Cozy Fishing — thiếu một tệp là dex thủng một ô
+    {
+      const goc3 = new URL('../', import.meta.url).pathname;
+      const thieuCa = F.CA.filter(c => !existsSync(join(goc3, `assets/ca/${c.id}.png`)));
+      ok('loài cá nào cũng có icon', thieuCa.length === 0,
+        thieuCa.map(c => c.id).join(' '));
+      const D2 = await import('../js/data/ca.js');
+      ok('có dải bóng cá và ảnh quán cá',
+        existsSync(join(goc3, D2.ANH_BONG)) && existsSync(join(goc3, D2.ANH_QUAN)));
+      const buf2 = readFileSync(join(goc3, D2.ANH_BONG));
+      const rong = buf2.readUInt32BE(16);
+      const cao = buf2.readUInt32BE(20);
+      ok('dải bóng cá chia đúng số khung',
+        rong === cao * D2.BONG_KHUNG && D2.BONG_NHIP > 0,
+        `${rong}x${cao} / ${D2.BONG_KHUNG} khung`);
+      // Quán cá phải chắn đường, không thì đi xuyên qua cả cái nhà
+      const nt2 = MAPS.nong_trai;
+      const NM2 = await import('../js/data/nongtraimap.js');
+      let dac = 0;
+      for (let y = NM2.QUAN_CA.y; y < NM2.QUAN_CA.y + NM2.QUAN_CA.h; y++) {
+        for (let x = NM2.QUAN_CA.x; x < NM2.QUAN_CA.x + NM2.QUAN_CA.w; x++) {
+          if (nt2.solid[y * nt2.w + x]) dac++;
+        }
+      }
+      ok('quán cá chắn đường kín cả nền nhà',
+        dac === NM2.QUAN_CA.w * NM2.QUAN_CA.h, `${dac} ô`);
+      ok('trước cửa quán cá vẫn đứng được',
+        !nt2.solid[(NM2.QUAN_CA.y + NM2.QUAN_CA.h) * nt2.w + NM2.QUAN_CA.x]);
+      ok('quán cá không đè lên ông lái cá',
+        !(lai[0].x >= NM2.QUAN_CA.x && lai[0].x < NM2.QUAN_CA.x + NM2.QUAN_CA.w
+          && lai[0].y >= NM2.QUAN_CA.y && lai[0].y < NM2.QUAN_CA.y + NM2.QUAN_CA.h));
+      const w3 = readFileSync(join(goc3, 'js/ui/world.js'), 'utf8');
+      ok('bản đồ có vẽ bóng cá lúc thả câu',
+        /veBongCa/.test(w3) && /ANH_BONG/.test(w3));
+    }
+
     // Mỗi bản đồ có nước phải ra được một bảng cá có thật
     ok('bản đồ nào cũng quy được về một chỗ câu có thật',
       ['nong_trai', 'taba_town', 'khu_pho', 'linh_tinh']

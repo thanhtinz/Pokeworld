@@ -1,6 +1,8 @@
 // TuxeWorld H5 | ui/world.js | Màn bản đồ: vẽ canvas + joystick ảo + nút tương tác
 import { G, save } from '../state.js';
 import * as CAU from '../engine/cauca.js';
+import { ANH_BONG, BONG_KHUNG, BONG_NHIP, ANH_QUAN } from '../data/ca.js';
+import { QUAN_CA } from '../data/nongtraimap.js';
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
@@ -318,6 +320,16 @@ export function render(el) {
 
   function veNongTrai(size, camX, camY) {
     const gio = Date.now();
+    // Quán cá bên bờ ao: ảnh rời chứ không nằm trong tileset, phần chắn đường
+    // thì bản đồ đã đánh dấu sẵn (tools/nongtrai.py).
+    {
+      const im = ntAnh(ANH_QUAN);
+      if (owReady(im)) {
+        ctx.drawImage(im, Math.round(QUAN_CA.x * size - camX),
+          Math.round(QUAN_CA.y * size - camY),
+          Math.round(QUAN_CA.w * size), Math.round(QUAN_CA.h * size));
+      }
+    }
     const ve1 = (src, x, y, w = 1, h = 1) => {
       const im = ntAnh(src);
       if (!owReady(im)) return;
@@ -577,6 +589,26 @@ export function render(el) {
 
     // Đang thả câu thì vẽ dáng cầm cần (bộ 5 khung của assets/nv_cau) thay cho
     // dáng đứng. Ảnh chưa nướng xong thì cứ vẽ dáng thường, không để trống.
+    // Bóng cá lượn trên mặt nước lúc đang thả câu. Chờ mà mặt nước phẳng lì
+    // thì không biết dưới đó có gì; thấy cái bóng bơi qua bơi lại là biết
+    // ngay còn cá.
+    const veBongCa = () => {
+      if (!cauTu) return;
+      const im = ntAnh(ANH_BONG);
+      if (!owReady(im)) return;
+      const o = facingTile();
+      const map = currentMap();
+      if (!map.water?.[o.y * map.w + o.x]) return;
+      const k = Math.floor((performance.now() - cauTu.t0) / BONG_NHIP) % BONG_KHUNG;
+      const s2 = im.naturalWidth / BONG_KHUNG;
+      // Lượn ngang trong lòng ô cho đỡ đứng chết một chỗ
+      const lech = Math.sin((performance.now() - cauTu.t0) / 700) * size * 0.22;
+      ctx.drawImage(im, k * s2, 0, s2, im.naturalHeight,
+        Math.round(o.x * size - camX + lech), Math.round(o.y * size - camY),
+        Math.round(size), Math.round(size));
+    };
+    veBongCa();
+
     const dangCau = () => {
       if (!cauTu) return false;
       const img = AV.anhCauCa(CAU.canDangDung().mau);

@@ -55,6 +55,7 @@ CONG = (DUONG_DOC[0], H - 1)    # cong xuong Khu Dan Cu
 BAC_NONG = (12, 13)             # ban hat giong + co kho, mua lai nong san
 BANG_DON = (17, 13)             # bang don hang cua dan lang
 LAI_CA = (21, 5)                # ong lai ca ngoi canh ao
+QUAN_CA = (16, 2, 5, 4)         # quan ca ben bo ao: x, y, rong, cao (o)
 
 # Vung ke duoc vat the nong trai (x0, y0, x1, y1) — tru duong di va ao ra.
 # Ghi ra js de man trang tri biet ke toi dau thi dung.
@@ -208,6 +209,19 @@ def dung(root, tsx_cache, load_tsx):
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(cho[0] + dx, cho[1] + dy)
 
+    # --- quan ca ben bo ao ---
+    # Anh quan la mot tep rieng (assets/ca/quan.png, cat tu pack Cozy Fishing)
+    # chu khong phai o tileset, nen o day chi danh dau CHAN DUONG; phan ve nam
+    # ben js/ui/world.js. Hang ngay duoi quan phai di duoc de con dung ma ngam.
+    qx, qy, qw, qh = QUAN_CA
+    for y in range(qy, qy + qh):
+        for x in range(qx, qx + qw):
+            if 0 <= x < W and 0 <= y < H:
+                tren[idx(x, y)] = 0
+                solid[idx(x, y)] = 1
+    for x in range(qx, qx + qw):
+        don(x, qy + qh)
+
     npcs = [
         {'x': BAC_NONG[0], 'y': BAC_NONG[1], 'dir': 'down', 'sprite': 'picnicker',
          'name': 'Bác Nông', 'ai': 'stand', 'mo': 'nongtrai', 'tab': 'cho',
@@ -244,6 +258,9 @@ def dung(root, tsx_cache, load_tsx):
         for dy in (-1, 0, 1):
             for dx in (-1, 0, 1):
                 cam.add((cx + dx, cy + dy))
+    for y in range(QUAN_CA[1], QUAN_CA[1] + QUAN_CA[3] + 1):
+        for x in range(QUAN_CA[0], QUAN_CA[0] + QUAN_CA[2]):
+            cam.add((x, y))
 
     talks = [
         {'x': DUONG_DOC[1] + 1, 'y': H - 3, 'name': 'Bảng Nông Trại',
@@ -278,6 +295,10 @@ def viet_js(cam=()):
         'export const BAC_NONG = { x: %d, y: %d };' % BAC_NONG,
         'export const BANG_DON = { x: %d, y: %d };' % BANG_DON,
         'export const AO_CA = { x0: %d, y0: %d, x1: %d, y1: %d };' % AO,
+        '// Quán cá bên bờ ao. Ảnh nằm ở assets/ca/quan.png (cắt từ pack Cozy',
+        '// Fishing) chứ không ở tileset, nên bản đồ chỉ đánh dấu chặn đường,',
+        '// còn phần vẽ do js/ui/world.js lo.',
+        'export const QUAN_CA = { x: %d, y: %d, w: %d, h: %d };' % QUAN_CA,
         '',
         '// Vùng kê được vật thể nông trại — ngoài vùng này là đường đi, ao, viền cây.',
         'export const VUNG = { x0: %d, y0: %d, x1: %d, y1: %d };' % VUNG,
