@@ -38,7 +38,7 @@ export const DIEM_NHANH = [
   // đi nhanh vào được một mảnh đất chẳng có gì, mà cửa sau cũng chưa có nên
   // đường ra duy nhất là cổng bộ — vào trước khi đáng lẽ được vào.
   { id: NONG_TRAI_MAP, ten: 'Nông Trại Bờ Suối',
-    mo: 'Sân sau nhà bạn: ruộng, hồ cá, chuồng thú và nhà kho.',
+    mo: 'Sân sau nhà bạn: khu đất trồng, chuồng thú, hồ cá, nhà kho, nhà bếp.',
     hien: () => nhaXong(),
     cho: { x: CONG_NONG_TRAI.x, y: CONG_NONG_TRAI.y - 1 } },
   { id: KHU_DAT_MAP, ten: 'Khu Dân Cư Taba',

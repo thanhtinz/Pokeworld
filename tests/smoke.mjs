@@ -4006,6 +4006,15 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     }
     throw new Error('nông trại không còn ô nào kê được');
   };
+  // Nông trại mới TRỐNG KHÔNG — đất là phải mua. Mọi test trồng trọt phải tự
+  // sắm lấy một ô ruộng trước, y như người chơi.
+  const keRuong = () => {
+    const [, loi] = NT.mua('ruong');
+    if (loi) throw new Error('không mua được ô ruộng: ' + loi);
+    const [o, e2] = NT.keTaiDay(...oTrongNT());
+    if (e2) throw new Error('không kê được ô ruộng: ' + e2);
+    return o;
+  };
   const goc = new URL('../', import.meta.url).pathname;
   const coTep = (p2) => existsSync(join(goc, p2));
   const coPng2 = (p2) => {
@@ -4175,9 +4184,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   {
     newGame('NongDan');
     G.p.money = 500000;
-    const o = NT.oRuong()[0];
-    ok('nông trại mới đã kê sẵn ruộng và chuồng',
-      NT.oRuong().length >= 6 && NT.sucChua() > 2, JSON.stringify(NT.tomTat()));
+    ok('nông trại mới chưa có ô ruộng nào — đất là phải mua',
+      NT.oRuong().length === 0, JSON.stringify(NT.tomTat()));
+    ok('chuồng quây rào sẵn nên nuôi được ngay', NT.sucChua() >= 4,
+      String(NT.sucChua()));
+    const o = keRuong();
+    ok('mua rồi kê thì có ô ruộng', NT.oRuong().length === 1);
     ok('không có hạt thì không gieo được', NT.gieo(o, 'cu_cai')[1] !== null);
     NT.muaHat('cu_cai', 3);
     ok('mua hạt thì hạt vào kho', NT.co(NT.maHat('cu_cai')) === 3);
@@ -4254,7 +4266,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('không kê được lên lối đi',
       NT.keTaiDay(NM.CONG_RA.x, NM.LOI_NGANG[0])[1] !== null);
     ok('không kê được ra ngoài vùng', NT.keTaiDay(0, 0)[1] !== null);
-    const cu = NT.oRuong()[0];
+    NT.boMonDangCam();
+    const cu = keRuong();
+    NT.mua('ruong');
     ok('không kê chồng lên món đã kê', NT.keTaiDay(cu.x, cu.y)[1] !== null);
     const truoc = NT.nt().o.length;
     const [moi, err] = NT.keTaiDay(...oTrongNT());
@@ -4325,7 +4339,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       Object.values(NT.viecDangCho()).every(v => v === 0),
       JSON.stringify(NT.viecDangCho()));
     NT.muaHat('cu_cai', 2);
-    const o = NT.oRuong()[0];
+    const o = keRuong();
     NT.gieo(o, 'cu_cai');
     ok('gieo xong chưa tưới thì đếm là ô khát', NT.viecDangCho().khat === 1);
     const c = D.CAY_BY_ID.cu_cai;

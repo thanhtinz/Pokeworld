@@ -1312,15 +1312,27 @@ export function render(el) {
   async function bienMua(thing) {
     if (thing.ma === 'can') { await chonCan({ name: 'Biển Cần Câu' }); return; }
     if (thing.ma === 'hat') {
+      // Ô ruộng nằm ĐẦU danh sách: đất là thứ phải mua trước, chưa có ô ruộng
+      // thì mua hạt về cũng không gieo vào đâu được.
+      const dat = NT.VAT_BY_ID.ruong;
       const ds = NT.CAY;
-      const i = await choose('Hạt Giống', ds.map(c => ({
-        label: c.name,
+      const i = await choose('Khu Đất Trồng', [{
+        label: dat.name,
+        sub: `${tienChu(dat.gia)} · đất để gieo hạt · đang có ${NT.oRuong().length} ô`,
+      }].concat(ds.map(c => ({
+        label: `Hạt ${c.name}`,
         sub: `${tienChu(c.giaHat)} · chín sau ${c.phut * NT.CHIN} phút`
           + ` · đang có ${NT.co(NT.maHat(c.id))} gói`,
-      })).concat([{ label: 'Thôi' }]));
-      if (i < 0 || i >= ds.length) return;
-      const [gia, err] = NT.muaHat(ds[i].id);
-      toast(err || `Mua một gói hạt ${ds[i].name}, trả ${tienChu(gia)}.`);
+      })), [{ label: 'Thôi' }]));
+      if (i === 0) {
+        const [v, err] = NT.mua('ruong');
+        toast(err || `Mua ${v.name} — ra chỗ nào ưng trong khu trồng rồi bấm A để kê.`);
+        return;
+      }
+      if (i < 1 || i > ds.length) return;
+      const c = ds[i - 1];
+      const [gia, err] = NT.muaHat(c.id);
+      toast(err || `Mua một gói hạt ${c.name}, trả ${tienChu(gia)}.`);
       return;
     }
     if (thing.ma === 'thu') {

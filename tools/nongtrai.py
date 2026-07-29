@@ -84,13 +84,13 @@ BIEN = [
 # Vung ke duoc vat the nong trai (x0, y0, x1, y1) — tru vien cay ra.
 VUNG = (2, 3, W - 3, DUONG_NGANG[1] + 1)
 
-# Bo cuc mac dinh cua mot nong trai moi: muoi hai o ruong giua mieng dat trong.
-# KHONG ke chuong: chuong da la cai quay rao san tren ban do.
-MAC_DINH = [
-    ('ruong', 7, 5), ('ruong', 8, 5), ('ruong', 9, 5), ('ruong', 10, 5),
-    ('ruong', 7, 6), ('ruong', 8, 6), ('ruong', 9, 6), ('ruong', 10, 6),
-    ('ruong', 7, 7), ('ruong', 8, 7), ('ruong', 9, 7), ('ruong', 10, 7),
-]
+# Nong trai moi thi TRONG KHONG: khu dat trong da quay rao san, nhung DAT LA
+# PHAI MUA. Truoc cho san muoi hai o ruong — thanh ra viec dau tien cua nguoi
+# choi la gieo hat vao dat cua khong ai, chang phai lam gi ma da co ca mot luong.
+# Gio moi o ruong mua o bien MUA canh khu trong roi tu ke vao.
+#
+# KHONG ke chuong nua: chuong da la cai quay rao san tren ban do.
+MAC_DINH = []
 
 
 def dung(goc):
@@ -243,9 +243,6 @@ def dung(goc):
         for _ma, sx, sy in BIEN:
             if sx - 1 <= x <= sx + 1 and sy - 1 <= y <= sy + 1:
                 return True
-        for _ma, mx, my in MAC_DINH:
-            if mx - 1 <= x <= mx + 5 and my - 1 <= y <= my + 5:
-                return True
         return False
 
     def cho_trong_cay(x, y):
@@ -378,7 +375,7 @@ def dung(goc):
     }
 
 
-TEN_BIEN = {'hat': 'Mua Hạt Giống', 'thu': 'Mua Con Vật', 'can': 'Mua Cần Câu'}
+TEN_BIEN = {'hat': 'Mua Đất · Hạt', 'thu': 'Mua Con Vật', 'can': 'Mua Cần Câu'}
 
 
 def viet_js(cam=()):
@@ -426,7 +423,8 @@ def viet_js(cam=()):
         '// Vùng kê được vật thể nông trại — ngoài vùng này là lối đi, hồ, viền cây.',
         'export const VUNG = { x0: %d, y0: %d, x1: %d, y1: %d };' % VUNG,
         '',
-        '// Bố cục mặc định của nông trại mới. Người chơi đổi lại được hết.',
+        '// Nông trại mới thì trống không: đất là phải mua. Khu đất trồng đã quây',
+        '// rào sẵn, nhưng từng ô ruộng phải mua ở biển MUA rồi tự kê vào.',
         'export const MAC_DINH = [',
     ]
     for ma, x, y in MAC_DINH:

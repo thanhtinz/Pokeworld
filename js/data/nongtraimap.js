@@ -31,7 +31,7 @@ export const NHA_SAU = { x: 2, y: 5 };
 // Biển MUA cắm dưới lối đi, đối diện từng khu. Bấm vào là ra bảng chọn
 // ngay trên bản đồ chứ không mở panel.
 export const BIEN = [
-  { ma: "hat", ten: "Mua Hạt Giống", x: 9, y: 11 },
+  { ma: "hat", ten: "Mua Đất · Hạt", x: 9, y: 11 },
   { ma: "thu", ten: "Mua Con Vật", x: 16, y: 11 },
   { ma: "can", ten: "Mua Cần Câu", x: 23, y: 11 },
 ];
@@ -39,20 +39,9 @@ export const BIEN = [
 // Vùng kê được vật thể nông trại — ngoài vùng này là lối đi, hồ, viền cây.
 export const VUNG = { x0: 2, y0: 3, x1: 43, y1: 11 };
 
-// Bố cục mặc định của nông trại mới. Người chơi đổi lại được hết.
+// Nông trại mới thì trống không: đất là phải mua. Khu đất trồng đã quây
+// rào sẵn, nhưng từng ô ruộng phải mua ở biển MUA rồi tự kê vào.
 export const MAC_DINH = [
-  { id: "ruong", x: 7, y: 5 },
-  { id: "ruong", x: 8, y: 5 },
-  { id: "ruong", x: 9, y: 5 },
-  { id: "ruong", x: 10, y: 5 },
-  { id: "ruong", x: 7, y: 6 },
-  { id: "ruong", x: 8, y: 6 },
-  { id: "ruong", x: 9, y: 6 },
-  { id: "ruong", x: 10, y: 6 },
-  { id: "ruong", x: 7, y: 7 },
-  { id: "ruong", x: 8, y: 7 },
-  { id: "ruong", x: 9, y: 7 },
-  { id: "ruong", x: 10, y: 7 },
 ];
 
 // Ô KHÔNG kê được dù nằm trong vùng: lối đi, mặt nước, hàng rào, nhà,
