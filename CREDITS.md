@@ -184,7 +184,9 @@ python3 tools/cozy.py "/duong/dan/Character v.2"
 Pack **Cozy Farm của shubibubi** (itch.io) — cùng tác giả, cùng cỡ ô 16px với
 tileset của Tuxemon: cây trồng 37 loại × 6 giai đoạn (có cả bản đất khô và đất
 đã tưới), gói hạt giống, icon nông sản, con vật (gà, bò, dê, cừu, lợn, thỏ, gà
-tây) và nhà cửa nông trại.
+tây), máy chế biến (bơ, phô mai, mayo, guồng sợi, máy dệt — nguồn là ảnh GIF
+nên bộ sinh duyệt từng khung rồi xếp lại thành một dải ngang) và nhà cửa nông
+trại.
 
 Giấy phép y hệt pack nhân vật: mua rồi thì dùng thương mại thoải mái, **cấm phát
 tán lại chính cái pack**. Nên ở đây cũng chỉ commit phần đã cắt ra `assets/nt/`

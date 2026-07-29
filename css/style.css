@@ -3184,3 +3184,10 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 
 /* Địa Điểm: tách "đi nhanh" (bản đồ nối vào lưới đường) khỏi "ghé thăm" */
 .dd-h3 { margin: 12px 2px 6px; font-size: .92rem; color: var(--muted); }
+/* Ảnh máy chế biến là một DẢI khung ngang — ô chọn chỉ lộ khung đầu.
+   Ép hẳn khung ảnh về đúng một ô 16x32 rồi phóng to, giống cách ô chọn con
+   vật cắt ra khung đứng nhìn thẳng. */
+.nt-vat.nt-may { width: 40px; height: 80px; overflow: hidden; display: block; }
+.nt-vat.nt-may img { width: 16px; height: 32px; object-fit: none;
+  object-position: 0 0; transform: scale(2.5); transform-origin: 0 0;
+  image-rendering: pixelated; }

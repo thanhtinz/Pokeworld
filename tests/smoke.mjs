@@ -4033,9 +4033,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     new Set(D.MON.map(m => m.id)).size === D.MON.length);
   ok('con vật nào cũng cho một món có thật',
     D.THU.every(t => !!D.MON_BY_ID[t.sanPham]));
+  const anhVatThe = (v) => v.loai === 'ruong' ? D.anhDat(false)
+    : v.loai === 'may' ? D.anhMay(v.id) : D.anhNha(v.id);
   ok('thứ kê được nào cũng có ảnh và kích thước dương',
-    D.VAT_THE.every(v => v.w >= 1 && v.h >= 1
-      && coTep(v.id === 'ruong' ? D.anhDat(false) : D.anhNha(v.id))));
+    D.VAT_THE.every(v => v.w >= 1 && v.h >= 1 && coTep(anhVatThe(v))),
+    D.VAT_THE.filter(v => !coTep(anhVatThe(v))).map(v => v.id).join(' '));
   // Cây lâu ăn phải bán được giá hơn, không thì chẳng ai trồng
   ok('cây càng lâu chín càng đáng tiền', D.CAY.every((c, i) =>
     i === 0 || (c.phut >= D.CAY[i - 1].phut && c.giaBan > D.CAY[i - 1].giaBan)),
@@ -4225,6 +4227,62 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('ruộng đang có cây thì không nhấc được', NT.nhac(NT.oRuong()[0])[1] !== null);
   }
 
+  // ---- Máy chế biến ----
+  {
+    newGame('CheBien');
+    G.p.money = 500000;
+    ok('máy nào cũng có ít nhất một công thức',
+      D.MAY.every(m => D.congThucCua(m.id).length >= 1),
+      D.MAY.filter(m => !D.congThucCua(m.id).length).map(m => m.id).join(' '));
+    ok('công thức nào cũng dùng món có thật',
+      D.CONG_THUC.every(c => !!D.MON_BY_ID[c.vao] && !!D.MON_BY_ID[c.ra]
+        && !!D.MAY_BY_ID[c.may]));
+    // Chế biến phải LỜI, không thì bỏ nguyên liệu vào máy làm gì cho mất thì giờ
+    ok('món chế biến luôn đắt hơn tổng nguyên liệu',
+      D.CONG_THUC.every(c => D.MON_BY_ID[c.ra].gia > D.MON_BY_ID[c.vao].gia * c.soVao),
+      D.CONG_THUC.filter(c => D.MON_BY_ID[c.ra].gia <= D.MON_BY_ID[c.vao].gia * c.soVao)
+        .map(c => c.ra).join(' '));
+    ok('ảnh máy chia đúng số khung', D.MAY.every(m => {
+      const s2 = coPng2(D.anhMay(m.id));
+      return s2.w === m.ow * m.khung && s2.h === m.oh;
+    }), D.MAY.map(m => `${m.id}:${JSON.stringify(coPng2(D.anhMay(m.id)))}`).join(' '));
+    ok('máy cao hai ô, rộng một ô', D.MAY.every(m => m.oh === m.ow * 2));
+
+    // Mua rồi kê một cái máy đánh bơ
+    NT.mua('may_bo');
+    const [m0, err0] = NT.keTaiDay(9, 4);
+    ok('kê được máy ra nông trại', !!m0 && !err0, err0 || '');
+    const may = NT.cacMay()[0];
+    ok('máy vừa kê thì đang rảnh', NT.mayRanh(may) && !NT.mayXong(may));
+    ok('không có nguyên liệu thì máy không chạy',
+      NT.boVaoMay(may, 'bo_sua')[1] !== null);
+    ok('máy không nhận món nó không làm được',
+      NT.boVaoMay(may, 'pho_mai')[1] !== null);
+
+    const ct = D.CONG_THUC.find(c => c.may === 'may_bo');
+    NT.them(ct.vao, ct.soVao);
+    const t0 = Date.now();
+    ok('bỏ đủ nguyên liệu thì máy chạy', NT.boVaoMay(may, ct.ra)[0] !== null);
+    ok('máy chạy thì trừ hết nguyên liệu', NT.co(ct.vao) === 0);
+    ok('máy đang chạy thì không nhồi thêm', NT.boVaoMay(may, ct.ra)[1] !== null);
+    ok('chưa xong thì không lấy ra được',
+      NT.layKhoiMay(may, t0 + 60000)[1] !== null);
+    ok('máy đang chạy thì không nhấc lên được', NT.nhac(may)[1] !== null);
+    const [sp] = NT.layKhoiMay(may, t0 + ct.phut * 60000 + 1000);
+    ok('tới giờ thì lấy được hàng', sp?.id === ct.ra && NT.co(ct.ra) === 1);
+    ok('lấy hàng xong thì máy rảnh lại', NT.mayRanh(NT.cacMay()[0]));
+    ok('máy rảnh thì nhấc lên được', NT.nhac(NT.cacMay()[0])[0] !== null);
+
+    // Có máy thì dân làng mới đặt món máy đó làm ra
+    ok('chưa có máy thì đơn không đòi món chế biến',
+      !NT.monLamDuoc().includes('bo_sua'), NT.monLamDuoc().join(' '));
+    NT.boMonDangCam();
+    NT.mua('may_bo');
+    NT.keTaiDay(9, 4);
+    ok('có máy rồi thì đơn đòi được món chế biến',
+      NT.monLamDuoc().includes('bo_sua'));
+  }
+
   // ---- Đơn hàng dân làng ----
   {
     newGame('DonHang');
@@ -4262,6 +4320,20 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     NT.lamMoiDon(t0 + NT.PHUT_RA_DON * 60000 * (NT.DON_TOI_DA + 1), rnd);
     ok('đủ giờ thì bảng dán lại cho đầy', NT.nt().don.length === NT.DON_TOI_DA,
       `${NT.nt().don.length}`);
+  }
+
+  // ---- Uy tín nông trại lên bảng xếp hạng ----
+  {
+    const goc5 = new URL('../', import.meta.url).pathname;
+    const rk2 = readFileSync(join(goc5, 'js/ui/rank.js'), 'utf8');
+    ok('màn Xếp hạng có mục Nông trại', /'nongtrai'/.test(rk2));
+    const rt2 = readFileSync(join(goc5, 'server/src/routes.js'), 'utf8');
+    ok('máy chủ chấm được uy tín nông trại', /nongtrai:/.test(rt2));
+    // Máy chủ đọc thẳng save.nt.diem nên chỗ cất bên client phải đúng tên đó
+    newGame('UyTin');
+    NT.nt().diem = 7;
+    ok('uy tín cất đúng chỗ máy chủ đọc', G.p.nt.diem === 7
+      && NT.diemNongTrai() === 7);
   }
 
   // ---- Nhà người chơi mở cửa sau ra nông trại ----
@@ -4345,6 +4417,8 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('bản đồ có nhánh cho thú ăn và thu sản phẩm',
       /NT\.choAn\(/.test(w2) && /NT\.thuThu\(/.test(w2));
     ok('bản đồ có nhánh kê đồ', /NT\.keTaiDay\(/.test(w2) && /NT\.nhac\(/.test(w2));
+    ok('bản đồ có nhánh máy chế biến',
+      /NT\.boVaoMay\(/.test(w2) && /NT\.layKhoiMay\(/.test(w2));
     const u2 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
     ok('màn nông trại chỉ lo chợ và đơn hàng, không gieo tưới',
       !/NT\.gieo\(|NT\.tuoi\(|NT\.thu\(/.test(u2));

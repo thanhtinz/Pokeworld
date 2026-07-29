@@ -14,6 +14,7 @@ Bo nguon xep the nay (do bang chinh tep, khong doan):
   ui/items.png           160x192  — icon nong san, thu tu dung y "item list.txt"
   animals/<ten>.png               — 4 khung x 5 hang, hang 0 xuong 1 len 2 phai 3 trai
   Buildings/buildings.png         — nha cua, cat theo o 16x16
+  farming/*.gif                   — may che bien, o 16x32, vai khung mot tep
 
 Ban do trong game van dung tileset ngoai troi cua Tuxemon cho nen dat, chi lay
 tu pack nay nhung thu Tuxemon khong co: cay trong, con vat, nha nong. Tron hai
@@ -27,6 +28,7 @@ Sinh ra:
   assets/nt/mon/<ma>.png              — icon nông sản
   assets/nt/thu/<ma>.png              — sprite con vật 3 cột x 4 hàng
   assets/nt/nha/<ma>.png              — nhà nông trại, chuồng, sạp chợ
+  assets/nt/may/<ma>.png              — máy chế biến, dải khung 16x32
   assets/nt/dat/{tho,uot}.png         — ô đất đã cày, khô và đã tưới
   js/data/nongtrai.js
 """
@@ -34,7 +36,7 @@ import json
 import os
 import sys
 
-from PIL import Image
+from PIL import Image, ImageSequence
 
 O = 16                      # canh mot o cua pack (bang TILE cua game)
 RA = 'assets/nt'
@@ -80,19 +82,60 @@ THU = [
     ('bo', 'Bò Sữa', 'cow animation.png', 24, 'sua_bo', 16000, 40),
 ]
 
+# ==== May che bien ====
+# (ma, ten, ten tep gif, gia)
+# Nuoi thu ra nguyen lieu tho, may bien no thanh mon dat tien hon han — day
+# moi la khuc kiem tien that, giong het chuoi san xuat cua Hay Day.
+MAY = [
+    ('may_bo', 'Máy Đánh Bơ', 'butterchurn.gif', 6000),
+    ('ep_pho_mai', 'Máy Ép Phô Mai', 'press_cheese.gif', 9000),
+    ('ep_mozzarella', 'Máy Ép Mozzarella', 'press_mozzarella.gif', 12000),
+    ('ep_pho_mai_de', 'Máy Ép Phô Mai Dê', 'press_goat.gif', 10000),
+    ('may_mayo', 'Máy Làm Mayo', 'mayomaker.gif', 5000),
+    ('guong_soi', 'Guồng Sợi', 'spindle.gif', 8000),
+    ('may_det', 'Máy Dệt', 'clothmaker.gif', 15000),
+]
+KHUNG_MAY = 4               # nuong nhieu nhat bay nhieu khung moi may
+NHIP_MAY = 220              # ms moi khung luc may dang chay
+
+# Cong thuc: (ma may, mon vao, so luong vao, mon ra, so phut)
+# Mon ra luon dat hon tong mon vao, khong thi che bien lam gi cho met.
+CONG_THUC = [
+    ('may_bo', 'sua_bo', 2, 'bo_sua', 10),
+    ('ep_pho_mai', 'sua_bo', 3, 'pho_mai', 16),
+    ('ep_mozzarella', 'sua_bo', 2, 'mozzarella', 14),
+    ('ep_pho_mai_de', 'sua_de', 3, 'pho_mai_de', 15),
+    ('may_mayo', 'trung_trang', 3, 'mayo', 8),
+    ('guong_soi', 'len_trang', 2, 'soi_trang', 9),
+    ('guong_soi', 'len_xam', 2, 'soi_xam', 11),
+    ('may_det', 'soi_trang', 2, 'vai_trang', 18),
+    ('may_det', 'soi_xam', 2, 'vai_xam', 22),
+]
+
 # ==== Nong san khong phai cay trong ====
 # (ma, ten, chi so trong ui/items.png, gia ban)
 # Chi so = hang * 10 + cot, dung thu tu cua "item list.txt" trong pack.
 MON_THEM = [
+    # --- thu cho thang ---
     ('sua_bo', 'Sữa Bò', 30, 420),
     ('sua_de', 'Sữa Dê', 31, 300),
     ('thit_xong_khoi', 'Thịt Xông Khói', 36, 260),
     ('long_ga_tay', 'Lông Gà Tây', 39, 190),
     ('trung_trang', 'Trứng Gà', 40, 60),
     ('trung_nau', 'Trứng Nâu', 42, 95),
-    ('len_trang', 'Lông Thỏ', 50, 140),
-    ('len_xam', 'Len Cừu', 51, 230),
+    ('len_trang', 'Len Trắng', 50, 140),
+    ('len_xam', 'Len Xám', 51, 230),
     ('co_kho', 'Cỏ Khô', 56, 30),
+    # --- qua may che bien ---
+    ('bo_sua', 'Bơ', 32, 1050),
+    ('pho_mai', 'Phô Mai', 33, 1600),
+    ('mozzarella', 'Mozzarella', 34, 1080),
+    ('pho_mai_de', 'Phô Mai Dê', 35, 1150),
+    ('mayo', 'Mayonnaise', 48, 260),
+    ('soi_trang', 'Sợi Trắng', 52, 360),
+    ('soi_xam', 'Sợi Xám', 53, 590),
+    ('vai_trang', 'Vải Trắng', 54, 950),
+    ('vai_xam', 'Vải Xám', 55, 1520),
 ]
 
 # ==== Nha cua tren nong trai ====
@@ -122,7 +165,7 @@ VAT_THE = [
     ('nha_kinh', 'Nhà Kính', 'trang_tri', 22000, 0),
     ('nha_nong', 'Nhà Nông Trại', 'trang_tri', 9000, 0),
     ('sap_cho', 'Sạp Chợ', 'trang_tri', 12000, 0),
-]
+] + [(ma, ten, 'may', gia, 0) for ma, ten, _tep, gia in MAY]
 # Nuoi duoc bay nhieu con khi chua ke chuong nao
 SUC_CHUA_GOC = 2
 
@@ -259,6 +302,27 @@ def cat_thu(goc):
     return len(THU)
 
 
+def cat_may(goc):
+    """May che bien: gif nen phai duyet tung khung roi xep thanh mot dai ngang.
+
+    Chi lay nhieu nhat KHUNG_MAY khung, rai deu ca doan — clothmaker.gif co 37
+    khung, nuong het thi mot tam anh dai gan 600px cho mot cai may go.
+    """
+    ra = {}
+    for ma, _ten, tep, _gia in MAY:
+        gif = Image.open(os.path.join(goc, 'farming', tep))
+        khung = [f.convert('RGBA') for f in ImageSequence.Iterator(gif)]
+        n = min(KHUNG_MAY, len(khung))
+        chon = [khung[i * len(khung) // n] for i in range(n)]
+        w, h = chon[0].size
+        im = Image.new('RGBA', (w * n, h), (0, 0, 0, 0))
+        for i, f in enumerate(chon):
+            im.paste(f, (i * w, 0))
+        luu(im, 'may', ma + '.png')
+        ra[ma] = (n, w, h)
+    return ra
+
+
 def cat_nha(goc):
     """Nha cua + o dac: do alpha tung o de biet o nao chan duong.
 
@@ -296,6 +360,8 @@ def main():
             os.remove(os.path.join(dp, f))
 
     n = cat_cay(goc) + cat_hat(goc) + cat_mon(goc) + cat_thu(goc)
+    may = cat_may(goc)
+    n += len(may)
     nha = cat_nha(goc)
     hs_uot = cat_o_dat(goc)
 
@@ -354,6 +420,32 @@ def main():
     dong += ['];', '',
              'export const NHA_BY_ID = Object.fromEntries(NHA.map(n => [n.id, n]));',
              '',
+             '// Máy chế biến. Ảnh là một DẢI khung ngang, ô %dx%d mỗi khung —' % (16, 32),
+             '// máy đang chạy thì chạy hết dải, máy rảnh thì đứng ở khung đầu.',
+             'export const NHIP_MAY = %d;   // ms mỗi khung' % NHIP_MAY,
+             'export const MAY = [',
+             ] + [
+             '  { id: %s, name: %s, gia: %d, khung: %d, ow: %d, oh: %d },'
+             % (js(ma), js(ten), gia, may[ma][0], may[ma][1], may[ma][2])
+             for ma, ten, _tep, gia in MAY
+             ] + [
+             '];',
+             '',
+             'export const MAY_BY_ID = Object.fromEntries(MAY.map(m => [m.id, m]));',
+             '',
+             '// Công thức: bỏ `soVao` món `vao` vào máy, `phut` phút sau lấy ra',
+             '// một món `ra`. Món ra luôn đắt hơn tổng món vào.',
+             'export const CONG_THUC = [',
+             ] + [
+             '  { may: %s, vao: %s, soVao: %d, ra: %s, phut: %d },'
+             % (js(mm), js(vao), sv, js(rr), ph)
+             for mm, vao, sv, rr, ph in CONG_THUC
+             ] + [
+             '];',
+             '',
+             '/** Mấy công thức mà cái máy này làm được. */',
+             'export const congThucCua = (mayId) => CONG_THUC.filter(c => c.may === mayId);',
+             '',
              '// Thứ kê được lên nông trại. Ruộng là ô 1x1 vẽ bằng ảnh đất, còn lại',
              '// mượn nguyên kích thước của công trình trong NHA.',
              'export const VAT_THE = [',
@@ -375,6 +467,7 @@ def main():
              'export const anhMon = (id) => `${THU_MUC}/mon/${id}.png`;',
              'export const anhThu = (id) => `${THU_MUC}/thu/${id}.png`;',
              'export const anhNha = (id) => `${THU_MUC}/nha/${id}.png`;',
+             'export const anhMay = (id) => `${THU_MUC}/may/${id}.png`;',
              'export const anhDat = (uot) => `${THU_MUC}/dat/${uot ? "uot" : "tho"}.png`;',
              '']
 
@@ -384,8 +477,9 @@ def main():
     tong = sum(os.path.getsize(os.path.join(dp, f))
                for dp, _, fs in os.walk(RA) for f in fs)
     print('OK: %d ảnh + %d nhà -> %s (%.1f KB)' % (n, len(nha), RA, tong / 1024))
-    print('OK: %d cây, %d con vật, %d món -> %s'
-          % (len(CAY), len(THU), len(CAY) + len(MON_THEM), DL))
+    print('OK: %d cây, %d con vật, %d máy, %d công thức, %d món -> %s'
+          % (len(CAY), len(THU), len(MAY), len(CONG_THUC),
+             len(CAY) + len(MON_THEM), DL))
     print('OK: ô đất tưới làm tối theo hệ số đo từ pack: %s'
           % ', '.join('%.3f' % h for h in hs_uot))
 

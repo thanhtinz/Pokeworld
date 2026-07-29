@@ -86,6 +86,9 @@ const METRICS = {
   money: u => u.save?.money || 0,
   // Điểm câu cá chấm y hệt công thức bên js/engine/cauca.js (xem ca.data.js)
   cauca: u => diemCauCa(u.save),
+  // Uy tín nông trại = tổng điểm mấy đơn dân làng đã giao. Chấm ngay ở đây
+  // được vì nó chỉ là một con số cất sẵn trong bản lưu, không phải tính lại.
+  nongtrai: u => u.save?.nt?.diem || 0,
   dex: u => Object.keys(u.save?.dex?.caught || {}).length,
   badges: u => (u.save?.badges || []).length,
   level: u => Math.max(0, ...(u.save?.party || []).map(m => m.lv || 0)),

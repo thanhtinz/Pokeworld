@@ -44,7 +44,8 @@ import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
 import * as AV from '../engine/avatar.js';
 import * as NT from '../engine/nongtrai.js';
-import { anhCay, anhThu as anhConThu, anhNha as anhNhaNT, anhDat } from '../data/nongtrai.js';
+import { anhCay, anhThu as anhConThu, anhNha as anhNhaNT, anhMay, anhDat,
+  NHIP_MAY } from '../data/nongtrai.js';
 import { esc, tien, tienChu } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
@@ -347,6 +348,21 @@ export function render(el) {
           if (NT.daChin(o, gio)) veCham(o.x + 0.5, o.y - 0.15, size, camX, camY, '#ffd43b');
           else if (!NT.dangUot(o, gio)) veCham(o.x + 0.5, o.y - 0.15, size, camX, camY, '#4dabf7');
         }
+      } else if (v.loai === 'may') {
+        // Máy chỉ chiếm MỘT ô nhưng ảnh cao hai ô — vẽ vươn lên trên ô nó đứng.
+        // Máy đang chạy thì chạy hết dải khung, máy rảnh thì đứng khung đầu.
+        const im = ntAnh(anhMay(o.id));
+        const d = NT.MAY_BY_ID[o.id];
+        if (owReady(im) && d) {
+          const k = NT.mayDangChay(o, gio)
+            ? Math.floor(gio / NHIP_MAY) % d.khung : 0;
+          const sw = im.naturalWidth / d.khung;
+          const cao = size * (d.oh / d.ow);
+          ctx.drawImage(im, k * sw, 0, sw, im.naturalHeight,
+            Math.round(o.x * size - camX), Math.round((o.y + 1) * size - camY - cao),
+            Math.round(size), Math.round(cao));
+        }
+        if (NT.mayXong(o, gio)) veCham(o.x + 0.5, o.y - 1.15, size, camX, camY, '#ffd43b');
       } else {
         // Công trình vẽ cao hơn ô nó chiếm: ảnh gốc là mặt tiền nhìn nghiêng,
         // vẽ đúng bằng số ô thì lùn tịt.
@@ -1227,7 +1243,42 @@ export function render(el) {
       return;
     }
 
-    // 3) Công trình đã kê: nhấc lên để dời chỗ
+    // 3) Máy chế biến: bỏ nguyên liệu vào, hoặc lấy hàng ra
+    if (thing.kind === 'may') {
+      const m = thing.o;
+      if (NT.mayXong(m)) {
+        const [r, err] = NT.layKhoiMay(m);
+        if (err) { toast(err); return; }
+        await playDialog([[{ name: 'Bạn' },
+          `Lấy được ${NT.MON_BY_ID[r.id]?.name} từ ${thing.name}.`]]);
+        return;
+      }
+      if (NT.mayDangChay(m)) {
+        toast(`${thing.name} đang chạy — ${NT.conLaiMayChu(m)}.`);
+        return;
+      }
+      const ds = NT.congThucCua(m.id);
+      const i = await choose(thing.name, [
+        ...ds.map(c => ({
+          label: NT.MON_BY_ID[c.ra]?.name || c.ra,
+          sub: `cần ${c.soVao} ${NT.MON_BY_ID[c.vao]?.name} (có ${NT.co(c.vao)}) · ${c.phut} phút`,
+          disabled: NT.co(c.vao) < c.soVao,
+        })),
+        { label: 'Nhấc máy lên', sub: 'Kê sang chỗ khác' },
+        { label: 'Thôi' },
+      ]);
+      if (i === ds.length) {
+        const [v, err] = NT.nhac(m);
+        toast(err || `Đang cầm ${v.name}.`);
+        return;
+      }
+      if (i === null || i < 0 || i > ds.length) return;
+      const [ok, err] = NT.boVaoMay(m, ds[i].ra);
+      toast(err || ok);
+      return;
+    }
+
+    // 4) Công trình đã kê: nhấc lên để dời chỗ
     if (thing.kind === 'congtrinh') {
       const i = await choose(thing.name, [
         { label: 'Nhấc lên dời chỗ', sub: 'Kê lại ở đâu cũng được' },
@@ -1239,7 +1290,7 @@ export function render(el) {
       return;
     }
 
-    // 4) Ô ruộng
+    // 5) Ô ruộng
     const o = thing.o;
     if (!o.cay) {
       // Chưa gieo: chọn hạt trong kho. Không có hạt nào thì bảo đi mua.

@@ -10,11 +10,18 @@
 // đơn, đúng hai thứ mà đứng ngoài ruộng không làm được.
 import { G } from '../state.js';
 import * as NT from '../engine/nongtrai.js';
-import { anhHat, anhMon, anhThu, anhNha, anhDat } from '../data/nongtrai.js';
+import { anhHat, anhMon, anhThu, anhNha, anhMay, anhDat } from '../data/nongtrai.js';
 import { esc, tien, tienChu } from '../util.js';
 import { toast, header } from './kit.js';
 
-const anhVat = (id) => (id === 'ruong' ? anhDat(false) : anhNha(id));
+const anhVat = (id) => {
+  const loai = NT.VAT_BY_ID[id]?.loai;
+  return loai === 'ruong' ? anhDat(false) : loai === 'may' ? anhMay(id) : anhNha(id);
+};
+
+// Một dòng "2 Sữa Bò → Bơ · 10 phút" cho từng công thức của máy
+const chuCongThuc = (c) =>
+  `${c.soVao} ${NT.MON_BY_ID[c.vao]?.name} → ${NT.MON_BY_ID[c.ra]?.name} · ${c.phut} phút`;
 
 export function render(el, { tab = 'cho', from = 'world' } = {}) {
   NT.nt();
@@ -64,13 +71,17 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
 
       <h3 class="nt-h3">Kê ra nông trại</h3>
       <p class="nt-mo">Mua xong thì cầm ra bản đồ, đứng đâu ưng thì bấm A đặt xuống.
-        Muốn dời chỗ thì bấm A ngay trước món đã kê.</p>
+        Muốn dời chỗ thì bấm A ngay trước món đã kê. Máy chế biến biến nguyên
+        liệu thô thành món đắt hơn hẳn — bỏ hàng vào rồi lát quay lại lấy.</p>
       <div class="nt-luoi">${NT.VAT_THE.map(v => `
         <div class="card nt-o">
-          <span class="nt-anh nt-vat"><img src="${esc(anhVat(v.id))}" alt=""></span>
+          <span class="nt-anh nt-vat ${v.loai === 'may' ? 'nt-may' : ''}">
+            <img src="${esc(anhVat(v.id))}" alt=""></span>
           <b>${esc(v.name)}</b>
           <small>${v.loai === 'ruong' ? 'Gieo hạt được'
-            : v.loai === 'chuong' ? `Nuôi thêm ${v.chua} con` : 'Kê cho đẹp'}</small>
+            : v.loai === 'chuong' ? `Nuôi thêm ${v.chua} con`
+            : v.loai === 'may' ? NT.congThucCua(v.id).map(chuCongThuc).join('<br>')
+            : 'Kê cho đẹp'}</small>
           <button class="btn btn-sm btn-primary nt-muavat" data-vat="${esc(v.id)}"
             ${cam ? 'disabled' : ''}>Mua ${tien(v.gia)}</button>
         </div>`).join('')}</div>`;

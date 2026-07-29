@@ -10,16 +10,20 @@
 //      đúng một giai đoạn. Bỏ bê thì cây đứng nguyên đó chờ.
 //   4. Chín thì bấm A để thu, nông sản vào kho nông trại.
 //   5. Mua thú ở chỗ bác Nông. Thú phải CHO ĂN cỏ khô mới ra lứa sản phẩm sau.
-//   6. Dân làng dán đơn ở bảng đơn hàng: gom đủ món thì giao, lấy tiền + điểm.
+//   6. Kê máy chế biến rồi bỏ nguyên liệu vào: sữa ra bơ với phô mai, len ra
+//      sợi rồi ra vải. Món chế biến đắt hơn hẳn nguyên liệu thô.
+//   7. Dân làng dán đơn ở bảng đơn hàng: gom đủ món thì giao, lấy tiền + điểm.
 //
 // Mọi mốc thời gian là THỜI GIAN THẬT (Date.now), tắt game cây vẫn lớn — giống
 // hệt cách nhà đang xây bên engine/estate.js đếm giờ.
 import { G, save, addMoney } from '../state.js';
 import { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
+  MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, SUC_CHUA_GOC } from '../data/nongtrai.js';
 import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG, BANG_DON } from '../data/nongtraimap.js';
 
 export { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
+  MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG, BANG_DON };
 
 const PHUT = 60000;
@@ -46,6 +50,7 @@ export function nt() {
 }
 
 export const oRuong = () => nt().o.filter(o => VAT_BY_ID[o.id]?.loai === 'ruong');
+export const cacMay = () => nt().o.filter(o => VAT_BY_ID[o.id]?.loai === 'may');
 export const danhSachThu = () => nt().thu;
 
 /** Nuôi được nhiều nhất bao nhiêu con: mỗi cái chuồng cộng thêm một ít. */
@@ -251,6 +256,58 @@ export function conLaiThuChu(con, gio = Date.now()) {
   return p < 60 ? `${p} phút nữa` : `${Math.floor(p / 60)} giờ ${p % 60} phút nữa`;
 }
 
+// ==== Máy chế biến ====
+//
+// Khúc kiếm tiền thật của nông trại: thú cho ra nguyên liệu thô rẻ tiền, máy
+// biến nó thành món đắt gấp mấy lần. Sữa → bơ / phô mai, len → sợi → vải.
+// Giống chuỗi sản xuất của Hay Day, và cũng là lý do đáng mua chuồng to.
+
+export const mayRanh = (m) => !m?.lam;
+export const mayXong = (m, gio = Date.now()) => !!m?.lam && gio >= (m.xongLuc || 0);
+export const mayDangChay = (m, gio = Date.now()) => !!m?.lam && gio < (m.xongLuc || 0);
+
+export function conLaiMayChu(m, gio = Date.now()) {
+  const ms = Math.max(0, (m?.xongLuc || 0) - gio);
+  const p = Math.ceil(ms / PHUT);
+  return p < 60 ? `${p} phút nữa` : `${Math.floor(p / 60)} giờ ${p % 60} phút nữa`;
+}
+
+/** Công thức đang chạy trong máy (nếu có). */
+export const congThucDangLam = (m) =>
+  CONG_THUC.find(c => c.may === m?.id && c.ra === m?.lam) || null;
+
+/** Bỏ nguyên liệu vào máy. `ra` là mã món muốn làm. Trả [lời nhắn, lỗi]. */
+export function boVaoMay(m, raId) {
+  const v = VAT_BY_ID[m?.id];
+  if (!v || v.loai !== 'may') return [null, 'Chỗ này không phải máy.'];
+  if (!mayRanh(m)) {
+    return [null, mayXong(m) ? 'Máy có hàng rồi, lấy ra đã.'
+      : `Máy đang chạy — ${conLaiMayChu(m)}.`];
+  }
+  const ct = CONG_THUC.find(c => c.may === m.id && c.ra === raId);
+  if (!ct) return [null, 'Máy này không làm được món đó.'];
+  if (co(ct.vao) < ct.soVao) {
+    return [null, `Cần ${ct.soVao} ${MON_BY_ID[ct.vao]?.name} — trong kho mới có ${co(ct.vao)}.`];
+  }
+  bot(ct.vao, ct.soVao);
+  m.lam = ct.ra;
+  m.xongLuc = Date.now() + ct.phut * PHUT;
+  save();
+  return [`Máy chạy rồi — ${ct.phut} phút nữa có ${MON_BY_ID[ct.ra]?.name}.`, null];
+}
+
+/** Lấy hàng ra khỏi máy. Trả [{id, n}, lỗi]. */
+export function layKhoiMay(m, gio = Date.now()) {
+  if (!m?.lam) return [null, 'Máy đang rảnh.'];
+  if (!mayXong(m, gio)) return [null, `Máy đang chạy — ${conLaiMayChu(m, gio)}.`];
+  const id = m.lam;
+  them(id, 1);
+  m.lam = null;
+  m.xongLuc = 0;
+  save();
+  return [{ id, n: 1 }, null];
+}
+
 // ==== Kê đồ trên nông trại ====
 
 /**
@@ -310,6 +367,7 @@ export function nhac(o) {
   if (i < 0) return [null, 'Không thấy món này.'];
   if (choKe()) return [null, 'Đang cầm món khác rồi.'];
   if (o.cay) return [null, 'Nhổ hết cây đã rồi hẵng nhấc ruộng.'];
+  if (o.lam) return [null, 'Máy đang có hàng trong bụng — lấy ra đã.'];
   n.o.splice(i, 1);
   n.choKe = o.id;
   save();
@@ -389,6 +447,10 @@ export function monLamDuoc() {
   for (const t of nt().thu) {
     const sp = THU_BY_ID[t.id]?.sanPham;
     if (sp) ds.add(sp);
+  }
+  // Có máy nào thì dân làng biết mà đặt luôn món máy đó làm ra
+  for (const m of cacMay()) {
+    for (const c of congThucCua(m.id)) ds.add(c.ra);
   }
   // Chưa có gì thì vẫn cho mấy cây rẻ nhất, không thì bảng đơn trống trơn
   if (!ds.size) for (const c of CAY.slice(0, 3)) ds.add(c.id);
@@ -480,6 +542,8 @@ export const tomTat = () => {
     chin: oRuong().filter(o => daChin(o)).length,
     thu: n.thu.length,
     chua: sucChua(),
+    may: cacMay().length,
+    mayXong: cacMay().filter(m => mayXong(m)).length,
     kho: Object.values(n.kho).reduce((a, v) => a + v, 0),
     don: n.don.length,
     diem: n.diem,
@@ -498,8 +562,8 @@ export function vatNongTrai(mapId, x, y) {
   const o = oTaiO(x, y);
   if (o) {
     const v = VAT_BY_ID[o.id];
-    return { type: 'nongtrai', kind: v.loai === 'ruong' ? 'ruong' : 'congtrinh',
-      name: v.name, o };
+    const kind = v.loai === 'ruong' ? 'ruong' : v.loai === 'may' ? 'may' : 'congtrinh';
+    return { type: 'nongtrai', kind, name: v.name, o };
   }
   // Đang cầm món chờ kê thì mọi ô trống đều bấm được
   if (choKe() && keDuoc(choKe(), x, y)) {
