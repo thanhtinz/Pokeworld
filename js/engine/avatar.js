@@ -179,6 +179,9 @@ export function capNhatO(root = document) {
 // chỉ còn cái chỏm còn tóc dài thì cụt ngang.
 export const VUNG_NGUOI = { x: 0, y: 2, w: KHUNG_W, h: 62 };
 export const VUNG_DAU = { x: 0, y: 5, w: KHUNG_W, h: 43 };
+// Khung hẹp hơn cho mấy ô chọn tóc/râu/tai/mũi/biểu cảm: khung mũ ở trên lấy
+// tới tận ngực, bày trong ô chọn thì cái đầu bé tí, nhìn không ra kiểu gì.
+export const VUNG_MAT = { x: 2, y: 7, w: 28, h: 34 };
 
 /**
  * Chồng vài lớp lại thành một ô ảnh tĩnh.
@@ -206,7 +209,7 @@ export function oMonDo(id, { cao = 96, nv = nguoi() } = {}) {
 export function oPhanDau(nhom, ten, { cao = 64, nv = nguoi() } = {}) {
   const ds = [[P('base', `${nv.than}_${nv.da}`), 'lop-nen']];
   if (ten) ds.push([P(nhom, ten), '']);
-  return oLop(ds, { cao, vung: VUNG_DAU, cls: 'do-o' });
+  return oLop(ds, { cao, vung: VUNG_MAT, cls: 'do-o' });
 }
 
 /** Cả một bộ đồ mẫu khoác lên người, dùng cho thẻ chọn bộ lúc tạo nhân vật. */

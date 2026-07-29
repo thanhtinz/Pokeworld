@@ -1,13 +1,13 @@
 // TuxeWorld H5 | ui/createchar.js | Tạo nhân vật: ghép ngoại hình + chọn bộ đồ
 //
-// Bản trước bày đúng kiểu một trang thiết lập: mười cái tab chữ chen nhau, mỗi
-// mục là một hàng nút chữ, chọn "Nâu Đỏ" hay "Hạt Dẻ" thì phải bấm mới biết nó
-// ra sao. Nay dựng theo lối màn tạo nhân vật của game:
+// Dựng theo lối màn tạo nhân vật của game chứ không phải một trang thiết lập:
 //
-//   · nhân vật đứng giữa một cái BỤC có vầng sáng, xoay được bốn hướng
+//   · nhân vật đứng trên BỤC ĐÁ có vầng sáng, xoay được bốn hướng
 //   · mục chỉnh nằm trên một thanh trượt ngang, không bẻ dòng
 //   · chọn MÀU thì bày ô màu thật, chọn KIỂU thì bày ảnh cái đầu đội kiểu đó
-//   · ba bộ đồ mẫu hiện luôn ảnh bộ đồ mặc trên người
+//   · tóc và râu gộp kiểu với màu vào chung một thẻ — đổi kiểu xong đổi màu
+//     ngay tại chỗ, khỏi nhảy sang tab khác
+//   · tên và nút bắt đầu dính đáy màn hình, không phải cuộn xuống mới thấy
 import { activeAccount, setAvatar, setCharCreated } from '../engine/accounts.js';
 import { G, newGame, save, hasSave } from '../state.js';
 import * as AV from '../engine/avatar.js';
@@ -19,20 +19,21 @@ import { toast } from './kit.js';
 import { show } from '../main.js';
 
 // Từng mục chỉnh. `kieu` quyết định cách bày lựa chọn:
-//   'mau'  — ô màu tròn          (màu da, màu tóc, màu mắt, màu râu)
+//   'mau'  — ô màu tròn          (màu da, màu mắt)
 //   'dau'  — ảnh cái đầu         (tóc, râu, tai, mũi, biểu cảm)
 //   'chu'  — nút chữ             (dáng người)
 // `trong` = cho phép để trống (không có phần đó).
+// `phu`   = mục chọn màu đi kèm, bày ngay dưới cùng một thẻ.
 const MUC = [
   { k: 'than', ten: 'Dáng', ds: THAN, kieu: 'chu' },
   { k: 'da', ten: 'Da', ds: DA, kieu: 'mau' },
-  { k: 'tocKieu', ten: 'Tóc', ds: TOC_KIEU, kieu: 'dau', nhom: 'toc', trong: 'Hói' },
-  { k: 'tocMau', ten: 'Màu tóc', ds: TOC_MAU, kieu: 'mau' },
+  { k: 'tocKieu', ten: 'Tóc', ds: TOC_KIEU, kieu: 'dau', nhom: 'toc', trong: 'Hói',
+    phu: { k: 'tocMau', ten: 'Màu tóc', ds: TOC_MAU } },
   { k: 'mat', ten: 'Mắt', ds: MAT, kieu: 'mau' },
+  { k: 'rauKieu', ten: 'Râu', ds: RAU_KIEU, kieu: 'dau', nhom: 'rau', trong: 'Không',
+    phu: { k: 'rauMau', ten: 'Màu râu', ds: RAU_MAU } },
   { k: 'tai', ten: 'Tai', ds: TAI, kieu: 'dau', nhom: 'tai', trong: 'Thường' },
   { k: 'mui', ten: 'Mũi', ds: MUI, kieu: 'dau', nhom: 'mui', trong: 'Thường' },
-  { k: 'rauKieu', ten: 'Râu', ds: RAU_KIEU, kieu: 'dau', nhom: 'rau', trong: 'Không' },
-  { k: 'rauMau', ten: 'Màu râu', ds: RAU_MAU, kieu: 'mau' },
   { k: 'bieucam', ten: 'Biểu cảm', ds: BIEU_CAM, kieu: 'dau', nhom: 'bieucam', trong: 'Bình thường' },
 ];
 
@@ -42,9 +43,9 @@ const HUONG = [
 ];
 
 // Số dòng trống trên đỉnh khung sprite (chỗ chừa cho mũ cao) cắt đi khi xem
-// trước, kèm cỡ canvas tính ra từ đó: rộng 32 -> 128 nên tỉ lệ phóng là 4.
+// trước, kèm cỡ canvas tính ra từ đó: rộng 32 -> 144 nên tỉ lệ phóng là 4,5.
 const BO_TREN = 10;
-const XEM_W = 128;
+const XEM_W = 144;
 const XEM_H = (64 - BO_TREN) * (XEM_W / 32);
 
 const bocNgauNhien = (ds) => ds[Math.floor(Math.random() * ds.length)]?.id ?? '';
@@ -75,10 +76,17 @@ export function render(el) {
       const ten = m.k === 'tocKieu' ? (o.id && `${o.id}_${nv.tocMau}`)
         : m.k === 'rauKieu' ? (o.id && `${o.id}_${nv.rauMau}`)
           : (o.id && `${o.id}_${nv.da}`);
-      return AV.oPhanDau(m.nhom, ten, { cao: 52, nv });
+      return AV.oPhanDau(m.nhom, ten, { cao: 54, nv });
     }
     return '';
   }
+
+  const oHtml = (m, o, khoa, cls) => `<button type="button"
+    class="cc-o ${(nv[khoa] || '') === o.id ? 'chon' : ''}"
+    data-${cls}="${esc(o.id)}" title="${esc(o.name)}">
+    ${cls === 'phu' ? `<i class="cc-mau" style="background:${esc(o.mau || '#888')}"></i>`
+      : oChon(m, o)}<span>${esc(o.name)}</span>
+  </button>`;
 
   function veHtml() {
     const m = MUC.find(x => x.k === muc) || MUC[0];
@@ -89,19 +97,21 @@ export function render(el) {
       <div class="splash create-scr">
         <div class="splash-bg"></div>
         <div class="splash-inner cc-wrap">
-          <h2 class="login-title">Tạo nhân vật</h2>
+          <h2 class="login-title cc-title">Tạo nhân vật</h2>
 
           <div class="cc-buc">
             <div class="cc-sang"></div>
-            <button type="button" class="cc-xoay trai" data-xoay="-1" aria-label="Xoay trái">‹</button>
-            <canvas id="cc-canvas" width="${XEM_W}" height="${XEM_H}"></canvas>
-            <button type="button" class="cc-xoay phai" data-xoay="1" aria-label="Xoay phải">›</button>
-            <div class="cc-san"></div>
+            <button type="button" class="cc-random" id="cc-random">🎲 Ngẫu nhiên</button>
+            <button type="button" class="cc-xoay" data-xoay="-1" aria-label="Xoay trái">‹</button>
+            <div class="cc-nguoi">
+              <canvas id="cc-canvas" width="${XEM_W}" height="${XEM_H}"></canvas>
+              <div class="cc-be"></div>
+            </div>
+            <button type="button" class="cc-xoay" data-xoay="1" aria-label="Xoay phải">›</button>
             <div class="cc-huong">
               ${HUONG.map((h, k) => `<i class="${k === huong ? 'on' : ''}"></i>`).join('')}
               <span>${esc(HUONG[huong].ten)}</span>
             </div>
-            <button class="btn btn-sm cc-random" id="cc-random">🎲 Ngẫu nhiên</button>
           </div>
 
           <div class="cc-rail">
@@ -117,11 +127,14 @@ export function render(el) {
               <button type="button" class="cc-mui" data-di="1" aria-label="Lựa chọn sau">›</button>
             </div>
             <div class="cc-chon cc-k-${m.kieu}">
-              ${ds.map(o => `<button type="button" class="cc-o ${(nv[m.k] || '') === o.id ? 'chon' : ''}"
-                data-val="${esc(o.id)}" title="${esc(o.name)}">
-                ${oChon(m, o)}<span>${esc(o.name)}</span>
-              </button>`).join('')}
+              ${ds.map(o => oHtml(m, o, m.k, 'val')).join('')}
             </div>
+            ${m.phu ? `<div class="cc-phu">
+              <small>${esc(m.phu.ten)}</small>
+              <div class="cc-chon cc-k-mau">
+                ${m.phu.ds.map(o => oHtml(m, o, m.phu.k, 'phu')).join('')}
+              </div>
+            </div>` : ''}
           </div>
 
           <h3 class="cc-h3">Bộ đồ mở đầu</h3>
@@ -133,11 +146,10 @@ export function render(el) {
             </button>`).join('')}
           </div>
 
-          <div class="card name-card">
-            <label for="char-name">Tên nhà huấn luyện (hiện trong game)</label>
-            <input id="char-name" type="text" maxlength="12" placeholder="VD: Ash"
-                   value="${esc(acc?.user || '')}" autocomplete="off">
-            <button class="btn btn-primary btn-big" id="btn-create">Bắt đầu hành trình</button>
+          <div class="cc-day">
+            <input id="char-name" type="text" maxlength="12" placeholder="Đặt tên nhà huấn luyện"
+                   value="${esc(acc?.user || '')}" autocomplete="off" aria-label="Tên nhà huấn luyện">
+            <button class="btn btn-primary" id="btn-create">Bắt đầu</button>
           </div>
         </div>
       </div>`;
@@ -146,8 +158,12 @@ export function render(el) {
       muc = b.dataset.muc;
       veHtml();
     }));
-    el.querySelectorAll('.cc-o').forEach(b => b.addEventListener('click', () => {
+    el.querySelectorAll('[data-val]').forEach(b => b.addEventListener('click', () => {
       nv[m.k] = b.dataset.val;
+      veHtml();
+    }));
+    el.querySelectorAll('[data-phu]').forEach(b => b.addEventListener('click', () => {
+      nv[m.phu.k] = b.dataset.phu;
       veHtml();
     }));
     // Nút ‹ › lật lần lượt trong mục đang mở — bấm nhanh cho vui mắt
@@ -165,7 +181,10 @@ export function render(el) {
       veHtml();
     }));
     el.querySelector('#cc-random').addEventListener('click', () => {
-      for (const x of MUC) nv[x.k] = bocNgauNhien(luaChon(x));
+      for (const x of MUC) {
+        nv[x.k] = bocNgauNhien(luaChon(x));
+        if (x.phu) nv[x.phu.k] = bocNgauNhien(x.phu.ds);
+      }
       boDo = 1 + Math.floor(Math.random() * BO_MAU.length);
       veHtml();
     });

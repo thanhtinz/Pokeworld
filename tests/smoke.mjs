@@ -3170,6 +3170,15 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   })());
   ok('phần đầu bỏ trống thì chỉ còn mỗi ma-nơ-canh',
     (AV.oPhanDau('toc', '').match(/<img/g) || []).length === 1);
+  // Ô chọn tóc/râu dùng khung hẹp hơn khung mũ: lấy rộng như khung mũ thì cái
+  // đầu trong ô bé tí, nhìn không ra đang chọn kiểu gì.
+  ok('khung ô chọn phần mặt hẹp hơn khung mũ',
+    AV.VUNG_MAT.h < AV.VUNG_DAU.h && AV.VUNG_MAT.y > AV.VUNG_DAU.y
+    && AV.VUNG_MAT.y + AV.VUNG_MAT.h <= AV.VUNG_DAU.y + AV.VUNG_DAU.h,
+    `${JSON.stringify(AV.VUNG_MAT)} vs ${JSON.stringify(AV.VUNG_DAU)}`);
+  // Khung mặt vẫn phải trùm hết râu (dòng 29..38), cắt cao quá là mất cả bộ râu
+  ok('khung ô chọn phần mặt vẫn thấy được râu',
+    AV.VUNG_MAT.y <= 29 && AV.VUNG_MAT.y + AV.VUNG_MAT.h >= 38);
 
   // Tiệm quần áo phải có NPC đứng bán, không thì không ai mở được màn đó
   ok('có NPC bán quần áo trong Khu Dân Cư',

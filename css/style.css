@@ -2686,44 +2686,58 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .lop-o .lop-nen { opacity: .3; filter: grayscale(.55); }
 
 /* ==== Tạo nhân vật (ghép lớp LPC) ==== */
-.cc-wrap { gap: 10px; }
+.cc-wrap { gap: 10px; padding-bottom: 4px; }
+.cc-title { margin-bottom: 2px; }
 
 /* Cái bục: nhân vật đứng giữa vầng sáng, hai bên là nút xoay bốn hướng */
 .cc-buc {
   position: relative; display: flex; align-items: center; justify-content: center;
-  gap: 6px; padding: 14px 8px 86px; border-radius: 20px;
+  gap: 4px; padding: 10px 8px 34px; border-radius: 20px;
   border: 1px solid var(--line);
   background:
-    radial-gradient(ellipse 62% 46% at 50% 74%, rgba(112, 72, 232, .42), transparent 72%),
-    linear-gradient(180deg, rgba(20, 14, 42, .9), rgba(12, 8, 26, .95));
+    radial-gradient(ellipse 62% 46% at 50% 78%, rgba(112, 72, 232, .42), transparent 72%),
+    linear-gradient(180deg, rgba(24, 17, 50, .92), rgba(11, 7, 24, .96));
   overflow: hidden;
 }
 .cc-sang {
-  position: absolute; left: 50%; top: 8%; width: 190px; height: 190px;
+  position: absolute; left: 50%; top: -20%; width: 210px; height: 210px;
   transform: translateX(-50%); pointer-events: none;
-  background: radial-gradient(circle, rgba(240, 180, 41, .16), transparent 65%);
+  background: radial-gradient(circle, rgba(240, 180, 41, .14), transparent 66%);
 }
-.cc-buc canvas {
-  image-rendering: pixelated; width: 128px; height: 216px;
+/* Nhân vật + cái bệ dưới chân đi liền một khối, canh nhau theo đáy */
+.cc-nguoi { position: relative; flex: none; z-index: 1; }
+.cc-nguoi canvas {
+  display: block; image-rendering: pixelated;
+  width: 144px; height: 243px;
   position: relative; z-index: 1;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .55));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .6));
 }
-/* Vệt sáng dưới chân cho nhân vật khỏi lơ lửng giữa không trung */
-.cc-san {
-  position: absolute; left: 50%; bottom: 78px; width: 124px; height: 22px;
-  transform: translateX(-50%); pointer-events: none; z-index: 0;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(150, 120, 255, .5), transparent 70%);
+/* Bệ đá dưới chân: một cái đĩa sáng cho nhân vật khỏi lơ lửng giữa không trung */
+.cc-be {
+  position: absolute; left: 50%; bottom: -8px; width: 132px; height: 30px;
+  transform: translateX(-50%); border-radius: 50%; z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(0, 0, 0, .5), transparent 58%),
+    radial-gradient(ellipse at 50% 50%, rgba(158, 128, 255, .55), rgba(88, 58, 196, .2) 62%, transparent 74%);
+  box-shadow: 0 0 26px rgba(120, 90, 255, .34);
 }
 .cc-xoay {
-  position: relative; z-index: 2; flex: none; margin-top: -40px;
+  position: relative; z-index: 2; flex: none; margin-top: -26px;
   width: 40px; height: 40px; border-radius: 50%;
   border: 1px solid var(--line); background: rgba(255, 255, 255, .07);
   color: var(--text); font-size: 1.5rem; line-height: 1;
 }
 .cc-xoay:active { transform: scale(.94); }
+/* Nút xúc xắc nép vào góc chứ không chiếm hẳn một hàng như trước */
+.cc-random {
+  position: absolute; top: 8px; right: 8px; z-index: 3;
+  min-height: 30px; padding: 0 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .08);
+  color: var(--text); font-size: .74rem;
+}
+.cc-random:active { transform: scale(.95); }
 .cc-huong {
-  position: absolute; left: 0; right: 0; bottom: 54px; z-index: 2;
+  position: absolute; left: 0; right: 0; bottom: 10px; z-index: 2;
   display: flex; align-items: center; justify-content: center; gap: 5px;
   color: var(--muted); font-size: .72rem;
 }
@@ -2732,12 +2746,8 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 }
 .cc-huong i.on { background: var(--gold); box-shadow: 0 0 6px rgba(240, 180, 41, .7); }
 .cc-huong span { margin-left: 4px; }
-.cc-random {
-  position: absolute; left: 50%; bottom: 10px; z-index: 2;
-  transform: translateX(-50%);
-}
 
-/* Mười mục chỉnh: thanh trượt ngang, không bẻ dòng thành mấy hàng lổn nhổn */
+/* Tám mục chỉnh: thanh trượt ngang, không bẻ dòng thành mấy hàng lổn nhổn */
 .cc-rail {
   display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px;
   scrollbar-width: none;
@@ -2774,7 +2784,8 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 }
 .cc-chon::-webkit-scrollbar { display: none; }
 .cc-o {
-  flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  position: relative; flex: none;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 7px 10px; border: 1px solid var(--line); border-radius: 14px;
   background: rgba(0, 0, 0, .22); color: var(--muted);
   font-size: .74rem; white-space: nowrap;
@@ -2784,7 +2795,16 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   background: rgba(240, 180, 41, .12);
   box-shadow: 0 0 12px rgba(240, 180, 41, .22);
 }
-/* Mục chọn MÀU: ô màu tròn to, chữ nhỏ ở dưới */
+/* Dấu tích góc: nhìn phát biết ngay đang chọn cái nào, khỏi phải soi viền */
+.cc-o.chon::after {
+  content: "✓"; position: absolute; top: -5px; right: -5px;
+  width: 17px; height: 17px; border-radius: 50%;
+  background: var(--gold); color: #10121c;
+  font-size: .64rem; font-weight: 700; line-height: 17px; text-align: center;
+}
+/* Mục chọn MÀU: ô màu tròn to, chữ nhỏ ở dưới. Màu thì bẻ dòng chứ đừng cuộn
+   — sáu bảy ô là hết, cuộn ngang chỉ tổ giấu mất mấy ô cuối. */
+.cc-chon.cc-k-mau { flex-wrap: wrap; overflow: visible; }
 .cc-mau {
   display: block; width: 34px; height: 34px; border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, .18);
@@ -2794,18 +2814,47 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 /* Mục chọn KIỂU: nút chữ thường, không có ảnh nên bỏ khoảng trống thừa.
    Tên lớp phải có tiền tố cc-k-: đặt thẳng là `cc-mau` thì cái khung ngoài
    dính luôn kiểu của ô màu bên trên, xẹp thành một hòn tròn 34px. */
+.cc-chon.cc-k-chu { flex-wrap: wrap; overflow: visible; }
 .cc-chon.cc-k-chu .cc-o { padding: 10px 16px; font-size: .84rem; }
+
+/* Màu tóc / màu râu nằm ngay dưới kiểu, khỏi phải nhảy sang tab khác */
+.cc-phu { border-top: 1px solid var(--line-soft); margin-top: 2px; padding-top: 7px; }
+.cc-phu > small { display: block; color: var(--muted); font-size: .74rem; margin-bottom: 5px; }
 
 .cc-h3 { font-size: .95rem; margin: 4px 2px 2px; }
 .cc-bo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .cc-bo-o {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 9px 6px; text-align: center;
+  padding: 9px 6px; text-align: center; margin-bottom: 0;
 }
 .cc-bo-o .lop-o { margin-bottom: 2px; }
 .cc-bo-o b { font-size: .8rem; }
 .cc-bo-o small { color: var(--muted); font-size: .7rem; line-height: 1.3; }
 .cc-bo-o.chon { border-color: var(--gold); box-shadow: 0 0 12px rgba(240, 180, 41, .2); }
+
+/* Tên + nút bắt đầu dính đáy màn hình: trước phải cuộn hết ba thẻ bộ đồ mới
+   thấy nút, ai không cuộn thì tưởng màn này bị kẹt.
+   Dùng fixed chứ không phải sticky: khung cuộn là .screen còn thẻ này nằm
+   trong .splash-inner thấp hơn, nên sticky ghim nó lên lưng chừng trang, đè
+   ngang qua hàng chọn tóc. */
+.cc-day {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  display: flex; gap: 8px; align-items: center;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, rgba(10, 6, 22, .6), rgba(10, 6, 22, .97) 45%);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line-soft);
+}
+.cc-day input {
+  flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 0 13px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: rgba(255, 255, 255, .06); color: var(--text); font-size: .92rem;
+}
+.cc-day input::placeholder { color: var(--muted); }
+/* .btn dùng chung có width:100%, để nguyên thì nút nuốt sạch chỗ của ô tên */
+.cc-day .btn { flex: 0 0 auto; width: auto; min-height: 44px; padding: 0 22px; font-size: .95rem; }
+/* Chừa chỗ cho thanh đáy, không thì nó che mất thẻ bộ đồ cuối cùng */
+.create-scr .splash-inner { padding-bottom: 76px; }
 
 /* ==== Tủ đồ / tiệm quần áo ==== */
 .td-xem { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
