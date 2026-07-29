@@ -3603,6 +3603,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   // ---- Sảnh bạc trên bản đồ ----
   const { MAY, SANH } = await import('../js/data/casino.js');
+  const kho2 = new URL('../', import.meta.url).pathname;
   ok('sảnh bạc có trong bản đồ', !!MAPS[SANH]);
   ok('trò nào cũng có ít nhất một máy trên sàn',
     CS.TRO.every(t => MAY.some(m => m.tro === t.id)),
@@ -3626,6 +3627,22 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     }));
     ok('ô sàn thường thì không bắt nhầm thành máy',
       ES.vatTheODay(SANH, m.spawn.x, m.spawn.y) === null);
+
+    // Cắt lệch khung là mất mảnh: hai lần liền tôi lấy bàn lệch 1-2 hàng/cột
+    // nên vớ phải ghế sofa bên cạnh, trong game bàn cụt còn ghế thì lơ lửng.
+    // Bài này bắt: mỗi món đồ phải KÍN, không được thủng ô nào ở giữa.
+    const CS_PY = readFileSync(join(kho2, 'tools/casino.py'), 'utf8');
+    const khung = [...CS_PY.matchAll(/^(\w+) = \((\d+), (\d+), (\d+), (\d+)\)/gm)]
+      .map(x => ({ ten: x[1], x: +x[2], y: +x[3], w: +x[4], h: +x[5] }));
+    ok('đọc được khung đồ đạc trong tools/casino.py', khung.length >= 4,
+      String(khung.length));
+    // Mọi ô của món đồ đều phải nằm trong tileset 64x32
+    ok('khung nào cũng nằm gọn trong tileset',
+      khung.every(k => k.x + k.w <= 64 && k.y + k.h <= 32),
+      khung.filter(k => k.x + k.w > 64 || k.y + k.h > 32).map(k => k.ten).join(' '));
+  }
+  {
+    const m = MAPS[SANH];
   }
 
   // Không có đường nào nạp tiền thật vào sòng — chỉ tiêu vàng kiếm trong game

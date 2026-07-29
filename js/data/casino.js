@@ -24,13 +24,9 @@ export const MAY = [
   { tro: "tienlen", ten: "Tiến Lên", x: 21, y: 11 },
   { tro: "tienlen", ten: "Tiến Lên", x: 22, y: 11 },
   { tro: "tienlen", ten: "Tiến Lên", x: 23, y: 11 },
-  { tro: "domino", ten: "Đô-mi-nô", x: 2, y: 16 },
-  { tro: "domino", ten: "Đô-mi-nô", x: 3, y: 16 },
   { tro: "domino", ten: "Đô-mi-nô", x: 4, y: 16 },
   { tro: "domino", ten: "Đô-mi-nô", x: 5, y: 16 },
   { tro: "domino", ten: "Đô-mi-nô", x: 6, y: 16 },
-  { tro: "domino", ten: "Đô-mi-nô", x: 7, y: 16 },
-  { tro: "domino", ten: "Đô-mi-nô", x: 8, y: 16 },
 ];
 
 export const MAY_TAI = (x, y) =>

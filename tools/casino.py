@@ -36,11 +36,14 @@ TUONG_CHAN = (20, 25)            # chan tuong (do)
 NEN_NGOAI = (13, 30)             # gach ngoai cua
 
 # Do dac: (cot, hang, rong, cao) cat thang tu tileset
-MAY_QUAY = (49, 1, 1, 3)
-MAY_WIN = (51, 1, 1, 3)
-BAN_XANH = (57, 6, 7, 4)
-BAN_XANH2 = (57, 11, 7, 4)
-QUAY_BAR = (33, 4, 6, 3)
+# Khung cua tung mon do SOI TAN TILESET moi ghi, khong uoc chung: lan dau lay
+# ban xanh o hang 6 va 11 — lech len 1-2 hang, vo phai may cai ghe sofa nam
+# ngay tren mat ban, nen trong game ban bi cut con ghe thi lo lung.
+MAY_QUAY = (49, 1, 1, 3)         # may quay, man hinh mau
+MAY_WIN = (51, 1, 1, 3)          # may quay, bang "WIN"
+BAN_XANH = (57, 8, 7, 4)         # ban da, vong quay ben PHAI
+BAN_XANH2 = (57, 12, 7, 4)       # ban da, vong quay ben TRAI
+BAN_TRON = (59, 4, 3, 4)         # ban go tron
 
 # Cho dat tung tro. `bam` = o nguoi choi quay mat vao thi bam duoc.
 # Toa do dat theo goc trai-tren cua mon do.
@@ -53,7 +56,7 @@ CHO = [
     ('coinflip', 'Sấp Ngửa', MAY_QUAY, 20, 3),
     ('blackjack', 'Xì Dách', BAN_XANH, 2, 8),
     ('tienlen', 'Tiến Lên', BAN_XANH2, 17, 8),
-    ('domino', 'Đô-mi-nô', BAN_XANH, 2, 13),
+    ('domino', 'Đô-mi-nô', BAN_TRON, 4, 13),
 ]
 
 
