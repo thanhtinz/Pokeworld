@@ -42,24 +42,27 @@ GHE = [[_o(30, 33), _o(31, 33)], [_o(30, 34), _o(31, 34)]]
 # ==== Nha lay tu tileset core_buildings (47 cot) ====
 # Khoi 5 rong x 4 cao, cua vom nam o cot 3 cua khoi.
 NHA_COT = 47
-# Can nha that su cao 5 hang (13..17) chu khong phai 4: hang cuoi la chan
-# tuong cua gian phu ben trai + bac da truoc cua. Ban truoc cat co 4 hang nen
-# gian phu cut ngang, nhin nhu nha bi xen mat mot khuc.
-NHA_W, NHA_H = 5, 5
-NHA_CUA_DX = 3
-# Cua chiem HAI hang duoi cung cua cot 3: hang tren la cai vom, hang duoi la
-# bac da. Ca hai phai di duoc.
-NHA_CUA_DY = (NHA_H - 2, NHA_H - 1)
-# Ca bon dung CHUNG mot mat tien: chi khoi (0,13) la da soi ky va biet chac
-# cot 3 dung la cai cua vom. May khoi khac trong tileset co khoi cot do la cua
-# so, dat cong len day thi nguoi choi chui vao cua so. Muon moi toa mot kieu
-# thi phai do lai vi tri cua cua tung khoi mot.
-#   (ma dia diem, x o cua, y o cua, ten, cot goc, hang goc trong tileset)
+
+# Bon kieu mat tien. KHONG doan bang mat: o cua trong tileset co mau xam rieng
+# rgb(104,104,116), do mau tung o hang chan nha thi thay bon cai cua nam dung
+# cot 3, 8, 13, 18 — tuc la moi day hang rong 5 o, cua luon o cot thu 3.
+#   c0, r0 = goc trai tren trong tileset
+#   w, h   = co khoi (o)
+#   cua_dx = cot cua tinh tu goc trai
+#   cua_dy = MAY hang duoi cung la cua (nha nua go co them bac da o hang duoi)
+NHA_KIEU = {
+    # Nha nua go: cao 5 hang, hang cuoi la chan tuong gian phu + bac da
+    'nua_go': dict(c0=0, r0=13, w=5, h=5, cua_dx=3, cua_dy=(3, 4)),
+    'gach_do': dict(c0=0, r0=9, w=5, h=4, cua_dx=3, cua_dy=(3,)),
+    'gach_tham': dict(c0=5, r0=9, w=5, h=4, cua_dx=3, cua_dy=(3,)),
+    'go_sang': dict(c0=10, r0=9, w=5, h=4, cua_dx=3, cua_dy=(3,)),
+}
+#   (ma dia diem, x o cua, y o cua, ten, kieu mat tien)
 TOA = [
-    ('nha_nguyen', 4, 8, 'Nhà Nguyện', 0, 13),
-    ('sanh_bang', 10, 8, 'Sảnh Bang Hội', 0, 13),
-    ('sanh_bac', 16, 8, 'Sảnh Bạc Kim Long', 0, 13),
-    ('den_do_nat', 22, 8, 'Đền Đổ Nát', 0, 13),
+    ('nha_nguyen', 4, 8, 'Nhà Nguyện', 'gach_do'),
+    ('sanh_bang', 10, 8, 'Sảnh Bang Hội', 'nua_go'),
+    ('sanh_bac', 16, 8, 'Sảnh Bạc Kim Long', 'gach_tham'),
+    ('den_do_nat', 22, 8, 'Đền Đổ Nát', 'go_sang'),
 ]
 PHO = 10                          # hang mat pho chay ngang
 CONG = (13, H - 1)                # cong ra Khu Dan Cu, o canh duoi
@@ -134,7 +137,7 @@ def dung(root, tsx_cache, load_tsx):
         for x in (CONG[0], CONG[0] + 1):
             dat_nen(x, y, DA)
     # san dat truoc tung toa nha
-    for _ma, cx, cy, _ten, _c, _r in TOA:
+    for _ma, cx, cy, _ten, _k in TOA:
         for y in range(cy + 1, PHO):
             for x in range(cx - 1, cx + 2):
                 if 0 <= x < W:
@@ -150,13 +153,15 @@ def dung(root, tsx_cache, load_tsx):
             dat_tren(x, y, THONG_NHO[_rng(x, y, 2)])
 
     # --- bon toa nha ---
-    for _ma, cx, cy, _ten, c0, r0 in TOA:
-        x0 = cx - NHA_CUA_DX
-        y0 = cy - NHA_CUA_DY[0]       # o cua nam o hang NHA_CUA_DY[0]
-        for dy in range(NHA_H):
-            for dx in range(NHA_W):
-                la_cua = (dx == NHA_CUA_DX and dy in NHA_CUA_DY)
-                dat_nha(x0 + dx, y0 + dy, c0 + dx, r0 + dy, chan=not la_cua)
+    for _ma, cx, cy, _ten, kieu in TOA:
+        k = NHA_KIEU[kieu]
+        x0 = cx - k['cua_dx']
+        y0 = cy - k['cua_dy'][0]      # hang dau cua cai cua trung o cua tren map
+        for dy in range(k['h']):
+            for dx in range(k['w']):
+                la_cua = (dx == k['cua_dx'] and dy in k['cua_dy'])
+                dat_nha(x0 + dx, y0 + dy, k['c0'] + dx, k['r0'] + dy,
+                        chan=not la_cua)
 
     # --- vat trang tri doc pho, tranh loi di ---
     def trong(x, y):
@@ -175,7 +180,7 @@ def dung(root, tsx_cache, load_tsx):
     for x, y in ((3, 16), (20, 12), (26, 12)):
         if trong(x, y):
             dat_tren(x, y, DA_TANG[_rng(x, y, 2)])
-    for _ma, cx, cy, _ten, _c, _r in TOA:
+    for _ma, cx, cy, _ten, _k in TOA:
         for dx in (-1, 1):
             if trong(cx + dx, cy + 1):
                 dat_tren(cx + dx, cy + 1, HOA[_rng(cx, cy, len(HOA))], chan=False)
@@ -196,7 +201,7 @@ def dung(root, tsx_cache, load_tsx):
     don(CONG[0] + 1, H - 1)
     # Duong noi tu bac them xuong mat pho. KHONG don o cua lan bac da truoc
     # cua — hai o do co hinh cua nha, don di la thung mot mang giua tuong.
-    for _ma, cx, cy, _ten, _c, _r in TOA:
+    for _ma, cx, cy, _ten, _k in TOA:
         bx, by = bac_them(cx, cy)
         for y in range(by + 1, PHO + 1):
             don(bx, y)
@@ -205,7 +210,7 @@ def dung(root, tsx_cache, load_tsx):
 
     talks = [{'x': CONG[0] + 1, 'y': H - 3, 'name': 'Bảng Phố Kim Long',
               'text': 'PHỐ KIM LONG — nhà nguyện, bang hội, sòng bài và lối lên đền.'}]
-    for _ma, cx, cy, ten, _c, _r in TOA:
+    for _ma, cx, cy, ten, _k in TOA:
         bx, by = bac_them(cx, cy)
         # Cam CANH bac them: phia tren o cua la than nha, cam vao do thi bien
         # nam trong tuong, khong ai doc duoc.
@@ -227,7 +232,7 @@ def dung(root, tsx_cache, load_tsx):
     # Cong vao tung toa nha; mktmx.py vá lai dich den sau khi bon ban do kia
     # dung xong.
     warps = [{'x': cx, 'y': cy, 'to': ma, 'tx': 0, 'ty': 0}
-             for ma, cx, cy, _ten, _c, _r in TOA]
+             for ma, cx, cy, _ten, _k in TOA]
 
     return {
         'w': W, 'h': H, 'sets': sets, 'layers': [nen, tren], 'above': None,
