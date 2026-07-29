@@ -16,7 +16,10 @@ import { THU_MUC, GIOI, THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU,
   RAU_KIEU, RAU_MAU, O_DO, DO_BY_ID, monBoMau } from '../data/lpc.js';
 
 export const KHUNG_W = 32;      // một khung trong sheet đã cắt
-export const KHUNG_H = 64;
+// 76 chứ không phải 64: tools/mklpc.py đệm thêm 12 hàng trống lên trên đầu để
+// tỉ lệ thân/khung về 0,618 — bằng NPC của Tuxemon (0,625), tức cao 1,25 ô.
+// Để 64 thì thân chiếm 0,734 khung, nhân vật vổng hơn NPC hẳn một cái đầu.
+export const KHUNG_H = 76;
 export const SHEET_W = KHUNG_W * 3;
 export const SHEET_H = KHUNG_H * 4;
 
@@ -202,14 +205,14 @@ export function capNhatO(root = document) {
 // biết nó ra sao. Mấy hàm dưới cắt đúng KHUNG ĐỨNG NHÌN THẲNG của các lớp
 // bằng CSS (ảnh to hơn khung, kéo lệch cho lộ đúng ô cần) — rẻ hơn hẳn so với
 // dựng một cái canvas cho mỗi món.
-// Đo trên chính bộ ảnh đã cắt: mũ chiếm dòng 6..42, tóc 9..51, râu 29..38, và
-// có món rộng hết cả 32 cột. Khung đầu phải trùm đủ chỗ đó, cắt hẹp thì mũ
+// Đo trên chính bộ ảnh đã cắt (đã tính 12 hàng đệm): mũ chiếm dòng 18..54,
+// tóc 21..63, râu 41..50, và có món rộng hết cả 32 cột. Khung đầu phải trùm đủ chỗ đó, cắt hẹp thì mũ
 // chỉ còn cái chỏm còn tóc dài thì cụt ngang.
-export const VUNG_NGUOI = { x: 0, y: 2, w: KHUNG_W, h: 62 };
-export const VUNG_DAU = { x: 0, y: 5, w: KHUNG_W, h: 43 };
+export const VUNG_NGUOI = { x: 0, y: 14, w: KHUNG_W, h: 62 };
+export const VUNG_DAU = { x: 0, y: 17, w: KHUNG_W, h: 43 };
 // Khung hẹp hơn cho mấy ô chọn tóc/râu/tai/mũi/biểu cảm: khung mũ ở trên lấy
 // tới tận ngực, bày trong ô chọn thì cái đầu bé tí, nhìn không ra kiểu gì.
-export const VUNG_MAT = { x: 2, y: 7, w: 28, h: 34 };
+export const VUNG_MAT = { x: 2, y: 19, w: 28, h: 34 };
 
 /**
  * Chồng vài lớp lại thành một ô ảnh tĩnh.

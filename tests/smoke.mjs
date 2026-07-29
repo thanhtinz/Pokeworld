@@ -3193,10 +3193,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     new Set(DA.map(x => x.mau)).size === DA.length);
   ok('màu tóc cũng vậy', new Set(TOC_MAU.map(x => x.mau)).size === TOC_MAU.length);
 
-  // Khung cắt phần đầu phải trùm hết mũ (dòng 6..42) và tóc (9..51), cắt hẹp
-  // thì ảnh trong tiệm chỉ còn cái chỏm mũ.
+  // Khung cắt phần đầu phải trùm hết mũ và tóc, cắt hẹp thì ảnh trong tiệm
+  // chỉ còn cái chỏm mũ. Số dòng tính theo khung ĐÃ ĐỆM (mklpc.py thêm 12
+  // hàng trống lên đầu): mũ 18..54, tóc 21..63.
   ok('khung xem trước phần đầu trùm đủ mũ và tóc',
-    AV.VUNG_DAU.y <= 6 && AV.VUNG_DAU.y + AV.VUNG_DAU.h >= 42
+    AV.VUNG_DAU.y <= 18 && AV.VUNG_DAU.y + AV.VUNG_DAU.h >= 54
     && AV.VUNG_DAU.x === 0 && AV.VUNG_DAU.w === 32,
     JSON.stringify(AV.VUNG_DAU));
 
@@ -3220,9 +3221,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     AV.VUNG_MAT.h < AV.VUNG_DAU.h && AV.VUNG_MAT.y > AV.VUNG_DAU.y
     && AV.VUNG_MAT.y + AV.VUNG_MAT.h <= AV.VUNG_DAU.y + AV.VUNG_DAU.h,
     `${JSON.stringify(AV.VUNG_MAT)} vs ${JSON.stringify(AV.VUNG_DAU)}`);
-  // Khung mặt vẫn phải trùm hết râu (dòng 29..38), cắt cao quá là mất cả bộ râu
+  // Khung mặt vẫn phải trùm hết râu (dòng 41..50 sau khi đệm)
   ok('khung ô chọn phần mặt vẫn thấy được râu',
-    AV.VUNG_MAT.y <= 29 && AV.VUNG_MAT.y + AV.VUNG_MAT.h >= 38);
+    AV.VUNG_MAT.y <= 41 && AV.VUNG_MAT.y + AV.VUNG_MAT.h >= 50);
 
   // Tiệm quần áo phải có NPC đứng bán, không thì không ai mở được màn đó
   ok('có NPC bán quần áo trong Khu Dân Cư',
@@ -3655,11 +3656,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       npcs.filter(n => !existsSync(join(kho2, `assets/ow/${n.sprite}.png`)))
         .map(n => n.sprite).join(' '));
 
-    // Người trong sảnh phải CÙNG TẦM VÓC với nhân vật người chơi. Màn bản đồ
-    // vẽ mọi sprite cao đúng 2 ô, nên "cao bao nhiêu" là do thân chiếm mấy
-    // phần của khung quyết định. Bộ gốc thân chiếm 0,969 khung -> cao 1,94 ô,
-    // đứng cạnh người chơi (1,47 ô) là vổng hẳn lên; tools/casino.py đệm thêm
-    // hàng trống trên đầu cho về 0,734.
+    // MỌI sprite phải cùng tầm vóc, lấy NPC của Tuxemon làm chuẩn. Màn bản đồ
+    // vẽ sprite nào cũng cao đúng 2 ô, nên "cao bao nhiêu" là do thân chiếm
+    // mấy phần của khung quyết định:
+    //   NPC Tuxemon  20/32 = 0,625 khung -> cao 1,25 ô   <- chuẩn
+    //   người chơi   cắt trần là 0,734 -> 1,47 ô, phải đệm khung 64 -> 76
+    //   bộ Jephed    cắt trần là 0,969 -> 1,94 ô, phải đệm khung 32 -> 50
     const tiThan = (p2) => {
         const buf = readFileSync(join(kho2, p2));
         // PNG: đọc bề rộng/cao từ IHDR
@@ -3667,20 +3669,17 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         const H2 = buf.readUInt32BE(20);
         return { w: W2 / 3, h: H2 / 4 };
       };
+    const CHUAN = 20 / 32;            // NPC Tuxemon: thân 20 dòng trong khung 32
     const oNguoiChoi = tiThan('assets/lpc/base/nam_ivory.png');
-    ok('khung sprite người chơi là 32×64',
-      oNguoiChoi.w === 32 && oNguoiChoi.h === 64, JSON.stringify(oNguoiChoi));
-    ok('khung người trong sảnh đã đệm cho cùng tầm với người chơi',
-      npcs.every(n => {
-        const o = tiThan(`assets/ow/${n.sprite}.png`);
-        // thân cao 31 dòng; tỉ lệ thân/khung phải quanh 0,734 như người chơi
-        const ti = 31 / o.h;
-        return Math.abs(ti - 0.734) < 0.06;
-      }),
-      npcs.map(n => {
-        const o = tiThan(`assets/ow/${n.sprite}.png`);
-        return `${n.sprite}:${(31 / o.h).toFixed(2)}`;
-      }).join(' '));
+    ok('khung sprite người chơi đã đệm lên 32×76',
+      oNguoiChoi.w === 32 && oNguoiChoi.h === 76, JSON.stringify(oNguoiChoi));
+    ok('người chơi cùng tầm với NPC Tuxemon',
+      Math.abs(47 / oNguoiChoi.h - CHUAN) < 0.03,
+      (47 / oNguoiChoi.h).toFixed(3));
+    ok('người trong sảnh cũng cùng tầm ấy',
+      npcs.every(n => Math.abs(31 / tiThan(`assets/ow/${n.sprite}.png`).h - CHUAN) < 0.03),
+      npcs.map(n => `${n.sprite}:${(31 / tiThan(`assets/ow/${n.sprite}.png`).h).toFixed(2)}`)
+        .join(' '));
 
     // Cắt lệch khung là mất mảnh: hai lần liền tôi lấy bàn lệch 1-2 hàng/cột
     // nên vớ phải ghế sofa bên cạnh, trong game bàn cụt còn ghế thì lơ lửng.

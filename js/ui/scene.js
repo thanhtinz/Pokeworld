@@ -100,8 +100,11 @@ export function veCanh(canvas) {
     // Nhân vật đứng thở tại chỗ: đổi khung chân thật chậm cho có sức sống
     const im = nguoi();
     if (owReady(im)) {
-      const chW = size, chH = size * (OW_H / OW_W);
+      const chH = size * (OW_H / OW_W);
       const f = owFrame('down', true, Date.now() * 0.28, im);
+      // Bề ngang theo tỉ lệ ô của chính sprite, không ép cứng bằng một ô —
+      // giống hệt màn bản đồ, không thì nhân vật ở đây béo hơn ngoài kia.
+      const chW = chH * (f.sw / f.sh);
       const px = (cho.x + 0.5) * size - camX, py = (cho.y + 1) * size - camY;
       // Bóng đổ dưới chân cho nhân vật dính xuống nền
       ctx.save();

@@ -23,12 +23,11 @@ trong: noi dung that la 3 cot x 4 hang, o 20x32, hang xep xuong/trai/phai/len
 NHUNG PHAI DEM THEM KHOANG TRONG TREN DAU.
 Man ban do ve moi sprite cao dung 2 o, nen "nguoi cao bao nhieu" la do THAN
 CHIEM MAY PHAN CUA KHUNG quyet dinh. Do ra:
-    nguoi choi (LPC)   than chiem 0.734 khung -> cao 1.47 o
-    NPC cu (Tuxemon)   than chiem 0.625 khung -> cao 1.25 o
-    bo nay             than chiem 0.969 khung -> cao 1.94 o  <- to loi ra
-Cat nguyen xi la NPC dung canh nguoi choi cao vong han len. Nen dem them
-hang trong len TREN dau (chan van cham day khung) cho ti le than/khung ve
-dung 0.734 nhu nguoi choi: khung cao 32 -> KHUNG_CAO.
+    NPC cu (Tuxemon)   than chiem 0.625 khung -> cao 1.25 o   <- CHUAN
+    bo nay cat nguyen  than chiem 0.969 khung -> cao 1.94 o   <- to loi ra
+Nen dem them hang trong len TREN dau (chan van cham day khung) cho ti le
+than/khung ve 0.625: khung cao 32 -> KHUNG_CAO. Nhan vat nguoi choi cung duoc
+dem tuong tu ben tools/mklpc.py.
 
 Ghi ra:
   js/data/casino.js   toa do tung may/ban de engine biet cho nao bam duoc
@@ -101,9 +100,10 @@ CHO = [
 ]
 
 
-# Khung sau khi dem: 31 dong than / 0.734 ~ 42
+# Lay NPC cua Tuxemon lam chuan: than chiem 20/32 = 0.625 khung -> cao 1.25 o.
+# Than bo nay cao 31 dong, muon dat 0.625 thi khung phai cao 31/0.625 ~ 50.
 O_RONG, O_CAO_GOC = 20, 32
-KHUNG_CAO = 42
+KHUNG_CAO = 50
 
 
 def cat_nguoi(goc):

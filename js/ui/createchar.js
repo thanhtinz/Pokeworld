@@ -44,9 +44,10 @@ const HUONG = [
 
 // Số dòng trống trên đỉnh khung sprite (chỗ chừa cho mũ cao) cắt đi khi xem
 // trước, kèm cỡ canvas tính ra từ đó: rộng 32 -> 144 nên tỉ lệ phóng là 4,5.
-const BO_TREN = 10;
+// 22 = 12 hàng đệm của mklpc.py + 10 dòng trống vốn có trên đỉnh đầu
+const BO_TREN = 22;
 const XEM_W = 144;
-const XEM_H = (64 - BO_TREN) * (XEM_W / 32);
+const XEM_H = (AV.KHUNG_H - BO_TREN) * (XEM_W / AV.KHUNG_W);
 
 const bocNgauNhien = (ds) => ds[Math.floor(Math.random() * ds.length)]?.id ?? '';
 

@@ -32,7 +32,16 @@ from PIL import Image
 
 O = 64                     # canh mot khung ben LPC
 CAT_X = 16                 # cat 32 cot giua cua khung
-RONG, CAO = 32, 64         # canh mot khung ben minh
+RONG, CAO_GOC = 32, 64     # canh mot khung LPC sau khi cat 32 cot giua
+
+# DEM THEM HANG TRONG TREN DAU.
+# Man ban do ve moi sprite cao dung 2 o, nen "nguoi cao bao nhieu" la do THAN
+# CHIEM MAY PHAN CUA KHUNG quyet dinh. Lay NPC cua Tuxemon lam chuan: than
+# chiem 20/32 = 0.625 khung -> cao 1.25 o. Than LPC cao 47 dong, muon dat
+# 0.625 thi khung phai cao 47/0.625 ~ 76. De nguyen 64 thi ra 0.734, tuc cao
+# 1.47 o — vong hon NPC mot cai dau.
+CAO = 76
+DEM_TREN = CAO - CAO_GOC
 
 # Hang cua minh (xuong/trai/phai/len) lay tu hang nao ben LPC (len/trai/xuong/phai)
 HANG = [2, 1, 3, 0]
@@ -244,8 +253,8 @@ def cat(im):
     for hang, lpc_h in enumerate(HANG):
         for cot, lpc_c in enumerate(COT):
             k = im.crop((lpc_c * O + CAT_X, lpc_h * O,
-                         lpc_c * O + CAT_X + RONG, lpc_h * O + CAO))
-            ra.paste(k, (cot * RONG, hang * CAO))
+                         lpc_c * O + CAT_X + RONG, lpc_h * O + CAO_GOC))
+            ra.paste(k, (cot * RONG, hang * CAO + DEM_TREN))
     return ra
 
 
