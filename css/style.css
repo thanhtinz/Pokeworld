@@ -2033,6 +2033,10 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
 .ava-face.face-sheet { background-size: 400% 1066.7%; background-position: 5.6% 10.3%; }
 /* Tranh cả người 64x64 của Tuxemon: đầu ở (26,2)-(44,20) */
 .ava-face.face-zoom { background-size: 355.6% 355.6%; background-position: 56.5% 4.3%; }
+/* Nhân vật ghép lớp: sheet 96x128, ô đứng nhìn thẳng là (0,0)-(32,32). Khung
+   mặt lấy (9,8)-(23,23): từ đỉnh tóc xuống hết cằm, chừa hai bên cho mấy kiểu
+   tóc xoè. Cắt hẹp hơn là tóc cụt ngang còn cằm thì lọt ra ngoài. */
+.ava-face.face-nv { background-size: 685.7% 853.3%; background-position: 11% 7.1%; }
 .ava-face.face-blank { background-image: none !important; }
 
 /* Ảnh đại diện trên thanh trên: ô vuông chứa gương mặt, bấm được */
@@ -2077,6 +2081,14 @@ img.tp-img { display: block; height: 16px; width: auto; image-rendering: pixelat
   background-size: 300% 400%;
   background-position: 0 0;
   aspect-ratio: 1 / 2;
+  width: auto;
+  margin: 0 auto;
+}
+/* Nhân vật ghép lớp: ô vuông 32x32 nên khung cũng vuông, không phải 1/2 */
+.ava-body.body-nv {
+  background-size: 300% 400%;
+  background-position: 0 0;
+  aspect-ratio: 1 / 1;
   width: auto;
   margin: 0 auto;
 }

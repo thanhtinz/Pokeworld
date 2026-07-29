@@ -41,7 +41,7 @@ export function render(el, { tab: startTab } = {}) {
       ${header('Thời trang', 'character')}
 
       <div class="card fa-preview">
-        <span class="ring-ava-wrap fa-body">${bodyHtml(skinSrc(), 'fa-body-img')}</span>
+        <span class="ring-ava-wrap fa-body">${bodyHtml(skinSrc(), 'fa-body-img', true)}</span>
         <b class="ring-name-lbl">${esc(p.name)}</b>
         ${titleHtml(p.look.title)}
       </div>

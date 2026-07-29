@@ -26,6 +26,13 @@ import { ITEMS } from '../js/data/items.js';
 import { ZONES } from '../js/data/zones.js';
 import { MAPS } from '../js/data/maps.js';
 import { ENCOUNTERS } from '../js/data/encounters.js';
+
+// NPC trên bản đồ có AI đi tuần, mà mấy bài kiểm ở dưới có chạy vòng cập nhật
+// thế giới nên toạ độ trong MAPS bị DỜI đi. Chụp lại vị trí gốc ngay lúc nạp
+// data, không thì bài "không ai đứng chắn chỗ bấm máy" lúc đỏ lúc xanh tuỳ
+// việc NPC vừa bước vào ô nào.
+const NPC_GOC = Object.fromEntries(Object.entries(MAPS)
+  .map(([k, m]) => [k, (m.npcs || []).map(n => ({ ...n }))]));
 import { TRAINERS } from '../js/data/trainers.js';
 import { STARTERS } from '../js/data/starters.js';
 import { QUESTS, DAILY_REWARDS } from '../js/data/quests.js';
@@ -3591,7 +3598,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ES.vatTheODay(SANH, m.spawn.x, m.spawn.y) === null);
 
     // ---- Người trong sảnh ----
-    const npcs = m.npcs || [];
+    const npcs = NPC_GOC[SANH] || [];
     ok('sảnh bạc có người làm', npcs.length >= 6, `${npcs.length} người`);
     ok('người nào cũng đứng trên ô đi được',
       npcs.every(n => !m.solid[n.y * m.w + n.x]),

@@ -179,6 +179,12 @@ export function anhNhanVat(nv = nguoi(), mac = dangMac()) {
     ctx.imageSmoothingEnabled = false;
     for (const im of lop) if (im) ctx.drawImage(im, 0, 0);
     img.src = c.toDataURL();
+    // Mấy chỗ bày ảnh đại diện gọi lấy địa chỉ NGAY lúc vẽ, mà lúc đó sprite
+    // chưa nướng xong nên phải lùi về tranh cũ. Nướng xong thì báo cho màn
+    // hình vẽ lại, không thì phải đổi màn mới thấy đúng mặt mình.
+    if (typeof document !== 'undefined') {
+      document.dispatchEvent(new CustomEvent('look-change'));
+    }
   });
   return img;
 }

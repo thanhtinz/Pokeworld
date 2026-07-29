@@ -55,7 +55,7 @@ import { FEATURES, isUnlocked, lockNote } from './engine/unlock.js';
 import { fmt } from './util.js';
 import { isOnlineMode } from './net/config.js';
 import { uiIcon } from './ui/icons.js';
-import { avatarFaceSrc, avatarFrame, upgradeFaces } from './ui/look.js';
+import { avatarFaceSrc, avatarFrame, upgradeFaces, capNhatMat } from './ui/look.js';
 import { playMusic } from './engine/settings.js';
 import { currentMap } from './engine/overworld.js';
 
@@ -246,7 +246,10 @@ document.getElementById('tb-ava')?.addEventListener('click', async () => {
   (await import('./ui/decor.js')).openDecor();
 });
 // Đổi đồ thì thanh trên vẽ lại theo
-document.addEventListener('look-change', () => { drawTopBar(document.getElementById('bottom-nav').hidden); });
+document.addEventListener('look-change', () => {
+  drawTopBar(document.getElementById('bottom-nav').hidden);
+  capNhatMat();
+});
 
 // Vẽ lại màn hình hiện tại (sau khi state đổi)
 export function refresh() { if (current) show(current, currentParams); }
