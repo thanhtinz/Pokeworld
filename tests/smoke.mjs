@@ -4788,11 +4788,61 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ok('có cả gia cầm lẫn thú bốn chân',
         D.THU.some(t => t.chan === 2) && D.THU.some(t => t.chan === 4));
     }
-    ok('chỗ thả con vật mới nằm trong lòng chuồng', (() => {
-      const c = NT.choTrongCho();
-      return c.x >= NM.VUNG_THU.x0 && c.x <= NM.VUNG_THU.x1
+    // Chỗ thả phụ thuộc LOÀI: thú bốn chân vào chuồng, gia cầm ra thẳng sân
+    {
+      const trongChuong = (c) => c.x >= NM.VUNG_THU.x0 && c.x <= NM.VUNG_THU.x1
         && c.y >= NM.VUNG_THU.y0 && c.y <= NM.VUNG_THU.y1;
-    })());
+      ok('thú bốn chân thả vào lòng chuồng', trongChuong(NT.choTrongCho('bo')),
+        JSON.stringify(NT.choTrongCho('bo')));
+      ok('gia cầm thả thẳng ra sân, không vào chuồng',
+        !trongChuong(NT.choTrongCho('ga')), JSON.stringify(NT.choTrongCho('ga')));
+      // Không truyền toạ độ thì muaThu tự chọn theo loài. Đây là chỗ đã sai
+      // một lần: hai màn gọi choTrongCho() mà quên truyền mã loài, nên gà vịt
+      // bị thả vào giữa chuồng rồi mắc kẹt trong đó.
+      newGame('ThaThu');
+      G.p.money = 900000;
+      NT.muaThu('ga');
+      NT.muaThu('bo');
+      const ga = NT.danhSachThu().find(t => t.id === 'ga');
+      const bo = NT.danhSachThu().find(t => t.id === 'bo');
+      ok('mua gà thì nó đứng ngoài chuồng', !trongChuong(ga), `${ga.x},${ga.y}`);
+      ok('mua bò thì nó đứng trong chuồng', trongChuong(bo), `${bo.x},${bo.y}`);
+      const u5 = readFileSync(new URL('../js/ui/world.js', import.meta.url), 'utf8');
+      const u6 = readFileSync(new URL('../js/ui/nongtrai.js', import.meta.url), 'utf8');
+      ok('không màn nào tự chọn chỗ thả nữa',
+        !/choTrongCho\(\)/.test(u5) && !/choTrongCho\(\)/.test(u6));
+
+      // Bản lưu cũ nhốt gà trong chuồng thì phải được bế ra sân
+      const giua = { x: Math.floor((NM.VUNG_THU.x0 + NM.VUNG_THU.x1) / 2),
+        y: Math.floor((NM.VUNG_THU.y0 + NM.VUNG_THU.y1) / 2) };
+      G.p.nt.thu = [{ id: 'ga', x: giua.x, y: giua.y, sanLuc: 0, dir: 'down' }];
+      delete G.p.nt.vGiaCam;
+      NT.nt();
+      const ga2 = NT.danhSachThu()[0];
+      ok('bản lưu cũ nhốt gà trong chuồng thì thả nó ra',
+        !trongChuong(ga2), `${ga2.x},${ga2.y}`);
+      ok('bò trong bản lưu cũ thì cứ để yên trong chuồng', (() => {
+        G.p.nt.thu = [{ id: 'bo', x: giua.x, y: giua.y, sanLuc: 0, dir: 'down' }];
+        delete G.p.nt.vGiaCam;
+        NT.nt();
+        return trongChuong(NT.danhSachThu()[0]);
+      })());
+
+      // Và gà thật sự đi được ra xa, không quanh quẩn mấy ô quanh chỗ thả
+      G.p.nt.thu = [];
+      NT.muaThu('ga');
+      const g0 = { ...NT.danhSachThu()[0] };
+      let seed = 5;
+      const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648;
+        return seed / 2147483648; };
+      let xaNhat = 0;
+      for (let i = 0; i < 40000; i++) {
+        NT.diChuyenThu(1 / 30, null, null, rnd);
+        const g = NT.danhSachThu()[0];
+        xaNhat = Math.max(xaNhat, Math.abs(g.x - g0.x) + Math.abs(g.y - g0.y));
+      }
+      ok('gà đi lang được ra xa chỗ thả', xaNhat >= 8, `xa nhất ${xaNhat} ô`);
+    }
     // Chỗ mua hàng phải có NGƯỜI bán, không phải một cái cọc cắm biển
     ok('có người bán hạt giống và người bán con vật',
       (NM.NGUOI_BAN || []).length === 2,

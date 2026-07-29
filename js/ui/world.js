@@ -1362,8 +1362,7 @@ export function render(el) {
         sub: `${tienChu(a.gia)} · cho ${NT.MON_BY_ID[a.sanPham]?.name} sau ${a.phut} phút`,
       })).concat([{ label: 'Thôi' }]));
       if (i < 0 || i >= ds.length) return;
-      const cho = NT.choTrongCho();
-      const [con, err] = NT.muaThu(ds[i].id, cho.x, cho.y);
+      const [con, err] = NT.muaThu(ds[i].id);
       toast(err || `${con.name} về chuồng rồi.`);
     }
   }

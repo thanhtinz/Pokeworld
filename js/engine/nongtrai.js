@@ -27,13 +27,13 @@ import { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   GIAI_DOAN, GIA_CO_KHO, SUC_CHUA_GOC } from '../data/nongtrai.js';
 import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG, VUNG_THU,
   CHUONG, NHA_KHO, NHA_BEP, NGUOI_BAN, KHU_TRONG, O_RUONG,
-  O_TOI_DA, RAO_NGOAI } from '../data/nongtraimap.js';
+  O_TOI_DA, RAO_NGOAI, LOI_NGANG } from '../data/nongtraimap.js';
 
 export { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG, VUNG_THU,
   CHUONG, NHA_KHO, NHA_BEP, NGUOI_BAN, KHU_TRONG, O_RUONG, O_TOI_DA,
-  RAO_NGOAI };
+  RAO_NGOAI, LOI_NGANG };
 
 const PHUT = 60000;
 export const CHIN = GIAI_DOAN - 1;      // giai đoạn cuối là lúc chín
@@ -58,6 +58,22 @@ export function nt() {
   // Bản lưu cũ có thể lẫn mã không còn tồn tại — bỏ đi còn hơn vẽ ra ô trống
   n.o = n.o.filter(o => VAT_BY_ID[o.id]);
   n.thu = n.thu.filter(t => THU_BY_ID[t.id]);
+  // Bản lưu cũ nhốt gia cầm trong chuồng. Chuồng chỉ hở hai ô cổng nên tự nó
+  // không bao giờ ra được — phải bế ra sân hộ.
+  //
+  // Đặt cờ TRƯỚC khi chạy: choTrongCho() gọi ngược lại nt(), không có cờ thì
+  // đệ quy vô tận.
+  if (n.vGiaCam !== 1) {
+    n.vGiaCam = 1;
+    for (const t of n.thu) {
+      if (THU_BY_ID[t.id]?.chan !== 2) continue;
+      if (!trongChuong(t.x, t.y)) continue;
+      const cho = choTrongCho(t.id);
+      t.x = cho.x; t.y = cho.y;
+      t.ox = 0; t.oy = 0; t.di = false;
+      delete t.goc;                  // neo lại quanh chỗ mới
+    }
+  }
   return n;
 }
 
@@ -228,37 +244,68 @@ export function thu(o, gio = Date.now(), rnd = Math.random) {
 /** Con vật đứng ở ô này (nếu có). */
 export const thuTaiO = (x, y) => nt().thu.find(t => t.x === x && t.y === y) || null;
 
-/**
- * Chỗ thả một con vật mới mua: quét vòng ra từ GIỮA LÒNG CHUỒNG, lấy ô đầu
- * tiên không vướng gì.
- *
- * Chuồng thú giờ là cái vùng quây rào sẵn trên bản đồ (tools/nongtrai.py), nên
- * chỗ thả là chuyện đã định trước — không còn phải dò xem người chơi đã kê cái
- * chuồng ở đâu, cũng không còn cảnh cả đàn bị dồn vào mấy ô kẹt giữa đường.
- */
-export function choTrongCho(id = null) {
-  const co_ = (x, y) => !CAM.has(`${x},${y}`) && !oTaiO(x, y) && !thuTaiO(x, y);
-  // Thú 4 chân thả vào chuồng; gia cầm thả ngay giữa chuồng luôn cho dễ tìm
-  // lần đầu, rồi nó tự đi ra.
-  const v = VUNG_THU;
-  const gx = Math.floor((v.x0 + v.x1) / 2);
-  const gy = Math.floor((v.y0 + v.y1) / 2);
-  const rMax = Math.max(v.x1 - v.x0, v.y1 - v.y0);
-  void id;
+/** Ô này thả con vật xuống được không. */
+const oThaDuoc = (x, y) =>
+  !CAM.has(`${x},${y}`) && !oTaiO(x, y) && !thuTaiO(x, y);
+
+const trongChuong = (x, y) => x >= VUNG_THU.x0 && x <= VUNG_THU.x1
+  && y >= VUNG_THU.y0 && y <= VUNG_THU.y1;
+
+/** Quét vòng ra từ (gx, gy), trả ô đầu tiên hợp lệ. */
+function quetVongRa(gx, gy, hopLe, rMax) {
   for (let r = 0; r <= rMax; r++) {
     for (let dy = -r; dy <= r; dy++) {
       for (let dx = -r; dx <= r; dx++) {
         if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
         const x = gx + dx;
         const y = gy + dy;
-        if (x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1) continue;
-        if (co_(x, y)) return { x, y };
+        if (hopLe(x, y)) return { x, y };
       }
     }
   }
-  return { x: gx, y: gy };
+  return null;
 }
 
+/**
+ * Chỗ thả một con vật mới mua.
+ *
+ * GIA CẦM thả thẳng ra SÂN, không vào chuồng. Trước thả chung vào giữa chuồng
+ * rồi tính là nó "tự đi ra" — nhưng chuồng chỉ hở đúng hai ô cổng, đi ngẫu
+ * nhiên thì hàng nghìn nhịp mới lọt được một con. Đo thử ba mươi phút chơi:
+ * đúng một con ra tới ô cổng, còn lại vẫn quanh quẩn trong chuồng. Gà vịt phải
+ * ở ngoài sân ngay từ lúc mua thì mới đúng là thả rông.
+ *
+ * THÚ BỐN CHÂN thì vào giữa lòng chuồng.
+ */
+export function choTrongCho(id = null) {
+  const t = THU_BY_ID[id];
+  if (t && t.chan === 2) {
+    // Thả ngay khoảng sân giữa hàng cỏ dưới ruộng — chỗ thoáng nhất nông trại
+    const gx = Math.floor((VUNG.x0 + VUNG.x1) / 2);
+    const gy = Math.min(VUNG.y1, Math.max(...LOI_NGANG) + 1);
+    const cho = quetVongRa(gx, gy,
+      (x, y) => x >= VUNG.x0 && x <= VUNG.x1 && y >= VUNG.y0 && y <= VUNG.y1
+        && !trongChuong(x, y) && oThaDuoc(x, y),
+      Math.max(VUNG.x1 - VUNG.x0, VUNG.y1 - VUNG.y0));
+    if (cho) return cho;
+  }
+  const v = VUNG_THU;
+  const gx = Math.floor((v.x0 + v.x1) / 2);
+  const gy = Math.floor((v.y0 + v.y1) / 2);
+  return quetVongRa(gx, gy,
+    (x, y) => x >= v.x0 && x <= v.x1 && y >= v.y0 && y <= v.y1 && oThaDuoc(x, y),
+    Math.max(v.x1 - v.x0, v.y1 - v.y0)) || { x: gx, y: gy };
+}
+
+/**
+ * Mua một con. KHÔNG truyền x, y thì tự chọn chỗ thả theo loài — gia cầm ra
+ * sân, thú bốn chân vào chuồng.
+ *
+ * Để chỗ thả cho người gọi tự lo là sai lầm cũ: hai màn gọi hàm này đều gọi
+ * `choTrongCho()` mà quên truyền mã loài, nên gà vịt bị thả thẳng vào giữa
+ * chuồng rồi mắc kẹt trong đó. Chuyện thả con nào ở đâu là luật của nông trại,
+ * không phải việc của màn hình.
+ */
 export function muaThu(id, x, y) {
   const t = THU_BY_ID[id];
   const n = nt();
@@ -267,8 +314,9 @@ export function muaThu(id, x, y) {
     return [null, `Chuồng đầy rồi — đang nuôi ${n.thu.length}/${sucChua()} con. Kê thêm chuồng đi.`];
   }
   if ((G.p.money || 0) < t.gia) return [null, `Cần ${t.gia} để mua ${t.name}.`];
+  const cho = (x === undefined || y === undefined) ? choTrongCho(id) : { x, y };
   addMoney(-t.gia);
-  n.thu.push({ id, x, y, sanLuc: 0, dir: 'down' });
+  n.thu.push({ id, x: cho.x, y: cho.y, sanLuc: 0, dir: 'down' });
   save();
   return [t, null];
 }
@@ -282,7 +330,7 @@ export function muaThu(id, x, y) {
 const TOC_THU = 0.85;        // ô mỗi giây — chậm hơn hẳn người chơi
 const CHO_THU = 2.2;         // giây giữa hai lần nghĩ tới chuyện bước đi
 const XA_THU = 4;            // thú 4 chân đi xa nhất bấy nhiêu ô so với chỗ thả
-const XA_GIA_CAM = 14;       // gia cầm thả rông thì đi xa hơn hẳn
+const XA_GIA_CAM = 26;       // gia cầm thả rông thì lang gần nửa nông trại
 const xaDuoc = (con) => (THU_BY_ID[con?.id]?.chan === 2 ? XA_GIA_CAM : XA_THU);
 const GAN_THU = 2;           // người chơi trong bấy nhiêu ô thì quay mặt lại
 const HUONG = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];

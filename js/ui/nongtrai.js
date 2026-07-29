@@ -284,9 +284,8 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
       ve();
     }));
     el.querySelectorAll('.nt-muathu').forEach(b => b.addEventListener('click', () => {
-      // Con vật thả ngay vào nông trại, đứng cạnh cổng cho dễ tìm
-      const cho = NT.choTrongCho();
-      const [t, err] = NT.muaThu(b.dataset.thu, cho.x, cho.y);
+      // Chỗ thả do engine quyết theo loài: gia cầm ra sân, thú bốn chân vào chuồng
+      const [t, err] = NT.muaThu(b.dataset.thu);
       toast(err || `${t.name} về nông trại rồi.`);
       ve();
     }));
