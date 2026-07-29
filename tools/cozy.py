@@ -16,6 +16,11 @@ ra assets/nv. Xem ATTRIBUTIONS.md.
 Bo nguon xep: 8 khung di x 4 hang, hang 0 xuong · 1 len · 2 phai · 3 trai.
 Game thi doc 3 cot x 4 hang, hang 0 xuong · 1 trai · 2 phai · 3 len (xem
 engine/owsprite.js). Nen phai dao ca hang lan cot.
+
+Ngoai bo di bo, con nuong them bo CAU CA (separate/fish) ra assets/nv_cau:
+5 khung x 4 hang, giu nguyen thu tu khung (chuan bi - vung - quat - quang -
+giu). Than nguoi lay ban 'without' (khong co can), con can cau la mot LOP
+rieng ve sau cung, de doi mau can theo cap can dang cam.
 """
 import json
 import os
@@ -24,7 +29,8 @@ import sys
 from PIL import Image
 
 O = 32                      # canh mot o vuong cua bo nguon
-RA = 'assets/nv'            # noi do anh da nuong
+RA = 'assets/nv'            # noi do anh da nuong (di bo)
+RA_CAU = 'assets/nv_cau'    # noi do anh cau ca
 DL = 'js/data/nhanvat.js'
 
 # Hang cua game <- hang cua pack. Game: 0 xuong 1 trai 2 phai 3 len.
@@ -32,6 +38,13 @@ HANG = [0, 3, 2, 1]
 # Cot cua game <- khung cua pack. Khung 3 la luc hai chan chum lai (dung yen),
 # khung 1 va 5 la hai buoc nguoc nhau.
 COT = [3, 1, 5]
+
+# ==== Bo cau ca ====
+KHUNG_CAU = 5               # moi bang mau chiem 5 khung lien nhau
+# Ten tep khac giua hai bo (pack dat khong dong nhat)
+TEN_CAU = {'overalls': 'overall'}
+# Mau can cau: (ma, hau to tep trong separate/fish/tool)
+CAN_MAU = [('goc', ''), ('nau', '_brown'), ('xanh', '_blue'), ('hong', '_pink')]
 
 # ==== Bang mau, lay dung thu tu trong list.txt cua pack ====
 MAU_TOC = [
@@ -142,6 +155,16 @@ def nguon(goc, nhom, ten):
     return Image.open(p).convert('RGBA')
 
 
+def nguon_cau(goc, nhom, ten):
+    """Mo mot tam sheet 'cau ca'. Than nguoi lay ban khong cam can."""
+    t = TEN_CAU.get(ten, ten)
+    if not nhom:
+        p = os.path.join(goc, 'separate/fish/without', t + '_fish_without.png')
+    else:
+        p = os.path.join(goc, 'separate/fish', nhom, t + '_fish.png')
+    return Image.open(p).convert('RGBA')
+
+
 def cat(sheet, khoi, ra):
     """Cat mot khoi mau ra thanh tam 96x128 dung quy uoc cua game.
 
@@ -156,6 +179,29 @@ def cat(sheet, khoi, ra):
     os.makedirs(os.path.dirname(duong), exist_ok=True)
     im.save(duong, optimize=True)
     return 1
+
+
+def cat_cau(sheet, khoi, ra):
+    """Cat mot khoi mau cua bo cau ca thanh tam 160x128.
+
+    Giu nguyen thu tu 5 khung cua pack, chi dao lai HANG cho khop game.
+    """
+    im = Image.new('RGBA', (O * KHUNG_CAU, O * 4), (0, 0, 0, 0))
+    for r, hp in enumerate(HANG):
+        for c in range(KHUNG_CAU):
+            x = (khoi * KHUNG_CAU + c) * O
+            im.paste(sheet.crop((x, hp * O, x + O, hp * O + O)), (c * O, r * O))
+    duong = os.path.join(RA_CAU, ra + '.png')
+    os.makedirs(os.path.dirname(duong), exist_ok=True)
+    im.save(duong, optimize=True)
+    return 1
+
+
+def ca_hai(goc, nhom, ten, khoi, ra):
+    """Nuong mot lop ra CA HAI bo: di bo va cau ca."""
+    n = cat(nguon(goc, nhom, ten), khoi, ra)
+    n += cat_cau(nguon_cau(goc, nhom, ten), khoi, ra)
+    return n
 
 
 def mau_chinh(ra):
@@ -209,14 +255,15 @@ def main():
     if not os.path.isdir(os.path.join(goc, 'separate/walk')):
         raise SystemExit('Khong thay separate/walk trong %s' % goc)
 
-    for dp, _, fs in os.walk(RA):
-        for f in fs:
-            os.remove(os.path.join(dp, f))
+    for thu_muc in (RA, RA_CAU):
+        for dp, _, fs in os.walk(thu_muc):
+            for f in fs:
+                os.remove(os.path.join(dp, f))
     n = 0
 
     # ---- Nguoi (8 tong da) ----
     for i in range(1, 9):
-        n += cat(nguon(goc, '', 'char%d' % i), 0, 'nguoi/tong%d' % i)
+        n += ca_hai(goc, '', 'char%d' % i, 0, 'nguoi/tong%d' % i)
     # Doi ten theo do sang that cua nuoc da, khong doan theo so thu tu tep
     tong = sorted((mau_da('nguoi/tong%d' % i), i) for i in range(1, 9))
     tong.sort(key=lambda x: -sang(x[0]))
@@ -224,22 +271,18 @@ def main():
     DA = [('da%d' % (k + 1), TEN_DA[k], t[1], t[0]) for k, t in enumerate(tong)]
 
     # ---- Mat, ma hong, son moi ----
-    sheet = nguon(goc, 'eyes', 'eyes')
     for i, (ma, _) in enumerate(MAU_MAT):
-        n += cat(sheet, i, 'mat/%s' % ma)
+        n += ca_hai(goc, 'eyes', 'eyes', i, 'mat/%s' % ma)
     for tep, nhom in (('blush', 'mahong'), ('lipstick', 'sonmoi')):
-        sheet = nguon(goc, 'eyes', tep)
         for i, (ma, _) in enumerate(MAU_NHAT):
-            n += cat(sheet, i, '%s/%s' % (nhom, ma))
+            n += ca_hai(goc, 'eyes', tep, i, '%s/%s' % (nhom, ma))
 
     # ---- Toc + rau ----
     for tep, _, _g in TOC:
-        sheet = nguon(goc, 'hair', tep)
         for i, (ma, _) in enumerate(MAU_TOC):
-            n += cat(sheet, i, 'toc/%s_%s' % (tep, ma))
-    sheet = nguon(goc, 'acc', 'beard')
+            n += ca_hai(goc, 'hair', tep, i, 'toc/%s_%s' % (tep, ma))
     for i, (ma, _) in enumerate(MAU_TOC):
-        n += cat(sheet, i, 'rau/%s' % ma)
+        n += ca_hai(goc, 'acc', 'beard', i, 'rau/%s' % ma)
 
     # ---- Quan ao ----
     DO = []
@@ -249,7 +292,7 @@ def main():
             somau = sheet.width // O // 8
             for i in range(somau):
                 mm = MAU_DO[i][0] if somau > 1 else 'goc'
-                n += cat(sheet, i, '%s/%s_%s' % (o, ma, mm))
+                n += ca_hai(goc, 'clothes', tep, i, '%s/%s_%s' % (o, ma, mm))
             DO.append((ma, ten, o, gia, bo, somau))
 
     # ---- Phu kien ----
@@ -258,8 +301,14 @@ def main():
         that = sheet.width // O // 8
         for i in range(that):
             mm = MAU_DO[i][0] if that > 1 else 'goc'
-            n += cat(sheet, i, '%s/%s_%s' % (o, ma, mm))
+            n += ca_hai(goc, 'acc', tep, i, '%s/%s_%s' % (o, ma, mm))
         DO.append((ma, ten, o, gia, 0, that))
+
+    # ---- Can cau (lop ve sau cung cua bo cau ca) ----
+    for mma, hau in CAN_MAU:
+        sh = Image.open(os.path.join(goc, 'separate/fish/tool',
+                                     'fishingrod%s.png' % hau)).convert('RGBA')
+        n += cat_cau(sh, 0, 'can/%s' % mma)
 
     # ==== js/data/nhanvat.js ====
     def bang(ds, mau=None, gioi_o=None):
@@ -282,6 +331,19 @@ def main():
         '// Mỗi tệp là một LỚP rời; engine/avatar.js chồng lên nhau thành sprite.',
         '',
         'export const THU_MUC = %s;' % js(RA),
+        '',
+        '// Bộ CÂU CÁ: cùng đúng những lớp đó nhưng 5 khung x 4 hàng (chuẩn bị →',
+        '// vung → quật → quăng → giữ). Thân người ở đây KHÔNG cầm cần; cần câu là',
+        '// một lớp riêng vẽ sau cùng nên đổi màu theo cấp cần đang cầm được.',
+        'export const THU_MUC_CAU = %s;' % js(RA_CAU),
+        'export const CAU_COT = %d;' % KHUNG_CAU,
+        '// Nhịp từng khung (ms) — chép từ info.txt của pack.',
+        'export const CAU_NHIP = { doc: [100, 250, 60, 100, 100], '
+        'ngang: [100, 100, 250, 60, 100] };',
+        '// Pack vẽ nhân vật lúc câu CAO HƠN 4px so với lúc đi, nên vẽ lên bản đồ',
+        '// phải hạ xuống bấy nhiêu, không thì chân lơ lửng trên mặt đất.',
+        'export const CAU_LECH_Y = 4;',
+        'export const CAN_MAU = %s;' % js([m for m, _ in CAN_MAU]),
         '',
         '// Giới tính chọn TRƯỚC. Bộ sprite này vẽ chung một thân cho cả hai giới,',
         '// nên giới tính chỉ dùng để LỌC danh sách kiểu tóc và bộ đồ gợi ý.',
@@ -338,8 +400,10 @@ def main():
         f.write('\n'.join(dong) + '\n')
 
     tong_b = sum(os.path.getsize(os.path.join(dp, f))
-                 for dp, _, fs in os.walk(RA) for f in fs)
-    print('OK: %d lớp sprite -> %s (%.1f MB)' % (n, RA, tong_b / 1024 / 1024))
+                 for thu_muc in (RA, RA_CAU)
+                 for dp, _, fs in os.walk(thu_muc) for f in fs)
+    print('OK: %d lớp sprite -> %s + %s (%.1f MB)'
+          % (n, RA, RA_CAU, tong_b / 1024 / 1024))
     print('OK: %d nước da, %d kiểu tóc x %d màu, %d món đồ -> %s'
           % (len(DA), len(TOC), len(MAU_TOC), len(DO), DL))
 

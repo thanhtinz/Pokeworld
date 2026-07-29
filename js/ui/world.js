@@ -493,6 +493,21 @@ export function render(el) {
       return;
     }
 
+    // Đang thả câu thì vẽ dáng cầm cần (bộ 5 khung của assets/nv_cau) thay cho
+    // dáng đứng. Ảnh chưa nướng xong thì cứ vẽ dáng thường, không để trống.
+    const dangCau = () => {
+      if (!cauTu) return false;
+      const img = AV.anhCauCa(CAU.canDangDung().mau);
+      if (!owReady(img)) return false;
+      const f = AV.khungCau(player.dir, performance.now() - cauTu.t0, img);
+      const w = chH * (f.sw / f.sh);
+      // Pack vẽ nhân vật lúc câu cao hơn lúc đi mấy pixel, phải hạ lại cho
+      // chân đứng đúng mặt đất
+      const y = py - chH + size * 0.34 + chH * (AV.CAU_LECH_Y / f.sh);
+      ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
+        Math.round(px - w / 2), Math.round(y), Math.round(w), Math.round(chH));
+      return true;
+    };
     const tt = TT.tuTheHienTai();
     // Nằm/ngồi thì vẽ NGAY TRÊN món đồ chứ không phải chỗ đang đứng — đứng
     // cạnh giường mà nằm thì trông như ngã ra sàn.
@@ -500,7 +515,10 @@ export function render(el) {
     const fm = mon && FURN_BY_ID[mon.id];
     const mx = fm ? (mon.x + fm.w / 2) * size - camX : px;
     const my = fm ? (mon.y + fm.h / 2) * size - camY + chH / 2 - size * 0.34 : py;
-    if (tt === 'nam') {
+    // Dáng cầm cần ĐÈ LÊN mọi tư thế khác: vừa nằm vừa quăng cần thì kỳ.
+    if (dangCau()) {
+      // đã vẽ trong dangCau()
+    } else if (tt === 'nam') {
       nam(avatarImg(), mx, my, !!fm && fm.w > fm.h);
     } else if (tt === 'ngoi') {
       put(avatarImg(), player.dir, false, mx, my);
@@ -788,6 +806,9 @@ export function render(el) {
   // ==== Vòng lặp ====
   let last = performance.now();
   let busy = false;   // đang mở hộp thoại/chuyển màn thì ngừng nhận điều khiển
+  // Khác rỗng nghĩa là đang thả câu: bản đồ vẽ nhân vật ở dáng cầm cần, tính
+  // khung theo số ms kể từ `t0`.
+  let cauTu = null;
 
   function loop(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
@@ -1031,6 +1052,9 @@ export function render(el) {
   // Thả câu. Mỗi lần thả cần mòn một điểm, hết là gãy.
   async function thaCau(rod) {
     busy = true;
+    // Bật dáng cầm cần TRƯỚC câu thoại: quăng cần rồi mới hiện chữ "quăng
+    // cần xuống nước" thì đọc xong đã thấy người vẫn đứng khoanh tay.
+    cauTu = { t0: performance.now() };
     try {
       await playDialog([[{ name: 'Bạn' }, `Quăng ${ITEMS[rod]?.name || 'cần câu'} xuống nước...`]]);
       const r = fish(rod);
@@ -1062,6 +1086,7 @@ export function render(el) {
       return;
     } finally {
       busy = false;
+      cauTu = null;
     }
   }
 

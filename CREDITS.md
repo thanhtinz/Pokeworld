@@ -169,9 +169,10 @@ giãn gì.
 Pack đã mua nên được dùng thương mại thoải mái, chỉ **cấm phát tán lại chính
 cái pack**. Ranh giới trong kho này giống hệt mấy pack CraftPix: **không chép
 tệp gốc của pack vào đây** — không có bảng gộp `char_all.png`, không có thư
-mục `greyscale/`, không có mấy bộ animation không dùng (chặt cây, câu cá, cuốc
-đất...). Chỉ commit `assets/nv/`: 416 tấm 96×128 đã cắt lại theo đúng định
-dạng sprite riêng của game, chỉ có nhịp đi bộ. Đó là art của game chứ không
+mục `greyscale/`, không có mấy bộ animation không dùng (chặt cây, cuốc đất,
+đào, chém...). Chỉ commit hai thư mục đã cắt lại theo đúng định dạng sprite
+riêng của game: `assets/nv/` (nhịp đi bộ, 96×128) và `assets/nv_cau/` (nhịp
+quăng cần, 160×128 — dùng cho tính năng câu cá). Đó là art của game chứ không
 phải cái pack.
 
 Sinh lại bằng:

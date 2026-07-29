@@ -16,13 +16,17 @@
 // vẽ mười mấy lớp mỗi khung hình thì máy yếu tụt khung ngay.
 import { G, save } from '../state.js';
 import { esc } from '../util.js';
-import { THU_MUC, GIOI, DA, MAT, MA_HONG, SON_MOI, TOC_KIEU, TOC_MAU,
+import { THU_MUC, THU_MUC_CAU, CAU_COT, CAU_NHIP, CAU_LECH_Y, CAN_MAU,
+  GIOI, DA, MAT, MA_HONG, SON_MOI, TOC_KIEU, TOC_MAU,
   RAU_MAU, DO_MAU, O_DO, DO, DO_BY_ID, monBoMau } from '../data/nhanvat.js';
 
 export const KHUNG_W = 32;
 export const KHUNG_H = 32;
 export const SHEET_W = KHUNG_W * 3;
 export const SHEET_H = KHUNG_H * 4;
+// Bộ câu cá rộng hơn (5 khung) nhưng vẫn 4 hàng, cùng cỡ ô.
+export const SHEET_CAU_W = KHUNG_W * CAU_COT;
+export { CAU_COT, CAU_LECH_Y };
 
 const dau = (ds) => ds[0]?.id || '';
 const tepDa = (da) => DA.find(d => d.id === da)?.tep || DA[0].tep;
@@ -161,20 +165,16 @@ function tai(src) {
 
 const nuong = new Map();
 
-/**
- * Ảnh sprite hoàn chỉnh của một bộ ngoại hình. Trả về ngay một <img>; ảnh thật
- * gán vào sau khi mọi lớp tải xong (màn bản đồ tự bỏ qua ảnh chưa sẵn sàng).
- */
-export function anhNhanVat(nv = nguoi(), mac = dangMac()) {
-  const key = khoaLop(nv, mac);
+/** Chồng một danh sách lớp thành MỘT ảnh, nhớ lại theo chính danh sách đó. */
+function nuongBo(ds, rong, cao) {
+  const key = ds.join('|');
   if (nuong.has(key)) return nuong.get(key);
   const img = new Image();
   nuong.set(key, img);
-  const ds = cacLop(nv, mac);
   Promise.all(ds.map(tai)).then(lop => {
     const c = document.createElement('canvas');
-    c.width = SHEET_W;
-    c.height = SHEET_H;
+    c.width = rong;
+    c.height = cao;
     const ctx = c.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     for (const im of lop) if (im) ctx.drawImage(im, 0, 0);
@@ -187,6 +187,55 @@ export function anhNhanVat(nv = nguoi(), mac = dangMac()) {
     }
   });
   return img;
+}
+
+/**
+ * Ảnh sprite hoàn chỉnh của một bộ ngoại hình. Trả về ngay một <img>; ảnh thật
+ * gán vào sau khi mọi lớp tải xong (màn bản đồ tự bỏ qua ảnh chưa sẵn sàng).
+ */
+export function anhNhanVat(nv = nguoi(), mac = dangMac()) {
+  return nuongBo(cacLop(nv, mac), SHEET_W, SHEET_H);
+}
+
+// ==== Dáng câu cá ====
+//
+// Bộ câu cá (assets/nv_cau) vẽ y hệt những lớp đó nhưng 5 khung một hàng:
+// chuẩn bị → vung → quật → quăng → giữ. Thân người ở đây KHÔNG cầm cần, cần là
+// một lớp riêng vẽ sau cùng, nên cần xịn hơn thì cầm cây cần khác màu.
+
+/** Danh sách lớp của dáng câu cá, kèm cây cần màu `mauCan`. */
+export function cacLopCau(nv = nguoi(), mac = dangMac(), mauCan = 'goc') {
+  const ds = cacLop(nv, mac).map(p => THU_MUC_CAU + p.slice(THU_MUC.length));
+  ds.push(`${THU_MUC_CAU}/can/${CAN_MAU.includes(mauCan) ? mauCan : 'goc'}.png`);
+  return ds;
+}
+
+export function anhCauCa(mauCan = 'goc', nv = nguoi(), mac = dangMac()) {
+  return nuongBo(cacLopCau(nv, mac, mauCan), SHEET_CAU_W, SHEET_H);
+}
+
+// Hàng theo hướng, giống hệt quy ước của engine/owsprite.js
+const HANG_HUONG = { down: 0, left: 1, right: 2, up: 3 };
+const tong = (a) => a.reduce((x, y) => x + y, 0);
+/** Quăng xong cần bao lâu (ms) — hết chừng này là giữ nguyên khung cuối. */
+export const CAU_QUANG = { doc: tong(CAU_NHIP.doc), ngang: tong(CAU_NHIP.ngang) };
+const nhipCua = (dir) => (dir === 'left' || dir === 'right' ? CAU_NHIP.ngang : CAU_NHIP.doc);
+
+/**
+ * Ô cần cắt trong ảnh câu cá, `t` là số ms kể từ lúc bắt đầu quăng.
+ * Chạy hết nhịp thì DỪNG ở khung cuối (giữ cần chờ cá) chứ không lặp lại.
+ */
+export function khungCau(dir, t, img = null) {
+  const sw = (img?.naturalWidth || SHEET_CAU_W) / CAU_COT;
+  const sh = (img?.naturalHeight || SHEET_H) / 4;
+  const nhip = nhipCua(dir);
+  let con = t;
+  let cot = CAU_COT - 1;
+  for (let i = 0; i < nhip.length; i++) {
+    if (con < nhip[i]) { cot = i; break; }
+    con -= nhip[i];
+  }
+  return { sx: cot * sw, sy: (HANG_HUONG[dir] ?? 0) * sh, sw, sh, cot };
 }
 
 // Khung đứng nhìn thẳng — dùng làm ảnh đại diện trong giao diện

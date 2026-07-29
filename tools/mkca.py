@@ -77,12 +77,14 @@ HIEM = [(1, 'Thường', '#9aa4b2'), (2, 'Khá', '#5bc0eb'),
 # Xac suat can cau theo bac hiem (cang hiem cang kho). Chuan hoa trong js.
 TRONG_SO = {1: 100, 2: 45, 3: 14, 4: 2}
 
-# Can cau: (ma, ten, gia, bac cau duoc, mo ta)
+# Can cau: (ma, ten, gia, bac cau duoc, mau can tren ban do, mo ta)
 # `bac` = cau duoc ca toi bac hiem nao. Can xin thi khong bao gio dinh ca quy.
+# `mau` = ten lop can trong assets/nv_cau/can (xem tools/cozy.py), de nhan vat
+# tren ban do cam dung cai can dang dung chu khong phai lúc nào cũng một cái.
 CAN = [
-    ('can_tre', 'Cần Tre', 0, 2, 'Cần gộc tự vót. Chỉ với tới cá thường và khá.'),
-    ('can_go', 'Cần Gỗ', 3500, 3, 'Dẻo hơn, kéo được cá hiếm mà không gãy.'),
-    ('can_thep', 'Cần Thép', 18000, 4, 'Lõi thép. Cá huyền thoại cũng gồng được.'),
+    ('can_tre', 'Cần Tre', 0, 2, 'nau', 'Cần gộc tự vót. Chỉ với tới cá thường và khá.'),
+    ('can_go', 'Cần Gỗ', 3500, 3, 'goc', 'Dẻo hơn, kéo được cá hiếm mà không gãy.'),
+    ('can_thep', 'Cần Thép', 18000, 4, 'xanh', 'Lõi thép. Cá huyền thoại cũng gồng được.'),
 ]
 
 
@@ -156,11 +158,12 @@ def main():
     dong += ['];', '',
              'export const CA_BY_ID = Object.fromEntries(CA.map(c => [c.id, c]));',
              '',
-             '// Cần câu: `bac` = câu được cá tới bậc hiếm nào.',
+             '// Cần câu: `bac` = câu được cá tới bậc hiếm nào, `mau` = lớp cần',
+             '// vẽ trên bản đồ lúc thả câu (assets/nv_cau/can).',
              'export const CAN = [']
-    for ma, ten, gia, bac, mo in CAN:
-        dong.append('  { id: %s, name: %s, gia: %d, bac: %d, desc: %s },'
-                    % (js(ma), js(ten), gia, bac, js(mo)))
+    for ma, ten, gia, bac, mau, mo in CAN:
+        dong.append('  { id: %s, name: %s, gia: %d, bac: %d, mau: %s, desc: %s },'
+                    % (js(ma), js(ten), gia, bac, js(mau), js(mo)))
     dong += ['];', '',
              'export const CAN_BY_ID = Object.fromEntries(CAN.map(c => [c.id, c]));',
              '',

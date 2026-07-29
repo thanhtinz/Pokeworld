@@ -3114,6 +3114,86 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     AV.KHUNG_W === 32 && AV.KHUNG_H === 32
     && AV.SHEET_W === 96 && AV.SHEET_H === 128);
 
+  // ---- Dáng câu cá (bộ 5 khung) ----
+  // Bộ này ghép y hệt bộ đi bộ, chỉ khác số khung. Thiếu MỘT lớp thôi là lúc
+  // quăng cần người chơi mất áo hoặc mất tóc, nên phải soát đủ cả bộ.
+  const { THU_MUC_CAU, CAU_COT, CAU_NHIP, CAU_LECH_Y, CAN_MAU } = NV;
+  const thieuCau = [];
+  const kiemCau = (nhom, ten) => {
+    if (!existsSync(join(goc, THU_MUC_CAU, nhom, ten + '.png'))) {
+      thieuCau.push(`${nhom}/${ten}`);
+    }
+  };
+  for (const d of DA) kiemCau('nguoi', `tong${d.tep}`);
+  for (const x of MAT) kiemCau('mat', x.id);
+  for (const x of MA_HONG) kiemCau('mahong', x.id);
+  for (const x of SON_MOI) kiemCau('sonmoi', x.id);
+  for (const x of RAU_MAU) kiemCau('rau', x.id);
+  for (const t of TOC_KIEU) for (const m of TOC_MAU) kiemCau('toc', `${t.id}_${m.id}`);
+  for (const d of DO) {
+    for (const m of (d.somau > 1 ? DO_MAU.slice(0, d.somau) : [{ id: 'goc' }])) {
+      kiemCau(d.o, `${d.id}_${m.id}`);
+    }
+  }
+  for (const m of CAN_MAU) kiemCau('can', m);
+  ok('bộ câu cá có đủ đúng những lớp của bộ đi bộ', thieuCau.length === 0,
+    `${thieuCau.length} thiếu: ${thieuCau.slice(0, 6).join(', ')}`);
+
+  const mauCau = [`nguoi/tong${DA[0].tep}`, `toc/${TOC_KIEU[0].id}_${TOC_MAU[0].id}`,
+    `can/${CAN_MAU[0]}`];
+  ok('lớp câu cá đúng khuôn 160x128',
+    mauCau.every(p2 => {
+      const s = coPng(join(THU_MUC_CAU, p2 + '.png'));
+      return s.w === 32 * CAU_COT && s.h === 128;
+    }),
+    mauCau.map(p2 => `${p2}:${JSON.stringify(coPng(join(THU_MUC_CAU, p2 + '.png')))}`).join(' '));
+
+  // Cần câu là lớp RIÊNG vẽ sau cùng — có thế mới đổi màu theo cấp cần được
+  const lopCau = AV.cacLopCau(AV.macDinh('nam'), {}, 'xanh');
+  ok('dáng câu cá lấy lớp từ thư mục riêng',
+    lopCau.every(p2 => p2.startsWith(THU_MUC_CAU + '/')), lopCau.join(' '));
+  ok('cần câu vẽ sau cùng, đúng màu đang cầm',
+    lopCau[lopCau.length - 1] === `${THU_MUC_CAU}/can/xanh.png`,
+    lopCau[lopCau.length - 1]);
+  ok('cần màu lạ thì lùi về cây mặc định chứ không mất cần',
+    AV.cacLopCau(AV.macDinh('nam'), {}, 'tim_than_thanh').pop()
+      === `${THU_MUC_CAU}/can/goc.png`);
+  ok('bộ câu cá và bộ đi bộ cùng số lớp người',
+    lopCau.length === AV.cacLop(AV.macDinh('nam'), {}).length + 1);
+
+  // Nhịp quăng: chạy hết nhịp thì DỪNG ở khung giữ cần, không quay lại từ đầu
+  const cot = (dir, t) => AV.khungCau(dir, t).cot;
+  ok('quăng cần bắt đầu từ khung đầu', cot('down', 0) === 0 && cot('right', 0) === 0);
+  ok('quăng xong thì giữ nguyên khung cuối',
+    cot('down', AV.CAU_QUANG.doc) === CAU_COT - 1
+    && cot('right', AV.CAU_QUANG.ngang) === CAU_COT - 1
+    && cot('down', AV.CAU_QUANG.doc * 40) === CAU_COT - 1,
+    `${cot('down', AV.CAU_QUANG.doc)} ${cot('right', AV.CAU_QUANG.ngang)}`);
+  ok('nhịp quăng chạy qua đủ cả năm khung', (() => {
+    for (const dir of ['down', 'up', 'left', 'right']) {
+      const thay = new Set();
+      const het = dir === 'left' || dir === 'right'
+        ? AV.CAU_QUANG.ngang : AV.CAU_QUANG.doc;
+      for (let t = 0; t < het; t += 5) thay.add(cot(dir, t));
+      if (thay.size !== CAU_COT) return false;
+    }
+    return true;
+  })());
+  ok('hàng của dáng câu khớp quy ước hướng của owsprite',
+    ['down', 'left', 'right', 'up'].every((dir, i) =>
+      AV.khungCau(dir, 0).sy === i * 32));
+  ok('nhịp dọc và nhịp ngang khác nhau',
+    JSON.stringify(CAU_NHIP.doc) !== JSON.stringify(CAU_NHIP.ngang));
+  ok('có bù độ lệch chiều cao của bộ câu cá', CAU_LECH_Y > 0 && CAU_LECH_Y < 12);
+  {
+    const { CAN } = await import('../js/data/ca.js');
+    ok('cần nào cũng cầm được một cây cần có thật',
+      CAN.every(c => CAN_MAU.includes(c.mau)),
+      CAN.map(c => `${c.id}:${c.mau}`).join(' '));
+    ok('cần xịn hơn thì cầm cây khác màu',
+      new Set(CAN.map(c => c.mau)).size === CAN.length);
+  }
+
   // ---- Món đồ + bản màu ----
   ok('món nào cũng nằm trong một ô mặc có thật',
     DO.every(d => O_DO.some(o => o.id === d.o)),

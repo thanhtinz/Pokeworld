@@ -43,11 +43,12 @@ export const CA = [
 
 export const CA_BY_ID = Object.fromEntries(CA.map(c => [c.id, c]));
 
-// Cần câu: `bac` = câu được cá tới bậc hiếm nào.
+// Cần câu: `bac` = câu được cá tới bậc hiếm nào, `mau` = lớp cần
+// vẽ trên bản đồ lúc thả câu (assets/nv_cau/can).
 export const CAN = [
-  { id: "can_tre", name: "Cần Tre", gia: 0, bac: 2, desc: "Cần gộc tự vót. Chỉ với tới cá thường và khá." },
-  { id: "can_go", name: "Cần Gỗ", gia: 3500, bac: 3, desc: "Dẻo hơn, kéo được cá hiếm mà không gãy." },
-  { id: "can_thep", name: "Cần Thép", gia: 18000, bac: 4, desc: "Lõi thép. Cá huyền thoại cũng gồng được." },
+  { id: "can_tre", name: "Cần Tre", gia: 0, bac: 2, mau: "nau", desc: "Cần gộc tự vót. Chỉ với tới cá thường và khá." },
+  { id: "can_go", name: "Cần Gỗ", gia: 3500, bac: 3, mau: "goc", desc: "Dẻo hơn, kéo được cá hiếm mà không gãy." },
+  { id: "can_thep", name: "Cần Thép", gia: 18000, bac: 4, mau: "xanh", desc: "Lõi thép. Cá huyền thoại cũng gồng được." },
 ];
 
 export const CAN_BY_ID = Object.fromEntries(CAN.map(c => [c.id, c]));

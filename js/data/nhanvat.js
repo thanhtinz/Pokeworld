@@ -7,6 +7,18 @@
 
 export const THU_MUC = "assets/nv";
 
+// Bộ CÂU CÁ: cùng đúng những lớp đó nhưng 5 khung x 4 hàng (chuẩn bị →
+// vung → quật → quăng → giữ). Thân người ở đây KHÔNG cầm cần; cần câu là
+// một lớp riêng vẽ sau cùng nên đổi màu theo cấp cần đang cầm được.
+export const THU_MUC_CAU = "assets/nv_cau";
+export const CAU_COT = 5;
+// Nhịp từng khung (ms) — chép từ info.txt của pack.
+export const CAU_NHIP = { doc: [100, 250, 60, 100, 100], ngang: [100, 100, 250, 60, 100] };
+// Pack vẽ nhân vật lúc câu CAO HƠN 4px so với lúc đi, nên vẽ lên bản đồ
+// phải hạ xuống bấy nhiêu, không thì chân lơ lửng trên mặt đất.
+export const CAU_LECH_Y = 4;
+export const CAN_MAU = ["goc", "nau", "xanh", "hong"];
+
 // Giới tính chọn TRƯỚC. Bộ sprite này vẽ chung một thân cho cả hai giới,
 // nên giới tính chỉ dùng để LỌC danh sách kiểu tóc và bộ đồ gợi ý.
 export const GIOI = [{ id: "nam", name: "Nam" }, { id: "nu", name: "Nữ" }];
