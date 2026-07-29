@@ -192,16 +192,22 @@ Giấy phép y hệt pack nhân vật: mua rồi thì dùng thương mại tho�
 tán lại chính cái pack**. Nên ở đây cũng chỉ commit phần đã cắt ra `assets/nt/`
 theo đúng định dạng riêng của game, không chép tệp gốc nào.
 
-Một chỗ CỐ Ý không dùng: **bộ nền địa hình của pack**. Bản đồ nông trại vẫn ghép
-từ tileset ngoài trời của Tuxemon, chỉ mượn pack này mấy thứ Tuxemon không có
-(cây trồng, con vật, nhà nông). Trộn hai bộ NỀN thì lệch phong cách thấy ngay,
-còn trộn VẬT THỂ thì không — mấy pack CraftPix ở Phố Kim Long cũng đang làm vậy.
+**Nền bản đồ nông trại cũng của pack này.** Bản đầu tôi cố ý dùng tileset ngoài
+trời của Tuxemon cho nền, sợ trộn hai bộ nền thì lệch phong cách — hoá ra ngược:
+nông trại vốn đã đầy cây trồng, con vật, nhà cửa CỦA PACK, nên cái lệch ra lại
+chính là bãi cỏ Tuxemon. Giờ cả bản đồ một bộ, và dùng đúng bộ autotile của họ
+nên cỏ ↔ đường đất ↔ mặt ao nối vào nhau mượt chứ không còn là mấy hình chữ nhật
+dán cạnh nhau.
 
-Ngoại lệ duy nhất là **ô đất trồng**: nó lấy từ `tiles/tiles.png` của pack chứ
-không vẽ tay nữa, vì chính ụ đất trong sprite cây là của pack — vẽ một ô đất
-khác tông rồi đặt cây lên thì thấy ngay cái ụ nổi lên như miếng vá. Bản "đã
-tưới" làm tối theo hệ số ĐO TỪ CHÍNH PACK (so `crops.png` với `crops_wet.png`,
-chỉ lấy pixel màu đất), nên ô đất ướt với cây ướt cùng một tông.
+Bộ autotile của pack xếp mỗi dải ba hàng: khối 3×3 viền quanh một mảng cỏ, kèm
+2×2 ô góc lõm ở cột 3-4. Bốn ô góc lõm thì **thử từng ô rồi nhìn tận mắt** mới
+chọn được — dựng thử một cái ao, ướm cả bốn ô vào từng hướng, chỉ ô `(3, R+1)`
+là nối liền đường viền, ba ô kia đều gãy ra một cái nêm thừa. Bốn hướng góc lõm
+dùng chung đúng ô đó.
+
+Riêng **ô đất trồng** thì bản "đã tưới" làm tối theo hệ số ĐO TỪ CHÍNH PACK (so
+`crops.png` với `crops_wet.png`, chỉ lấy pixel màu đất), nên ô đất ướt với cây
+ướt cùng một tông.
 
 ```bash
 python3 tools/mknongtrai.py "/duong/dan/full version"

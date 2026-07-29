@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """Dung NONG TRAI — ban do rieng de trong trot, nuoi thu, nhan don hang.
 
+NEN LAY TU CHINH PACK "Cozy Farm", khong dung tileset Tuxemon nua. Lan dau
+tranh tron hai bo nen cho khoi lech phong cach — nhung nong trai von da day
+cay, con vat, nha cua CUA PACK roi, nen cai lech ra lai la nen co cua Tuxemon.
+Bay gio ca ban do mot bo: co, duong dat, ao nuoc, cay coi deu cua pack, va
+dung dung bo autotile cua ho nen bo co - duong - nuoc noi vao nhau muot chu
+khong con la may hinh chu nhat dan canh nhau.
+
 Di het ngo phia BAC cua Khu Dan Cu la toi. Tach han ra mot ban do rieng vi ba
 viec nay chiem nhieu cho: rieng khu ruong da an het mot goc ban do, ma nhet
 chung vao khu dat o thi lai thanh cai mo hon hop nhu truoc.
@@ -24,25 +31,37 @@ W, H = 30, 24
 SLUG = 'nong_trai'
 TEN = 'Nông Trại Bờ Suối'
 
-COT = 37
+# ==== Tileset cua pack ====
+TEP_TILE = 'tiles/tiles.png'
+COT = 54                    # tileset rong 54 o
+HANG_TS = 50
 
 
 def _o(c, r):
     return r * COT + c
 
 
-CO = [_o(0, 3), _o(1, 3), _o(2, 3)]              # co xanh
-DAT = [_o(16, 3), _o(17, 3), _o(18, 3)]          # dat nau
-DA = [_o(24, 3), _o(25, 3), _o(26, 3)]           # da xam (duong di)
-CAT = [_o(0, 18), _o(1, 18), _o(2, 18)]          # cat (bo ao)
-THONG_NHO = [_o(24, 28), _o(24, 29)]
-THONG_TO = [[_o(25, 27), _o(26, 27)],
-            [_o(25, 28), _o(26, 28)],
-            [_o(25, 29), _o(26, 29)]]
-BUI = [_o(24, 30), _o(25, 30), _o(26, 30), _o(27, 30)]
-DA_TANG = [_o(30, 30), _o(31, 30)]
-HOA = [_o(28, 25), _o(29, 25), _o(30, 25), _o(28, 26), _o(29, 26)]
-NAM = [_o(29, 29), _o(30, 29)]
+# --- O nen ---
+CO = _o(1, 1)               # co day
+CAT = _o(5, 6)              # dat cat — lat loi di
+DAT = _o(5, 9)              # dat nau sam — san lam viec
+NUOC = _o(12, 13)           # mat nuoc
+
+# --- Ba dai autotile "co chong len X" ---
+# Moi dai ba hang: 3x3 vien dao quanh mot manh co, kem 2x2 goc lom.
+# Hang dau cua dai la R; o day chi ghi R, phan tra o de ham o_vien() lo.
+DAI_CAT = 6
+DAI_DAT = 9
+DAI_NUOC = 12
+
+# --- Vat the ---
+# Cay to: khoi 2 o rong x 4 o cao, hai hang duoi la than cay
+CAY_TO = [(0, 24), (2, 24)]      # hai kieu cay tan tron
+CAY_THONG = (4, 24)              # cay thong
+BUI = [_o(5, 26), _o(6, 26), _o(7, 26), _o(8, 26)]
+HOA = [_o(6, 27), _o(7, 27), _o(8, 27), _o(6, 28), _o(7, 28), _o(8, 28)]
+DA_TANG = [_o(9, 28), _o(10, 28), _o(11, 28), _o(12, 28)]
+QUA_RUNG = [_o(6, 24), _o(7, 24), _o(8, 24)]     # qua rung roi duoi goc cay
 
 # ==== Bo cuc ====
 DUONG_DOC = (14, 15)            # loi di chinh chay tu cong len
@@ -80,125 +99,190 @@ def _rng(x, y, n):
     return (h >> 7) % n
 
 
-def dung(root, tsx_cache, load_tsx):
-    """Tra ve mot dict giong het parse_map() de dung chung duong ong."""
-    tsdir = os.path.join(root, 'mods/tuxemon/gfx/tilesets')
-    ngoai = load_tsx(os.path.join(tsdir, 'core_outdoor.tsx'), tsx_cache)
-    nuoc_ts = load_tsx(os.path.join(tsdir, 'core_outdoor_water.tsx'), tsx_cache)
-    if not ngoai or not nuoc_ts:
-        raise SystemExit('Thiếu core_outdoor.tsx hoặc core_outdoor_water.tsx')
-    g0 = 1
-    g1 = 1 + ngoai['count']
-    sets = [(g0, ngoai), (g1, nuoc_ts)]
-    O_NUOC = 10
+def o_vien(la, x, y, R):
+    """O co nam canh mot vung khac — tra o vien dung huong trong dai autotile.
+
+    Dai xep ba hang: 3x3 vien bao quanh mot manh co (goc/canh), va 2x2 goc lom
+    o cot 3-4. Bon o goc lom da soi tan mat moi chon: thu ca bon roi nhin, chi
+    mot cai noi lien duong vien, ba cai kia gay khuc.
+
+    Tra None neu o nay khong dinh vung do (cu de nguyen co).
+    """
+    n, s2 = la(x, y - 1), la(x, y + 1)
+    w, e = la(x - 1, y), la(x + 1, y)
+    if n and w:
+        return _o(0, R)
+    if n and e:
+        return _o(2, R)
+    if s2 and w:
+        return _o(0, R + 2)
+    if s2 and e:
+        return _o(2, R + 2)
+    if n:
+        return _o(1, R)
+    if s2:
+        return _o(1, R + 2)
+    if w:
+        return _o(0, R + 1)
+    if e:
+        return _o(2, R + 1)
+    # Goc lom (chi dinh o cheo). Bon huong DUNG CHUNG mot o: da thu ca bon
+    # ung vien cho tung huong roi nhin tan mat, chi o (3, R+1) la noi lien
+    # duong vien, ba o kia deu gay ra mot cai nem thua.
+    if (la(x + 1, y + 1) or la(x - 1, y + 1)
+            or la(x + 1, y - 1) or la(x - 1, y - 1)):
+        return _o(3, R + 1)
+    return None
+
+
+def _rng(x, y, n):
+    h = (x * 73856093) ^ (y * 19349663) ^ 0x9E3779B9
+    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
+    return (h >> 7) % n
+
+
+def dung(goc):
+    """Xep ban do bang chinh tileset cua pack. `goc` = thu muc "full version"."""
+    tep = os.path.join(goc, TEP_TILE)
+    if not os.path.isfile(tep):
+        raise SystemExit('Khong thay %s' % tep)
 
     nen = [0] * (W * H)
     tren = [0] * (W * H)
     solid = [0] * (W * H)
     water = [0] * (W * H)
+    g0 = 1
 
     def idx(x, y):
         return y * W + x
 
-    def dat_nen(x, y, bo):
-        nen[idx(x, y)] = g0 + bo[_rng(x, y, len(bo))]
+    def trong_ban_do(x, y):
+        return 0 <= x < W and 0 <= y < H
+
+    def dat_nen(x, y, o):
+        nen[idx(x, y)] = g0 + o
 
     def dat_tren(x, y, o, chan=True):
         tren[idx(x, y)] = g0 + o
         if chan:
             solid[idx(x, y)] = 1
 
-    def la_duong(x, y):
-        """O nay co phai loi di lat da khong."""
-        return x in DUONG_DOC or y in DUONG_NGANG
+    # ==== Vung dia hinh ====
+    ax0, ay0, ax1, ay1 = AO
 
-    # --- nen co ---
+    def la_nuoc(x, y):
+        return ax0 <= x <= ax1 and ay0 <= y <= ay1
+
+    def la_duong(x, y):
+        return trong_ban_do(x, y) and (x in DUONG_DOC or y in DUONG_NGANG)
+
+    def la_san(x, y):
+        for cx, cy in (BAC_NONG, BANG_DON):
+            if cx - 1 <= x <= cx + 1 and cy <= y <= cy + 1 and not la_duong(x, y):
+                return True
+        return False
+
+    # ==== Nen ====
+    # Thu tu quan trong: nuoc -> duong -> san, cai sau chi ve len o CON LA CO.
     for y in range(H):
         for x in range(W):
-            dat_nen(x, y, CO)
-
-    # --- duong da ---
-    for x in DUONG_DOC:
-        for y in range(H):
-            dat_nen(x, y, DA)
-    for y in DUONG_NGANG:
-        for x in range(2, W - 2):
-            dat_nen(x, y, DA)
-
-    # --- san dat quanh cho lam viec (bac nong, bang don) ---
-    # San NAM HAN DUOI loi di ngang chu khong trum len no: dat de len duong da
-    # thi nhin nhu vet vet lem, ma cai loi di lai dut khuc.
-    for cx, cy in (BAC_NONG, BANG_DON):
-        for y in range(cy, cy + 2):
-            for x in range(cx - 1, cx + 2):
-                if 0 <= x < W and 0 <= y < H and not la_duong(x, y):
-                    dat_nen(x, y, DAT)
-
-    # --- ao ca + bo cat ---
-    ax0, ay0, ax1, ay1 = AO
-    for y in range(ay0 - 1, ay1 + 2):
-        for x in range(ax0 - 1, ax1 + 2):
-            if x in (ax0 - 1, ax1 + 1) and y in (ay0 - 1, ay1 + 1):
-                continue                          # bo bon goc cho bot vuong
-            if 0 <= x < W and 0 <= y < H:
+            if la_nuoc(x, y):
+                nen[idx(x, y)] = g0 + NUOC
+                water[idx(x, y)] = 1
+                solid[idx(x, y)] = 1
+            elif la_duong(x, y):
                 dat_nen(x, y, CAT)
-    for y in range(ay0, ay1 + 1):
-        for x in range(ax0, ax1 + 1):
-            nen[idx(x, y)] = g1 + O_NUOC
-            water[idx(x, y)] = 1
-            solid[idx(x, y)] = 1
+            elif la_san(x, y):
+                dat_nen(x, y, DAT)
+            else:
+                dat_nen(x, y, CO)
 
-    # --- vien cay quanh ban do ---
-    def trong_thong_to(x, y):
-        for dy, hang in enumerate(THONG_TO):
-            for dx, o in enumerate(hang):
-                if x + dx < W and y + dy < H:
-                    dat_tren(x + dx, y + dy, o)
-
-    cap = []
-    for x in range(W):
-        cap += [(x, 0), (x, H - 2)]
-    for y in range(2, H - 2, 2):
-        cap += [(0, y), (1, y), (W - 2, y), (W - 1, y)]
-    for x, y in cap:
-        if x in DUONG_DOC and y >= H - 2:
-            continue                              # chua cong xuong khu dan cu
-        r = _rng(x, y, 10)
-        if r < 6:
-            dat_tren(x, y, THONG_NHO[0])
-            dat_tren(x, y + 1, THONG_NHO[1])
-        elif r < 8:
-            dat_tren(x, y, BUI[_rng(y, x, len(BUI))])
-            dat_tren(x, y + 1, BUI[_rng(x, y, len(BUI))])
-        else:
-            dat_tren(x, y, DA_TANG[_rng(y, x, len(DA_TANG))])
-            dat_tren(x, y + 1, BUI[_rng(y + 1, x, len(BUI))])
-    for x, y in ((4, 0), (20, 0)):
-        trong_thong_to(x, y)
-
-    # --- trang tri cho con lai ---
-    def trong(x, y):
-        return (nen[idx(x, y)] in [g0 + o for o in CO]
-                and not tren[idx(x, y)] and not solid[idx(x, y)])
-
-    for y in range(2, H - 2):
-        for x in range(2, W - 2):
-            if not trong(x, y):
+    # Vien: o co nao dinh vung khac thi doi sang o vien cua dai tuong ung.
+    # Nuoc xet TRUOC vi bo ao dep hon bo duong, ma hai vung khong dinh nhau.
+    for y in range(H):
+        for x in range(W):
+            if la_nuoc(x, y) or la_duong(x, y) or la_san(x, y):
                 continue
-            # Trong long nong trai KHONG dat gi chan duong: cho nao cung phai
-            # ke duoc ruong voi chuong, khong thi nguoi choi bay bo cuc ra roi
-            # moi phat hien co mot buoi cay vo hinh nam giua.
-            r = _rng(x + 5, y + 3, 100)
-            if r < 7:
-                dat_tren(x, y, HOA[_rng(x, y, len(HOA))], chan=False)
-            elif r < 9:
-                dat_tren(x, y, NAM[_rng(y, x, len(NAM))], chan=False)
+            o = (o_vien(la_nuoc, x, y, DAI_NUOC)
+                 or o_vien(la_san, x, y, DAI_DAT)
+                 or o_vien(la_duong, x, y, DAI_CAT))
+            if o is not None:
+                dat_nen(x, y, o)
 
-    # --- don sach nhung o BAT BUOC phai di duoc ---
+    # ==== Cay coi quanh ria ====
+    o_cay = set()          # moi o cay chiem, ke ca tan la khong chan duong
+
+    def trong_cay(x, y, kieu):
+        """Cay 2 o rong x 4 o cao. Hai hang duoi la than — chan duong."""
+        c0, r0 = kieu
+        for dy in range(4):
+            for dx in range(2):
+                if not trong_ban_do(x + dx, y + dy):
+                    continue
+                dat_tren(x + dx, y + dy, _o(c0 + dx, r0 + dy), chan=(dy >= 2))
+                o_cay.add((x + dx, y + dy))
+
+    def cho_trong_cay(x, y):
+        het = True
+        for dy in range(4):
+            for dx in range(2):
+                if not trong_ban_do(x + dx, y + dy):
+                    continue          # ria tren cho cay thò ra ngoài bản đồ
+                het = False
+                if la_nuoc(x + dx, y + dy) or la_duong(x + dx, y + dy):
+                    return False
+                if la_san(x + dx, y + dy) or tren[idx(x + dx, y + dy)]:
+                    return False
+                # Chua cho nha nguoi choi va quan ca
+                if (NHA_SAU[0] - 1 <= x + dx <= NHA_SAU[0] + 3
+                        and NHA_SAU[1] - 1 <= y + dy <= NHA_SAU[1] + 4):
+                    return False
+                if (QUAN_CA[0] - 1 <= x + dx <= QUAN_CA[0] + QUAN_CA[2]
+                        and QUAN_CA[1] - 1 <= y + dy <= QUAN_CA[1] + QUAN_CA[3]):
+                    return False
+                # Chua luon bo cuc mac dinh cua nong trai moi
+                for ma, mx, my in MAC_DINH:
+                    if mx <= x + dx <= mx + 5 and my <= y + dy <= my + 5:
+                        return False
+        return not het
+
+    # Hai hang cay bao quanh, chua may o cong va loi di
+    # Hang tren trong tu y = -1: cay cao 4 o, trong tu y = 0 thi than cham
+    # xuong tan hang 3 — dung ngay cho luong ruong mac dinh.
+    ria = []
+    for x in range(0, W, 2):
+        ria += [(x, -1), (x, H - 4)]
+    for y in range(4, H - 4, 4):
+        ria += [(0, y), (W - 2, y)]
+    for x, y in ria:
+        if x in DUONG_DOC or x + 1 in DUONG_DOC:
+            continue                              # chua loi di doc
+        if not cho_trong_cay(x, y):
+            continue
+        kieu = CAY_THONG if _rng(x, y, 3) == 0 else CAY_TO[_rng(y, x, len(CAY_TO))]
+        trong_cay(x, y, kieu)
+
+    # ==== Bui, hoa, da rai trong long nong trai ====
+    # KHONG chan duong: cho nao cung phai ke duoc ruong voi chuong, khong thi
+    # nguoi choi bay bo cuc ra roi moi phat hien co mot buoi cay vo hinh.
+    for y in range(1, H - 1):
+        for x in range(1, W - 1):
+            if (la_nuoc(x, y) or la_duong(x, y) or la_san(x, y)
+                    or tren[idx(x, y)] or solid[idx(x, y)]):
+                continue
+            r = _rng(x + 5, y + 3, 100)
+            if r < 5:
+                dat_tren(x, y, HOA[_rng(x, y, len(HOA))], chan=False)
+            elif r < 7:
+                dat_tren(x, y, BUI[_rng(y, x, len(BUI))], chan=False)
+            elif r == 7:
+                dat_tren(x, y, DA_TANG[_rng(y + 1, x, len(DA_TANG))], chan=False)
+
+    # ==== Don sach nhung o BAT BUOC phai di duoc ====
     def don(x, y):
         # Mat nuoc thi KHONG don: ao nam ngay canh cho ong lai ca dung, don
         # bua la thung mot o cho loi thang xuong nuoc.
-        if 0 <= x < W and 0 <= y < H and not water[idx(x, y)]:
+        if trong_ban_do(x, y) and not water[idx(x, y)]:
             tren[idx(x, y)] = 0
             solid[idx(x, y)] = 0
 
@@ -206,25 +290,24 @@ def dung(root, tsx_cache, load_tsx):
         for y in range(H):
             don(x, y)
     for y in DUONG_NGANG:
-        for x in range(2, W - 2):
+        for x in range(1, W - 1):
             don(x, y)
     for cho in (BAC_NONG, BANG_DON, LAI_CA):
         don(cho[0], cho[1])
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(cho[0] + dx, cho[1] + dy)
-    # San nha nguoi choi + o dung truoc cua phai di duoc
     for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
         for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
             don(x, y)
 
-    # --- quan ca ben bo ao ---
+    # ==== Quan ca ben bo ao ====
     # Anh quan la mot tep rieng (assets/ca/quan.png, cat tu pack Cozy Fishing)
-    # chu khong phai o tileset, nen o day chi danh dau CHAN DUONG; phan ve nam
-    # ben js/ui/world.js. Hang ngay duoi quan phai di duoc de con dung ma ngam.
+    # chu khong o tileset, nen o day chi danh dau CHAN DUONG; phan ve nam ben
+    # js/ui/world.js. Hang ngay duoi quan phai di duoc de con dung ma ngam.
     qx, qy, qw, qh = QUAN_CA
     for y in range(qy, qy + qh):
         for x in range(qx, qx + qw):
-            if 0 <= x < W and 0 <= y < H:
+            if trong_ban_do(x, y):
                 tren[idx(x, y)] = 0
                 solid[idx(x, y)] = 1
     for x in range(qx, qx + qw):
@@ -248,33 +331,6 @@ def dung(root, tsx_cache, load_tsx):
     ]
     npcs = [n for n in npcs if not solid[idx(n['x'], n['y'])]]
 
-    # O CAM ke do: loi di, mat nuoc, cho ba nguoi lam viec dung va o ngay truoc
-    # mat ho. Ke ruong de len duong thi di khong lot, ma ke de len NPC thi bam A
-    # ra cau thoai chu khong ra ruong — NPC an truoc vat the.
-    cam = set()
-    for x in DUONG_DOC:
-        for y in range(H):
-            cam.add((x, y))
-    for y in DUONG_NGANG:
-        for x in range(W):
-            cam.add((x, y))
-    for y in range(H):
-        for x in range(W):
-            if water[idx(x, y)] or solid[idx(x, y)]:
-                cam.add((x, y))
-    for cx, cy in (BAC_NONG, BANG_DON, LAI_CA):
-        for dy in (-1, 0, 1):
-            for dx in (-1, 0, 1):
-                cam.add((cx + dx, cy + dy))
-    for y in range(QUAN_CA[1], QUAN_CA[1] + QUAN_CA[3] + 1):
-        for x in range(QUAN_CA[0], QUAN_CA[0] + QUAN_CA[2]):
-            cam.add((x, y))
-    # Chua san cho can nha cua nguoi choi (ke ca luc chua xay): ke ruong vao do
-    # roi den luc xay nha xong thi can nha moc de len luong rau.
-    for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
-        for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
-            cam.add((x, y))
-
     talks = [
         {'x': DUONG_DOC[1] + 1, 'y': H - 3, 'name': 'Bảng Nông Trại',
          'text': 'NÔNG TRẠI BỜ SUỐI — cày cấy, nuôi thú, nhận đơn của dân làng.'},
@@ -285,14 +341,35 @@ def dung(root, tsx_cache, load_tsx):
     ]
     talks = [t for t in talks if not solid[idx(t['x'], t['y'])]]
 
+    # O CAM ke do: loi di, mat nuoc, cho ba nguoi lam viec dung, quan ca, nha.
+    cam = set()
+    for y in range(H):
+        for x in range(W):
+            if water[idx(x, y)] or solid[idx(x, y)] or la_duong(x, y):
+                cam.add((x, y))
+    cam |= o_cay          # ke ca tan la: ke ruong duoi tan cay thi cay che mat
+    for cx, cy in (BAC_NONG, BANG_DON, LAI_CA):
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                cam.add((cx + dx, cy + dy))
+    for y in range(QUAN_CA[1], QUAN_CA[1] + QUAN_CA[3] + 1):
+        for x in range(QUAN_CA[0], QUAN_CA[0] + QUAN_CA[2]):
+            cam.add((x, y))
+    for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
+        for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
+            cam.add((x, y))
+
     viet_js(cam)
 
     return {
-        'w': W, 'h': H, 'sets': sets, 'layers': [nen, tren], 'above': None,
+        'w': W, 'h': H, 'layers': [nen, tren], 'above': None,
+        'sets': [(g0, {'img': tep, 'cols': COT, 'count': COT * HANG_TS,
+                       'tw': 16, 'th': 16})],
         'solid': solid, 'water': water, 'warps': [], 'talks': talks,
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'grass', 'envNight': 'night_grass',
         'npcs': npcs,
+        'spawn': {'x': CONG[0], 'y': CONG[1] - 1},
     }
 
 
@@ -341,15 +418,15 @@ def viet_js(cam=()):
         f.write('\n'.join(out) + '\n')
 
 
-def them_vao(out_maps, root, tsx_cache, load_tsx, kdc_slug, kdc_cong):
+def them_vao(out_maps, goc, kdc_slug):
     """Dung ban do nong trai. Khong noi cong bo voi Khu Dan Cu."""
     if not out_maps.get(kdc_slug):
-        print('BỎ QUA nông trại: chưa có bản đồ %s' % kdc_slug)
+        print('BO QUA nong trai: chua co ban do %s' % kdc_slug)
         return None
-    m = dung(root, tsx_cache, load_tsx)
-    # KHONG cam cong bo sang Khu Dan Cu nua. Nong trai la SAN SAU cua can nha:
+    if not goc or not os.path.isfile(os.path.join(goc, TEP_TILE)):
+        print('BO QUA nong trai: khong thay %s' % TEP_TILE)
+        return None
+    # KHONG cam cong bo sang Khu Dan Cu. Nong trai la SAN SAU cua can nha:
     # duong vao la cua sau trong nha minh (js/engine/estate.js cam luc buoc vao
-    # nha), muon di nhanh thi mo trang Dia Diem. Co them mot con duong cong
-    # cong dam thang vao ruong thi cai cua sau thanh vo nghia.
-    m['warps'] = []
-    return m
+    # nha), muon di nhanh thi mo trang Dia Diem.
+    return dung(goc)

@@ -16,10 +16,9 @@ Bo nguon xep the nay (do bang chinh tep, khong doan):
   Buildings/buildings.png         — nha cua, cat theo o 16x16
   farming/*.gif                   — may che bien, o 16x32, vai khung mot tep
 
-Ban do trong game van dung tileset ngoai troi cua Tuxemon cho nen dat, chi lay
-tu pack nay nhung thu Tuxemon khong co: cay trong, con vat, nha nong. Tron hai
-bo NEN thi lech phong cach, con tron VAT THE thi khong — pack CraftPix o Pho
-Kim Long cung dang lam vay.
+Ban do nong trai lay NEN tu chinh pack nay luon (xem tools/nongtrai.py): nong
+trai von da day cay trong, con vat, nha cua cua pack, nen de nen co Tuxemon o
+duoi thi chinh cai nen moi la thu lech ra.
 
 Sinh ra:
   assets/nt/cay/<ma>/<0..5>.png       — sáu giai đoạn, đất khô

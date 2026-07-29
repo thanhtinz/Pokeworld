@@ -29,6 +29,9 @@ import json
 import xml.etree.ElementTree as ET
 
 CRAFTPIX_DIR = '/tmp/craftpix'
+# Pack "Cozy Farm" — nen ban do nong trai lay tu day. Nguon KHONG commit vao
+# kho, chi atlas da nuong (xem CREDITS.md).
+FARM_DIR = os.environ.get('COZY_FARM_DIR', '/tmp/farmpack/full version')
 
 import bangduong
 import casino
@@ -1020,8 +1023,7 @@ def main():
 
         # Nong Trai: di het ngo phia BAC cua Khu Dan Cu la toi. Tach rieng vi
         # ruong nuong chiem cho, ma khu dat o thi phai de thuan la dat o.
-        nt = nongtrai.them_vao(out_maps, root, tsx_cache, load_tsx,
-                               khudancu.SLUG, khudancu.CONG_BAC)
+        nt = nongtrai.them_vao(out_maps, FARM_DIR, khudancu.SLUG)
         if nt:
             remapN, colsN = build_atlas(nt, 'assets/maps/%s.png' % nongtrai.SLUG)
             convN = lambda lay, r=remapN: [r.get(g, -1) if g > 0 else -1 for g in lay]
