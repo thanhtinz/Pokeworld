@@ -18,7 +18,17 @@ NGUOI TRONG SANH
 Sprite nhan vat lay tu "2D Top Down Pixel Art Characters" — cung tac gia
 Jephed, cung giay phep mien phi. Sheet cua ho la 64x128 nhung 4 cot cuoi bo
 trong: noi dung that la 3 cot x 4 hang, o 20x32, hang xep xuong/trai/phai/len
-— TRUNG KHIT thu tu cua assets/ow nen chi can cat bo phan trong ben phai.
+— TRUNG KHIT thu tu cua assets/ow nen khong phai xao lai khung nao.
+
+NHUNG PHAI DEM THEM KHOANG TRONG TREN DAU.
+Man ban do ve moi sprite cao dung 2 o, nen "nguoi cao bao nhieu" la do THAN
+CHIEM MAY PHAN CUA KHUNG quyet dinh. Do ra:
+    nguoi choi (LPC)   than chiem 0.734 khung -> cao 1.47 o
+    NPC cu (Tuxemon)   than chiem 0.625 khung -> cao 1.25 o
+    bo nay             than chiem 0.969 khung -> cao 1.94 o  <- to loi ra
+Cat nguyen xi la NPC dung canh nguoi choi cao vong han len. Nen dem them
+hang trong len TREN dau (chan van cham day khung) cho ti le than/khung ve
+dung 0.734 nhu nguoi choi: khung cao 32 -> KHUNG_CAO.
 
 Ghi ra:
   js/data/casino.js   toa do tung may/ban de engine biet cho nao bam duoc
@@ -91,6 +101,11 @@ CHO = [
 ]
 
 
+# Khung sau khi dem: 31 dong than / 0.734 ~ 42
+O_RONG, O_CAO_GOC = 20, 32
+KHUNG_CAO = 42
+
+
 def cat_nguoi(goc):
     """Cat sprite nguoi tu pack ve assets/ow. Tra so tep da ghi."""
     from PIL import Image
@@ -107,9 +122,15 @@ def cat_nguoi(goc):
         if not os.path.exists(f):
             continue
         im = Image.open(f).convert('RGBA')
-        # Bo 4 cot trong ben phai: 64 -> 60, tuc 3 cot x 20px
-        im.crop((0, 0, 60, im.size[1])).save('assets/ow/%s.png' % sprite,
-                                             optimize=True)
+        # 3 cot x 4 hang, o 20x32 (bo 4 cot trong ben phai cua sheet 64px)
+        out = Image.new('RGBA', (O_RONG * 3, KHUNG_CAO * 4), (0, 0, 0, 0))
+        dem = KHUNG_CAO - O_CAO_GOC          # so hang trong dem len tren dau
+        for hang in range(4):
+            for cot in range(3):
+                o = im.crop((cot * O_RONG, hang * O_CAO_GOC,
+                             (cot + 1) * O_RONG, (hang + 1) * O_CAO_GOC))
+                out.paste(o, (cot * O_RONG, hang * KHUNG_CAO + dem))
+        out.save('assets/ow/%s.png' % sprite, optimize=True)
         ra += 1
     return ra
 

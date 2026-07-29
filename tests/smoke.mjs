@@ -3655,6 +3655,33 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       npcs.filter(n => !existsSync(join(kho2, `assets/ow/${n.sprite}.png`)))
         .map(n => n.sprite).join(' '));
 
+    // Người trong sảnh phải CÙNG TẦM VÓC với nhân vật người chơi. Màn bản đồ
+    // vẽ mọi sprite cao đúng 2 ô, nên "cao bao nhiêu" là do thân chiếm mấy
+    // phần của khung quyết định. Bộ gốc thân chiếm 0,969 khung -> cao 1,94 ô,
+    // đứng cạnh người chơi (1,47 ô) là vổng hẳn lên; tools/casino.py đệm thêm
+    // hàng trống trên đầu cho về 0,734.
+    const tiThan = (p2) => {
+        const buf = readFileSync(join(kho2, p2));
+        // PNG: đọc bề rộng/cao từ IHDR
+        const W2 = buf.readUInt32BE(16);
+        const H2 = buf.readUInt32BE(20);
+        return { w: W2 / 3, h: H2 / 4 };
+      };
+    const oNguoiChoi = tiThan('assets/lpc/base/nam_ivory.png');
+    ok('khung sprite người chơi là 32×64',
+      oNguoiChoi.w === 32 && oNguoiChoi.h === 64, JSON.stringify(oNguoiChoi));
+    ok('khung người trong sảnh đã đệm cho cùng tầm với người chơi',
+      npcs.every(n => {
+        const o = tiThan(`assets/ow/${n.sprite}.png`);
+        // thân cao 31 dòng; tỉ lệ thân/khung phải quanh 0,734 như người chơi
+        const ti = 31 / o.h;
+        return Math.abs(ti - 0.734) < 0.06;
+      }),
+      npcs.map(n => {
+        const o = tiThan(`assets/ow/${n.sprite}.png`);
+        return `${n.sprite}:${(31 / o.h).toFixed(2)}`;
+      }).join(' '));
+
     // Cắt lệch khung là mất mảnh: hai lần liền tôi lấy bàn lệch 1-2 hàng/cột
     // nên vớ phải ghế sofa bên cạnh, trong game bàn cụt còn ghế thì lơ lửng.
     // Bài này bắt: mỗi món đồ phải KÍN, không được thủng ô nào ở giữa.
