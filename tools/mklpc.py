@@ -94,13 +94,27 @@ MAT = [('xanhduong', 'Xanh Dương', 'Blue'), ('nau', 'Nâu', 'Brown'),
        ('cam', 'Cam', 'Orange'), ('tim', 'Tím', 'Purple'),
        ('do', 'Đỏ', 'Red'), ('vang', 'Vàng', 'Yellow')]
 
+# Kieu toc: (ma, ten, thu muc LPC, bay cho gioi nao)
+#   ''    = ca hai gioi
+#   'nam' / 'nu' = chi mot ben
+#
+# Anh van lay tu cay Human_female cho CA HAI, khong phai tuy tien: ben nu moi
+# co du 9 mau cho moi kieu, con Human_male moi kieu chi co dung MOT mau — lay
+# theo nam thi mat sach phan chon mau toc. Nen chi loc DANH SACH KIEU theo
+# gioi, con anh thi dung chung.
 TOC_KIEU = [
-    ('thang', 'Tóc Thẳng', 'Plain'), ('dai', 'Tóc Dài', 'Long'),
-    ('mai', 'Tóc Mái', 'Bangs'), ('duoi', 'Tóc Đuôi Ngựa', 'Ponytail'),
-    ('xoan', 'Tóc Xoăn', 'Curly'), ('afro', 'Tóc Xù', 'Afro'),
-    ('roi', 'Tóc Rối', 'Messy'), ('tem', 'Tóc Tém', 'Pixie'),
-    ('tet', 'Tóc Tết', 'Braid'), ('haichum', 'Hai Chùm', 'Bunches'),
-    ('mohican', 'Mohican', 'Mohawk'), ('congchua', 'Tóc Công Chúa', 'Princess'),
+    ('thang', 'Tóc Thẳng', 'Plain', ''),
+    ('mai', 'Tóc Mái', 'Bangs', ''),
+    ('roi', 'Tóc Rối', 'Messy', ''),
+    ('xoan', 'Tóc Xoăn', 'Curly', ''),
+    ('afro', 'Tóc Xù', 'Afro', ''),
+    ('tem', 'Tóc Tém', 'Pixie', ''),
+    ('mohican', 'Mohican', 'Mohawk', 'nam'),
+    ('dai', 'Tóc Dài', 'Long', 'nu'),
+    ('duoi', 'Tóc Đuôi Ngựa', 'Ponytail', 'nu'),
+    ('tet', 'Tóc Tết', 'Braid', 'nu'),
+    ('haichum', 'Hai Chùm', 'Bunches', 'nu'),
+    ('congchua', 'Tóc Công Chúa', 'Princess', 'nu'),
 ]
 TOC_MAU = [('den', 'Đen', 'Black'), ('nau', 'Nâu', 'Brown'),
            ('hatde', 'Hạt Dẻ', 'Chestnut'), ('vang', 'Vàng', 'Blonde'),
@@ -346,7 +360,7 @@ def main():
     for ma, _, kieu in MAT:
         n += luu(root, f'Body/Eyes/Human_female/{kieu}', f'mat/{ma}', thieu)
 
-    for ma, _, kieu in TOC_KIEU:
+    for ma, _, kieu, _g in TOC_KIEU:
         for mm, _, cm in TOC_MAU:
             n += luu(root, f'Body/Hair/Human_female/{kieu}/{cm}', f'toc/{ma}_{mm}', thieu)
 
@@ -362,14 +376,22 @@ def main():
         n += luu(root, f'Clothes/{phan}/{THU_DANG[than]}/{con}', f'do/{ma}', thieu)
 
     # ==== js/data/lpc.js ====
-    def bang(ds, mau=None):
+    def bang(ds, mau=None, gioi_o=None):
         ra = []
-        for a, b, *_ in ds:
+        for hang in ds:
+            a, b = hang[0], hang[1]
             if mau:
                 ra.append('{ id: %s, name: %s, mau: %s }' % (js(a), js(b), js(mau(a))))
+            elif gioi_o is not None:
+                # gioi = '' nghia la bay cho ca hai gioi
+                ra.append('{ id: %s, name: %s, gioi: %s }'
+                          % (js(a), js(b), js(hang[gioi_o])))
             else:
                 ra.append('{ id: %s, name: %s }' % (js(a), js(b)))
         return '[' + ', '.join(ra) + ']'
+
+    # Muc nao co cot 'bay cho gioi nao'
+    GIOI_O = {'TOC_KIEU': 3}
 
     # O mau cho nhung muc CHON MAU. Kieu toc, kieu tai... thi khong can vi
     # khac nhau o hinh dang chu khong phai mau.
@@ -407,7 +429,8 @@ def main():
                          ('BIEU_CAM', BIEU_CAM), ('MAT', MAT),
                          ('TOC_KIEU', TOC_KIEU), ('TOC_MAU', TOC_MAU),
                          ('RAU_KIEU', RAU_KIEU), ('RAU_MAU', RAU_MAU)):
-        dong.append('export const %s = %s;' % (ten_bien, bang(ds, MAU.get(ten_bien))))
+        dong.append('export const %s = %s;'
+                    % (ten_bien, bang(ds, MAU.get(ten_bien), GIOI_O.get(ten_bien))))
     dong += ['', '// Ô quần áo, xếp theo THỨ TỰ VẼ (trước ra sau)',
              'export const O_DO = [']
     for ma, ten in O_DO:

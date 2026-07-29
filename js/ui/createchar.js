@@ -68,7 +68,8 @@ export function render(el) {
 
   // Danh sách lựa chọn của một mục, kèm ô trống nếu mục đó bỏ được
   const mucHienCo = () => MUC.filter(x => !x.gioi || x.gioi === gioi);
-  const dsCua = (m) => m.ds;
+  // Lọc theo giới tính đã chọn: mục nào cả hai giới đều có thì `gioi` để rỗng.
+  const dsCua = (m) => m.ds.filter(o => !o.gioi || o.gioi === gioi);
   const luaChon = (m) => (m.trong ? [{ id: '', name: m.trong }, ...dsCua(m)] : dsCua(m));
 
   // Ảnh/màu của một lựa chọn — đây là chỗ làm màn này hết giống trang thiết lập
@@ -137,6 +138,11 @@ export function render(el) {
     nv.than = AV.thanDauCuaGioi(g);
     // Râu chỉ vẽ cho dáng nam; đổi sang nữ mà còn râu thì trông rất kỳ
     if (gioi === 'nu') nv.rauKieu = '';
+    // Đang để kiểu tóc chỉ dành cho giới kia thì kéo về kiểu đầu của giới mới
+    for (const m of mucHienCo()) {
+      const ds = dsCua(m);
+      if (nv[m.k] && !ds.some(o => o.id === nv[m.k])) nv[m.k] = ds[0]?.id || '';
+    }
   }
 
   function veHtml() {

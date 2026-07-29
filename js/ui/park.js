@@ -12,13 +12,13 @@ import {
   vaoCongVien, buocTrongCongVien, nemBong, choAn, boQua, raCong,
 } from '../engine/park.js';
 
-export function render(el) {
+export function render(el, { from = 'diadiem' } = {}) {
   let tongKet = null;      // bảng tổng kết sau khi ra cổng
   let dong = '';           // dòng kể chuyện dưới ảnh
 
   function veCong() {
     el.innerHTML = `
-      ${header('Công Viên Pepper', 'menu')}
+      ${header('Công Viên Pepper', from)}
       <div class="card park-gate">
         <b class="park-title">${GIA_VE > 0 ? `Vé vào cổng ${tien(GIA_VE)}` : 'Vào cổng miễn phí'}</b>
         <p>Trong công viên <b>không đánh nhau</b>. Bạn chỉ được ném

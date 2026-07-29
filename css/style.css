@@ -2978,10 +2978,6 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .cs-ngay { color: var(--muted); font-size: .78rem; }
 .cs-chan { border-color: rgba(240, 120, 60, .5); color: var(--gold); font-size: .86rem; }
 .cs-gioi p { color: var(--muted); font-size: .84rem; line-height: 1.5; margin-top: 4px; }
-.cs-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.cs-o { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 11px; }
-.cs-o b { font-size: .92rem; }
-.cs-o small { color: var(--muted); font-size: .76rem; line-height: 1.35; }
 .cs-ke { text-align: center; font-size: .9rem; }
 .cs-an { color: var(--green); }
 .cs-mat { color: var(--accent); }

@@ -1,6 +1,9 @@
 // TuxeWorld H5 | ui/casino.js | Sòng bài Kim Long
 //
-// Năm trò, chung một màn: chọn trò -> đặt cược -> chơi -> kết toán.
+// Mỗi trò một máy/bàn đặt trong Sảnh Bạc: đứng trước máy nào bấm A ra trò đó.
+// KHÔNG có màn chọn trò bằng nút bấm nữa — có sảnh đi bộ rồi thì thêm một
+// trang nút nữa là thừa, mà lại chơi được mà chẳng cần bước chân vào sảnh.
+//
 // Toàn bộ chỉ dùng VÀNG KIẾM TRONG GAME, không có chỗ nào nạp tiền thật.
 import { G } from '../state.js';
 import { esc, tien } from '../util.js';
@@ -12,7 +15,7 @@ import * as TL from '../engine/tienlen.js';
 
 const NHA_TEN = ['Bạn', 'Út Mập', 'Chị Bảy', 'Ông Tư'];
 
-export function render(el, { tro = null, from = 'menu' } = {}) {
+export function render(el, { tro = null, from = 'world' } = {}) {
   let dangTro = tro;
   let cuoc = CS.CUOC_MIN;
   let van = null;          // ván đang chơi của trò hiện tại
@@ -26,7 +29,7 @@ export function render(el, { tro = null, from = 'menu' } = {}) {
   function veKhung(than, nut = '') {
     const [ok, err] = CS.choiDuoc();
     el.innerHTML = `
-      ${header(dangTro ? CS.TRO_BY_ID[dangTro].ten : 'Sòng Bài Kim Long', dangTro ? null : from)}
+      ${header(dangTro ? CS.TRO_BY_ID[dangTro].ten : 'Sòng Bài Kim Long', from)}
       <div class="card cs-vi">
         <span>Vàng: <b>${tien(G.p?.money || 0)}</b></span>
         <span class="cs-ngay">Hôm nay thua: <b>${tien(CS.so().thua)}</b> / ${tien(CS.NGUONG_NGAY)}</span>
@@ -35,30 +38,19 @@ export function render(el, { tro = null, from = 'menu' } = {}) {
       ${than}
       ${ke ? `<div class="card cs-ke">${ke}</div>` : ''}
       ${nut}`;
-    el.querySelector('#cs-ve')?.addEventListener('click', () => {
-      dangTro = null; van = null; ke = ''; veHub();
-    });
+    // "Về sảnh" = quay lại chính cái sảnh trên bản đồ, không phải một trang nút
+    el.querySelector('#cs-ve')?.addEventListener('click', () => show('world'));
   }
 
-  // ==== Màn chọn trò ====
-  function veHub() {
-    veKhung(`
-      <div class="card cs-gioi">
-        <b>Sòng bài Kim Long</b>
-        <p>Cược bằng vàng kiếm trong game. Mỗi ngày thua quá
-        <b>${tien(CS.NGUONG_NGAY)}</b> là nghỉ, mai chơi tiếp.</p>
-      </div>
-      <div class="cs-luoi">
-        ${CS.TRO.map(t => `<button type="button" class="card cs-o" data-tro="${esc(t.id)}">
-          <b>${esc(t.ten)}</b><small>${esc(t.mo)}</small>
-        </button>`).join('')}
-      </div>`);
-    el.querySelectorAll('[data-tro]').forEach(b => b.addEventListener('click', () => {
-      dangTro = b.dataset.tro;
-      van = null;
-      ke = '';
-      veTro();
-    }));
+  // Mở màn này mà không kèm trò nào thì chỉ nhắc đường vào sảnh — không dựng
+  // lại danh sách nút, vì chơi phải đi tới đúng cái máy trong sảnh.
+  function veNhac() {
+    veKhung(`<div class="card cs-gioi">
+      <b>Sòng bài Kim Long</b>
+      <p>Vào <b>Địa điểm → Sảnh Bạc Kim Long</b>, đứng trước máy hoặc bàn nào
+      thì bấm <b>A</b> để chơi trò đó. Cược bằng vàng kiếm trong game; mỗi ngày
+      thua quá <b>${tien(CS.NGUONG_NGAY)}</b> là nghỉ, mai chơi tiếp.</p>
+    </div>`);
   }
 
   // Hàng chọn mức cược, dùng chung cho mọi trò
@@ -105,7 +97,7 @@ export function render(el, { tro = null, from = 'menu' } = {}) {
     if (dangTro === 'blackjack') return veBlackjack();
     if (dangTro === 'domino') return veDomino();
     if (dangTro === 'tienlen') return veTienLen();
-    return veHub();
+    return veNhac();
   }
 
   // ==== Máy quay ====
@@ -347,5 +339,5 @@ export function render(el, { tro = null, from = 'menu' } = {}) {
     }
   }
 
-  if (dangTro) veTro(); else veHub();
+  if (dangTro) veTro(); else veNhac();
 }

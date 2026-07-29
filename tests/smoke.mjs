@@ -3066,6 +3066,36 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     GIOI.map(g => `${g.id}:${AV.thanTheoGioi(g.id).length}`).join(' '));
   ok('dáng mặc định của mỗi giới đúng là dáng của giới đó',
     GIOI.every(g => AV.gioiCua(AV.thanDauCuaGioi(g.id)) === g.id));
+
+  // ---- Đặc điểm lọc theo giới đã chọn ----
+  // Chọn nam xong thì đừng bày ra Tóc Đuôi Ngựa nữa. Mục nào cả hai giới đều
+  // dùng được thì để `gioi` rỗng; còn lại ghi rõ 'nam' hoặc 'nu'.
+  const hopLe = ['', 'nam', 'nu'];
+  ok('kiểu tóc nào cũng ghi rõ dành cho giới nào',
+    TOC_KIEU.every(t => hopLe.includes(t.gioi ?? '')),
+    TOC_KIEU.filter(t => !hopLe.includes(t.gioi ?? '')).map(t => t.id).join(' '));
+  const tocCua = (g) => TOC_KIEU.filter(t => !t.gioi || t.gioi === g);
+  for (const g of GIOI) {
+    ok(`giới ${g.id} vẫn còn kiểu tóc để chọn`, tocCua(g.id).length >= 5,
+      String(tocCua(g.id).length));
+  }
+  // Lọc mà lọc hụt thì coi như không lọc: mỗi giới phải THẬT SỰ mất mấy kiểu
+  // của giới kia.
+  ok('danh sách tóc hai giới khác nhau',
+    tocCua('nam').length !== TOC_KIEU.length
+    && tocCua('nu').length !== TOC_KIEU.length);
+  ok('tóc riêng của nữ không lọt sang nam',
+    !tocCua('nam').some(t => t.gioi === 'nu'));
+  ok('tóc riêng của nam không lọt sang nữ',
+    !tocCua('nu').some(t => t.gioi === 'nam'));
+  // Ảnh phải có thật, không thì lọc ra kiểu chọn được mà chọn xong trống trơn
+  for (const g of GIOI) {
+    const thieu = tocCua(g.id).filter(t => TOC_MAU.some(m =>
+      !existsSync(join(new URL('../', import.meta.url).pathname, THU_MUC,
+        'toc', `${t.id}_${m.id}.png`))));
+    ok(`tóc chọn được của giới ${g.id} đều có đủ ảnh mọi màu`, thieu.length === 0,
+      thieu.map(t => t.id).join(' '));
+  }
   // Bản lưu cũ dùng dáng đã bỏ (Lực Lưỡng / Mảnh Khảnh) phải quy về đúng GIỚI
   // của dáng đó, không thì nhân vật nữ dáng Mảnh Khảnh tự dưng thành nam.
   for (const [cu, mong] of [['luc', 'nam'], ['gay', 'nu']]) {
@@ -3237,7 +3267,26 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   const kho = new URL('../', import.meta.url).pathname;
   const co = DD.DIA_DIEM.filter(d => MAPS[d.id]);
   ok('dựng được cả bốn địa điểm', co.length === 4,
-    DD.DIA_DIEM.filter(d => !MAPS[d.id]).map(d => d.id).join(' '));
+    DD.DIA_DIEM.filter(d => !MAPS[d.id] && !d.man).map(d => d.id).join(' '));
+
+  // Công viên bỏ trang riêng trong Menu, dọn về đây dưới dạng màn rời. Mục kiểu
+  // `man` không có bản đồ đi bộ, nên phải khai báo `man` thì ui/diadiem.js mới
+  // biết đường mở thẳng màn đó.
+  ok('công viên nằm trong danh sách địa điểm',
+    DD.DIA_DIEM.some(d => d.id === 'park' && d.man === 'park'));
+  ok('mục địa điểm nào cũng hoặc có bản đồ hoặc có màn riêng',
+    DD.DIA_DIEM.every(d => MAPS[d.id] || d.man),
+    DD.DIA_DIEM.filter(d => !MAPS[d.id] && !d.man).map(d => d.id).join(' '));
+  {
+    // Đã đi bộ vào sảnh bấm máy được rồi thì trang nút bấm là thừa; Menu cũng
+    // không còn hai mục này nữa.
+    const goc3 = new URL('../', import.meta.url).pathname;
+    const menu = readFileSync(join(goc3, 'js/ui/menu.js'), 'utf8');
+    ok('Menu không còn mục sòng bài và công viên',
+      !/'casino'|"casino"|'park'|"park"/.test(menu));
+    const cs = readFileSync(join(goc3, 'js/ui/casino.js'), 'utf8');
+    ok('sòng bài không còn màn chọn trò bằng nút', !/veHub/.test(cs));
+  }
 
   for (const d of co) {
     const m = MAPS[d.id];
