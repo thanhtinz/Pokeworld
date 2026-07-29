@@ -34,6 +34,7 @@ import bangduong
 import casino
 import craftpix
 import khudancu
+import khupho
 import phongtrong
 
 TILE = 16
@@ -1030,6 +1031,21 @@ def main():
             out_maps[bangduong.SLUG] = bd
             want.append(bangduong.SLUG)
 
+        # Pho Kim Long: bon toa nha cong cong. TACH RIENG khoi Khu Dan Cu vi
+        # cho do la dat o cua nguoi choi, dung nha cong cong len day la chiem
+        # cho. Cong noi len tu dau ngo doc cua khu dan cu.
+        kp0 = khupho.them_vao(out_maps, root, tsx_cache, load_tsx,
+                              khudancu.SLUG, (khudancu.DUONG_DOC[0], 2))
+        if kp0:
+            remapP, colsP = build_atlas(kp0, 'assets/maps/%s.png' % khupho.SLUG)
+            convP = lambda lay, r=remapP: [r.get(g, -1) if g > 0 else -1 for g in lay]
+            kp0['name'] = khupho.TEN
+            kp0['cols'] = colsP
+            kp0['layers'] = [convP(l) for l in kp0['layers']]
+            kp0['above'] = None
+            out_maps[khupho.SLUG] = kp0
+            want.append(khupho.SLUG)
+
             # Ba gian trong ba toa nha cua bang
             for slug, gian in bangduong.dung_trong(
                     phongtrong, parse_map, chon_tep, mdir, tsx_cache).items():
@@ -1080,22 +1096,24 @@ def main():
     # engine/diadiem.js thi viet de dich den thanh cho nguoi choi dang dung luc
     # bam Menu. Ket qua: buoc ra khoi Sanh Bac luc thi ra giua dong, luc thi ra
     # canh nha khac. Gio moi cho co cua rieng, ra la dung ngay truoc cua do.
-    kdc2 = out_maps.get(khudancu.SLUG)
-    if kdc2:
-        for w in kdc2['warps']:
+    kp = out_maps.get(khupho.SLUG)
+    if kp:
+        n_cua = 0
+        for w in kp['warps']:
             dd = out_maps.get(w['to'])
-            if not dd or w['to'] not in [c[0] for c in khudancu.CUA_DIA_DIEM]:
+            if not dd or w['to'] not in [t[0] for t in khupho.TOA]:
                 continue
             # Vao: dat chan ngay o spawn ma generator cua dia diem da chon
             sp = dd.get('spawn') or {'x': 1, 'y': 1}
             w['tx'], w['ty'] = sp['x'], sp['y']
             # Ra: cong trong dia diem tro ve bac them ngay duoi o cua
-            bx, by = khudancu.bac_them(w['x'], w['y'])
+            bx, by = khupho.bac_them(w['x'], w['y'])
             for wo in dd['warps']:
-                if wo.get('to') == khudancu.SLUG:
+                if wo.get('to') in (khupho.SLUG, khudancu.SLUG, 'khu_dan_cu'):
+                    wo['to'] = khupho.SLUG
                     wo['tx'], wo['ty'] = bx, by
-        print('OK: %d địa điểm có cửa riêng trên %s'
-              % (len(kdc2['warps']), khudancu.SLUG))
+            n_cua += 1
+        print('OK: %d địa điểm có nhà riêng trên %s' % (n_cua, khupho.SLUG))
 
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)

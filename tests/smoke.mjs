@@ -3212,11 +3212,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     // Trước đây cổng ra của cả bốn chỗ đều trỏ về MỘT ô chung giữa đồng, còn
     // màn Địa Điểm thì viết đè đích đến thành chỗ người chơi đang đứng lúc bấm
     // Menu. Ra khỏi Sảnh Bạc lúc thì ra giữa đồng, lúc thì ra cạnh nhà khác.
-    const kdc = MAPS.khu_dan_cu;
+    const kdc = MAPS.khu_pho;
     const cong = m.warps.find(w => w.x === cua.x && w.y === cua.y);
     ok(`${d.id} không đẻ thêm cổng chồng lên cửa`,
       m.warps.filter(w => w.x === cua.x && w.y === cua.y).length === 1);
-    ok(`${d.id} cổng ra trỏ về Khu Dân Cư`, cong?.to === 'khu_dan_cu',
+    ok(`${d.id} cổng ra trỏ về Phố Kim Long`, cong?.to === 'khu_pho',
       JSON.stringify(cong));
     ok(`${d.id} thềm bước ra là ô đi được`,
       cong && !kdc.solid[cong.ty * kdc.w + cong.tx],
@@ -3224,7 +3224,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     // Khu Dân Cư phải có ĐÚNG một cửa vào chỗ này, và cửa đó phải nằm ngay
     // trên cái thềm vừa nói — không thì bước ra một nơi, cửa vào một nẻo.
     const vao = kdc.warps.filter(w => w.to === d.id);
-    ok(`Khu Dân Cư có đúng một cửa vào ${d.id}`, vao.length === 1,
+    ok(`Phố Kim Long có đúng một cửa vào ${d.id}`, vao.length === 1,
       `${vao.length} cửa`);
     ok(`cửa vào ${d.id} nằm ngay trên thềm bước ra`,
       vao[0] && cong && vao[0].x === cong.tx && vao[0].y === cong.ty - 1,
@@ -3237,7 +3237,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   // Bốn cửa phải là bốn ô KHÁC NHAU: chung ô thì ra khỏi chỗ này lại thấy mình
   // đứng trước cửa chỗ khác, đúng cái lỗi vừa sửa.
   {
-    const kdc = MAPS.khu_dan_cu;
+    const kdc = MAPS.khu_pho;
     const cua = co.map(d => kdc.warps.find(w => w.to === d.id)).filter(Boolean);
     ok('mỗi địa điểm một ô cửa riêng',
       new Set(cua.map(w => `${w.x},${w.y}`)).size === cua.length,
@@ -3258,6 +3258,28 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       const tren = (w.y - 1) * kdc.w + w.x;
       return kdc.solid[tren] && !kdc.solid[w.y * kdc.w + w.x];
     }), cua.filter(w => !kdc.solid[(w.y - 1) * kdc.w + w.x]).map(w => w.to).join(' '));
+    // Khu Dân Cư là ĐẤT Ở của người chơi: nhà công cộng dựng lên đó là chiếm
+    // chỗ mấy lô đất. Phải nằm ở khu phố riêng.
+    ok('không toà công cộng nào chiếm chỗ trong Khu Dân Cư',
+      !(MAPS.khu_dan_cu.warps || []).some(w => co.some(d => d.id === w.to)),
+      (MAPS.khu_dan_cu.warps || []).filter(w => co.some(d => d.id === w.to))
+        .map(w => w.to).join(' '));
+    // Đi bộ từ cổng khu phố phải tới được cả bốn cửa
+    {
+      const seen = new Set();
+      const st = [[13, 16]];
+      while (st.length) {
+        const [x, y] = st.pop();
+        const k = `${x},${y}`;
+        if (seen.has(k) || x < 0 || y < 0 || x >= kdc.w || y >= kdc.h) continue;
+        if (kdc.solid[y * kdc.w + x]) continue;
+        seen.add(k);
+        st.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+      }
+      ok('đi bộ từ cổng tới được cả bốn cửa',
+        cua.every(w => seen.has(`${w.x},${w.y}`)),
+        cua.filter(w => !seen.has(`${w.x},${w.y}`)).map(w => w.to).join(' '));
+    }
   }
   ok('bản đồ địa điểm nào cũng có atlas riêng',
     co.every(d => existsSync(join(kho, MAPS[d.id].atlas))),
