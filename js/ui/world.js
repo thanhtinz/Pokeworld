@@ -374,16 +374,17 @@ export function render(el) {
       if (!t) continue;
       const im = ntAnh(anhConThu(con.id));
       if (!owReady(im)) continue;
-      const f = owFrame(con.dir || 'down', false, gio, im);
+      const f = owFrame(con.dir || 'down', !!con.di, gio, im);
       // Con vật vẽ đúng cỡ pixel gốc của nó so với ô 16px: con gà một ô, con bò
       // to hơn hẳn. Ép hết về một ô thì con nào cũng bằng con nào.
       const w = size * (t.o / 16);
+      const cx = con.x + (con.ox || 0) + 0.5;
+      const cy = con.y + (con.oy || 0) + 1;
       ctx.drawImage(im, f.sx, f.sy, f.sw, f.sh,
-        Math.round((con.x + 0.5) * size - camX - w / 2),
-        Math.round((con.y + 1) * size - camY - w),
+        Math.round(cx * size - camX - w / 2), Math.round(cy * size - camY - w),
         Math.round(w), Math.round(w));
-      if (NT.sanSang(con, gio)) veCham(con.x + 0.5, con.y - 0.1, size, camX, camY, '#ffd43b');
-      else if (!NT.dangDoi(con, gio)) veCham(con.x + 0.5, con.y - 0.1, size, camX, camY, '#ff8787');
+      if (NT.sanSang(con, gio)) veCham(cx, cy - 1.1, size, camX, camY, '#ffd43b');
+      else if (!NT.dangDoi(con, gio)) veCham(cx, cy - 1.1, size, camX, camY, '#ff8787');
     }
     // Đang cầm món chờ kê: vẽ bóng mờ ngay ô trước mặt cho biết sẽ đặt vào đâu
     const cam = NT.choKe();
@@ -941,6 +942,11 @@ export function render(el) {
     if (!busy && !deco) {
       const k = keyVec();
       updateNpcs(dt);
+      // Đàn thú trên nông trại cũng đi lại — sprite của pack có sẵn bốn hướng,
+      // để đứng im thì cả nông trại là bãi tượng
+      if (player.mapId === NT.NONG_TRAI_MAP) {
+        NT.diChuyenThu(dt, Math.floor(player.x), Math.floor(player.y));
+      }
       // Đang nằm/ngồi mà nhấn hướng thì đứng dậy trước đã
       // Nhấn hướng là đứng dậy. Không cần báo gì — nhìn nhân vật là thấy.
       if (vec.x + k.x || vec.y + k.y) TT.dungDay();

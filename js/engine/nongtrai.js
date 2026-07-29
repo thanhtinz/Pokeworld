@@ -188,13 +188,22 @@ export function thu(o, gio = Date.now(), rnd = Math.random) {
 export const thuTaiO = (x, y) => nt().thu.find(t => t.x === x && t.y === y) || null;
 
 /**
- * Chỗ thả một con vật mới mua: quét từ giữa nông trại ra, lấy ô đầu tiên không
- * vướng gì. Thả bừa vào ô cấm thì con vật đứng chồng lên lối đi hoặc lên NPC.
+ * Chỗ thả một con vật mới mua: quét vòng ra từ CÁI CHUỒNG, lấy ô đầu tiên
+ * không vướng gì. Thả bừa vào ô cấm thì con vật đứng chồng lên lối đi hoặc lên
+ * NPC.
+ *
+ * Trước đây quét từ giữa bản đồ ra — mà giữa bản đồ đúng là cái ngã tư, nên cả
+ * đàn bị dồn vào mấy ô kẹt giữa hai con đường, chen nhau đến mức không con nào
+ * bước đi đâu được.
  */
 export function choTrongCho() {
   const co_ = (x, y) => !CAM.has(`${x},${y}`) && !oTaiO(x, y) && !thuTaiO(x, y);
-  const gx = Math.floor((VUNG.x0 + VUNG.x1) / 2);
-  const gy = Math.floor((VUNG.y0 + VUNG.y1) / 2);
+  const chuong = nt().o.find(o => VAT_BY_ID[o.id]?.loai === 'chuong');
+  const cv = chuong && VAT_BY_ID[chuong.id];
+  const gx = chuong ? chuong.x + Math.floor(cv.w / 2)
+    : Math.floor((VUNG.x0 + VUNG.x1) / 2);
+  const gy = chuong ? Math.min(VUNG.y1, chuong.y + cv.h)
+    : Math.floor((VUNG.y0 + VUNG.y1) / 2);
   for (let r = 0; r <= Math.max(VUNG.x1 - VUNG.x0, VUNG.y1 - VUNG.y0); r++) {
     for (let dy = -r; dy <= r; dy++) {
       for (let dx = -r; dx <= r; dx++) {
@@ -221,6 +230,84 @@ export function muaThu(id, x, y) {
   n.thu.push({ id, x, y, sanLuc: 0, dir: 'down' });
   save();
   return [t, null];
+}
+
+// ==== Con vật đi lại ====
+//
+// Không cho đi thì cả nông trại là một bãi tượng — mà sprite của pack có sẵn
+// bốn hướng đi, nướng rồi mà bỏ không thì phí. Đi lững thững quanh chỗ được
+// thả, tránh lối đi, ao, ruộng và mấy con khác; người chơi lại gần thì quay
+// mặt lại cho dễ bấm.
+const TOC_THU = 0.85;        // ô mỗi giây — chậm hơn hẳn người chơi
+const CHO_THU = 2.2;         // giây giữa hai lần nghĩ tới chuyện bước đi
+const XA_THU = 4;            // đi xa nhất bấy nhiêu ô so với chỗ được thả
+const GAN_THU = 2;           // người chơi trong bấy nhiêu ô thì quay mặt lại
+const HUONG = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];
+
+/** Con vật bước được sang ô này không. */
+export function thuDiDuoc(x, y, boQua = null) {
+  if (x < VUNG.x0 || x > VUNG.x1 || y < VUNG.y0 || y > VUNG.y1) return false;
+  if (CAM.has(`${x},${y}`)) return false;
+  if (oTaiO(x, y)) return false;                  // không giẫm lên ruộng với máy
+  // Phải tránh cả con ĐANG ĐI TỚI ô đó, không thì hai con cùng nhắm một ô rồi
+  // chồng lên nhau — con đang đi thì x,y vẫn là ô cũ nên xét mỗi x,y là hụt.
+  return !nt().thu.some(t => t !== boQua
+    && ((t.x === x && t.y === y) || (t.di && t.tx === x && t.ty === y)));
+}
+
+/**
+ * Nhích đàn thú một khung hình. Gọi từ vòng vẽ của màn bản đồ, chỉ khi đang
+ * đứng trên nông trại.
+ *
+ * KHÔNG gọi save() ở đây: mỗi khung hình ghi một lần thì đứng yên nhìn đàn gà
+ * cũng đủ quay localStorage suốt ngày. Lần save() nào đó sau sẽ cất luôn chỗ
+ * đứng mới.
+ */
+export function diChuyenThu(dt, nx = null, ny = null, rnd = Math.random) {
+  for (const t of nt().thu) {
+    if (t.goc === undefined) {
+      t.goc = { x: t.x, y: t.y };
+      t.ox = 0; t.oy = 0;
+      t.dir = t.dir || 'down';
+      t.cho = CHO_THU * (0.4 + rnd() * 1.6);
+      t.di = false;
+    }
+    if (t.di) {
+      const buoc = TOC_THU * dt;
+      const cx = t.tx - t.x - t.ox;
+      const cy = t.ty - t.y - t.oy;
+      t.ox += Math.sign(cx) * Math.min(buoc, Math.abs(cx));
+      t.oy += Math.sign(cy) * Math.min(buoc, Math.abs(cy));
+      if (Math.abs(t.tx - t.x - t.ox) < 0.01 && Math.abs(t.ty - t.y - t.oy) < 0.01) {
+        t.x = t.tx; t.y = t.ty; t.ox = 0; t.oy = 0;
+        t.di = false;
+        t.cho = CHO_THU * (0.6 + rnd() * 1.2);
+      }
+      continue;
+    }
+    // Người chơi đứng sát thì quay mặt lại rồi đứng im — không thì vừa giơ tay
+    // cho ăn nó đã lững thững đi mất
+    if (nx !== null && Math.abs(nx - t.x) + Math.abs(ny - t.y) <= GAN_THU) {
+      t.dir = Math.abs(nx - t.x) > Math.abs(ny - t.y)
+        ? (nx > t.x ? 'right' : 'left') : (ny > t.y ? 'down' : 'up');
+      t.cho = Math.max(t.cho, 0.4);
+      continue;
+    }
+    t.cho -= dt;
+    if (t.cho > 0) continue;
+    const [dir, dx, dy] = HUONG[Math.floor(rnd() * HUONG.length)];
+    const tx = t.x + dx;
+    const ty = t.y + dy;
+    t.dir = dir;
+    const xa = Math.abs(tx - t.goc.x) + Math.abs(ty - t.goc.y);
+    if (xa > XA_THU || !thuDiDuoc(tx, ty, t)) {
+      // Hướng đó bị chặn thì nghĩ lại NHANH thôi, không thì con nào bị kẹp
+      // giữa mấy con khác cứ đứng đơ cả buổi
+      t.cho = 0.3 + rnd() * 0.5;
+      continue;
+    }
+    t.tx = tx; t.ty = ty; t.di = true;
+  }
 }
 
 export const sanSang = (con, gio = Date.now()) => !!con?.sanLuc && gio >= con.sanLuc;
@@ -532,6 +619,22 @@ export function boDon(ma) {
 // ==== Điểm nông trại (cho bảng xếp hạng) ====
 export function diemNongTrai() {
   return nt().diem;
+}
+
+/**
+ * Mấy việc đang chờ tay người: ô chín, máy có hàng, thú chờ thu, thú đói.
+ * Nông trại đầy thứ chạy theo giờ thật, quay lại mà phải đi soi từng ô thì mệt.
+ */
+export function viecDangCho(gio = Date.now()) {
+  const n = nt();
+  return {
+    chin: oRuong().filter(o => daChin(o, gio)).length,
+    khat: oRuong().filter(o => o.cay && !dangUot(o, gio) && !daChin(o, gio)).length,
+    mayXong: cacMay().filter(m => mayXong(m, gio)).length,
+    thuXong: n.thu.filter(t => sanSang(t, gio)).length,
+    thuDoi: n.thu.filter(t => !t.sanLuc).length,
+    donDu: n.don.filter(d => duMon(d)).length,
+  };
 }
 
 export const tomTat = () => {

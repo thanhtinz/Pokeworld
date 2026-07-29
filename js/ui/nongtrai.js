@@ -150,9 +150,22 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
       }).join('')}</div>`;
   }
 
+  // Một dòng gọn: nông trại đang có việc gì chờ tay người. Mọi thứ ở đây chạy
+  // theo giờ THẬT nên quay lại mà phải đi soi từng ô thì mệt.
+  function veViec() {
+    const v = NT.viecDangCho();
+    const ds = [
+      [v.chin, 'ô chín'], [v.khat, 'ô khát nước'], [v.mayXong, 'máy có hàng'],
+      [v.thuXong, 'con chờ thu'], [v.thuDoi, 'con đang đói'], [v.donDu, 'đơn giao được'],
+    ].filter(([n2]) => n2 > 0).map(([n2, t]) => `${n2} ${t}`);
+    if (!ds.length) return '';
+    return `<div class="card nt-viec">${esc(ds.join(' · '))}</div>`;
+  }
+
   function ve() {
     el.innerHTML = `
       ${header('Nông Trại', from)}
+      ${veViec()}
       <div class="nt-tab">
         ${[['cho', 'Chợ'], ['don', 'Đơn Hàng'], ['kho', 'Kho']]
           .map(([k, t]) => `<button type="button" class="seg-btn ${tab === k ? 'active' : ''}"

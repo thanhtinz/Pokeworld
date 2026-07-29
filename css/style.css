@@ -3191,3 +3191,6 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .nt-vat.nt-may img { width: 16px; height: 32px; object-fit: none;
   object-position: 0 0; transform: scale(2.5); transform-origin: 0 0;
   image-rendering: pixelated; }
+/* Dòng "đang có việc" trên màn Nông Trại */
+.nt-viec { font-size: .84rem; color: var(--gold); border-color: var(--gold);
+  padding: 8px 12px; margin-bottom: 8px; }

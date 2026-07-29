@@ -4227,6 +4227,66 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('ruộng đang có cây thì không nhấc được', NT.nhac(NT.oRuong()[0])[1] !== null);
   }
 
+  // ---- Con vật đi lại ----
+  {
+    newGame('DanThu');
+    G.p.money = 500000;
+    const cho = NT.choTrongCho();
+    NT.muaThu('ga', cho.x, cho.y);
+    const g = NT.danhSachThu()[0];
+    // Nhích một nhịp dài cho nó nghĩ xong rồi bước
+    let seed = 7;
+    const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    const dau = { x: g.x, y: g.y };
+    for (let i = 0; i < 600; i++) NT.diChuyenThu(1 / 30, null, null, rnd);
+    ok('con vật có đi lại chứ không đứng như tượng',
+      g.x !== dau.x || g.y !== dau.y, `${dau.x},${dau.y} -> ${g.x},${g.y}`);
+    ok('con vật không đi ra ngoài vùng nông trại',
+      g.x >= NM.VUNG.x0 && g.x <= NM.VUNG.x1
+      && g.y >= NM.VUNG.y0 && g.y <= NM.VUNG.y1, `${g.x},${g.y}`);
+    ok('con vật không giẫm lên lối đi hay mặt nước',
+      !NM.CAM.has(`${g.x},${g.y}`), `${g.x},${g.y}`);
+    ok('con vật không đứng đè lên ruộng', !NT.oTaiO(g.x, g.y));
+    ok('con vật không đi quá xa chỗ được thả',
+      Math.abs(g.x - cho.x) + Math.abs(g.y - cho.y) <= 5,
+      `${g.x},${g.y} so với ${cho.x},${cho.y}`);
+    // Người chơi đứng sát thì nó quay mặt lại rồi đứng im, không thì giơ tay
+    // cho ăn nó đã lững thững đi mất
+    const truoc = { x: g.x, y: g.y };
+    for (let i = 0; i < 200; i++) NT.diChuyenThu(1 / 30, g.x, g.y + 1, rnd);
+    ok('người chơi đứng sát thì con vật đứng lại',
+      g.x === truoc.x && g.y === truoc.y, `${truoc.x},${truoc.y} -> ${g.x},${g.y}`);
+    ok('con vật quay mặt về phía người chơi', g.dir === 'down', g.dir);
+
+    // Hai con không được chồng ô
+    for (let i = 0; i < 6; i++) NT.muaThu('ga', NT.choTrongCho().x, NT.choTrongCho().y);
+    for (let i = 0; i < 900; i++) NT.diChuyenThu(1 / 30, null, null, rnd);
+    const oThu = NT.danhSachThu().map(t => `${t.x},${t.y}`);
+    ok('không hai con nào đứng chồng ô',
+      new Set(oThu).size === oThu.length, oThu.join(' '));
+  }
+
+  // ---- Việc đang chờ trên nông trại ----
+  {
+    newGame('ViecCho');
+    G.p.money = 500000;
+    ok('nông trại mới thì chưa có việc gì',
+      Object.values(NT.viecDangCho()).every(v => v === 0),
+      JSON.stringify(NT.viecDangCho()));
+    NT.muaHat('cu_cai', 2);
+    const o = NT.oRuong()[0];
+    NT.gieo(o, 'cu_cai');
+    ok('gieo xong chưa tưới thì đếm là ô khát', NT.viecDangCho().khat === 1);
+    const c = D.CAY_BY_ID.cu_cai;
+    let gio = Date.now();
+    for (let i = 0; i < NT.CHIN; i++) { NT.tuoi(o, gio); gio += c.phut * 60000 + 1000; }
+    ok('cây chín thì đếm là ô chín', NT.viecDangCho(gio).chin === 1,
+      JSON.stringify(NT.viecDangCho(gio)));
+    NT.muaThu('ga', 8, 8);
+    ok('thú chưa cho ăn thì đếm là con đang đói',
+      NT.viecDangCho(gio).thuDoi === 1);
+  }
+
   // ---- Máy chế biến ----
   {
     newGame('CheBien');
@@ -4419,6 +4479,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('bản đồ có nhánh kê đồ', /NT\.keTaiDay\(/.test(w2) && /NT\.nhac\(/.test(w2));
     ok('bản đồ có nhánh máy chế biến',
       /NT\.boVaoMay\(/.test(w2) && /NT\.layKhoiMay\(/.test(w2));
+    ok('bản đồ có cho đàn thú đi lại', /NT\.diChuyenThu\(/.test(w2));
     const u2 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
     ok('màn nông trại chỉ lo chợ và đơn hàng, không gieo tưới',
       !/NT\.gieo\(|NT\.tuoi\(|NT\.thu\(/.test(u2));
