@@ -3713,5 +3713,73 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
+// ==== Câu cá ====
+{
+  const F = await import('../js/engine/cauca.js');
+  const { CA, CHO_CAU, CAN } = F;
+  ok('có đủ loài cá, chỗ câu và cần', CA.length >= 12 && CHO_CAU.length >= 3 && CAN.length >= 3);
+  ok('mã cá không trùng nhau', new Set(CA.map(c => c.id)).size === CA.length);
+  ok('cá nào cũng thuộc một chỗ câu có thật',
+    CA.every(c => CHO_CAU.some(x => x.id === c.cho)),
+    CA.filter(c => !CHO_CAU.some(x => x.id === c.cho)).map(c => c.id).join(' '));
+  ok('cá nào cũng có khoảng dài hợp lệ',
+    CA.every(c => c.dai[0] > 0 && c.dai[1] > c.dai[0] && c.giaCm > 0));
+  ok('chỗ nào cũng có cá cho cần xịn nhất',
+    CHO_CAU.every(x => F.caODay(x.id, 4).length >= 3));
+  // Cần xịn hơn thì với tới NHIỀU loài hơn, không thì mua cần làm gì
+  ok('cần càng xịn càng với tới nhiều loài',
+    CHO_CAU.every(x => F.caODay(x.id, 4).length >= F.caODay(x.id, 2).length),
+    CHO_CAU.map(x => `${x.id}:${F.caODay(x.id, 2).length}->${F.caODay(x.id, 4).length}`).join(' '));
+  const goc = new URL('../', import.meta.url).pathname;
+  const thieuCa = CA.filter(c => !existsSync(join(goc, 'assets/ca', c.id + '.png')));
+  ok('loài cá nào cũng có icon', thieuCa.length === 0, thieuCa.map(c => c.id).join(' '));
+
+  newGame('Cần Thủ');
+  // Giật sớm hay muộn quá đều sổng — không thì bấm bừa lúc nào cũng ăn
+  ok('giật sớm thì sổng', F.giatCan(F.caRia('ho_dan_cu'), -1)[1] !== null);
+  ok('giật muộn quá thì sổng', F.giatCan(F.caRia('ho_dan_cu'), 1e9)[1] !== null);
+  const [duoc] = F.giatCan(F.caRia('ho_dan_cu'), 200);
+  ok('giật đúng lúc thì được cá', !!duoc && F.kho().gio.length === 1);
+  ok('bắt lần đầu thì vào dex', F.soLoaiDaBat() === 1 && F.diemCauCa() > 0);
+  // Bán: tiền phải TĂNG đúng bằng giá con cá
+  const truoc = G.p.money;
+  const gia = F.giaCa(F.kho().gio[0]);
+  const [ban] = F.banCa(0);
+  ok('bán cá thì cộng đúng tiền', ban && G.p.money === truoc + gia && !F.kho().gio.length,
+    `${truoc}+${gia} vs ${G.p.money}`);
+  ok('bán rồi vẫn giữ dex', F.soLoaiDaBat() === 1);
+  // Bể nuôi
+  F.giatCan(F.caRia('ho_dan_cu'), 200);
+  ok('thả được vào bể', F.thaVaoBe(0)[1] === null && F.kho().be.length === 1);
+  ok('vớt lại được ra giỏ', F.votKhoiBe(0)[1] === null && F.kho().gio.length === 1);
+  ok('giỏ đầy thì không câu thêm được', (() => {
+    for (let i = 0; i < F.GIO_TOI_DA + 3; i++) F.giatCan(F.caRia('ho_dan_cu'), 200);
+    return F.kho().gio.length === F.GIO_TOI_DA;
+  })(), `${F.kho().gio.length}/${F.GIO_TOI_DA}`);
+  // Cá quý phải hiếm hơn cá thường rõ rệt
+  {
+    let thuong = 0, quy = 0;
+    for (let i = 0; i < 4000; i++) {
+      const c = F.caRia('bien_pepper', Math.random, 4);
+      if (F.CA_BY_ID[c.id].hiem === 1) thuong++;
+      if (F.CA_BY_ID[c.id].hiem === 4) quy++;
+    }
+    ok('cá huyền thoại hiếm hơn hẳn cá thường', quy > 0 && thuong > quy * 8,
+      `thường ${thuong} · huyền thoại ${quy}`);
+  }
+  // Điểm xếp hạng phải ăn theo bậc hiếm, không thì ngồi câu cá rô cũng lên đầu
+  {
+    newGame('Ro');
+    const ro = F.CA.find(c => c.hiem === 1);
+    F.kho().dex[ro.id] = { dai: 100, soLan: 1 };
+    const dRo = F.diemCauCa();
+    newGame('Quy');
+    const quy = F.CA.find(c => c.hiem === 4);
+    F.kho().dex[quy.id] = { dai: 100, soLan: 1 };
+    ok('cùng chiều dài thì cá quý ăn điểm cao hơn', F.diemCauCa() > dRo,
+      `${dRo} vs ${F.diemCauCa()}`);
+  }
+}
+
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
 process.exit(fails === 0 ? 0 : 1);

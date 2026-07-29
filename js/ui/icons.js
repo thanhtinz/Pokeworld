@@ -39,6 +39,8 @@ const P = {
   coin: '<circle cx="12" cy="12" r="8"/><path d="M12 8v8M10 10h3a2 2 0 0 1 0 4h-3"/>',
   swap: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
   run: '<path d="M13 4a1.7 1.7 0 1 0 0-.01"/><path d="m10 21 2-6-3-3 1-4 3 3 3 1"/><path d="M4 12h3M4 16h4"/>',
+  // Câu cá: con cá + cái lưỡi câu, đủ để phân biệt với mấy ô khác trong Menu
+  ca: '<path d="M4 12c3-4 7-6 11-6 3 0 5 2 5 6s-2 6-5 6c-4 0-8-2-11-6Z"/><path d="m4 12-2-3v6l2-3Z"/><circle cx="16" cy="10" r="1"/>',
   // Ô trang bị (mỗi ô một hình riêng, thay cho sprite vật phẩm mờ nhìn giống hệt nhau)
   slot_hat: '<path d="M4 16h16l-1-2a7 7 0 0 0-14 0l-1 2Z"/><path d="M3 16h18v3H3z"/>',
   slot_outfit: '<path d="M9 4 6 6 4 10l3 1v9h10v-9l3-1-2-4-3-2-3 2-3-2Z"/>',

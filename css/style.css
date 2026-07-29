@@ -3042,3 +3042,53 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .cs-quan i { width: 1px; height: 14px; background: rgba(0, 0, 0, .4); }
 .cs-quan.tit { opacity: .38; }
 .cs-quan.duoc { box-shadow: 0 0 0 2px rgba(240, 180, 41, .55); }
+
+/* ==== Câu cá (ui/cauca.js) ==== */
+.ck-tab, .ck-cho { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px;
+  scrollbar-width: none; }
+.ck-tab::-webkit-scrollbar, .ck-cho::-webkit-scrollbar { display: none; }
+.ck-mo { color: var(--muted); font-size: .82rem; line-height: 1.5; margin: 0 2px 8px; }
+/* Mặt hồ: cái phao là thứ DUY NHẤT báo lúc giật, nên nó phải nổi bật */
+.ck-ho {
+  position: relative; height: 132px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; overflow: hidden;
+  background: linear-gradient(180deg, #163a52, #0d2436 70%);
+}
+.ck-phao {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #e8503a; border: 2px solid #2b1410;
+  box-shadow: 0 0 0 3px rgba(232, 80, 58, .18);
+}
+.ck-ho.doi .ck-phao { animation: ck-noi 2.2s ease-in-out infinite; }
+.ck-ho.ria .ck-phao { animation: ck-giat .18s linear infinite;
+  box-shadow: 0 0 0 7px rgba(232, 80, 58, .38); }
+.ck-ho.ria { background: linear-gradient(180deg, #2a2b1c, #3a2412 70%); }
+@keyframes ck-noi { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(3px); } }
+@keyframes ck-giat { 0%, 100% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -3px); } }
+.ck-tin { font-size: .88rem; text-align: center; color: var(--text); margin: 0 10px; }
+.ck-ho.ria .ck-tin { color: var(--gold); font-weight: 700; }
+.ck-nut { margin: 10px 0; }
+.ck-can { display: flex; flex-direction: column; gap: 3px; }
+.ck-can small, .ck-can-so { color: var(--muted); font-size: .8rem; }
+.ck-canmua { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.ck-can-o { display: flex; flex-direction: column; gap: 3px; padding: 9px; text-align: left; }
+.ck-can-o b { font-size: .84rem; }
+.ck-can-o small { color: var(--muted); font-size: .7rem; line-height: 1.3; }
+.ck-can-o.chon { border-color: var(--gold); }
+.ck-can-nut { color: var(--gold); font-size: .78rem; }
+.ck-tong { display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; flex-wrap: wrap; font-size: .86rem; }
+.ck-tong small { color: var(--muted); font-size: .76rem; }
+.ck-h3 { margin: 12px 2px 6px; font-size: .92rem; color: var(--muted); }
+.ck-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.ck-o { display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 8px; text-align: center; }
+.ck-o b { font-size: .88rem; }
+.ck-o small { font-size: .74rem; color: var(--muted); line-height: 1.35; }
+.ck-o.chua { opacity: .45; }
+.ck-o.chua .cc-ca-anh img { filter: brightness(0) invert(.35); }
+.cc-ca-anh img { width: 44px; height: 44px; image-rendering: pixelated; }
+.ck-gia { color: var(--gold); font-size: .8rem; }
+.ck-desc { font-style: italic; }
+.ck-o-nut { display: flex; gap: 5px; margin-top: 4px; }
+.ck-o-nut .btn { width: auto; }
