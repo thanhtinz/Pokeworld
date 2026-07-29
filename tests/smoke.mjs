@@ -4721,7 +4721,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         `canh ${NT.thuCanh().sp} · đội ${G.p.party.map(m => m.sp).join(' ')}`);
       // Client và máy chủ phải dùng CÙNG một công thức, lệch là hiện một tỉ lệ
       // rồi bốc theo một tỉ lệ khác
-      const SF = await import('../server/src/farms.js');
+      // Nhập farmrule.js chứ KHÔNG nhập farms.js: farms.js kéo theo express, mà
+      // job deploy chỉ cài deps của client nên nhập vào là deploy đỏ.
+      const SF = await import('../server/src/farmrule.js');
       ok('client và máy chủ tính tỉ lệ bị cướp y hệt',
         [0, 1, 15, 30, 50, 100, 9999].every(c => SF.tiLeBiCuop(c) === NT.tiLeBiCuop(c)),
         [0, 15, 50].map(c => `${c}: ${SF.tiLeBiCuop(c)} vs ${NT.tiLeBiCuop(c)}`).join(' | '));
@@ -4730,6 +4732,10 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       const rt2 = readFileSync(join(goc2, 'server/src/routes.js'), 'utf8');
       ok('máy chủ có cắm đường nông trại', /\/farm/.test(rt2));
       const fs2 = readFileSync(join(goc2, 'server/src/farms.js'), 'utf8');
+      ok('công thức tỉ lệ nằm ở module không phụ thuộc gì',
+        !/^import /m.test(readFileSync(join(goc2, 'server/src/farmrule.js'), 'utf8')));
+      ok('máy chủ dùng chung đúng module công thức đó',
+        /from '\.\/farmrule\.js'/.test(fs2));
       ok('không cướp hạt giống với cỏ khô của người ta',
         /hat_/.test(fs2) && /co_kho/.test(fs2));
       ok('chủ nhà luôn được báo khi có người mò vào', /sendMail\(/.test(fs2));

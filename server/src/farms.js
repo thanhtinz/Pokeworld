@@ -20,23 +20,15 @@ import { find, filter, insert, markDirty, uid } from './db.js';
 import { authRequired } from './auth.js';
 import { friendshipBetween, marriageOf } from './social.js';
 import { sendMail } from './inbox.js';
+import { CUOP_GOC, CUOP_SAN, tiLeBiCuop } from './farmrule.js';
 
 export const farmRouter = express.Router();
+export { CUOP_GOC, CUOP_SAN, tiLeBiCuop };
 
-// Giữ khớp với js/engine/nongtrai.js — lệch là client hiện một tỉ lệ, máy chủ
-// bốc theo một tỉ lệ khác.
-export const CUOP_GOC = 0.75;
-export const CUOP_SAN = 0.20;
 const CHO_CUOP = 6 * 3600 * 1000;   // cùng một nông trại: 6 giờ mới cướp lại được
 const PHAN_CUOP = 0.2;              // cướp nhiều nhất bấy nhiêu phần một loại
 const TRAN_CUOP = 12;               // và không quá bấy nhiêu món một lần
 const GIU_NHAT_KY = 30;             // nhật ký bị cướp giữ bấy nhiêu dòng
-
-export const tiLeBiCuop = (capCanh = 0) => {
-  if (!capCanh) return CUOP_GOC;
-  const giam = Math.min(CUOP_GOC - CUOP_SAN, 0.011 * capCanh);
-  return Math.max(CUOP_SAN, CUOP_GOC - giam);
-};
 
 const byName = (name) => {
   const lower = String(name || '').trim().toLowerCase();
