@@ -4006,14 +4006,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     }
     throw new Error('nông trại không còn ô nào kê được');
   };
-  // Nông trại mới TRỐNG KHÔNG — đất là phải mua. Mọi test trồng trọt phải tự
-  // sắm lấy một ô ruộng trước, y như người chơi.
+  // Nông trại mới TRỐNG KHÔNG — đất là phải mua, và mua lần lượt theo lưới ô
+  // có sẵn. Mọi test trồng trọt phải tự sắm lấy một ô, y như người chơi.
   const keRuong = () => {
-    const [, loi] = NT.mua('ruong');
+    const [o, loi] = NT.muaORuong();
     if (loi) throw new Error('không mua được ô ruộng: ' + loi);
-    const [o, e2] = NT.keTaiDay(...oTrongNT());
-    if (e2) throw new Error('không kê được ô ruộng: ' + e2);
-    return o;
+    return NT.oTaiO(o.x, o.y);
   };
   const goc = new URL('../', import.meta.url).pathname;
   const coTep = (p2) => existsSync(join(goc, p2));
@@ -4260,15 +4258,14 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   {
     newGame('KeDo');
     G.p.money = 500000;
+    ok('ô ruộng không mua ở danh sách kê được nữa', NT.mua('ruong')[1] !== null);
     ok('mua xong thì món nằm trên tay chờ kê',
-      NT.mua('ruong')[0] !== null && NT.choKe() === 'ruong');
-    ok('đang cầm món thì không mua thêm', NT.mua('ruong')[1] !== null);
+      NT.mua('may_bo')[0] !== null && NT.choKe() === 'may_bo');
+    ok('đang cầm món thì không mua thêm', NT.mua('may_bo')[1] !== null);
     ok('không kê được lên lối đi',
       NT.keTaiDay(NM.CONG_RA.x, NM.LOI_NGANG[0])[1] !== null);
     ok('không kê được ra ngoài vùng', NT.keTaiDay(0, 0)[1] !== null);
-    NT.boMonDangCam();
     const cu = keRuong();
-    NT.mua('ruong');
     ok('không kê chồng lên món đã kê', NT.keTaiDay(cu.x, cu.y)[1] !== null);
     const truoc = NT.nt().o.length;
     const [moi, err] = NT.keTaiDay(...oTrongNT());
@@ -4276,11 +4273,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('kê xong thì tay không còn cầm gì', NT.choKe() === null);
     ok('kê xong thì nông trại có thêm một món', NT.nt().o.length === truoc + 1);
     ok('nhấc lên được để dời chỗ',
-      NT.nhac(moi)[0] !== null && NT.choKe() === 'ruong'
+      NT.nhac(moi)[0] !== null && NT.choKe() === 'may_bo'
       && NT.nt().o.length === truoc);
     const tien0 = G.p.money;
-    ok('trả lại thì lấy về nửa tiền', NT.boMonDangCam()[0] === Math.floor(300 / 2)
-      && G.p.money > tien0);
+    const giaMay = D.VAT_BY_ID.may_bo.gia;
+    ok('trả lại thì lấy về nửa tiền',
+      NT.boMonDangCam()[0] === Math.floor(giaMay / 2) && G.p.money > tien0);
     // Ruộng đang có cây thì không nhấc — nhấc là mất trắng cả lứa
     NT.muaHat('cu_cai', 1);
     NT.gieo(NT.oRuong()[0], 'cu_cai');
@@ -4557,8 +4555,65 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('bản đồ có đồng hồ đếm ngược và bảng tên kèm mũi tên',
       /veDongHo\(/.test(w2) && /veBangTen\(/.test(w2));
     // Chuồng phải quây kín: con vật chỉ đi trong lòng chuồng
-    ok('có vùng lòng chuồng và lòng khu trồng',
-      !!NM.VUNG_THU && !!NM.VUNG_TRONG);
+    ok('có vùng lòng chuồng', !!NM.VUNG_THU);
+    // Khu đất trồng: 50 ô cố định, KHÔNG quây rào
+    ok('khu đất trồng đúng 50 ô', NM.O_TOI_DA === 50
+      && NM.O_RUONG.length === 50, `${NM.O_TOI_DA} / ${NM.O_RUONG.length}`);
+    {
+      const nt5 = MAPS[NM.NONG_TRAI_MAP];
+      ok('ô ruộng nào cũng đi được, không có rào chắn ngang',
+        NM.O_RUONG.every(o => !nt5.solid[o.y * nt5.w + o.x]),
+        NM.O_RUONG.filter(o => nt5.solid[o.y * nt5.w + o.x])
+          .map(o => `${o.x},${o.y}`).join(' '));
+    }
+    ok('không ô ruộng nào trùng nhau',
+      new Set(NM.O_RUONG.map(o => `${o.x},${o.y}`)).size === 50);
+    ok('ô ruộng nào cũng nằm trong khu đất trồng',
+      NM.O_RUONG.every(o => o.x >= NM.KHU_TRONG.x && o.x < NM.KHU_TRONG.x + NM.KHU_TRONG.w
+        && o.y >= NM.KHU_TRONG.y && o.y < NM.KHU_TRONG.y + NM.KHU_TRONG.h));
+    ok('ô ruộng nằm trong danh sách cấm kê máy/chuồng',
+      NM.O_RUONG.every(o => NM.CAM.has(`${o.x},${o.y}`)));
+    // Ô đầu tiên phải sát lối đi: khu ruộng lớn dần ra XA đường
+    ok('ô mua đầu tiên nằm ở hàng sát lối đi',
+      NM.O_RUONG[0].y === NM.KHU_TRONG.y + NM.KHU_TRONG.h - 1,
+      `${NM.O_RUONG[0].x},${NM.O_RUONG[0].y}`);
+    {
+      newGame('MuaDat');
+      G.p.money = 99999999;
+      ok('nông trại mới chưa có ô nào', NT.oRuong().length === 0);
+      const b1 = NT.oDangBan();
+      ok('ô đang bán là ô đầu tiên trong danh sách',
+        b1 && b1.x === NM.O_RUONG[0].x && b1.y === NM.O_RUONG[0].y && b1.thu === 1);
+      ok('giá ô đầu là giá gốc', b1.gia === NT.GIA_O_DAU, String(b1.gia));
+      G.p.money = 10;
+      ok('không đủ tiền thì không mua được', NT.muaORuong()[1] !== null);
+      G.p.money = 99999999;
+      const [o1] = NT.muaORuong();
+      ok('mua được ô đang bán', !!o1 && NT.oRuong().length === 1);
+      ok('mua xong thì biển bán nhảy sang ô kế tiếp', (() => {
+        const b2 = NT.oDangBan();
+        return b2 && b2.thu === 2
+          && b2.x === NM.O_RUONG[1].x && b2.y === NM.O_RUONG[1].y;
+      })());
+      ok('ô càng về sau càng đắt', NT.oDangBan().gia > b1.gia);
+      // Mua sạch 50 ô thì hết biển bán, và không mua thêm được nữa
+      while (NT.oDangBan()) NT.muaORuong();
+      ok('mua hết 50 ô thì không còn ô nào bán',
+        NT.oRuong().length === 50 && NT.oDangBan() === null,
+        String(NT.oRuong().length));
+      ok('quá 50 ô thì mua không được nữa', NT.muaORuong()[1] !== null);
+    }
+    const w4 = readFileSync(join(goc2, 'js/ui/world.js'), 'utf8');
+    ok('bản đồ cắm biển bán ở ô đất kế tiếp',
+      /oDangBan\(\)/.test(w4) && /veBienBan\(/.test(w4));
+    ok('bấm vào ô đất đang bán thì mua được',
+      /'o-ban'/.test(w4) && /muaORuong\(/.test(w4));
+    // veChip vẽ bằng fillText nên chỉ nhận chuỗi CHỮ. tien() trả về thẻ <img>
+    // đồng xu — lọt vào đây là in nguyên đoạn HTML lên giữa bản đồ.
+    ok('không vẽ tien() lên canvas',
+      !/veChip\([^)]*\btien\(/.test(w4) && !/veBangTen\([^)]*\btien\(/.test(w4));
+    const u4 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
+    ok('danh sách kê không còn ô ruộng', /loai !== 'ruong'/.test(u4));
     ok('con vật không bước ra khỏi lòng chuồng',
       !NT.thuDiDuoc(NM.VUNG_THU.x0 - 1, NM.VUNG_THU.y0)
       && !NT.thuDiDuoc(NM.VUNG_THU.x1 + 1, NM.VUNG_THU.y0)

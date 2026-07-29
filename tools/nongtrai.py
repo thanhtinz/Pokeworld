@@ -30,7 +30,7 @@ Goi tu tools/mktmx.py, dung chay truc tiep.
 """
 import os
 
-W, H = 46, 16
+W, H = 50, 16
 SLUG = 'nong_trai'
 TEN = 'Nông Trại Bờ Suối'
 
@@ -53,30 +53,45 @@ CONG = (3, DUONG_NGANG[1])
 # Dan Cu, o cua nam giua hang duoi cung.
 NHA_SAU = (2, 5)
 
-# Khu dat trong va chuong thu deu la mot O QUAY RAO, chua cong o hang duoi.
-# Truoc khu trong lat mot mieng dat nau — ma o ruong ke len cung DUNG cai o dat
-# do, thanh ra nhin vao chi thay mot mang nau phang, khong biet dau la ruong.
-# De co thi tung o ruong noi ro rang tren nen xanh.
-KHU_TRONG = (6, 3, 7, 6)        # khu dat trong KE CA hang rao: x, y, rong, cao
-CHUONG = (14, 3, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
-AO = (21, 4, 26, 8)             # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
-NHA_KHO = (29, 4, 5, 5)         # nha kho: x, y, rong, cao (o)
-NHA_BEP = (35, 2, 9, 7)         # nha bep: x, y, rong, cao (o)
+# KHU DAT TRONG khong quay rao: no la mot luoi 50 O RUONG co dinh, o nao mua
+# roi thi hien ra thanh dat, o chua mua thi cam bien BAN. Quay rao thi cai rao
+# lai cat ngang giua may o dat, ma khu nay von la thu se lon dan ra.
+KHU_TRONG = (6, 4, 10, 5)       # luoi o ruong: x, y, rong, cao (o) = 50 o
+O_TOI_DA = KHU_TRONG[2] * KHU_TRONG[3]
 
-BAC_NONG = (31, DUONG_NGANG[0])   # nguoi coi kho, dung ngay truoc cua
-LAI_CA = (23, DUONG_NGANG[0])     # ong lai ca, dung ngay duoi bo ho
+CHUONG = (17, 3, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
+AO = (25, 4, 30, 8)             # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
+NHA_KHO = (33, 4, 5, 5)         # nha kho: x, y, rong, cao (o)
+NHA_BEP = (39, 2, 9, 7)         # nha bep: x, y, rong, cao (o)
+
+BAC_NONG = (35, DUONG_NGANG[0])   # nguoi coi kho, dung ngay truoc cua
+LAI_CA = (27, DUONG_NGANG[0])     # ong lai ca, dung ngay duoi bo ho
 
 # Long chuong — con vat chi di lai trong day (x0, y0, x1, y1)
 VUNG_THU = (CHUONG[0] + 1, CHUONG[1] + 1,
             CHUONG[0] + CHUONG[2] - 2, CHUONG[1] + CHUONG[3] - 2)
-# Long khu dat trong
-VUNG_TRONG = (KHU_TRONG[0] + 1, KHU_TRONG[1] + 1,
-              KHU_TRONG[0] + KHU_TRONG[2] - 2, KHU_TRONG[1] + KHU_TRONG[3] - 2)
+
+
+def cac_o_ruong():
+    """Thu tu 50 o ruong: hang sat loi di truoc, roi lui dan ve phia sau.
+
+    Nguoi choi mua tu duoi len nen khu ruong lon dan ra XA loi di — nhin ra la
+    mot cai ruong dang duoc mo rong, chu khong phai may o dat roi rac.
+    """
+    x0, y0, w, h = KHU_TRONG
+    ds = []
+    for y in range(y0 + h - 1, y0 - 1, -1):
+        for x in range(x0, x0 + w):
+            ds.append((x, y))
+    return ds
+
+
+O_RUONG = cac_o_ruong()
 
 # Bien MUA cam duoi loi di, doi dien tung khu. (ma, x, y)
 #   hat — hat giong        thu — con vat        can — can cau
 BIEN = [
-    ('hat', KHU_TRONG[0] + 3, DUONG_NGANG[1] + 1),
+    ('hat', KHU_TRONG[0] + 4, DUONG_NGANG[1] + 1),
     ('thu', CHUONG[0] + 2, DUONG_NGANG[1] + 1),
     ('can', AO[0] + 2, DUONG_NGANG[1] + 1),
 ]
@@ -84,12 +99,10 @@ BIEN = [
 # Vung ke duoc vat the nong trai (x0, y0, x1, y1) — tru vien cay ra.
 VUNG = (2, 3, W - 3, DUONG_NGANG[1] + 1)
 
-# Nong trai moi thi TRONG KHONG: khu dat trong da quay rao san, nhung DAT LA
-# PHAI MUA. Truoc cho san muoi hai o ruong — thanh ra viec dau tien cua nguoi
-# choi la gieo hat vao dat cua khong ai, chang phai lam gi ma da co ca mot luong.
-# Gio moi o ruong mua o bien MUA canh khu trong roi tu ke vao.
-#
-# KHONG ke chuong nua: chuong da la cai quay rao san tren ban do.
+# Nong trai moi thi TRONG KHONG: chua mua o ruong nao ca. O ruong KHONG con la
+# thu tu ke: cho dat san mot luoi 50 o, moi luot chi hien BIEN BAN o o ke tiep.
+# Tu ke thi nguoi choi phai tu nghi ra bo cuc truoc khi biet minh dang lam gi,
+# ma ke lech mot o la ca cai ruong lo cho.
 MAC_DINH = []
 
 
@@ -200,10 +213,9 @@ def dung(goc):
         rao_doc(ox + ow - 1, oy + 1, oy + oh - 2)
         return cong
 
-    cong_trong = quay_rao(KHU_TRONG)
-    cong_chuong2 = quay_rao(CHUONG)
-    cong_chuong.clear()
-    cong_chuong |= cong_chuong2 | cong_trong
+    # CHI chuong duoc quay rao. Khu dat trong de tran, rao chi cat ngang giua
+    # may o dat roi khien no khong lon ra duoc.
+    cong_chuong |= quay_rao(CHUONG)
 
     # Ho quay ba mat, HO MAT phia loi di: dung tren duong quay mat len la
     # buong can duoc. Rao kin het bon mat thi khong con cho nao cham toi nuoc.
@@ -301,10 +313,11 @@ def dung(goc):
         for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
             don(x, y)
     # Long hai o quay rao va may cai cong
-    for v in (VUNG_THU, VUNG_TRONG):
-        for y in range(v[1], v[3] + 1):
-            for x in range(v[0], v[2] + 1):
-                don(x, y)
+    for y in range(VUNG_THU[1], VUNG_THU[3] + 1):
+        for x in range(VUNG_THU[0], VUNG_THU[2] + 1):
+            don(x, y)
+    for x, y in O_RUONG:
+        don(x, y)
     for x, y in cong_chuong:
         don(x, y)
 
@@ -361,6 +374,9 @@ def dung(goc):
             cam.add((x, y))
     for _ma, sx, sy in BIEN:
         cam.add((sx, sy))
+    # 50 o ruong la cho DA DANH SAN cho dat trong: ke may hay chuong de len thi
+    # mua o dat den luot do la dam vao nhau.
+    cam |= set(O_RUONG)
 
     viet_js(cam)
 
@@ -375,7 +391,7 @@ def dung(goc):
     }
 
 
-TEN_BIEN = {'hat': 'Mua Đất · Hạt', 'thu': 'Mua Con Vật', 'can': 'Mua Cần Câu'}
+TEN_BIEN = {'hat': 'Mua Hạt Giống', 'thu': 'Mua Con Vật', 'can': 'Mua Cần Câu'}
 
 
 def viet_js(cam=()):
@@ -392,9 +408,13 @@ def viet_js(cam=()):
         '// đông, sáu khu kê ngay trên dải đó.',
         'export const LOI_NGANG = %s;' % list(DUONG_NGANG),
         '',
-        '// Khu đất trồng: một ô quây rào, ô ruộng kê trong lòng nó.',
+        '// Khu đất trồng: một lưới ô ruộng, KHÔNG quây rào.',
         'export const KHU_TRONG = { x: %d, y: %d, w: %d, h: %d };' % KHU_TRONG,
-        'export const VUNG_TRONG = { x0: %d, y0: %d, x1: %d, y1: %d };' % VUNG_TRONG,
+        '// Đúng %d ô ruộng, xếp theo THỨ TỰ MUA: hàng sát lối đi trước rồi lùi' % O_TOI_DA,
+        '// dần về phía sau. Mỗi lượt chỉ ô kế tiếp hiện biển bán.',
+        'export const O_TOI_DA = %d;' % O_TOI_DA,
+        'export const O_RUONG = ['
+        + ', '.join('{ x: %d, y: %d }' % (x, y) for x, y in O_RUONG) + '];',
         '// Chuồng thú quây rào, kể cả hàng rào. Con vật chỉ đi trong VUNG_THU.',
         'export const CHUONG = { x: %d, y: %d, w: %d, h: %d };' % CHUONG,
         'export const VUNG_THU = { x0: %d, y0: %d, x1: %d, y1: %d };' % VUNG_THU,

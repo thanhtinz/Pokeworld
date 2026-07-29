@@ -75,7 +75,9 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
       <p class="nt-mo">Mua xong thì cầm ra bản đồ, đứng đâu ưng thì bấm A đặt xuống.
         Muốn dời chỗ thì bấm A ngay trước món đã kê. Máy chế biến biến nguyên
         liệu thô thành món đắt hơn hẳn — bỏ hàng vào rồi lát quay lại lấy.</p>
-      <div class="nt-luoi">${NT.VAT_THE.map(v => `
+      <p class="nt-mo">Ô ruộng KHÔNG có ở đây: đất mua ngay tại chỗ nó, đi tới ô
+        đang cắm biển bán trong khu trồng rồi bấm A.</p>
+      <div class="nt-luoi">${NT.VAT_THE.filter(v => v.loai !== 'ruong').map(v => `
         <div class="card nt-o">
           <span class="nt-anh nt-vat ${v.loai === 'may' ? 'nt-may' : ''}">
             <img src="${esc(anhVat(v.id))}" alt=""></span>

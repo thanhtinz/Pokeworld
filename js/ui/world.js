@@ -407,6 +407,16 @@ export function render(el) {
       veBangTen(ten, n.x + n.w / 2, n.y + n.h, size, camX, camY);
     }
     for (const b of BIEN) veBangTen(b.ten, b.x + 0.5, b.y, size, camX, camY);
+    // Ô đất kế tiếp: cắm đúng MỘT cái biển bán kèm giá. Hiện cả 50 cái một lần
+    // thì khu trồng thành một bãi biển bán, mà người mới cũng không biết mua ô nào.
+    const oBan = NT.oDangBan();
+    if (oBan) {
+      veBienBan(oBan.x, oBan.y, size, camX, camY);
+      // tien() trả về thẻ <img> đồng xu — canvas không đọc HTML, phải dùng
+      // tienChu() là chuỗi chữ thuần.
+      veChip(tienChu(oBan.gia), oBan.x + 0.5, oBan.y - 0.55, size, camX, camY,
+        'rgba(20,18,30,0.82)');
+    }
     const nhaMinh = ES.nhaTrenBanDo(NT.NONG_TRAI_MAP);
     if (nhaMinh) {
       veBangTen(ES.dangXay() ? 'Đang xây' : 'Nhà Bạn',
@@ -472,6 +482,30 @@ export function render(el) {
   }
 
   const gioNhay = () => Date.now();
+
+  /**
+   * Cái biển gỗ "BÁN" cắm ở một ô — dùng cho cả lô đất bên Khu Dân Cư lẫn ô
+   * ruộng kế tiếp trên nông trại. Cùng một ý nghĩa thì phải cùng một hình.
+   */
+  function veBienBan(x, y, size, camX, camY, chu = 'BÁN') {
+    const bx = x * size - camX;
+    const by = y * size - camY;
+    ctx.save();
+    ctx.fillStyle = '#8a6a3a';
+    ctx.fillRect(Math.round(bx + size * 0.42), Math.round(by - size * 0.1),
+      Math.max(2, Math.round(size * 0.16)), Math.round(size * 0.55));
+    ctx.fillStyle = '#f0e6d0';
+    ctx.strokeStyle = '#8a6a3a';
+    ctx.lineWidth = Math.max(1, size * 0.06);
+    const bw = size * 0.95, bh = size * 0.5;
+    ctx.fillRect(Math.round(bx), Math.round(by - size * 0.55), Math.round(bw), Math.round(bh));
+    ctx.strokeRect(Math.round(bx), Math.round(by - size * 0.55), Math.round(bw), Math.round(bh));
+    ctx.fillStyle = '#b03a24';
+    ctx.font = `bold ${Math.round(size * 0.3)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(chu, Math.round(bx + bw / 2), Math.round(by - size * 0.3));
+    ctx.restore();
+  }
 
   /**
    * Bảng tên kèm mũi tên vàng nhún nhún, cắm trên đầu một chỗ bấm được: cửa nhà
@@ -600,22 +634,7 @@ export function render(el) {
     if (player.mapId === KHU_DAT_MAP && !ES.coDat()) {
       for (const l of LOTS) {
         if (ES.nha().lot === l.id) continue;
-        const bx = (l.x + 1) * size - camX, by = (l.y + 2) * size - camY;
-        ctx.save();
-        ctx.fillStyle = '#8a6a3a';
-        ctx.fillRect(Math.round(bx + size * 0.42), Math.round(by - size * 0.1),
-          Math.max(2, Math.round(size * 0.16)), Math.round(size * 0.55));
-        ctx.fillStyle = '#f0e6d0';
-        ctx.strokeStyle = '#8a6a3a';
-        ctx.lineWidth = Math.max(1, size * 0.06);
-        const bw = size * 0.95, bh = size * 0.5;
-        ctx.fillRect(Math.round(bx), Math.round(by - size * 0.55), Math.round(bw), Math.round(bh));
-        ctx.strokeRect(Math.round(bx), Math.round(by - size * 0.55), Math.round(bw), Math.round(bh));
-        ctx.fillStyle = '#b03a24';
-        ctx.font = `bold ${Math.round(size * 0.3)}px system-ui, sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('BÁN', Math.round(bx + bw / 2), Math.round(by - size * 0.3));
-        ctx.restore();
+        veBienBan(l.x + 1, l.y + 2, size, camX, camY);
       }
     }
 
@@ -1312,27 +1331,15 @@ export function render(el) {
   async function bienMua(thing) {
     if (thing.ma === 'can') { await chonCan({ name: 'Biển Cần Câu' }); return; }
     if (thing.ma === 'hat') {
-      // Ô ruộng nằm ĐẦU danh sách: đất là thứ phải mua trước, chưa có ô ruộng
-      // thì mua hạt về cũng không gieo vào đâu được.
-      const dat = NT.VAT_BY_ID.ruong;
       const ds = NT.CAY;
-      const i = await choose('Khu Đất Trồng', [{
-        label: dat.name,
-        sub: `${tienChu(dat.gia)} · đất để gieo hạt · đang có ${NT.oRuong().length} ô`,
-      }].concat(ds.map(c => ({
-        label: `Hạt ${c.name}`,
+      const i = await choose('Hạt Giống', ds.map(c => ({
+        label: c.name,
         sub: `${tienChu(c.giaHat)} · chín sau ${c.phut * NT.CHIN} phút`
           + ` · đang có ${NT.co(NT.maHat(c.id))} gói`,
-      })), [{ label: 'Thôi' }]));
-      if (i === 0) {
-        const [v, err] = NT.mua('ruong');
-        toast(err || `Mua ${v.name} — ra chỗ nào ưng trong khu trồng rồi bấm A để kê.`);
-        return;
-      }
-      if (i < 1 || i > ds.length) return;
-      const c = ds[i - 1];
-      const [gia, err] = NT.muaHat(c.id);
-      toast(err || `Mua một gói hạt ${c.name}, trả ${tienChu(gia)}.`);
+      })).concat([{ label: 'Thôi' }]));
+      if (i < 0 || i >= ds.length) return;
+      const [gia, err] = NT.muaHat(ds[i].id);
+      toast(err || `Mua một gói hạt ${ds[i].name}, trả ${tienChu(gia)}.`);
       return;
     }
     if (thing.ma === 'thu') {
@@ -1367,6 +1374,18 @@ export function render(el) {
       return;
     }
     if (thing.kind === 'bien') { await bienMua(thing); return; }
+    // Ô đất kế tiếp đang cắm biển bán: mua ngay tại chỗ nó
+    if (thing.kind === 'o-ban') {
+      const i = await choose(`Ô Đất Số ${thing.thu}/${NT.O_TOI_DA}`, [
+        { label: `Mua ${tienChu(thing.gia)}`,
+          sub: `Đang có ${NT.oRuong().length}/${NT.O_TOI_DA} ô · bạn có ${tienChu(G.p.money)}` },
+        { label: 'Thôi' },
+      ]);
+      if (i !== 0) return;
+      const [o, err] = NT.muaORuong();
+      toast(err || `Mua xong ô đất số ${o.thu}. Gieo hạt được rồi.`);
+      return;
+    }
 
     // 1) Đang cầm món chờ kê: bấm vào ô trống là đặt xuống
     if (thing.kind === 'cho-trong') {

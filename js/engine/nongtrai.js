@@ -26,12 +26,13 @@ import { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, SUC_CHUA_GOC } from '../data/nongtrai.js';
 import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG, VUNG_THU,
-  CHUONG, NHA_KHO, NHA_BEP, BIEN } from '../data/nongtraimap.js';
+  CHUONG, NHA_KHO, NHA_BEP, BIEN, KHU_TRONG, O_RUONG,
+  O_TOI_DA } from '../data/nongtraimap.js';
 
 export { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG, VUNG_THU,
-  CHUONG, NHA_KHO, NHA_BEP, BIEN };
+  CHUONG, NHA_KHO, NHA_BEP, BIEN, KHU_TRONG, O_RUONG, O_TOI_DA };
 
 const PHUT = 60000;
 export const CHIN = GIAI_DOAN - 1;      // giai đoạn cuối là lúc chín
@@ -57,6 +58,35 @@ export function nt() {
 }
 
 export const oRuong = () => nt().o.filter(o => VAT_BY_ID[o.id]?.loai === 'ruong');
+
+// ==== Mua đất: 50 ô CỐ ĐỊNH, mua lần lượt ====
+//
+// Ô ruộng không phải thứ tự kê nữa. Bản đồ đã đánh sẵn một lưới 50 ô, và mỗi
+// lượt CHỈ Ô KẾ TIẾP cắm biển bán. Hiện cả 50 cái biển một lần thì khu trồng
+// thành một bãi biển bán, mà người chơi mới cũng chẳng biết nên mua ô nào.
+//
+// Giá tăng dần theo số ô đã có: ô đầu 300, ô thứ 50 là 15.000. Giá phẳng thì
+// mua sạch 50 ô trong một buổi, mà cả cái trần 50 ô cũng thành vô nghĩa.
+export const GIA_O_DAU = 300;
+export const giaORuongThu = (n) => GIA_O_DAU * (n + 1);
+
+/** Ô ruộng kế tiếp còn đang cắm biển bán — null nếu đã mua hết 50 ô. */
+export function oDangBan() {
+  const n = oRuong().length;
+  if (n >= O_TOI_DA) return null;
+  return { ...O_RUONG[n], thu: n + 1, gia: giaORuongThu(n) };
+}
+
+/** Mua ô ruộng kế tiếp. Trả [{x, y, thu, gia}, lỗi]. */
+export function muaORuong() {
+  const o = oDangBan();
+  if (!o) return [null, `Đã mua hết ${O_TOI_DA} ô ruộng rồi.`];
+  if ((G.p.money || 0) < o.gia) return [null, `Cần ${o.gia} để mua ô đất này.`];
+  addMoney(-o.gia);
+  nt().o.push({ id: 'ruong', x: o.x, y: o.y });
+  save();
+  return [o, null];
+}
 export const cacMay = () => nt().o.filter(o => VAT_BY_ID[o.id]?.loai === 'may');
 export const danhSachThu = () => nt().thu;
 
@@ -437,6 +467,10 @@ export const choKe = () => nt().choKe || null;
 export function mua(id) {
   const v = VAT_BY_ID[id];
   if (!v) return [null, 'Không có thứ này.'];
+  // Ô ruộng đi đường riêng: mua lần lượt theo lưới 50 ô có sẵn (muaORuong).
+  if (v.loai === 'ruong') {
+    return [null, 'Ô ruộng mua ngay tại chỗ nó — tới ô cắm biển bán mà bấm.'];
+  }
   if (choKe()) return [null, `Đang cầm ${VAT_BY_ID[choKe()]?.name} — kê xuống đã.`];
   if ((G.p.money || 0) < v.gia) return [null, `Cần ${v.gia} để làm ${v.name}.`];
   addMoney(-v.gia);
@@ -735,6 +769,12 @@ export function vatNongTrai(mapId, x, y) {
     const v = VAT_BY_ID[o.id];
     const kind = v.loai === 'ruong' ? 'ruong' : v.loai === 'may' ? 'may' : 'congtrinh';
     return { type: 'nongtrai', kind, name: v.name, o };
+  }
+  // Ô ruộng kế tiếp đang cắm biển bán
+  const ban = oDangBan();
+  if (ban && ban.x === x && ban.y === y) {
+    return { type: 'nongtrai', kind: 'o-ban', name: 'Đất Bán',
+      thu: ban.thu, gia: ban.gia };
   }
   // Đang cầm món chờ kê thì mọi ô trống đều bấm được
   if (choKe() && keDuoc(choKe(), x, y)) {
