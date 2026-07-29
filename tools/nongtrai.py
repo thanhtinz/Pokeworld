@@ -30,7 +30,7 @@ Goi tu tools/mktmx.py, dung chay truc tiep.
 """
 import os
 
-W, H = 65, 19
+W, H = 54, 19
 SLUG = 'nong_trai'
 TEN = 'Nông Trại Bờ Suối'
 
@@ -69,25 +69,29 @@ CHO_VAO = (CONG[0] + 1, DUONG_NGANG[1])
 # KHU DAT TRONG khong quay rao: no la mot luoi 50 O RUONG co dinh, o nao mua
 # roi thi hien ra thanh dat, o chua mua thi cam bien BAN. Quay rao thi cai rao
 # lai cat ngang giua may o dat, ma khu nay von la thu se lon dan ra.
-# O ruong xep THUA: cach nhau dung mot o. Xep sat nhau thi ca 50 o dinh lien
-# thanh mot mang nau phang, khong con thay tung o dau ca — ma nhin ky thi cai
-# ranh co giua may o moi la thu lam no ra hinh cai ruong.
-# Cao 7 hang de xep du 4 HANG o ruong khi da cach nhau mot o (hang 4, 6, 8, 10).
-KHU_TRONG = (6, 4, 25, 7)       # vung luoi o ruong: x, y, rong, cao (o)
-BUOC_O = 2                      # hai o ruong cach nhau bay nhieu o
+# O ruong xep SAT NHAU. Phan cho biet chung la nhung o RIENG BIET khong nam o
+# khoang cach, ma o cho ve: js/ui/world.js ve mieng dat thut vao mot pixel moi
+# be, nen giua hai o luon con mot vet co mong.
+#
+# Truoc thu chua han mot O TRONG giua hai o ruong. Roi ra thi ro that, nhung
+# ruong thanh mot cai luoi thua nam gan het chieu ngang ban do, di tuoi mot
+# luong mat gap doi duong — ma cai can noi chi la "hai o nay khong dinh nhau".
+KHU_TRONG = (6, 7, 13, 4)       # vung luoi o ruong: x, y, rong, cao (o)
+BUOC_O = 1                      # o ruong sat nhau, chua bang net ve
 O_TOI_DA = 50
 
 # Chuong, ho va hai toa nha thi CO Y cham toi loi di: chung la thu buoc tu duoi
 # duong len de dung truoc mat ma bam. Chi rieng khu dat trong phai chua ra.
-CHUONG = (33, 6, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
-AO = (41, 6, 46, 11)            # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
-NHA_KHO = (49, 7, 5, 5)         # nha kho: x, y, rong, cao (o)
+CHUONG = (21, 6, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
+AO = (29, 6, 34, 11)            # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
+NHA_KHO = (37, 7, 5, 5)         # nha kho: x, y, rong, cao (o)
 # Cot cuoi cua nha bep phai cach vong rao mot o: san truoc cua duoc don sach
 # solid, don trum len cot rao la thung mot lo ra ngoai ban do.
-NHA_BEP = (54, 5, 9, 7)         # nha bep: x, y, rong, cao (o)
+NHA_BEP = (43, 5, 9, 7)         # nha bep: x, y, rong, cao (o)
 
-BAC_NONG = (51, DUONG_NGANG[0])   # nguoi coi kho, dung ngay truoc cua
-LAI_CA = (43, DUONG_NGANG[0])     # ong lai ca, dung ngay duoi bo ho
+# Bam theo chinh toa do cua khu minh dung truoc, khoi lech khi doi bo cuc
+BAC_NONG = (NHA_KHO[0] + 2, DUONG_NGANG[0])   # nguoi coi kho, truoc cua
+LAI_CA = (AO[0] + 2, DUONG_NGANG[0])          # ong lai ca, duoi bo ho
 
 # Long chuong — con vat chi di lai trong day (x0, y0, x1, y1)
 VUNG_THU = (CHUONG[0] + 1, CHUONG[1] + 1,

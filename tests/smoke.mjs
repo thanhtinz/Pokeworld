@@ -4649,6 +4649,16 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         && o.y >= NM.KHU_TRONG.y && o.y < NM.KHU_TRONG.y + NM.KHU_TRONG.h));
     ok('ô ruộng nằm trong danh sách cấm kê máy/chuồng',
       NM.O_RUONG.every(o => NM.CAM.has(`${o.x},${o.y}`)));
+    // Ô ruộng xếp SÁT nhau — phần cho biết chúng rời nhau là nét vẽ thụt vào,
+    // không phải khoảng cách. Chừa hẳn một ô trống thì ruộng dài gấp đôi mà
+    // chẳng nói thêm được gì.
+    ok('ô ruộng xếp sát nhau', (() => {
+      const co = new Set(NM.O_RUONG.map(o => `${o.x},${o.y}`));
+      return NM.O_RUONG.some(o => co.has(`${o.x + 1},${o.y}`))
+        && NM.O_RUONG.some(o => co.has(`${o.x},${o.y + 1}`));
+    })());
+    ok('bản đồ vẽ ô ruộng thụt vào cho hở mép',
+      /const LE_O = 1 \/ 16;/.test(w2) && /veO\(anhDat\(/.test(w2));
     // Đất ruộng KHÔNG được chạm vào lối đi: hai thứ đều là mảng nâu, dính vào
     // nhau thì nhìn không ra đâu là đường. Phải chừa ít nhất một hàng cỏ.
     ok('không ô ruộng nào chạm vào lối đi',

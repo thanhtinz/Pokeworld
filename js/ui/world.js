@@ -340,13 +340,19 @@ export function render(el) {
       ctx.drawImage(im, Math.round(x * size - camX), Math.round(y * size - camY),
         Math.round(w * size), Math.round(h * size));
     };
+    // Ô ruộng vẽ THỤT VÀO đúng một pixel gốc mỗi bên, nên giữa hai ô sát nhau
+    // luôn còn một vệt cỏ mảnh. Đó là tất cả những gì cần để thấy chúng là
+    // những ô riêng — chừa hẳn một ô trống thì ruộng dài gấp đôi mà chẳng nói
+    // thêm được gì.
+    const LE_O = 1 / 16;
+    const veO = (src, x, y) => ve1(src, x + LE_O, y + LE_O, 1 - LE_O * 2, 1 - LE_O * 2);
     for (const o of NT.nt().o) {
       const v = NT.VAT_BY_ID[o.id];
       if (!v) continue;
       if (v.loai === 'ruong') {
-        ve1(anhDat(NT.dangUot(o, gio)), o.x, o.y);
+        veO(anhDat(NT.dangUot(o, gio)), o.x, o.y);
         if (o.cay) {
-          ve1(anhCay(o.cay, NT.giaiDoan(o, gio), NT.dangUot(o, gio)), o.x, o.y);
+          veO(anhCay(o.cay, NT.giaiDoan(o, gio), NT.dangUot(o, gio)), o.x, o.y);
           // Chín rồi thì nhấp nháy một chấm vàng cho dễ thấy từ xa
           veDongHo({ loai: 'ruong', o }, o.x + 0.5, o.y, size, camX, camY, gio,
             'Nước', '#4dabf7');
