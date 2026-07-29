@@ -1010,7 +1010,7 @@ def main():
     # Khu dan cu la ban do RIENG cua ban nay, khong lay tu Tuxemon: tu dat tung
     # o roi day qua cung mot duong ong. Phai lam sau khi da co taba_town vi no
     # noi cong hai chieu voi thi tran.
-    kdc = khudancu.them_vao(out_maps, root, tsx_cache, load_tsx)
+    kdc = khudancu.them_vao(out_maps, FARM_DIR)
     if kdc:
         remap, cols = build_atlas(kdc, 'assets/maps/%s.png' % khudancu.SLUG)
         conv = lambda lay: [remap.get(g, -1) if g > 0 else -1 for g in lay]

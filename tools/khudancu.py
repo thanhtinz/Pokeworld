@@ -12,6 +12,10 @@ trong do dia hinh phan biet ro:
   - ho nuoc + bo cat: khong di duoc (nuoc thi engine tu chan)
   - vien cay + da   : hang rao tu nhien quanh ban do, khong di duoc
 
+NEN LAY TU PACK "Cozy Farm" (tools/cozytile.py), khong dung tileset Tuxemon
+nua: nong trai ngay sau nha da dung bo do, ma nha cua nguoi choi voi nhan vat
+cung deu tu pack khac — de bai co Tuxemon o day thi chinh no la thu lech ra.
+
 Khong doc TMX nao ca — ban do nay do minh tu dat tung o, roi day qua dung mot
 duong ong (build_atlas / write_js) voi cac ban do lay tu ban goc.
 
@@ -23,31 +27,14 @@ W, H = 32, 26
 SLUG = 'khu_dan_cu'
 TEN = 'Khu Dân Cư Taba'
 
-# ==== O trong tileset core_outdoor (37 cot) ====
-COT = 37
-def _o(c, r):
-    return r * COT + c
+# ==== O tile lay tu pack Cozy Farm (xem tools/cozytile.py) ====
+import cozytile as CT
+from cozytile import _o, o_vien, rng as _rng
 
-# Nen — moi loai lay ba o gan giong nhau cho do phang li
-CO = [_o(0, 3), _o(1, 3), _o(2, 3)]              # co xanh
-DAT = [_o(16, 3), _o(17, 3), _o(18, 3)]          # dat nau
-DA = [_o(24, 3), _o(25, 3), _o(26, 3)]           # da xam (duong di)
-CAT = [_o(0, 18), _o(1, 18), _o(2, 18)]          # cat (bo ho)
-
-# Vat the — dat len lop tren, nen van la co
-THONG_NHO = [_o(24, 28), _o(24, 29)]             # thong nho: ngon, goc
-THONG_TO = [[_o(25, 27), _o(26, 27)],            # thong to 2x3
-            [_o(25, 28), _o(26, 28)],
-            [_o(25, 29), _o(26, 29)]]
-CAY_TRON = [[_o(28, 35), _o(29, 35)],            # cay tan tron 2x2
-            [_o(28, 36), _o(29, 36)]]
-BUI = [_o(24, 30), _o(25, 30), _o(26, 30), _o(27, 30)]
-DA_TANG = [_o(30, 30), _o(31, 30)]
-COC_RAO = _o(17, 27)                             # coc hang rao le
-GOC_CAY = _o(29, 33)                             # goc cay cut
-GHE = [[_o(30, 33), _o(31, 33)], [_o(30, 34), _o(31, 34)]]
-HOA = [_o(28, 25), _o(29, 25), _o(30, 25), _o(28, 26), _o(29, 26)]
-NAM = [_o(29, 29), _o(30, 29)]
+CO = CT.CO                                       # co day
+DAT = CT.DAT                                     # dat nau — san tung lo
+CAT = CT.CAT                                     # dat cat — lat ngo
+BUI, HOA, DA_TANG = CT.BUI, CT.HOA, CT.DA_TANG
 
 # ==== Bo cuc ====
 # Lo dat: (x, y) la goc trai tren cua vung 3x3 — dung khop voi js/engine/estate.js
@@ -69,25 +56,11 @@ CONG_BAC = (DUONG_DOC[0], 0)
 
 
 
-def _rng(x, y, n):
-    """So gia ngau nhien nhung on dinh: chay lai bao nhieu lan cung ra the."""
-    h = (x * 73856093) ^ (y * 19349663) ^ 0x9E3779B9
-    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
-    return (h >> 7) % n
-
-
-def dung(root, tsx_cache, load_tsx, TILE=16):
+def dung(goc):
     """Tra ve mot dict giong het parse_map() de dung chung duong ong."""
-    tsdir = os.path.join(root, 'mods/tuxemon/gfx/tilesets')
-    ngoai = load_tsx(os.path.join(tsdir, 'core_outdoor.tsx'), tsx_cache)
-    nuoc_ts = load_tsx(os.path.join(tsdir, 'core_outdoor_water.tsx'), tsx_cache)
-    if not ngoai or not nuoc_ts:
-        raise SystemExit('Thiếu core_outdoor.tsx hoặc core_outdoor_water.tsx')
+    if not CT.co_pack(goc):
+        raise SystemExit('Khong thay %s trong %s' % (CT.TEP_TILE, goc))
     g0 = 1
-    g1 = 1 + ngoai['count']
-    sets = [(g0, ngoai), (g1, nuoc_ts)]
-    # O nuoc phang, tileset co danh dau 'surfable' nen engine biet la mat nuoc
-    O_NUOC = 10
 
     nen = [0] * (W * H)
     tren = [0] * (W * H)
@@ -97,106 +70,128 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     def idx(x, y):
         return y * W + x
 
-    def dat_nen(x, y, bo):
-        nen[idx(x, y)] = g0 + bo[_rng(x, y, len(bo))]
+    def trong_ban_do(x, y):
+        return 0 <= x < W and 0 <= y < H
+
+    def dat_nen(x, y, o):
+        nen[idx(x, y)] = g0 + o
 
     def dat_tren(x, y, o, chan=True):
         tren[idx(x, y)] = g0 + o
         if chan:
             solid[idx(x, y)] = 1
 
-    # --- nen co ---
+    # ==== Vung dia hinh ====
+    def la_duong(x, y):
+        if not trong_ban_do(x, y):
+            return False
+        if x in DUONG_DOC:
+            return True
+        return y in DUONG_NGANG and 2 <= x < W - 2
+
+    def la_lo(x, y):
+        """San dat 5x5 om lay vung 3x3 cua tung lo."""
+        for _id, _ten, _gia, lx, ly in LO:
+            if lx - 1 <= x <= lx + 3 and ly - 1 <= y <= ly + 3:
+                return True
+        return False
+
+    # ==== Nen ====
     for y in range(H):
         for x in range(W):
-            dat_nen(x, y, CO)
+            if la_duong(x, y):
+                dat_nen(x, y, CAT)
+            elif la_lo(x, y):
+                dat_nen(x, y, DAT)
+            else:
+                dat_nen(x, y, CO)
 
-    # --- duong da ---
-    for y in DUONG_NGANG:
-        for x in range(2, W - 2):
-            dat_nen(x, y, DA)
-    for x in DUONG_DOC:
-        for y in range(H):
-            dat_nen(x, y, DA)
+    # Vien: o co nao dinh vung khac thi doi sang o vien cua dai tuong ung
+    for y in range(H):
+        for x in range(W):
+            if la_duong(x, y) or la_lo(x, y):
+                continue
+            o = o_vien(la_lo, x, y, CT.DAI_DAT) or o_vien(la_duong, x, y, CT.DAI_CAT)
+            if o is not None:
+                dat_nen(x, y, o)
 
-    # --- san dat cua tung lo (5x5, om lay vung 3x3 cua can nha) ---
+    # ==== Hang rao quanh tung lo ====
+    # Rao chi de NHIN — khong chan duong, khong thi buoc vao lo cua minh
+    # khong noi. Hai canh ngang o tren va duoi, hai coc o hai ben.
+    dau, than, duoi = CT.RAO_NGANG
     for _id, _ten, _gia, lx, ly in LO:
-        for y in range(ly - 1, ly + 4):
-            for x in range(lx - 1, lx + 4):
-                if 0 <= x < W and 0 <= y < H:
-                    dat_nen(x, y, DAT)
-        # bon coc rao o bon goc san cho ra dang mot thua dat
-        for cx, cy in ((lx - 1, ly - 1), (lx + 3, ly - 1),
-                       (lx - 1, ly + 3), (lx + 3, ly + 3)):
-            if 0 <= cx < W and 0 <= cy < H:
-                dat_tren(cx, cy, COC_RAO)
+        for hang in (ly - 1, ly + 3):
+            for i2, x in enumerate(range(lx - 1, lx + 4)):
+                if not trong_ban_do(x, hang):
+                    continue
+                o = dau if i2 == 0 else (duoi if i2 == 4 else than)
+                dat_tren(x, hang, o, chan=False)
+        for y in range(ly, ly + 3):
+            for x in (lx - 1, lx + 3):
+                if trong_ban_do(x, y):
+                    dat_tren(x, y, CT.RAO_DOC, chan=False)
 
-    # --- vien cay quanh ban do ---
-    def trong_thong_to(x, y):
-        for dy, hang in enumerate(THONG_TO):
-            for dx, o in enumerate(hang):
-                if x + dx < W and y + dy < H:
-                    dat_tren(x + dx, y + dy, o)
+    # ==== Cay coi quanh ria ====
+    o_cay = set()
 
-    def trong_cay_tron(x, y):
-        for dy, hang in enumerate(CAY_TRON):
-            for dx, o in enumerate(hang):
-                if x + dx < W and y + dy < H:
-                    dat_tren(x + dx, y + dy, o)
+    def trong_cay(x, y, kieu):
+        for dy in range(4):
+            for dx in range(2):
+                if not trong_ban_do(x + dx, y + dy):
+                    continue
+                dat_tren(x + dx, y + dy, CT.o_cay(kieu, dx, dy), chan=(dy >= 2))
+                o_cay.add((x + dx, y + dy))
 
-    # Vien day hai o, nen xep theo TUNG CAP O DOC de trong duoc cay thong hai
-    # tang (ngon o tren, goc o duoi) chu khong phai rai toan goc cay cut.
-    cap = []
-    for x in range(W):
-        cap += [(x, 0), (x, H - 2)]
-    for y in range(2, H - 2, 2):
-        cap += [(0, y), (1, y), (W - 2, y), (W - 1, y)]
-    for x, y in cap:
-        if x in DUONG_DOC and y >= H - 2:
-            continue                              # chua cong ra thi tran
-        r = _rng(x, y, 10)
-        if r < 6:
-            dat_tren(x, y, THONG_NHO[0])
-            dat_tren(x, y + 1, THONG_NHO[1])
-        elif r < 8:
-            dat_tren(x, y, BUI[_rng(y, x, len(BUI))])
-            dat_tren(x, y + 1, BUI[_rng(x, y, len(BUI))])
-        else:
-            dat_tren(x, y, DA_TANG[_rng(y, x, len(DA_TANG))])
-            dat_tren(x, y + 1, BUI[_rng(y + 1, x, len(BUI))])
-    # vai cay to nhu cho vien day dan hon
-    for x, y in ((3, 0), (12, 0), (20, 0), (27, 0)):
-        trong_thong_to(x, y)
-    for x, y in ((5, H - 3), (25, H - 3)):
-        trong_cay_tron(x, y)
+    def cho_trong_cay(x, y):
+        het = True
+        for dy in range(4):
+            for dx in range(2):
+                if not trong_ban_do(x + dx, y + dy):
+                    continue
+                het = False
+                if la_duong(x + dx, y + dy) or la_lo(x + dx, y + dy):
+                    return False
+                if tren[idx(x + dx, y + dy)]:
+                    return False
+        return not het
 
-    # --- trang tri cho con lai ---
-    def trong(x, y):
-        return (nen[idx(x, y)] in [g0 + o for o in CO]
-                and not tren[idx(x, y)] and not solid[idx(x, y)])
+    # Hang tren trong tu y = -1: cay cao 4 o, trong tu y = 0 thi than cay cham
+    # xuong tan hang 3, ma hang 7 da la san lo dat roi.
+    ria = []
+    for x in range(0, W, 2):
+        ria += [(x, -1), (x, H - 4)]
+    for y in range(3, H - 4, 4):
+        ria += [(0, y), (W - 2, y)]
+    for x, y in ria:
+        if x in DUONG_DOC or x + 1 in DUONG_DOC:
+            continue                              # chua ngo doc
+        if cho_trong_cay(x, y):
+            trong_cay(x, y, CT.kieu_cay(x, y))
 
-    for y in range(2, H - 2):
-        for x in range(2, W - 2):
-            if not trong(x, y):
+    # ==== Ghe da doc ngo ====
+    for gx, gy in ((6, 15), (19, 15)):
+        for dx, (c0, r0) in enumerate([CT.GHE[0]]):
+            for i2 in range(2):
+                if trong_ban_do(gx + i2, gy) and not tren[idx(gx + i2, gy)]:
+                    dat_tren(gx + i2, gy, _o(c0 + i2, r0), chan=False)
+
+    # ==== Bui, hoa, da rai cho con lai ====
+    for y in range(1, H - 1):
+        for x in range(1, W - 1):
+            if (la_duong(x, y) or la_lo(x, y)
+                    or tren[idx(x, y)] or solid[idx(x, y)]):
                 continue
             r = _rng(x + 7, y + 11, 100)
-            if r < 6:
+            if r < 5:
                 dat_tren(x, y, HOA[_rng(x, y, len(HOA))], chan=False)
-            elif r < 8:
-                dat_tren(x, y, NAM[_rng(y, x, len(NAM))], chan=False)
-            elif r < 11:
-                dat_tren(x, y, BUI[_rng(y + 3, x, len(BUI))])
-            elif r == 11:
-                dat_tren(x, y, GOC_CAY)
-    # ghe da doc duong, ngoi nghi giua hai day nha
-    for gx, gy in ((6, 14), (19, 14)):
-        for dy, hang in enumerate(GHE):
-            for dx, o in enumerate(hang):
-                dat_tren(gx + dx, gy + dy, o)
+            elif r < 7:
+                dat_tren(x, y, BUI[_rng(y, x, len(BUI))], chan=False)
+            elif r == 7:
+                dat_tren(x, y, DA_TANG[_rng(y + 1, x, len(DA_TANG))], chan=False)
 
-    # --- don sach nhung o BAT BUOC phai di duoc ---
-    # (lo dat, duong, o cua nha, cho dung truoc bac tho moc)
+    # ==== Don sach nhung o BAT BUOC phai di duoc ====
     def don(x, y):
-        if 0 <= x < W and 0 <= y < H:
+        if trong_ban_do(x, y):
             tren[idx(x, y)] = 0
             solid[idx(x, y)] = 0
 
@@ -212,7 +207,7 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
                 don(x, y)
         don(lx + 1, ly + 3)                       # loi vao cua truoc nha
         don(lx + 1, ly + 4)
-    # --- nguoi trong khu ---
+
     npcs = [
         {'x': 6, 'y': 11, 'dir': 'down', 'sprite': 'homemaker', 'name': 'Cô Mai',
          'lines': ['Khu này yên tĩnh lắm. Mua lô nào thì cắm biển BÁN đó nhé.'],
@@ -239,8 +234,8 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
     talks = [t for t in talks if not solid[idx(t['x'], t['y'])]]
 
     return {
-        'w': W, 'h': H, 'sets': sets, 'layers': [nen, tren], 'above': None,
-        'solid': solid, 'water': water, 'warps': [], 'talks': talks,
+        'w': W, 'h': H, 'sets': CT.tile_set(goc, g0), 'layers': [nen, tren],
+        'above': None, 'solid': solid, 'water': water, 'warps': [], 'talks': talks,
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'grass', 'envNight': 'night_grass',
         'npcs': npcs,
@@ -332,22 +327,20 @@ def viet_js(lo, duong, cong_bac):
         f.write('\n'.join(out) + '\n')
 
 
-def them_vao(out_maps, root, tsx_cache, load_tsx):
+def them_vao(out_maps, goc):
     """Dung ban do, noi cong hai chieu voi Thi Tran Taba, ghi tep toa do."""
     taba = out_maps.get('taba_town')
     if not taba:
-        print('BỎ QUA khu dân cư: chưa có bản đồ taba_town')
+        print('BO QUA khu dan cu: chua co ban do taba_town')
         return None
     cho = cho_cong_ve_taba(taba)
     if not cho:
-        print('BỎ QUA khu dân cư: không tìm được chỗ đặt cổng ở Taba')
+        print('BO QUA khu dan cu: khong tim duoc cho dat cong o Taba')
         return None
     tx, ty = cho
-    m = dung(root, tsx_cache, load_tsx)
+    m = dung(goc)
     cx, cy = CONG
     # Di xuong het ngo la ve thi tran; buoc vao cong o thi tran la len dau ngo
-    # GIU lai may cong vao dia diem ma dung() da cam; day chi THEM cong ve
-    # thi tran. Gan de len ca danh sach la bon cai cua kia bien mat.
     m['warps'] = [{'x': cx, 'y': cy, 'to': 'taba_town', 'tx': tx, 'ty': ty + 1},
                   {'x': cx + 1, 'y': cy, 'to': 'taba_town', 'tx': tx, 'ty': ty + 1}]
     taba['warps'].append({'x': tx, 'y': ty, 'to': SLUG, 'tx': cx, 'ty': cy - 1})

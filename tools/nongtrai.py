@@ -31,37 +31,13 @@ W, H = 30, 24
 SLUG = 'nong_trai'
 TEN = 'Nông Trại Bờ Suối'
 
-# ==== Tileset cua pack ====
-TEP_TILE = 'tiles/tiles.png'
-COT = 54                    # tileset rong 54 o
-HANG_TS = 50
+import cozytile as CT
+from cozytile import _o, o_vien, rng as _rng
 
-
-def _o(c, r):
-    return r * COT + c
-
-
-# --- O nen ---
-CO = _o(1, 1)               # co day
-CAT = _o(5, 6)              # dat cat — lat loi di
-DAT = _o(5, 9)              # dat nau sam — san lam viec
-NUOC = _o(12, 13)           # mat nuoc
-
-# --- Ba dai autotile "co chong len X" ---
-# Moi dai ba hang: 3x3 vien dao quanh mot manh co, kem 2x2 goc lom.
-# Hang dau cua dai la R; o day chi ghi R, phan tra o de ham o_vien() lo.
-DAI_CAT = 6
-DAI_DAT = 9
-DAI_NUOC = 12
-
-# --- Vat the ---
-# Cay to: khoi 2 o rong x 4 o cao, hai hang duoi la than cay
-CAY_TO = [(0, 24), (2, 24)]      # hai kieu cay tan tron
-CAY_THONG = (4, 24)              # cay thong
-BUI = [_o(5, 26), _o(6, 26), _o(7, 26), _o(8, 26)]
-HOA = [_o(6, 27), _o(7, 27), _o(8, 27), _o(6, 28), _o(7, 28), _o(8, 28)]
-DA_TANG = [_o(9, 28), _o(10, 28), _o(11, 28), _o(12, 28)]
-QUA_RUNG = [_o(6, 24), _o(7, 24), _o(8, 24)]     # qua rung roi duoi goc cay
+TEP_TILE = CT.TEP_TILE
+CO, CAT, DAT, NUOC = CT.CO, CT.CAT, CT.DAT, CT.NUOC
+DAI_CAT, DAI_DAT, DAI_NUOC = CT.DAI_CAT, CT.DAI_DAT, CT.DAI_NUOC
+BUI, HOA, DA_TANG = CT.BUI, CT.HOA, CT.DA_TANG
 
 # ==== Bo cuc ====
 DUONG_DOC = (14, 15)            # loi di chinh chay tu cong len
@@ -93,59 +69,10 @@ MAC_DINH = [
 ]
 
 
-def _rng(x, y, n):
-    h = (x * 73856093) ^ (y * 19349663) ^ 0x9E3779B9
-    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
-    return (h >> 7) % n
-
-
-def o_vien(la, x, y, R):
-    """O co nam canh mot vung khac — tra o vien dung huong trong dai autotile.
-
-    Dai xep ba hang: 3x3 vien bao quanh mot manh co (goc/canh), va 2x2 goc lom
-    o cot 3-4. Bon o goc lom da soi tan mat moi chon: thu ca bon roi nhin, chi
-    mot cai noi lien duong vien, ba cai kia gay khuc.
-
-    Tra None neu o nay khong dinh vung do (cu de nguyen co).
-    """
-    n, s2 = la(x, y - 1), la(x, y + 1)
-    w, e = la(x - 1, y), la(x + 1, y)
-    if n and w:
-        return _o(0, R)
-    if n and e:
-        return _o(2, R)
-    if s2 and w:
-        return _o(0, R + 2)
-    if s2 and e:
-        return _o(2, R + 2)
-    if n:
-        return _o(1, R)
-    if s2:
-        return _o(1, R + 2)
-    if w:
-        return _o(0, R + 1)
-    if e:
-        return _o(2, R + 1)
-    # Goc lom (chi dinh o cheo). Bon huong DUNG CHUNG mot o: da thu ca bon
-    # ung vien cho tung huong roi nhin tan mat, chi o (3, R+1) la noi lien
-    # duong vien, ba o kia deu gay ra mot cai nem thua.
-    if (la(x + 1, y + 1) or la(x - 1, y + 1)
-            or la(x + 1, y - 1) or la(x - 1, y - 1)):
-        return _o(3, R + 1)
-    return None
-
-
-def _rng(x, y, n):
-    h = (x * 73856093) ^ (y * 19349663) ^ 0x9E3779B9
-    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
-    return (h >> 7) % n
-
-
 def dung(goc):
     """Xep ban do bang chinh tileset cua pack. `goc` = thu muc "full version"."""
-    tep = os.path.join(goc, TEP_TILE)
-    if not os.path.isfile(tep):
-        raise SystemExit('Khong thay %s' % tep)
+    if not CT.co_pack(goc):
+        raise SystemExit('Khong thay %s trong %s' % (TEP_TILE, goc))
 
     nen = [0] * (W * H)
     tren = [0] * (W * H)
@@ -214,12 +141,11 @@ def dung(goc):
 
     def trong_cay(x, y, kieu):
         """Cay 2 o rong x 4 o cao. Hai hang duoi la than — chan duong."""
-        c0, r0 = kieu
         for dy in range(4):
             for dx in range(2):
                 if not trong_ban_do(x + dx, y + dy):
                     continue
-                dat_tren(x + dx, y + dy, _o(c0 + dx, r0 + dy), chan=(dy >= 2))
+                dat_tren(x + dx, y + dy, CT.o_cay(kieu, dx, dy), chan=(dy >= 2))
                 o_cay.add((x + dx, y + dy))
 
     def cho_trong_cay(x, y):
@@ -259,8 +185,7 @@ def dung(goc):
             continue                              # chua loi di doc
         if not cho_trong_cay(x, y):
             continue
-        kieu = CAY_THONG if _rng(x, y, 3) == 0 else CAY_TO[_rng(y, x, len(CAY_TO))]
-        trong_cay(x, y, kieu)
+        trong_cay(x, y, CT.kieu_cay(x, y))
 
     # ==== Bui, hoa, da rai trong long nong trai ====
     # KHONG chan duong: cho nao cung phai ke duoc ruong voi chuong, khong thi
@@ -363,8 +288,7 @@ def dung(goc):
 
     return {
         'w': W, 'h': H, 'layers': [nen, tren], 'above': None,
-        'sets': [(g0, {'img': tep, 'cols': COT, 'count': COT * HANG_TS,
-                       'tw': 16, 'th': 16})],
+        'sets': CT.tile_set(goc, g0),
         'solid': solid, 'water': water, 'warps': [], 'talks': talks,
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'grass', 'envNight': 'night_grass',
@@ -423,7 +347,7 @@ def them_vao(out_maps, goc, kdc_slug):
     if not out_maps.get(kdc_slug):
         print('BO QUA nong trai: chua co ban do %s' % kdc_slug)
         return None
-    if not goc or not os.path.isfile(os.path.join(goc, TEP_TILE)):
+    if not CT.co_pack(goc):
         print('BO QUA nong trai: khong thay %s' % TEP_TILE)
         return None
     # KHONG cam cong bo sang Khu Dan Cu. Nong trai la SAN SAU cua can nha:

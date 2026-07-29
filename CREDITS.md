@@ -192,12 +192,17 @@ Giấy phép y hệt pack nhân vật: mua rồi thì dùng thương mại tho�
 tán lại chính cái pack**. Nên ở đây cũng chỉ commit phần đã cắt ra `assets/nt/`
 theo đúng định dạng riêng của game, không chép tệp gốc nào.
 
-**Nền bản đồ nông trại cũng của pack này.** Bản đầu tôi cố ý dùng tileset ngoài
+**Nền mấy bản đồ TỰ DỰNG cũng của pack này** — hiện là Nông Trại và Khu Dân Cư
+(`tools/cozytile.py` giữ bảng ô dùng chung). Bản đầu tôi cố ý dùng tileset ngoài
 trời của Tuxemon cho nền, sợ trộn hai bộ nền thì lệch phong cách — hoá ra ngược:
-nông trại vốn đã đầy cây trồng, con vật, nhà cửa CỦA PACK, nên cái lệch ra lại
-chính là bãi cỏ Tuxemon. Giờ cả bản đồ một bộ, và dùng đúng bộ autotile của họ
-nên cỏ ↔ đường đất ↔ mặt ao nối vào nhau mượt chứ không còn là mấy hình chữ nhật
-dán cạnh nhau.
+mấy khu đó vốn đã đầy nhân vật, cây trồng, con vật, nhà cửa CỦA PACK, nên cái
+lệch ra lại chính là bãi cỏ Tuxemon. Giờ cả bản đồ một bộ, và dùng đúng bộ
+autotile của họ nên cỏ ↔ đường đất ↔ mặt ao nối vào nhau mượt chứ không còn là
+mấy hình chữ nhật dán cạnh nhau.
+
+**Bốn mươi bản đồ NHẬP TỪ TUXEMON thì giữ nguyên tileset gốc.** Chúng vẽ bằng
+autotile riêng của Tuxemon — vách đá, mái nhà, bờ biển, cỏ cao — mà pack này
+không có ô tương đương; thay bừa là vỡ hết đường viền của cả bốn mươi bản đồ.
 
 Bộ autotile của pack xếp mỗi dải ba hàng: khối 3×3 viền quanh một mảng cỏ, kèm
 2×2 ô góc lõm ở cột 3-4. Bốn ô góc lõm thì **thử từng ô rồi nhìn tận mắt** mới
