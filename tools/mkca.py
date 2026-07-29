@@ -17,7 +17,6 @@ Bo nguon xep: fish_all.png 160x160 = luoi 10x10 o 16x16, thu tu dung y
 Sinh ra:
   assets/ca/<ma>.png     — icon tung loai
   assets/ca/bong.png     — bong ca boi duoi nuoc (15 khung 16x16)
-  assets/ca/quan.png     — quan ca ben bo ao
   js/data/ca.js          — danh muc ca + bang cho cau
 """
 import json
@@ -103,7 +102,7 @@ LUOI = 16          # canh mot o trong fish_all.png
 
 
 def cat_pack(goc):
-    """Cat icon ca + bong ca + quan ca tu pack. Tra ve so anh da cat.
+    """Cat icon ca + bong ca tu pack. Tra ve so anh da cat.
 
     fish_all.png xep 10 cot, thu tu dung y "fish list.txt" (danh so tu 1).
     """
@@ -119,10 +118,7 @@ def cat_pack(goc):
     # Bong ca boi duoi nuoc: dai 15 khung, ve ngay tren mat ao luc cho can cau
     bong = Image.open(os.path.join(goc, 'Fish Forage Items/fish_shadow_transparent.png')).convert('RGBA')
     bong.save(os.path.join(RA, 'bong.png'), optimize=True)
-    # Quan ca ben bo ao — cho ong lai ca ngoi
-    quan = Image.open(os.path.join(goc, 'Buildings/fishshop1.png')).convert('RGBA')
-    quan.save(os.path.join(RA, 'quan.png'), optimize=True)
-    return n + 2
+    return n + 1
 
 
 def ve_ca(ma, than, vay, dai_max):
@@ -220,9 +216,6 @@ def main():
              'export const ANH_BONG = `${THU_MUC_CA}/bong.png`;',
              'export const BONG_KHUNG = %d;' % BONG_KHUNG,
              'export const BONG_NHIP = %d;   // ms mỗi khung' % BONG_NHIP,
-             '',
-             '// Quán cá bên bờ ao, chỗ ông lái cá ngồi.',
-             'export const ANH_QUAN = `${THU_MUC_CA}/quan.png`;',
              '']
 
     with open(DL, 'w', encoding='utf-8') as f:

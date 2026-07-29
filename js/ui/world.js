@@ -1,8 +1,8 @@
 // TuxeWorld H5 | ui/world.js | Màn bản đồ: vẽ canvas + joystick ảo + nút tương tác
 import { G, save } from '../state.js';
 import * as CAU from '../engine/cauca.js';
-import { ANH_BONG, BONG_KHUNG, BONG_NHIP, ANH_QUAN } from '../data/ca.js';
-import { QUAN_CA } from '../data/nongtraimap.js';
+import { ANH_BONG, BONG_KHUNG, BONG_NHIP } from '../data/ca.js';
+import { NHA_KHO } from '../data/nongtraimap.js';
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
@@ -321,14 +321,14 @@ export function render(el) {
 
   function veNongTrai(size, camX, camY) {
     const gio = Date.now();
-    // Quán cá bên bờ ao: ảnh rời chứ không nằm trong tileset, phần chắn đường
-    // thì bản đồ đã đánh dấu sẵn (tools/nongtrai.py).
+    // Nhà kho: ảnh rời chứ không nằm trong tileset, phần chắn đường thì bản đồ
+    // đã đánh dấu sẵn (tools/nongtrai.py).
     {
-      const im = ntAnh(ANH_QUAN);
+      const im = ntAnh(anhNhaNT('nha_nong'));
       if (owReady(im)) {
-        ctx.drawImage(im, Math.round(QUAN_CA.x * size - camX),
-          Math.round(QUAN_CA.y * size - camY),
-          Math.round(QUAN_CA.w * size), Math.round(QUAN_CA.h * size));
+        ctx.drawImage(im, Math.round(NHA_KHO.x * size - camX),
+          Math.round(NHA_KHO.y * size - camY),
+          Math.round(NHA_KHO.w * size), Math.round(NHA_KHO.h * size));
       }
     }
     const ve1 = (src, x, y, w = 1, h = 1) => {
@@ -1378,6 +1378,47 @@ export function render(el) {
     save();
   }
 
+  // ==== Ông Lái Cá bên hồ ====
+  // Cần câu quyết định loài nào với tới được và vùng trúng của thanh lực rộng
+  // bao nhiêu, nên vẫn phải sắm được cần. Nhưng đó là việc MUA BÁN — để ông lái
+  // cá bên bờ nước lo, giống mọi chủ tiệm khác, chứ không nhét vào cái panel
+  // vốn chỉ để xem lại cá đã bắt.
+  async function laiCa(who) {
+    const k = CAU.kho();
+    const tienGio = k.gio.reduce((a, c) => a + CAU.giaCa(c), 0);
+    const i = await choose('Ông Lái Cá', [
+      { label: 'Bán cá trong giỏ',
+        sub: k.gio.length ? `${k.gio.length} con · ${tienChu(tienGio)}` : 'Giỏ đang trống' },
+      { label: 'Xem cần câu', sub: `Đang dùng ${CAU.canDangDung().name}` },
+      { label: 'Mở sổ cá', sub: 'Giỏ, bể nuôi, dex' },
+      { label: 'Thôi' },
+    ]);
+    if (i === 0) {
+      const [r, err] = CAU.banHet();
+      if (err) { toast(err); return; }
+      await playDialog([[who, `Cả thảy ${r.n} con, tôi trả ${tienChu(r.tien)}.`]]);
+      return;
+    }
+    if (i === 1) { await chonCan(who); return; }
+    if (i === 2) { cleanup(); show('cauca', { from: 'world' }); }
+  }
+
+  async function chonCan(who) {
+    const dang = CAU.canDangDung();
+    const ds = CAU.CAN.map(c => ({ c, co: CAU.coCan(c.id) }));
+    const j = await choose('Cần câu', ds.map(({ c, co }) => ({
+      label: c.name,
+      sub: c.id === dang.id ? `Đang dùng · ${c.desc}`
+        : co ? `Đổi sang · ${c.desc}` : `${tienChu(c.gia)} · ${c.desc}`,
+    })).concat([{ label: 'Thôi' }]));
+    if (j < 0 || j >= ds.length) return;
+    const { c, co } = ds[j];
+    if (c.id === dang.id) return;
+    const [ok, err] = co ? CAU.doiCan(c.id) : CAU.muaCan(c.id);
+    if (err) { toast(err); return; }
+    await playDialog([[who, ok]]);
+  }
+
   async function interact() {
     if (busy) return;
     const rod = canCau();
@@ -1424,6 +1465,9 @@ export function render(el) {
       if (say.length) {
         await playDialog(say.map(t => [who, t]));
       }
+      // Ông Lái Cá: bán cần, thu cá, mở sổ. Trước đây mấy việc này nằm trong
+      // thẻ 'Câu' của panel câu cá — mà panel thì đứng ở đâu cũng bấm được.
+      if (thing.laiCa) { await laiCa(who); return; }
       // NPC làm việc: nói xong thì mở đúng màn hình của việc đó (nhiệm vụ bang,
       // gọi Thủ Hộ...). Bản đồ tự sinh gắn sẵn trường 'mo' cho mấy NPC này.
       if (thing.mo) {

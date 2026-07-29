@@ -3,16 +3,21 @@
 // Đây là tính năng của riêng bản này, không có trong Tuxemon. Art cắt từ pack
 // "Cozy Farm" (tools/mknongtrai.py), bản đồ do tools/nongtrai.py dựng.
 //
+// Nông trại là SÂN SAU căn nhà của người chơi: chưa dựng xong nhà thì chưa có
+// đường vào, mà cũng chưa hiện trong trang Địa Điểm.
+//
+// Bốn khu quanh ngã tư lối đi: ruộng, hồ cá, chuồng thú, nhà kho.
+//
 // Cách chơi:
-//   1. Đi hết ngõ phía bắc Khu Dân Cư là tới Nông Trại Bờ Suối.
+//   1. Bước ra cửa sau trong nhà là ra thẳng nông trại.
 //   2. Kê ruộng ra chỗ nào cũng được, rồi đứng trước ô ruộng bấm A để gieo.
 //   3. CÂY CHỈ LỚN KHI ĐẤT CÒN ƯỚT — gieo xong phải tưới, mỗi lần tưới đủ cho
 //      đúng một giai đoạn. Bỏ bê thì cây đứng nguyên đó chờ.
 //   4. Chín thì bấm A để thu, nông sản vào kho nông trại.
-//   5. Mua thú ở chỗ bác Nông. Thú phải CHO ĂN cỏ khô mới ra lứa sản phẩm sau.
+//   5. Mua thú ở nhà kho chỗ bác Nông. Thú phải CHO ĂN cỏ khô mới ra lứa sau.
 //   6. Kê máy chế biến rồi bỏ nguyên liệu vào: sữa ra bơ với phô mai, len ra
 //      sợi rồi ra vải. Món chế biến đắt hơn hẳn nguyên liệu thô.
-//   7. Dân làng dán đơn ở bảng đơn hàng: gom đủ món thì giao, lấy tiền + điểm.
+//   7. Dân làng gửi đơn về nhà kho: gom đủ món thì giao, lấy tiền + điểm.
 //
 // Mọi mốc thời gian là THỜI GIAN THẬT (Date.now), tắt game cây vẫn lớn — giống
 // hệt cách nhà đang xây bên engine/estate.js đếm giờ.
@@ -20,11 +25,11 @@ import { G, save, addMoney } from '../state.js';
 import { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, SUC_CHUA_GOC } from '../data/nongtrai.js';
-import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG, BANG_DON } from '../data/nongtraimap.js';
+import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG } from '../data/nongtraimap.js';
 
 export { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
-  GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG, BANG_DON };
+  GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG };
 
 const PHUT = 60000;
 export const CHIN = GIAI_DOAN - 1;      // giai đoạn cuối là lúc chín

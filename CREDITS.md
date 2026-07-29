@@ -220,7 +220,7 @@ python3 tools/mknongtrai.py "/duong/dan/full version"
 
 Pack **Cozy Fishing của shubibubi** (itch.io) — cũng cùng tác giả. Lấy ba thứ:
 icon 14 loài cá (cắt từ `fish_all.png`, đánh số đúng theo `fish list.txt` của
-pack), dải bóng cá bơi dưới nước 15 khung, và cái quán cá bên bờ ao.
+pack) và dải bóng cá bơi dưới nước 15 khung.
 
 `license.txt` của pack ghi rõ: dùng được cho mọi dự án thương mại lẫn phi
 thương mại, sửa thoải mái, **cấm bán lại / phát tán lại chính cái pack**. Nên

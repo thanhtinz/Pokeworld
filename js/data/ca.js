@@ -62,6 +62,3 @@ export const ANH_BONG = `${THU_MUC_CA}/bong.png`;
 export const BONG_KHUNG = 15;
 export const BONG_NHIP = 140;   // ms mỗi khung
 
-// Quán cá bên bờ ao, chỗ ông lái cá ngồi.
-export const ANH_QUAN = `${THU_MUC_CA}/quan.png`;
-

@@ -11,7 +11,7 @@ import { show } from '../main.js';
 
 export function render(el, { from = 'menu' } = {}) {
   const co = DIA_DIEM.filter(d => MAPS[d.id]);
-  const nhanh = DIEM_NHANH.filter(d => MAPS[d.id]);
+  const nhanh = DIEM_NHANH.filter(d => MAPS[d.id] && (!d.hien || d.hien()));
 
   el.innerHTML = `
     ${header('Địa Điểm', from)}

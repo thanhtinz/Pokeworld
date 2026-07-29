@@ -1,4 +1,6 @@
-// TuxeWorld H5 | ui/nongtrai.js | Chợ nông trại, đơn hàng dân làng, kho nông sản
+// TuxeWorld H5 | ui/nongtrai.js | Nhà kho: chợ, đơn hàng dân làng, kho nông sản
+//
+// Mở bằng cách nói chuyện với bác Nông trước cửa nhà kho trên bản đồ.
 //
 // Ba thẻ dùng chung một màn:
 //   'cho' — mua hạt giống, cỏ khô, con vật, và thứ kê ra nông trại
@@ -91,7 +93,7 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
   function veDon() {
     const n = NT.nt();
     if (!n.don.length) {
-      return `<div class="card empty-note">Bảng chưa có đơn nào. Dân làng dán thêm
+      return `<div class="card empty-note">Chưa có đơn nào. Dân làng gửi thêm
         sau khoảng ${NT.PHUT_RA_DON} phút.</div>`;
     }
     return `
@@ -212,7 +214,7 @@ export function render(el, { tab = 'cho', from = 'world' } = {}) {
     }));
     el.querySelectorAll('.nt-bodon').forEach(b => b.addEventListener('click', () => {
       NT.boDon(b.dataset.ma);
-      toast('Đã bỏ đơn. Bảng sẽ dán đơn khác sau.');
+      toast('Đã bỏ đơn. Lát nữa sẽ có đơn khác.');
       ve();
     }));
 
