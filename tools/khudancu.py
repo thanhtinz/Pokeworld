@@ -6,8 +6,8 @@ khong co duong vao, khong phan biet dau la dat o dau la dong co. Tep nay sinh
 han mot ban do moi, ghep tu tileset ngoai troi cua Tuxemon (CC BY-SA 4.0),
 trong do dia hinh phan biet ro:
 
-  - duong da xam    : loi di chinh, di duoc
-  - san dat nau     : sau lo dat de xay nha, di duoc
+  - ngo dat nen     : loi di chinh, di duoc
+  - san lo + loi vao: sau lo dat de xay nha, cung chat nen voi ngo, di duoc
   - bai co xanh     : phan con lai, di duoc
   - ho nuoc + bo cat: khong di duoc (nuoc thi engine tu chan)
   - vien cay + da   : hang rao tu nhien quanh ban do, khong di duoc
@@ -32,8 +32,10 @@ import cozytile as CT
 from cozytile import _o, o_vien, rng as _rng
 
 CO = CT.CO                                       # co day
-DAT = CT.DAT                                     # dat nau — san tung lo
-CAT = CT.CAT                                     # dat cat — lat ngo
+# San tung lo lat bang DAT NEN, DUNG cai o dat nau sam CT.DAT: o do la o luong
+# ruong ngoai nong trai, lat vao san nha thi nhin nhu can nha moc giua ruong.
+# Dat nen cung la o lat ngo — san truoc nha noi lien ra ngo, dung the.
+CAT = CT.CAT                                     # dat nen — lat ngo va san nha
 BUI, HOA, DA_TANG = CT.BUI, CT.HOA, CT.DA_TANG
 
 # ==== Bo cuc ====
@@ -101,22 +103,26 @@ def dung(goc):
                 return True
         return False
 
-    # ==== Nen ====
-    for y in range(H):
-        for x in range(W):
-            if la_duong(x, y):
-                dat_nen(x, y, CAT)
-            elif la_lo(x, y):
-                dat_nen(x, y, DAT)
-            else:
-                dat_nen(x, y, CO)
+    def la_loi(x, y):
+        """Hai o lat truoc cong moi lo, dan tu cong vao cua nha."""
+        return any(x == lx + 1 and (y == ly + 3 or y == ly + 4)
+                   for _id, _ten, _gia, lx, ly in LO)
 
-    # Vien: o co nao dinh vung khac thi doi sang o vien cua dai tuong ung
+    def la_san(x, y):
+        return la_duong(x, y) or la_lo(x, y) or la_loi(x, y)
+
+    # ==== Nen ====
+    # Ngo, san lo va loi vao deu chung mot chat nen, nen chi mot dai autotile:
+    # cho nao giap co thi lay o vien cua dai do.
     for y in range(H):
         for x in range(W):
-            if la_duong(x, y) or la_lo(x, y):
+            dat_nen(x, y, CAT if la_san(x, y) else CO)
+
+    for y in range(H):
+        for x in range(W):
+            if la_san(x, y):
                 continue
-            o = o_vien(la_lo, x, y, CT.DAI_DAT) or o_vien(la_duong, x, y, CT.DAI_CAT)
+            o = o_vien(la_san, x, y, CT.DAI_CAT)
             if o is not None:
                 dat_nen(x, y, o)
 
@@ -155,7 +161,7 @@ def dung(goc):
                 if not trong_ban_do(x + dx, y + dy):
                     continue
                 het = False
-                if la_duong(x + dx, y + dy) or la_lo(x + dx, y + dy):
+                if la_san(x + dx, y + dy):
                     return False
                 if tren[idx(x + dx, y + dy)]:
                     return False
@@ -184,7 +190,7 @@ def dung(goc):
     # ==== Bui, hoa, da rai cho con lai ====
     for y in range(1, H - 1):
         for x in range(1, W - 1):
-            if (la_duong(x, y) or la_lo(x, y)
+            if (la_san(x, y)
                     or tren[idx(x, y)] or solid[idx(x, y)]):
                 continue
             r = _rng(x + 7, y + 11, 100)
