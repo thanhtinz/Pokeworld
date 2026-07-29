@@ -2,7 +2,7 @@
 import { G, save } from '../state.js';
 import * as CAU from '../engine/cauca.js';
 import { ANH_BONG, BONG_KHUNG, BONG_NHIP } from '../data/ca.js';
-import { NHA_KHO } from '../data/nongtraimap.js';
+import { NHA_KHO, NHA_BEP, BIEN } from '../data/nongtraimap.js';
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
@@ -321,15 +321,13 @@ export function render(el) {
 
   function veNongTrai(size, camX, camY) {
     const gio = Date.now();
-    // Nhà kho: ảnh rời chứ không nằm trong tileset, phần chắn đường thì bản đồ
-    // đã đánh dấu sẵn (tools/nongtrai.py).
-    {
-      const im = ntAnh(anhNhaNT('nha_nong'));
-      if (owReady(im)) {
-        ctx.drawImage(im, Math.round(NHA_KHO.x * size - camX),
-          Math.round(NHA_KHO.y * size - camY),
-          Math.round(NHA_KHO.w * size), Math.round(NHA_KHO.h * size));
-      }
+    // Nhà kho với nhà bếp: ảnh rời chứ không nằm trong tileset, phần chắn
+    // đường thì bản đồ đã đánh dấu sẵn (tools/nongtrai.py).
+    for (const [ma, n] of [['nha_nong', NHA_KHO], ['nha_bep', NHA_BEP]]) {
+      const im = ntAnh(anhNhaNT(ma));
+      if (!owReady(im)) continue;
+      ctx.drawImage(im, Math.round(n.x * size - camX), Math.round(n.y * size - camY),
+        Math.round(n.w * size), Math.round(n.h * size));
     }
     const ve1 = (src, x, y, w = 1, h = 1) => {
       const im = ntAnh(src);
@@ -345,8 +343,8 @@ export function render(el) {
         if (o.cay) {
           ve1(anhCay(o.cay, NT.giaiDoan(o, gio), NT.dangUot(o, gio)), o.x, o.y);
           // Chín rồi thì nhấp nháy một chấm vàng cho dễ thấy từ xa
-          if (NT.daChin(o, gio)) veCham(o.x + 0.5, o.y - 0.15, size, camX, camY, '#ffd43b');
-          else if (!NT.dangUot(o, gio)) veCham(o.x + 0.5, o.y - 0.15, size, camX, camY, '#4dabf7');
+          veDongHo({ loai: 'ruong', o }, o.x + 0.5, o.y, size, camX, camY, gio,
+            'Nước', '#4dabf7');
         }
       } else if (v.loai === 'may') {
         // Máy chỉ chiếm MỘT ô nhưng ảnh cao hai ô — vẽ vươn lên trên ô nó đứng.
@@ -362,7 +360,7 @@ export function render(el) {
             Math.round(o.x * size - camX), Math.round((o.y + 1) * size - camY - cao),
             Math.round(size), Math.round(cao));
         }
-        if (NT.mayXong(o, gio)) veCham(o.x + 0.5, o.y - 1.15, size, camX, camY, '#ffd43b');
+        veDongHo({ loai: 'may', o }, o.x + 0.5, o.y - 1, size, camX, camY, gio);
       } else {
         // Công trình vẽ cao hơn ô nó chiếm: ảnh gốc là mặt tiền nhìn nghiêng,
         // vẽ đúng bằng số ô thì lùn tịt.
@@ -383,8 +381,8 @@ export function render(el) {
       ctx.drawImage(im, f.sx, f.sy, f.sw, f.sh,
         Math.round(cx * size - camX - w / 2), Math.round(cy * size - camY - w),
         Math.round(w), Math.round(w));
-      if (NT.sanSang(con, gio)) veCham(cx, cy - 1.1, size, camX, camY, '#ffd43b');
-      else if (!NT.dangDoi(con, gio)) veCham(cx, cy - 1.1, size, camX, camY, '#ff8787');
+      veDongHo({ loai: 'thu', con }, cx, cy - 1, size, camX, camY, gio,
+        'Ăn', '#ff8787');
     }
     // Đang cầm món chờ kê: vẽ bóng mờ ngay ô trước mặt cho biết sẽ đặt vào đâu
     const cam = NT.choKe();
@@ -402,16 +400,102 @@ export function render(el) {
         Math.round(v.w * size), Math.round(v.h * size));
       ctx.restore();
     }
+
+    // Bảng tên + mũi tên vàng trên mọi chỗ bấm được. Vẽ CUỐI để nằm trên hết,
+    // không thì cái mặt tiền cao bảy ô của nhà bếp che mất bảng của chính nó.
+    for (const [ten, n] of [['Nhà Kho', NHA_KHO], ['Nhà Bếp', NHA_BEP]]) {
+      veBangTen(ten, n.x + n.w / 2, n.y + n.h, size, camX, camY);
+    }
+    for (const b of BIEN) veBangTen(b.ten, b.x + 0.5, b.y, size, camX, camY);
+    const nhaMinh = ES.nhaTrenBanDo(NT.NONG_TRAI_MAP);
+    if (nhaMinh) {
+      veBangTen(ES.dangXay() ? 'Đang xây' : 'Nhà Bạn',
+        nhaMinh.x + 1.5, nhaMinh.y + 3, size, camX, camY);
+    }
   }
 
-  // Chấm nhỏ báo "có việc ở đây" trên đầu ruộng/con vật
-  function veCham(x, y, size, camX, camY, mau) {
+  /**
+   * Cái chip nổi trên đầu một ô ruộng / con vật / cái máy.
+   *
+   * Trước đây chỉ là một chấm nhấp nháy: biết là "có việc" nhưng không biết còn
+   * bao lâu, nên cứ phải mở panel ra xem. Giờ ghi thẳng số giờ còn lại lên đầu
+   * nó, xong thì đổi thành dấu tích.
+   *
+   * `chuCho` / `mauCho` là chữ hiện khi món đang chờ TAY NGƯỜI chứ không chờ giờ
+   * (ruộng khát nước, thú đói). Không truyền thì lúc đó không vẽ gì.
+   */
+  function veDongHo(thing, x, y, size, camX, camY, gio, chuCho = null, mauCho = null) {
+    const ms = NT.conLaiCua(thing, gio);
+    let chu; let nen;
+    if (ms === null) {
+      if (!chuCho) return;
+      chu = chuCho; nen = mauCho;
+    } else if (ms <= 0) {
+      chu = '✓'; nen = '#ffd43b';
+    } else {
+      chu = NT.chuDongHo(ms); nen = 'rgba(20,18,30,0.82)';
+    }
+    // So le mot chut theo toa do: hai o canh nhau thi chip mot cai cao mot cai
+    // thap, khong thi hai cai chu chong len nhau doc het.
+    const le = ((Math.floor(x) + Math.floor(y)) % 2) * 0.42;
+    veChip(chu, x, y - le, size, camX, camY, nen, ms !== null && ms <= 0);
+  }
+
+  /** Một cái nhãn nhỏ bo góc, tâm nằm ở (x, y) tính theo ô. */
+  function veChip(chu, x, y, size, camX, camY, nen, nhay = false) {
+    const co = Math.max(7, Math.round(size * 0.34));
     ctx.save();
-    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(Date.now() / 260);
-    ctx.fillStyle = mau;
+    ctx.font = `700 ${co}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const rong = ctx.measureText(chu).width + co * 0.8;
+    const cao = co * 1.5;
+    const cx = Math.round(x * size - camX);
+    const cy = Math.round(y * size - camY) - cao * 0.6;
+    if (nhay) ctx.globalAlpha = 0.65 + 0.35 * Math.sin(gioNhay() / 240);
     ctx.beginPath();
-    ctx.arc(Math.round(x * size - camX), Math.round(y * size - camY),
-      Math.max(2, size * 0.12), 0, Math.PI * 2);
+    const r = cao / 2;
+    ctx.moveTo(cx - rong / 2 + r, cy - cao / 2);
+    ctx.arcTo(cx + rong / 2, cy - cao / 2, cx + rong / 2, cy + cao / 2, r);
+    ctx.arcTo(cx + rong / 2, cy + cao / 2, cx - rong / 2, cy + cao / 2, r);
+    ctx.arcTo(cx - rong / 2, cy + cao / 2, cx - rong / 2, cy - cao / 2, r);
+    ctx.arcTo(cx - rong / 2, cy - cao / 2, cx + rong / 2, cy - cao / 2, r);
+    ctx.closePath();
+    ctx.fillStyle = nen;
+    ctx.fill();
+    ctx.lineWidth = Math.max(1, co * 0.14);
+    ctx.strokeStyle = 'rgba(12,10,18,0.75)';
+    ctx.stroke();
+    ctx.fillStyle = nen === 'rgba(20,18,30,0.82)' ? '#ffe066' : '#241a04';
+    ctx.fillText(chu, cx, cy);
+    ctx.restore();
+  }
+
+  const gioNhay = () => Date.now();
+
+  /**
+   * Bảng tên kèm mũi tên vàng nhún nhún, cắm trên đầu một chỗ bấm được: cửa nhà
+   * kho, cửa nhà bếp, cửa nhà mình, mấy biển MUA.
+   *
+   * Cái mũi tên là thứ nói cho người chơi biết "chỗ này bấm được" mà không cần
+   * một dòng hướng dẫn nào.
+   */
+  function veBangTen(ten, x, y, size, camX, camY) {
+    veChip(ten, x, y - 0.5, size, camX, camY, 'rgba(20,18,30,0.82)');
+    const cx = Math.round(x * size - camX);
+    const nhun = Math.sin(Date.now() / 300) * size * 0.09;
+    const cy = Math.round(y * size - camY) + nhun;
+    const w = size * 0.3;
+    ctx.save();
+    ctx.fillStyle = '#ffd43b';
+    ctx.strokeStyle = 'rgba(20,18,30,0.7)';
+    ctx.lineWidth = Math.max(1, size * 0.05);
+    ctx.beginPath();
+    ctx.moveTo(cx - w, cy - w * 0.7);
+    ctx.lineTo(cx + w, cy - w * 0.7);
+    ctx.lineTo(cx, cy + w * 0.8);
+    ctx.closePath();
+    ctx.stroke();
     ctx.fill();
     ctx.restore();
   }
@@ -1220,12 +1304,58 @@ export function render(el) {
     }
   }
 
+  /**
+   * Ba cái biển MUA cắm dưới lối đi. Bấm vào là ra bảng chọn NGAY TRÊN BẢN ĐỒ:
+   * mua hạt thì đứng cạnh ruộng mà mua, mua thú thì đứng cạnh chuồng — khỏi mở
+   * panel rồi lại đi tìm xem mình đang ở đâu.
+   */
+  async function bienMua(thing) {
+    if (thing.ma === 'can') { await chonCan({ name: 'Biển Cần Câu' }); return; }
+    if (thing.ma === 'hat') {
+      const ds = NT.CAY;
+      const i = await choose('Hạt Giống', ds.map(c => ({
+        label: c.name,
+        sub: `${tienChu(c.giaHat)} · chín sau ${c.phut * NT.CHIN} phút`
+          + ` · đang có ${NT.co(NT.maHat(c.id))} gói`,
+      })).concat([{ label: 'Thôi' }]));
+      if (i < 0 || i >= ds.length) return;
+      const [gia, err] = NT.muaHat(ds[i].id);
+      toast(err || `Mua một gói hạt ${ds[i].name}, trả ${tienChu(gia)}.`);
+      return;
+    }
+    if (thing.ma === 'thu') {
+      const t = NT.tomTat();
+      const ds = NT.THU;
+      const i = await choose(`Con Vật (${t.thu}/${t.chua} chuồng)`, ds.map(a => ({
+        label: a.name,
+        sub: `${tienChu(a.gia)} · cho ${NT.MON_BY_ID[a.sanPham]?.name} sau ${a.phut} phút`,
+      })).concat([{ label: 'Thôi' }]));
+      if (i < 0 || i >= ds.length) return;
+      const cho = NT.choTrongCho();
+      const [con, err] = NT.muaThu(ds[i].id, cho.x, cho.y);
+      toast(err || `${con.name} về chuồng rồi.`);
+    }
+  }
+
   // ==== Nông trại: làm việc NGAY TRÊN BẢN ĐỒ ====
   //
   // Cả việc đồng áng lẫn việc kê lại bố cục đều bấm A ngay tại chỗ. Mở panel
   // riêng cho từng ô ruộng thì trồng một luống mười hai ô là mười hai lần đóng
   // mở panel — làm một lúc là chán.
   async function ruongNuong(thing) {
+    // 0) Hai toà nhà cố định và ba cái biển MUA
+    if (thing.kind === 'nha-kho') {
+      cleanup();
+      show('nongtrai', { tab: 'cho', from: 'world' });
+      return;
+    }
+    if (thing.kind === 'nha-bep') {
+      cleanup();
+      show('craft', { from: 'world' });
+      return;
+    }
+    if (thing.kind === 'bien') { await bienMua(thing); return; }
+
     // 1) Đang cầm món chờ kê: bấm vào ô trống là đặt xuống
     if (thing.kind === 'cho-trong') {
       const [o, err] = NT.keTaiDay(thing.x, thing.y);

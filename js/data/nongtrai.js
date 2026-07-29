@@ -80,12 +80,13 @@ export const MON_BY_ID = Object.fromEntries(MON.map(m => [m.id, m]));
 // Cỏ khô mua ở chỗ bác Nông, dùng cho thú ăn.
 export const GIA_CO_KHO = 45;
 // Chưa kê chuồng nào thì nuôi được bấy nhiêu con.
-export const SUC_CHUA_GOC = 2;
+export const SUC_CHUA_GOC = 6;
 
 // Nhà trên nông trại. `dac` = bản đồ ô chắn đường, đo bằng độ phủ
 // alpha của chính tấm ảnh chứ không gõ tay.
 export const NHA = [
   { id: "nha_nong", name: "Nhà Nông Trại", w: 5, h: 5, dac: [[0, 0, 1, 0, 0], [0, 1, 1, 1, 0], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [0, 1, 1, 1, 0]] },
+  { id: "nha_bep", name: "Nhà Bếp", w: 9, h: 7, dac: [[0, 0, 0, 1, 1, 1, 1, 1, 0], [0, 0, 0, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 0], [0, 1, 1, 1, 1, 1, 1, 1, 0], [0, 0, 0, 0, 1, 1, 1, 0, 0]] },
   { id: "chuong_ga", name: "Chuồng Gà", w: 4, h: 5, dac: [[0, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]] },
   { id: "chuong_bo", name: "Chuồng Bò", w: 6, h: 5, dac: [[0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 0]] },
   { id: "nha_kinh", name: "Nhà Kính", w: 7, h: 5, dac: [[1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1], [0, 0, 1, 1, 1, 0, 0]] },

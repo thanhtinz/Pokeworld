@@ -3,15 +3,34 @@
 // Bản gốc: tuxemon/item/crafting_system.py + mods/recipes.yaml.
 // Một công thức tiêu nguyên liệu rồi BỐC THĂM kết quả theo trọng số — cùng một
 // công thức có thể ra món ngon hoặc món hỏng, đúng như bản gốc.
+//
+// KHÁC BẢN GỐC MỘT CHỖ: nguyên liệu lấy được từ HAI túi. Bản gốc chỉ có đường
+// đánh Tuxemon hoang rồi cho nó rơi đồ, nên cả màn Nhà Bếp gần như để ngắm. Nay
+// nông trại trồng được, nuôi được, chế biến được, và mỗi nguyên liệu có một món
+// nông sản tương đương (THAY_NONG_SAN) — trồng lúa mì là có bột, nuôi gà là có
+// trứng. Nấu thì tiêu túi trước, thiếu mới lấy tiếp từ kho nông trại.
 import { rng } from '../util.js';
 import { G, addItem, removeItem, save } from '../state.js';
-import { RECIPES, RECIPE_BY_ID, CACH_LAM } from '../data/recipes.js';
+import { RECIPES, RECIPE_BY_ID, CACH_LAM, THAY_NONG_SAN } from '../data/recipes.js';
 import { ITEMS } from '../data/items.js';
+import * as NT from './nongtrai.js';
 
-export { RECIPES, RECIPE_BY_ID, CACH_LAM };
+export { RECIPES, RECIPE_BY_ID, CACH_LAM, THAY_NONG_SAN };
+
+/** Món nông sản đứng thay cho nguyên liệu này (null nếu không có). */
+export const nongSanThay = (id) => THAY_NONG_SAN[id] || null;
 
 // Đang có bao nhiêu nguyên liệu này trong túi
-export const dangCo = (id) => (G.p?.bag?.[id] || 0);
+export const trongTui = (id) => (G.p?.bag?.[id] || 0);
+
+/** Đang có bao nhiêu món nông sản đứng thay cho nguyên liệu này. */
+export function trongKhoNong(id) {
+  const ns = nongSanThay(id);
+  return ns ? NT.co(ns) : 0;
+}
+
+// Tổng số nguyên liệu này gom được từ cả hai túi
+export const dangCo = (id) => trongTui(id) + trongKhoNong(id);
 
 // Còn thiếu những gì để làm công thức này
 export function conThieu(r) {
@@ -49,7 +68,14 @@ export function cheTao(recipeId) {
     const ten = thieu.map(t => `${ITEMS[t.id]?.name || t.id} ${t.co}/${t.can}`).join(', ');
     return [null, `Còn thiếu: ${ten}.`];
   }
-  for (const [id, n] of Object.entries(r.ng)) removeItem(id, n);
+  // Tiêu túi trước, thiếu bao nhiêu thì bù tiếp từ kho nông trại. Trừ ngược
+  // lại thì mua sẵn nguyên liệu trong tiệm cũng không dùng được.
+  for (const [id, n] of Object.entries(r.ng)) {
+    const tuTui = Math.min(n, trongTui(id));
+    if (tuTui > 0) removeItem(id, tuTui);
+    const conLai = n - tuTui;
+    if (conLai > 0) NT.bot(nongSanThay(id), conLai);
+  }
   const o = bocKetQua(r);
   addItem(o.id, o.n);
   save();

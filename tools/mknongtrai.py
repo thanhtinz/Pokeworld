@@ -141,6 +141,9 @@ MON_THEM = [
 # (ma, ten, c0, r0, w, h) — o goc trai tren trong Buildings/buildings.png
 NHA = [
     ('nha_nong', 'Nhà Nông Trại', 0, 28, 5, 5),
+    # Hai cai duoi day KHONG mua duoc: la nha co dinh tren ban do nong trai.
+    # tools/nongtrai.py cham cho, js/ui/world.js ve.
+    ('nha_bep', 'Nhà Bếp', 0, 55, 9, 7),
     ('chuong_ga', 'Chuồng Gà', 0, 12, 4, 5),
     ('chuong_bo', 'Chuồng Bò', 0, 43, 6, 5),
     ('nha_kinh', 'Nhà Kính', 0, 20, 7, 5),
@@ -157,6 +160,7 @@ GIA_CO_KHO = 45
 #   chuong    — khong gieo duoc, nhung nuoi them duoc bay nhieu con
 #   trang_tri — chi de nhin
 # `w`/`h` cua cong trinh lay thang tu NHA o tren, ruong thi 1x1.
+# nha_bep KHONG co trong bang nay: no la nha co dinh tren ban do, khong ban.
 VAT_THE = [
     ('ruong', 'Ô Ruộng', 'ruong', 300, 0),
     ('chuong_ga', 'Chuồng Gà', 'chuong', 5000, 4),
@@ -166,7 +170,7 @@ VAT_THE = [
     ('sap_cho', 'Sạp Chợ', 'trang_tri', 12000, 0),
 ] + [(ma, ten, 'may', gia, 0) for ma, ten, _tep, gia in MAY]
 # Nuoi duoc bay nhieu con khi chua ke chuong nao
-SUC_CHUA_GOC = 2
+SUC_CHUA_GOC = 6
 
 
 def js(v):

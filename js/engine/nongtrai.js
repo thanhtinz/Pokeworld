@@ -25,11 +25,13 @@ import { G, save, addMoney } from '../state.js';
 import { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, SUC_CHUA_GOC } from '../data/nongtrai.js';
-import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG } from '../data/nongtraimap.js';
+import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG, VUNG_THU,
+  CHUONG, NHA_KHO, NHA_BEP, BIEN } from '../data/nongtraimap.js';
 
 export { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
-  GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG };
+  GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG, VUNG_THU,
+  CHUONG, NHA_KHO, NHA_BEP, BIEN };
 
 const PHUT = 60000;
 export const CHIN = GIAI_DOAN - 1;      // giai đoạn cuối là lúc chín
@@ -193,29 +195,26 @@ export function thu(o, gio = Date.now(), rnd = Math.random) {
 export const thuTaiO = (x, y) => nt().thu.find(t => t.x === x && t.y === y) || null;
 
 /**
- * Chỗ thả một con vật mới mua: quét vòng ra từ CÁI CHUỒNG, lấy ô đầu tiên
- * không vướng gì. Thả bừa vào ô cấm thì con vật đứng chồng lên lối đi hoặc lên
- * NPC.
+ * Chỗ thả một con vật mới mua: quét vòng ra từ GIỮA LÒNG CHUỒNG, lấy ô đầu
+ * tiên không vướng gì.
  *
- * Trước đây quét từ giữa bản đồ ra — mà giữa bản đồ đúng là cái ngã tư, nên cả
- * đàn bị dồn vào mấy ô kẹt giữa hai con đường, chen nhau đến mức không con nào
- * bước đi đâu được.
+ * Chuồng thú giờ là cái vùng quây rào sẵn trên bản đồ (tools/nongtrai.py), nên
+ * chỗ thả là chuyện đã định trước — không còn phải dò xem người chơi đã kê cái
+ * chuồng ở đâu, cũng không còn cảnh cả đàn bị dồn vào mấy ô kẹt giữa đường.
  */
 export function choTrongCho() {
   const co_ = (x, y) => !CAM.has(`${x},${y}`) && !oTaiO(x, y) && !thuTaiO(x, y);
-  const chuong = nt().o.find(o => VAT_BY_ID[o.id]?.loai === 'chuong');
-  const cv = chuong && VAT_BY_ID[chuong.id];
-  const gx = chuong ? chuong.x + Math.floor(cv.w / 2)
-    : Math.floor((VUNG.x0 + VUNG.x1) / 2);
-  const gy = chuong ? Math.min(VUNG.y1, chuong.y + cv.h)
-    : Math.floor((VUNG.y0 + VUNG.y1) / 2);
-  for (let r = 0; r <= Math.max(VUNG.x1 - VUNG.x0, VUNG.y1 - VUNG.y0); r++) {
+  const gx = Math.floor((VUNG_THU.x0 + VUNG_THU.x1) / 2);
+  const gy = Math.floor((VUNG_THU.y0 + VUNG_THU.y1) / 2);
+  const rMax = Math.max(VUNG_THU.x1 - VUNG_THU.x0, VUNG_THU.y1 - VUNG_THU.y0);
+  for (let r = 0; r <= rMax; r++) {
     for (let dy = -r; dy <= r; dy++) {
       for (let dx = -r; dx <= r; dx++) {
         if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
         const x = gx + dx;
         const y = gy + dy;
-        if (x < VUNG.x0 || x > VUNG.x1 || y < VUNG.y0 || y > VUNG.y1) continue;
+        if (x < VUNG_THU.x0 || x > VUNG_THU.x1) continue;
+        if (y < VUNG_THU.y0 || y > VUNG_THU.y1) continue;
         if (co_(x, y)) return { x, y };
       }
     }
@@ -249,9 +248,16 @@ const XA_THU = 4;            // đi xa nhất bấy nhiêu ô so với chỗ đ�
 const GAN_THU = 2;           // người chơi trong bấy nhiêu ô thì quay mặt lại
 const HUONG = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];
 
-/** Con vật bước được sang ô này không. */
+/**
+ * Con vật bước được sang ô này không.
+ *
+ * Giới hạn là LÒNG CHUỒNG, không phải cả nông trại: chuồng đã quây rào kín thì
+ * con vật lang ra tận ngoài ruộng là vô lý, mà tìm con để thu sản phẩm cũng
+ * thành đi soi khắp bản đồ.
+ */
 export function thuDiDuoc(x, y, boQua = null) {
-  if (x < VUNG.x0 || x > VUNG.x1 || y < VUNG.y0 || y > VUNG.y1) return false;
+  if (x < VUNG_THU.x0 || x > VUNG_THU.x1) return false;
+  if (y < VUNG_THU.y0 || y > VUNG_THU.y1) return false;
   if (CAM.has(`${x},${y}`)) return false;
   if (oTaiO(x, y)) return false;                  // không giẫm lên ruộng với máy
   // Phải tránh cả con ĐANG ĐI TỚI ô đó, không thì hai con cùng nhắm một ô rồi
@@ -658,11 +664,68 @@ export const tomTat = () => {
   };
 };
 
+/**
+ * Còn bao nhiêu mili-giây nữa thì món này xong — dùng cho cái đồng hồ đếm ngược
+ * vẽ ngay trên đầu nó ở màn bản đồ.
+ *
+ * Trả:
+ *   số > 0  còn phải chờ
+ *   0       xong rồi, ra thu đi
+ *   null    đang chờ TAY NGƯỜI chứ không chờ giờ (ruộng khát nước, thú đói,
+ *           máy rỗng) — vẽ chip khác màu chứ không đếm
+ */
+export function conLaiCua(thing, gio = Date.now()) {
+  if (!thing) return null;
+  if (thing.loai === 'ruong') {
+    const o = thing.o;
+    if (!o.cay) return null;
+    if (daChin(o, gio)) return 0;
+    return conLaiMs(o, gio);            // null nếu đất đã khô
+  }
+  if (thing.loai === 'thu') {
+    const con = thing.con;
+    if (!con.sanLuc) return null;       // chưa cho ăn
+    return Math.max(0, con.sanLuc - gio);
+  }
+  if (thing.loai === 'may') {
+    const m = thing.o;
+    if (!m.lam) return null;            // chưa bỏ nguyên liệu
+    return Math.max(0, (m.xongLuc || 0) - gio);
+  }
+  return null;
+}
+
+/** "4:05" / "1:02:30" — chữ trong cái chip đếm ngược. */
+export function chuDongHo(ms) {
+  const g = Math.max(0, Math.ceil(ms / 1000));
+  const gio = Math.floor(g / 3600);
+  const p = Math.floor((g % 3600) / 60);
+  const gy = g % 60;
+  const hai = (n) => String(n).padStart(2, '0');
+  return gio ? `${gio}:${hai(p)}:${hai(gy)}` : `${p}:${hai(gy)}`;
+}
+
 // ==== Vật thể trên bản đồ mà nút hành động bắt được ====
 // Trả về một "thing" giống NPC/biển hiệu để js/engine/overworld.js dùng chung
 // một đường với mọi thứ khác.
+const BIEN_BY_O = Object.fromEntries(BIEN.map(b => [`${b.x},${b.y}`, b]));
+
+/** Toạ độ nằm trong một toà nhà cố định (nhà kho / nhà bếp)? */
+const trongNha = (n, x, y) => x >= n.x && x < n.x + n.w && y >= n.y && y < n.y + n.h;
+
 export function vatNongTrai(mapId, x, y) {
   if (mapId !== NONG_TRAI_MAP) return null;
+  // Biển MUA cắm dưới lối đi: bấm ra bảng chọn ngay trên bản đồ
+  const bien = BIEN_BY_O[`${x},${y}`];
+  if (bien) return { type: 'nongtrai', kind: 'bien', name: bien.ten, ma: bien.ma };
+  // Hai toà nhà cố định — bấm vào chỗ nào của nhà cũng vào được, khỏi phải dò
+  // đúng một ô cửa trên cái mặt tiền rộng tám ô
+  if (trongNha(NHA_KHO, x, y)) {
+    return { type: 'nongtrai', kind: 'nha-kho', name: 'Nhà Kho' };
+  }
+  if (trongNha(NHA_BEP, x, y)) {
+    return { type: 'nongtrai', kind: 'nha-bep', name: 'Nhà Bếp' };
+  }
   const con = thuTaiO(x, y);
   if (con) {
     return { type: 'nongtrai', kind: 'thu', name: THU_BY_ID[con.id]?.name || 'Con vật', con };

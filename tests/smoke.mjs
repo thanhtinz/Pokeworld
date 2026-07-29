@@ -62,7 +62,7 @@ import { TECH_SFX } from '../js/data/sounds.js';
 import { fxFor } from '../js/data/vfx.js';
 import { applyStatus, removeStatus, endOfTurn, statMult, thornDamage,
   counterDamage, swapDamage, wildRampage, condBlocked, condTag, canAct } from '../js/engine/status.js';
-import { G, newGame } from '../js/state.js';
+import { G, newGame, addItem } from '../js/state.js';
 import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor, addTrainerExp,
   trainerLevelFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
@@ -4132,8 +4132,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
           .every(x => NM.LOI_NGANG.some(y => !m.solid[y * m.w + x])));
       // Không được toè thêm nhánh dọc: cột nào cũng chỉ đúng bấy nhiêu ô nền
       // lối đi, nhiều hơn nghĩa là có một cái ngã tư mọc ra.
-      const trongKho = (x, y) => x >= NM.NHA_KHO.x && x < NM.NHA_KHO.x + NM.NHA_KHO.w
-        && y >= NM.NHA_KHO.y && y <= NM.NHA_KHO.y + NM.NHA_KHO.h;
+      // Sân trước hai toà nhà lát cùng chất nền với lối đi — cố ý, để cửa khỏi
+      // mọc thẳng từ bãi cỏ. Không tính là nhánh đường.
+      const trongNha = (n, x, y) => x >= n.x && x < n.x + n.w
+        && y >= n.y && y <= n.y + n.h;
+      const trongKho = (x, y) => trongNha(NM.NHA_KHO, x, y) || trongNha(NM.NHA_BEP, x, y);
       const ngoaiDai = [];
       for (let x = 1; x < m.w - 1; x++) {
         for (let y = 0; y < m.h; y++) {
@@ -4531,6 +4534,96 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     const u2 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
     ok('màn nông trại chỉ lo chợ và đơn hàng, không gieo tưới',
       !/NT\.gieo\(|NT\.tuoi\(|NT\.thu\(/.test(u2));
+
+    // ---- Sáu khu trên dải ngang ----
+    ok('bản đồ vẽ cả nhà kho lẫn nhà bếp',
+      /NHA_KHO/.test(w2) && /NHA_BEP/.test(w2));
+    ok('bấm vào nhà kho ra chợ, bấm vào nhà bếp ra màn nấu ăn',
+      /'nha-kho'/.test(w2) && /'nha-bep'/.test(w2) && /show\('craft'/.test(w2));
+    ok('bản đồ có đồng hồ đếm ngược và bảng tên kèm mũi tên',
+      /veDongHo\(/.test(w2) && /veBangTen\(/.test(w2));
+    // Chuồng phải quây kín: con vật chỉ đi trong lòng chuồng
+    ok('có vùng lòng chuồng và lòng khu trồng',
+      !!NM.VUNG_THU && !!NM.VUNG_TRONG);
+    ok('con vật không bước ra khỏi lòng chuồng',
+      !NT.thuDiDuoc(NM.VUNG_THU.x0 - 1, NM.VUNG_THU.y0)
+      && !NT.thuDiDuoc(NM.VUNG_THU.x1 + 1, NM.VUNG_THU.y0)
+      && !NT.thuDiDuoc(NM.VUNG_THU.x0, NM.VUNG_THU.y1 + 1));
+    ok('chỗ thả con vật mới nằm trong lòng chuồng', (() => {
+      const c = NT.choTrongCho();
+      return c.x >= NM.VUNG_THU.x0 && c.x <= NM.VUNG_THU.x1
+        && c.y >= NM.VUNG_THU.y0 && c.y <= NM.VUNG_THU.y1;
+    })());
+    // Ba biển MUA phải bấm được từ lối đi: đứng trên đường quay mặt xuống
+    ok('có ba biển MUA cắm dưới lối đi', (NM.BIEN || []).length === 3,
+      (NM.BIEN || []).map(b => b.ma).join(' '));
+    ok('biển nào cũng nằm ngay dưới lối đi',
+      NM.BIEN.every(b => b.y === Math.max(...NM.LOI_NGANG) + 1));
+    ok('bấm vào biển ra bảng chọn ngay trên bản đồ',
+      /'bien'/.test(w2) && /bienMua\(/.test(w2));
+    // Hồ phải hở mặt phía lối đi, không thì đứng đâu cũng không buông cần được
+    {
+      const nt3 = MAPS[NM.NONG_TRAI_MAP];
+      const hangTren = Math.min(...NM.LOI_NGANG) - 1;
+      ok('đứng trên lối đi quay mặt lên là tới mặt nước',
+        Array.from({ length: NM.AO_CA.x1 - NM.AO_CA.x0 + 1 }, (_, i) => NM.AO_CA.x0 + i)
+          .some(x => !!nt3.water[hangTren * nt3.w + x]),
+        `hàng ${hangTren}`);
+    }
+
+    // ---- Nhà bếp nấu bằng nông sản ----
+    {
+      const CR = await import('../js/engine/craft.js');
+      const laNong = Object.values(CR.THAY_NONG_SAN);
+      ok('món nông sản nào thay nguyên liệu cũng có thật',
+        laNong.every(id => !!D.MON_BY_ID[id]),
+        laNong.filter(id => !D.MON_BY_ID[id]).join(' '));
+      ok('mỗi nguyên liệu thay bằng một món khác nhau',
+        new Set(laNong).size === laNong.length);
+      ok('nguyên liệu nào cũng là nguyên liệu thật của công thức',
+        Object.keys(CR.THAY_NONG_SAN).every(id =>
+          CR.RECIPES.some(r => id in r.ng)),
+        Object.keys(CR.THAY_NONG_SAN).filter(id =>
+          !CR.RECIPES.some(r => id in r.ng)).join(' '));
+
+      newGame('NauAn');
+      // Chọn một công thức rồi gom đủ nguyên liệu TOÀN BỘ từ kho nông trại
+      const r = CR.RECIPES.find(x => Object.keys(x.ng)
+        .every(id => CR.THAY_NONG_SAN[id]));
+      ok('có công thức làm được thuần bằng nông sản', !!r,
+        r ? r.id : CR.RECIPES.map(x => Object.keys(x.ng).join('+')).join(' | '));
+      if (r) {
+        ok('chưa có gì thì công thức đó chưa làm được', !CR.lamDuoc(r));
+        for (const [id, n] of Object.entries(r.ng)) {
+          NT.them(CR.THAY_NONG_SAN[id], n);
+        }
+        ok('kho nông trại tính là nguyên liệu', CR.lamDuoc(r),
+          CR.conThieu(r).map(t => `${t.id} ${t.co}/${t.can}`).join(', '));
+        const [ra, loi] = CR.cheTao(r.id);
+        ok('nấu được bằng nông sản trong kho', !!ra && !loi, loi || '');
+        ok('nấu xong thì kho nông trại bị trừ',
+          Object.entries(r.ng).every(([id]) => NT.co(CR.THAY_NONG_SAN[id]) === 0),
+          Object.entries(r.ng).map(([id]) =>
+            `${CR.THAY_NONG_SAN[id]}:${NT.co(CR.THAY_NONG_SAN[id])}`).join(' '));
+        ok('món nấu ra nằm trong túi', (G.p.bag[ra.id] || 0) >= 1);
+      }
+      // Món trong túi vẫn dùng được, và tiêu túi TRƯỚC kho nông trại
+      const r2 = CR.RECIPES.find(x => Object.keys(x.ng).some(id => CR.THAY_NONG_SAN[id]));
+      if (r2) {
+        const id0 = Object.keys(r2.ng).find(id => CR.THAY_NONG_SAN[id]);
+        const can = r2.ng[id0];
+        for (const [id, n] of Object.entries(r2.ng)) {
+          if (id === id0) addItem(id, n); else NT.them(CR.THAY_NONG_SAN[id], n);
+        }
+        NT.them(CR.THAY_NONG_SAN[id0], 3);
+        ok('có trong túi thì cũng làm được', CR.lamDuoc(r2));
+        CR.cheTao(r2.id);
+        ok('tiêu túi trước, kho nông trại còn nguyên',
+          NT.co(CR.THAY_NONG_SAN[id0]) === 3 && (G.p.bag[id0] || 0) === 0,
+          `kho ${NT.co(CR.THAY_NONG_SAN[id0])} túi ${G.p.bag[id0] || 0}`);
+        void can;
+      }
+    }
   }
 }
 

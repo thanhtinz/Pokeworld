@@ -6,6 +6,11 @@
 
 export const CACH_LAM = {"cooking": "Nấu ăn", "brewing": "Pha chế", "baking": "Nướng bánh", "alchemy": "Luyện đan", "crafting": "Thủ công"};
 
+// Nông sản thay được cho nguyên liệu nào: trồng lúa mì là có
+// bột, nuôi gà là có trứng. Nhờ thế cả bảng công thức đều với
+// tới được bằng đường làm nông chứ không chỉ bằng đánh Tuxemon.
+export const THAY_NONG_SAN = {"meal_dust": "lua_mi", "mistflour_eggs": "trung_trang", "moo_bloom": "sua_bo", "suncrust_butter": "bo_sua", "glowfat": "pho_mai", "sweetroot": "cu_cai", "field_greens": "xa_lach", "stonefruit_bulbs": "khoai_tay", "zestsap": "ca_chua", "zestroot_wraps": "ngo", "root_beast_bark": "ca_tim", "beastmoss": "bi_do", "flamehorn_shank": "thit_xong_khoi", "spice_dust": "ca_rot", "starpepper": "dau_tay", "crackle_salt": "trung_nau", "sky_feather": "long_ga_tay"};
+
 export const RECIPES = [
   { id: "rub_pork_chops", cach: "cooking", ng: {"root_beast_bark": 2, "glowfat": 1, "crackle_salt": 1, "starpepper": 1, "sweetroot": 1}, out: [{"id": "rub_pork_chops", "n": 1, "w": 0.9}, {"id": "bite_of_despair", "n": 1, "w": 0.1}] },
   { id: "mille_feuille", cach: "cooking", ng: {"meal_dust": 2, "sweetroot": 1, "mistflour_eggs": 2, "suncrust_butter": 1, "moo_bloom": 1, "crackle_salt": 1}, out: [{"id": "mille_feuille", "n": 1, "w": 0.8}, {"id": "whispersoup", "n": 1, "w": 0.2}] },
