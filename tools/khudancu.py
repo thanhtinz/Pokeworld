@@ -243,6 +243,11 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
         {'x': 16, 'y': 22, 'dir': 'up', 'sprite': 'lady', 'name': 'Chị Lan',
          'lines': ['Trong nhà kê được kha khá đồ đấy. Nhà to thì kê được nhiều hơn.'],
          'ai': 'wander'},
+        # Ong lai ca ngoi canh ho: cho ban ca, xem gio, be nuoi va dex.
+        # Man cauca KHONG con trong Menu nua — muon xem thi phai ra tan noi.
+        {'x': 23, 'y': 6, 'dir': 'right', 'sprite': 'beachcomber', 'name': 'Ông Lái Cá',
+         'lines': ['Câu được con nào thì mang lại đây, tôi mua hết.'],
+         'ai': 'stand', 'mo': 'cauca'},
         {'x': 27, 'y': 21, 'dir': 'left', 'sprite': 'bob', 'name': 'Chú Tám',
          'lines': ['Đi hết ngõ này là ra lại thị trấn.'],
          'ai': 'wander'},

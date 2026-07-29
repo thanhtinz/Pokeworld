@@ -97,6 +97,14 @@ export function caRia(cho, rnd = Math.random, bac = canDangDung().bac) {
   return { id: con.id, dai: Math.round(mn + (mx - mn) * t) };
 }
 
+/**
+ * Bản đồ nào thì câu ra bảng cá nào. Bản đồ lạ thì cứ tính là hồ — thà ra cá
+ * hiền còn hơn không câu được gì.
+ */
+const MAP_CHO = { khu_dan_cu: 'ho_dan_cu', taba_town: 'song_taba', khu_pho: 'song_taba' };
+export const choTheoMap = (mapId) => MAP_CHO[mapId]
+  || (/bien|beach|ocean|sea/i.test(mapId || '') ? 'bien_pepper' : 'ho_dan_cu');
+
 export const giaCa = (c) => Math.max(1, Math.round((CA_BY_ID[c.id]?.giaCm || 1) * c.dai));
 
 /**

@@ -3767,6 +3767,24 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('cá huyền thoại hiếm hơn hẳn cá thường', quy > 0 && thuong > quy * 8,
       `thường ${thuong} · huyền thoại ${quy}`);
   }
+  // Câu cá phải làm NGAY TRÊN BẢN ĐỒ, không phải mở panel từ Menu
+  {
+    const goc2 = new URL('../', import.meta.url).pathname;
+    const menu2 = readFileSync(join(goc2, 'js/ui/menu.js'), 'utf8');
+    ok('Menu không còn ô Câu cá', !/'cauca'|"cauca"/.test(menu2));
+    const w2 = readFileSync(join(goc2, 'js/ui/world.js'), 'utf8');
+    ok('bản đồ có nhánh câu cá ở mặt nước', /caRia\(/.test(w2) && /facingWater/.test(w2));
+    // Muốn xem giỏ/bể/dex thì phải ra tận chỗ ông lái cá
+    const lai = (MAPS.khu_dan_cu.npcs || []).filter(n => n.mo === 'cauca');
+    ok('có ông lái cá đứng cạnh hồ', lai.length === 1, `${lai.length} người`);
+    ok('ông lái cá đứng trên ô đi được',
+      lai.every(n => !MAPS.khu_dan_cu.solid[n.y * MAPS.khu_dan_cu.w + n.x]));
+    // Mỗi bản đồ có nước phải ra được một bảng cá có thật
+    ok('bản đồ nào cũng quy được về một chỗ câu có thật',
+      ['khu_dan_cu', 'taba_town', 'khu_pho', 'linh_tinh']
+        .every(m => CHO_CAU.some(c => c.id === F.choTheoMap(m))));
+  }
+
   // Điểm xếp hạng phải ăn theo bậc hiếm, không thì ngồi câu cá rô cũng lên đầu
   {
     newGame('Ro');

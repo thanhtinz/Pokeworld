@@ -1,5 +1,6 @@
 // TuxeWorld H5 | ui/world.js | Màn bản đồ: vẽ canvas + joystick ảo + nút tương tác
 import { G, save } from '../state.js';
+import * as CAU from '../engine/cauca.js';
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
@@ -981,7 +982,21 @@ export function render(el) {
       const mon = wearRod(rod);
       if (mon.broke) toast(`${ITEMS[rod]?.name || 'Cần câu'} gãy mất rồi!`);
       else if (mon.left <= 3) toast(`Cần sắp gãy — còn ${mon.left} lần thả.`);
-      if (!r.ok) { toast('Chờ mãi mà chẳng con nào cắn...'); return; }
+      // Không dính Tuxemon thì thử CÁ THƯỜNG — cùng một cú quăng cần, khỏi
+      // phải đẻ thêm một nút bấm riêng cho câu cá. Câu cá làm ngay trên bản
+      // đồ chứ không mở panel: bắt được con nào thì báo bằng một dòng thoại.
+      if (!r.ok) {
+        const con = CAU.caRia(CAU.choTheoMap(player.mapId));
+        if (!con) { toast('Chờ mãi mà chẳng con nào cắn...'); return; }
+        const [duoc, loi] = CAU.giatCan(con, 200);
+        if (loi) { toast(loi); return; }
+        const d = CAU.CA_BY_ID[duoc.id];
+        await playDialog([[{ name: 'Bạn' },
+          `${duoc.moi ? 'Loài mới! ' : duoc.kyLuc ? 'Kỷ lục mới! ' : ''}` +
+          `Được một con ${d.name} dài ${duoc.dai} cm.`]]);
+        save();
+        return;
+      }
       save();
       cleanup();
       show('battle', { kind: 'wild', enemy: r.mon, from: 'world',
