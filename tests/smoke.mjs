@@ -3249,6 +3249,24 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     }
     ok(`${d.id} không có ô trống nào đi được`, hong.length === 0,
       `${hong.length} ô`);
+    // Mỗi lớp đồ đạc của pack phải giữ RIÊNG một lớp. Gộp hết vào một lớp thì
+    // hai lớp cùng đặt tile lên một ô là lớp sau đè mất lớp trước — tường bị
+    // đồ trang trí đục thủng từng mảng, nhìn như cắt hỏng.
+    ok(`${d.id} giữ đủ lớp, không gộp dẹp`, MAPS[d.id].layers.length >= 5,
+      `${MAPS[d.id].layers.length} lớp`);
+    // Và phải còn đủ chỗ mà đi: chặn quá tay thì thành phòng kín
+    const diDuoc = (() => {
+      const w = m.w, seen = new Set(), st = [[m.spawn.x, m.spawn.y]];
+      while (st.length) {
+        const [x, y] = st.pop(), k = `${x},${y}`;
+        if (seen.has(k) || x < 0 || y < 0 || x >= w || y >= m.h) continue;
+        if (m.solid[y * w + x]) continue;
+        seen.add(k);
+        st.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+      }
+      return seen.size;
+    })();
+    ok(`${d.id} còn đủ chỗ đi lại`, diDuoc >= 40, `${diDuoc} ô`);
 
     // Vào rồi phải đứng trong nhà và đi tới được cửa, không thì vào xong là kẹt
     const [cho, err] = DD.vaoDiaDiem(d.id, { map: 'taba_town', x: 30, y: 20 });

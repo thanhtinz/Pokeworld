@@ -46,6 +46,19 @@ TREN = re.compile(r'(_top|top$|roof)', re.I)
 NGUOI = re.compile(r'(priest|monk|parishioner|citizen|fighter|mage|reader|'
                    r'guildmaster|cultist|talking|character|villager)', re.I)
 
+# Lop nao CHAN duong. Pack khong co lop va cham nen phai suy tu ten lop, va
+# chi TUONG moi chan.
+#
+# Da thu chan them ca do dac (ruong, chong, bay chong, ke...) thi hong: may
+# thu do nam rai rac giua san, bam nat mat san thanh nhieu manh roi nhau. Do
+# lai: den do nat tu 58 o di duoc lien thong tut con 4 — thanh cai phong kin
+# khong nhuc nhich noi. Chan moi tuong thi con 177/135/58 o, di lai thoai mai.
+#
+# Doi lai la di de len duoc may mon do nho (chum, vun da, ghe dai). May cho
+# nay chi vao ngam nen chap nhan duoc; muon chan tung mon thi phai tu xep o
+# nhu tools/khudancu.py.
+CHAN = re.compile(r'wall', re.I)
+
 
 def _grid_tu_layer(lay, x0, y0, w, h):
     """Gop cac <chunk> cua mot lop thanh mot luoi dac w*h."""
@@ -134,7 +147,7 @@ def doc_tmx(path):
                 return 0
         return g
 
-    nen, tren, solid = [], [0] * (w * h), [0] * (w * h)
+    nen, do_vat, solid = [], [], [0] * (w * h)
     above = None
     for lay in root.findall('layer'):
         ten = lay.get('name') or ''
@@ -149,8 +162,13 @@ def doc_tmx(path):
         if NEN.match(ten):
             nen.append(o)
             continue
-        # Lop do dac: ve chong len nen, va o nao co do thi chan duong
-        tren = [b or a for a, b in zip(tren, o)]
+        # MOI LOP DO DAC GIU RIENG MOT LOP. Truoc day gop hết vào một lớp bằng
+        # `b or a`: hai lop cung dat tile len mot o thi lop sau de mat lop
+        # truoc, thanh ra tuong bi do trang tri duc thung tung mang, nhin nhu
+        # cat hong. Ban do cua game von ve nhieu lop, cu de nguyen la dung.
+        do_vat.append(o)
+        if not CHAN.search(ten):
+            continue                      # đồ đạc lặt vặt: đi đè lên được
         for i, g in enumerate(o):
             if g:
                 solid[i] = 1
@@ -162,7 +180,7 @@ def doc_tmx(path):
         for i in range(w * h):
             if not any(l[i] for l in nen):
                 solid[i] = 1
-    layers = nen + ([tren] if any(tren) else [])
+    layers = nen + do_vat
     if not layers:
         layers = [[0] * (w * h)]
     m = {'w': w, 'h': h, 'layers': layers, 'above': above, 'solid': solid,
