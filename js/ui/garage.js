@@ -9,8 +9,8 @@ export function render(el, { from = 'menu' } = {}) {
   function veXe() {
     const dang = MT.dangCuoi();
     return `
-      <div class="card"><p class="es-note">Mua một lần là của mình mãi. Đang lái
-      thì đi nhanh hơn và ít gặp Tuxemon hoang hơn — muốn bắt thì xuống xe.</p></div>
+      <div class="card"><p class="es-note">Đang lái thì đi nhanh hơn và ít gặp Tuxemon
+      hoang hơn — muốn bắt thì xuống xe.</p></div>
       ${MT.VEHICLES.map(v => {
         const co = MT.coXe(v.id);
         const lai = dang?.t === 'xe' && dang.id === v.id;

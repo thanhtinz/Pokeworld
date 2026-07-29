@@ -62,7 +62,7 @@ export function render(el) {
       <div class="card set-group">
         <h3>Ưu đãi</h3>
         <button class="btn btn-primary" id="btn-code">🎁 Nhập Giftcode</button>
-        <small class="set-note">Mã quà tặng do ban quản trị phát. Quà về Hộp thư trên thanh trên.</small>
+        <small class="set-note">Quà nhận được nằm trong Hộp thư trên thanh trên.</small>
       </div>
 
       <div class="card set-group">
@@ -75,7 +75,7 @@ export function render(el) {
 
       <div class="card about-card">
         <b>TuxeWorld H5 v1.0</b>
-        <small>Fan game phi lợi nhuận, chơi vui trên trình duyệt.
+        <small>© Dreamtech Studio.
         Sinh vật, vật phẩm và ảnh nền lấy từ Tuxemon (CC BY-SA 4.0) — xem CREDITS.md.</small>
       </div>`;
 

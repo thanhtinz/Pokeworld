@@ -103,7 +103,7 @@ export function render(el) {
       <div class="card">
         <b>Cầu hôn</b>
         <small class="empty-note">Chỉ cầu hôn được người đã là bạn bè và có đủ
-        <b>${fmt(moc)}</b> điểm thân mật. Tặng quà cho nhau thì điểm lên.</small>
+        <b>${fmt(moc)}</b> điểm thân mật.</small>
         <button class="btn" id="mr-qua">Sang Tiệm Quà</button>
       </div>
       <div class="card">

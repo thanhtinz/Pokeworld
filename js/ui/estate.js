@@ -49,8 +49,8 @@ export function render(el, { from = 'menu' } = {}) {
     const ds = FURNITURE.filter(f => (f.nhom || 'kho') === nhom);
     return `
       <div class="card"><p class="es-note">Mua đồ về kho, rồi vào nhà bật
-      <b>Trang trí</b> để kê. Gỡ ra thì đồ về kho chứ không mất. Món nào ghi
-      <b>nằm / ngồi</b> thì kê xong vào dùng được.</p></div>
+      <b>Trang trí</b> để kê. Món nào ghi <b>nằm / ngồi</b> thì kê xong
+      vào dùng được.</p></div>
       <div class="seg-row seg-wrap">
         ${NHOM_DO.map(n => `<button type="button"
           class="seg-btn ${nhom === n.id ? 'active' : ''}"

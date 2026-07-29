@@ -107,8 +107,7 @@ async function moNha(body, username) {
         · ${d.luotTham} lượt thăm</small>
     </div>
     ${base ? `<div class="card">
-      <p class="es-note">Vào hẳn trong nhà xem chủ nhà bày biện thế nào. Đi tới
-      mép dưới căn phòng là ra.</p>
+      <p class="es-note">Đi tới mép dưới căn phòng là ra.</p>
       <button class="btn btn-primary" id="hm-vao">Vào nhà ${esc(d.username)}</button>
     </div>` : '<div class="card empty-note">Chủ nhà chưa dựng gì cả.</div>'}
     ${Object.keys(dem).length ? `<div class="card">

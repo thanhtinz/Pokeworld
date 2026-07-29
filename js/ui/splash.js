@@ -7,14 +7,11 @@ export function render(el) {
       <div class="splash-bg"></div>
       <div class="splash-inner">
         <img class="splash-title" src="assets/img/title.png" alt="TuxeWorld" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'logo splash-logo',textContent:'TuxeWorld'}))">
-        <p class="tagline">Bắt · Huấn luyện · Chinh phục</p>
-
         <button class="splash-start" id="btn-start">
           <span>START</span>
         </button>
-        <p class="splash-hint">Chạm để bắt đầu</p>
       </div>
-      <div class="splash-foot">Fan game phi lợi nhuận · v1.0</div>
+      <div class="splash-foot">© Dreamtech Studio</div>
     </div>`;
 
   const go = () => show('loading');
