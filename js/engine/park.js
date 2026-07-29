@@ -15,7 +15,11 @@ import { SPECIES } from '../data/species.js';
 
 // Bản gốc: eclipse_park_steps100 — "You still have 100 steps left!"
 export const BUOC = 100;
-export const GIA_VE = 5000;
+// Vào cổng MIỄN PHÍ. Trước thu 5.000 vàng một lượt, mà công viên là chỗ bắt
+// Tuxemon hiếm — bắt người chơi trả tiền mới được thử vận may thì thành ra
+// càng nghèo càng không có cửa. Giữ hằng số này (= 0) cho mấy chỗ hiển thị
+// khỏi vỡ, và để sau muốn thu lại thì chỉ sửa một chỗ.
+export const GIA_VE = 0;
 export const SO_BONG = 30;
 export const BONG = 'tuxeball_park';
 export const LUOT_MOI_CON = 30;          // ParkEncounter initial_turns
@@ -42,8 +46,10 @@ export function dangOCongVien() { return park.dang; }
 
 export function vaoCongVien() {
   if (park.dang) return [null, 'Bạn đang ở trong công viên rồi.'];
-  if ((G.p.money || 0) < GIA_VE) return [null, 'Không đủ tiền mua vé vào cổng.'];
-  addMoney(-GIA_VE);
+  if (GIA_VE > 0) {
+    if ((G.p.money || 0) < GIA_VE) return [null, 'Không đủ tiền mua vé vào cổng.'];
+    addMoney(-GIA_VE);
+  }
   park.dang = true;
   park.buoc = BUOC;
   park.bong = SO_BONG;

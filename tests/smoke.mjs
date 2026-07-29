@@ -1838,16 +1838,22 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
 // ==== Công Viên Pepper ====
 {
+  // Vào cổng MIỄN PHÍ: không xu dính túi vẫn phải vào được. Công viên là chỗ
+  // bắt Tuxemon hiếm, thu vé thì càng nghèo càng không có cửa.
   newGame('ParkTester');
-  G.p.money = 100;
+  G.p.money = 0;
   const [x, e1] = P.vaoCongVien();
-  ok('không đủ tiền thì không vào được', !x && !!e1);
+  ok('hết sạch tiền vẫn vào công viên được', !!x && !e1, e1 || '');
+  ok('vào cổng không mất đồng nào', G.p.money === 0, String(G.p.money));
+  ok('giá vé đúng là 0', P.GIA_VE === 0, String(P.GIA_VE));
+  P.raCong();
 
+  newGame('ParkTester');
   G.p.money = 50000;
   const tienCu = G.p.money;
   const [vao, e2] = P.vaoCongVien();
-  ok('mua vé vào được', !!vao && !e2);
-  ok('vé trừ đúng tiền', G.p.money === tienCu - P.GIA_VE, String(G.p.money));
+  ok('vào công viên được', !!vao && !e2);
+  ok('vẫn không trừ tiền', G.p.money === tienCu, String(G.p.money));
   ok('vào là có đủ bước và bóng', P.park.buoc === P.BUOC && P.park.bong === P.SO_BONG);
   ok('không vào hai lần', P.vaoCongVien()[1] !== null);
 
@@ -3312,6 +3318,293 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   // cấm phát tán lại chính bộ asset.
   ok('không chép nguyên tệp gốc của pack vào kho',
     !existsSync(join(kho, 'assets/craftpix')));
+}
+
+// ==== Sòng bài ====
+{
+  const CS = await import('../js/engine/casino.js');
+  const CG = await import('../js/engine/casinogame.js');
+  const TL = await import('../js/engine/tienlen.js');
+
+  // Bộ số ngẫu nhiên cố định để ván nào cũng lặp lại y hệt
+  const gieo = (hat) => {
+    let x = hat >>> 0;
+    return () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296; };
+  };
+
+  ok('bộ bài đủ 52 lá, không trùng', (() => {
+    const b = CS.boBai();
+    return b.length === 52 && new Set(b.map(l => `${l.so}${l.chat}`)).size === 52;
+  })());
+  ok('xáo xong vẫn đủ 52 lá', (() => {
+    const b = CS.xao(CS.boBai(), gieo(7));
+    return b.length === 52 && new Set(b.map(l => `${l.so}${l.chat}`)).size === 52;
+  })());
+  ok('xáo có thật sự đổi thứ tự', (() => {
+    const a = CS.boBai();
+    const b = CS.xao(a, gieo(3));
+    return a.some((l, i) => l.so !== b[i].so || l.chat !== b[i].chat);
+  })());
+
+  // ---- Mức cược ----
+  newGame('Con Bạc');
+  G.p.money = 100000;
+  ok('cược dưới mức tối thiểu bị chặn', CS.cuocHopLe(CS.CUOC_MIN - 1)[1] !== null);
+  ok('cược quá trần bị chặn', CS.cuocHopLe(CS.CUOC_MAX + 1)[1] !== null);
+  ok('cược trong khoảng thì được', CS.cuocHopLe(CS.CUOC_MIN)[0] === CS.CUOC_MIN);
+  // Luôn chừa lại ít vốn, không cho dốc sạch ví
+  G.p.money = CS.CUOC_MIN + 10;
+  ok('hết sạch vốn thì không cho cược', CS.cuocToiDa() < CS.CUOC_MIN);
+  ok('và báo rõ là không chơi được', CS.choiDuoc()[0] === false);
+
+  G.p.money = 100000;
+  ok('đặt cược thì trừ tiền ngay', (() => {
+    const truoc = G.p.money;
+    const [c] = CS.datCuoc(1000);
+    return c === 1000 && G.p.money === truoc - 1000;
+  })());
+  ok('thắng thì cộng lại đúng', (() => {
+    const truoc = G.p.money;
+    const lai = CS.ketToan(1000, 2000);
+    return lai === 1000 && G.p.money === truoc + 2000;
+  })());
+  ok('hoà thì huề vốn', (() => {
+    const truoc = G.p.money;
+    CS.ketToan(1000, 1000);
+    return G.p.money === truoc + 1000;
+  })());
+
+  // Thua quá ngưỡng ngày thì phải nghỉ — cái hãm quan trọng nhất
+  newGame('Con Bạc');
+  G.p.money = 500000;
+  CS.so().thua = CS.NGUONG_NGAY;
+  ok('thua quá ngưỡng trong ngày thì bị chặn', CS.choiDuoc()[0] === false);
+  ok('và không đặt cược được nữa', CS.datCuoc(1000)[1] !== null);
+  ok('sang ngày mới thì mở lại', (() => {
+    G.p.casino.ngay = '2000-1-1';
+    return CS.choiDuoc()[0] === true;
+  })());
+
+  // ---- Máy quay ----
+  ok('máy quay luôn ra ba ô hợp lệ', (() => {
+    const r = gieo(11);
+    for (let i = 0; i < 300; i++) {
+      const q = CG.quay(r);
+      if (q.o.length !== 3) return false;
+      if (!q.o.every(x => CG.O_QUAY.some(o => o.id === x))) return false;
+    }
+    return true;
+  })());
+  ok('ba ô giống nhau thì ăn đúng bảng thưởng',
+    CG.quay(() => 0).he === CG.THUONG_BA.cherry);
+  // Máy quay PHẢI lỗ về dài hạn, không thì ngồi quay là giàu
+  const kyVong = (() => {
+    const r = gieo(99);
+    let cuoc = 0;
+    let an = 0;
+    for (let i = 0; i < 200000; i++) { cuoc += 1; an += CG.quay(r).he; }
+    return an / cuoc;
+  })();
+  ok('máy quay trả về dưới 100% tiền cược', kyVong < 1 && kyVong > 0.7,
+    `${(kyVong * 100).toFixed(1)}%`);
+
+  // ---- Sấp ngửa ----
+  ok('sấp ngửa đoán trúng ăn gấp đôi', CG.tung('sap', () => 0.1).he === 2);
+  ok('sấp ngửa đoán trượt mất trắng', CG.tung('ngua', () => 0.1).he === 0);
+  ok('sấp ngửa chia đôi khá đều', (() => {
+    const r = gieo(5);
+    let sap = 0;
+    for (let i = 0; i < 20000; i++) if (CG.tung('sap', r).ra === 'sap') sap++;
+    return sap > 9500 && sap < 10500;
+  })());
+
+  // ---- Xì dách ----
+  ok('A tính 11 khi chưa quắc',
+    CG.diem([{ so: 1, chat: 'co' }, { so: 9, chat: 'ro' }]) === 20);
+  ok('A tụt về 1 khi quắc',
+    CG.diem([{ so: 1, chat: 'co' }, { so: 9, chat: 'ro' }, { so: 5, chat: 'bich' }]) === 15);
+  ok('hai A không thành 22',
+    CG.diem([{ so: 1, chat: 'co' }, { so: 1, chat: 'ro' }]) === 12);
+  ok('J Q K đều 10 điểm',
+    CG.diem([{ so: 11, chat: 'co' }, { so: 12, chat: 'ro' }]) === 20
+    && CG.diem([{ so: 13, chat: 'co' }, { so: 10, chat: 'ro' }]) === 20);
+  ok('xì dách phải đúng 2 lá',
+    CG.xiDach([{ so: 1, chat: 'co' }, { so: 13, chat: 'ro' }])
+    && !CG.xiDach([{ so: 5, chat: 'co' }, { so: 6, chat: 'ro' }, { so: 10, chat: 'bich' }]));
+  ok('quắc là thua, kể cả nhà cái cũng quắc', (() => {
+    const v = { nguoi: [{ so: 10, chat: 'co' }, { so: 10, chat: 'ro' }, { so: 5, chat: 'bich' }],
+      nha: [{ so: 10, chat: 'bich' }, { so: 10, chat: 'chuon' }, { so: 6, chat: 'co' }] };
+    return CG.xuXiDach(v).ket === 'thua';
+  })());
+  ok('nhà cái rút tới khi đủ 17', (() => {
+    const v = CG.chiaXiDach(gieo(21));
+    CG.nhaRut(v);
+    return CG.diem(v.nha) >= 17 || !v.noc.length;
+  })());
+  ok('chia bài xì dách không phát trùng lá', (() => {
+    for (let h = 0; h < 60; h++) {
+      const v = CG.chiaXiDach(gieo(h));
+      const het = v.nguoi.concat(v.nha, v.noc);
+      if (het.length !== 52) return false;
+      if (new Set(het.map(l => `${l.so}${l.chat}`)).size !== 52) return false;
+    }
+    return true;
+  })());
+
+  // ---- Đô-mi-nô ----
+  ok('bộ đô-mi-nô đủ 28 quân, không trùng', (() => {
+    const b = CG.boDomino();
+    return b.length === 28 && new Set(b.map(q => q.join('|'))).size === 28;
+  })());
+  ok('chia đô-mi-nô đủ quân', (() => {
+    const v = CG.chiaDomino(gieo(4));
+    return v.nguoi.length === 7 && v.may.length === 7 && v.noc.length === 14;
+  })());
+  ok('quân không khớp đầu thì không đặt được', (() => {
+    const v = CG.chiaDomino(gieo(4));
+    v.day = [[3, 5]];
+    return !CG.datDuoc(v, [1, 2]).length && CG.datDuoc(v, [5, 6]).includes('phai');
+  })());
+  ok('đặt quân thì xoay cho khớp đầu', (() => {
+    const v = { day: [[3, 5]], nguoi: [[6, 5]], may: [], noc: [] };
+    CG.danhDomino(v, 'nguoi', 0, 'phai');
+    return v.day.length === 2 && v.day[1][0] === 5 && v.day[1][1] === 6;
+  })());
+  ok('hết bài trước là thắng', (() => {
+    const v = { nguoi: [], may: [[1, 1]], noc: [], day: [[3, 3]] };
+    CG.xetDomino(v);
+    return v.ket === 'nguoi' && CG.heDomino(v.ket) === 2;
+  })());
+  ok('cùng tắc thì ít nút hơn thắng', (() => {
+    const v = { nguoi: [[0, 1]], may: [[6, 6]], noc: [], day: [[3, 3]] };
+    CG.xetDomino(v);
+    return v.ket === 'nguoi';
+  })());
+  ok('ván đô-mi-nô chạy được tới lúc kết thúc', (() => {
+    for (let h = 0; h < 40; h++) {
+      const v = CG.chiaDomino(gieo(h + 100));
+      for (let b = 0; b < 400 && !v.xong; b++) {
+        // người chơi: bốc tới khi có nước rồi đánh quân đầu tiên
+        while (!CG.conNuocDi(v, v.nguoi) && v.noc.length) CG.bocDomino(v, 'nguoi');
+        if (CG.conNuocDi(v, v.nguoi)) {
+          const i = v.nguoi.findIndex(q => CG.datDuoc(v, q).length);
+          CG.danhDomino(v, 'nguoi', i, CG.datDuoc(v, v.nguoi[i])[0]);
+        }
+        CG.xetDomino(v);
+        if (v.xong) break;
+        CG.mayDiDomino(v);
+        CG.xetDomino(v);
+      }
+      if (!v.xong) return false;
+    }
+    return true;
+  })());
+
+  // ---- Tiến lên ----
+  const la = (so, chat) => ({ so, chat });
+  ok('3 bích nhỏ nhất, 2 cơ lớn nhất',
+    TL.hang(la(3, 'bich')) === 0 && TL.hang(la(2, 'co')) === 51);
+  ok('2 lớn hơn A, A lớn hơn K',
+    TL.hang(la(2, 'bich')) > TL.hang(la(1, 'co'))
+    && TL.hang(la(1, 'bich')) > TL.hang(la(13, 'co')));
+  ok('nhận đúng đôi, ba, tứ quý',
+    TL.xetBo([la(5, 'bich'), la(5, 'co')]).loai === TL.LOAI.DOI
+    && TL.xetBo([la(5, 'bich'), la(5, 'co'), la(5, 'ro')]).loai === TL.LOAI.BA
+    && TL.xetBo([la(5, 'bich'), la(5, 'co'), la(5, 'ro'), la(5, 'chuon')]).loai === TL.LOAI.TU_QUY);
+  ok('nhận đúng sảnh',
+    TL.xetBo([la(3, 'bich'), la(4, 'co'), la(5, 'ro')]).loai === TL.LOAI.SANH);
+  ok('sảnh không được chứa heo',
+    TL.xetBo([la(13, 'bich'), la(1, 'co'), la(2, 'ro')]) === null);
+  ok('lá rời rạc không thành bộ',
+    TL.xetBo([la(3, 'bich'), la(7, 'co'), la(11, 'ro')]) === null);
+  ok('ba đôi thông là bom', (() => {
+    const b = TL.xetBo([la(3, 'bich'), la(3, 'co'), la(4, 'bich'), la(4, 'co'),
+      la(5, 'bich'), la(5, 'co')]);
+    return b && b.loai === TL.LOAI.BA_DOI_THONG;
+  })());
+  ok('cùng loại thì lá lớn hơn chặt được',
+    TL.chatDuoc([la(7, 'bich')], [la(6, 'co')])
+    && !TL.chatDuoc([la(6, 'bich')], [la(7, 'co')]));
+  ok('cùng số thì so chất, cơ lớn nhất',
+    TL.chatDuoc([la(7, 'co')], [la(7, 'bich')])
+    && !TL.chatDuoc([la(7, 'bich')], [la(7, 'co')]));
+  ok('sảnh dài khác nhau thì không chặt nhau',
+    !TL.chatDuoc([la(4, 'bich'), la(5, 'co'), la(6, 'ro'), la(7, 'bich')],
+      [la(3, 'bich'), la(4, 'co'), la(5, 'ro')]));
+  ok('ba đôi thông chặt được heo lẻ',
+    TL.chatDuoc([la(3, 'bich'), la(3, 'co'), la(4, 'bich'), la(4, 'co'),
+      la(5, 'bich'), la(5, 'co')], [la(2, 'co')]));
+  ok('tứ quý chặt được đôi heo',
+    TL.chatDuoc([la(5, 'bich'), la(5, 'co'), la(5, 'ro'), la(5, 'chuon')],
+      [la(2, 'bich'), la(2, 'co')]));
+  ok('bàn trống thì đánh gì cũng được', TL.chatDuoc([la(3, 'bich')], []));
+
+  ok('chia tiến lên: bốn nhà 13 lá, không trùng', (() => {
+    const v = TL.chia(gieo(31));
+    const het = v.tay.flat();
+    return v.tay.every(t => t.length === 13) && het.length === 52
+      && new Set(het.map(l => `${l.so}${l.chat}`)).size === 52;
+  })());
+  ok('nhà cầm 3 bích được đi trước', (() => {
+    const v = TL.chia(gieo(31));
+    return v.tay[v.luot].some(l => l.so === 3 && l.chat === 'bich');
+  })());
+  ok('ván đầu bắt buộc đánh bộ có 3 bích', (() => {
+    const v = TL.chia(gieo(31));
+    const tay = v.tay[v.luot];
+    const khong = tay.find(l => !(l.so === 3 && l.chat === 'bich'));
+    return TL.danh(v, v.luot, [khong])[1] !== null;
+  })());
+  ok('không đánh được lá không có trong bài', (() => {
+    const v = TL.chia(gieo(31));
+    const ai = v.luot;
+    const khong = TL.chia(gieo(77)).tay[0].find(l =>
+      !v.tay[ai].some(t => t.so === l.so && t.chat === l.chat));
+    return !khong || TL.danh(v, ai, [khong])[1] !== null;
+  })());
+  ok('chưa tới lượt thì không đánh được', (() => {
+    const v = TL.chia(gieo(31));
+    return TL.danh(v, (v.luot + 1) % 4, [v.tay[(v.luot + 1) % 4][0]])[1] !== null;
+  })());
+  ok('bàn trống thì không cho bỏ lượt', (() => {
+    const v = TL.chia(gieo(31));
+    return TL.boLuot(v, v.luot)[1] !== null;
+  })());
+
+  // Chạy trọn ván bằng máy cả bốn nhà: phải kết thúc, không kẹt vòng lặp,
+  // và không nhà nào đánh ra lá không có trong bài.
+  ok('ván tiến lên chạy trọn được, máy không đánh bậy', (() => {
+    for (let h = 0; h < 40; h++) {
+      const v = TL.chia(gieo(h + 500));
+      let buoc = 0;
+      while (!TL.xong(v) && buoc < 800) {
+        buoc += 1;
+        const ai = v.luot;
+        const ds = TL.mayDanh(v, ai);
+        if (ds.length) {
+          const [, err] = TL.danh(v, ai, ds);
+          if (err) return false;
+        } else {
+          const [, err] = TL.boLuot(v, ai);
+          if (err) return false;          // bí mà cũng không bỏ lượt được = kẹt
+        }
+      }
+      if (!TL.xong(v)) return false;
+      const het = v.tay.flat().length + v.xong.length * 0;
+      if (het > 13) return false;         // chỉ còn đúng một nhà cầm bài
+    }
+    return true;
+  })());
+  ok('về nhất ăn đậm nhất, hạng ba tư mất trắng',
+    TL.heTienLen(0) > TL.heTienLen(1) && TL.heTienLen(2) === 0 && TL.heTienLen(3) === 0);
+
+  // Không có đường nào nạp tiền thật vào sòng — chỉ tiêu vàng kiếm trong game
+  ok('sòng bài không dính tới tiền thật', (() => {
+    const goc2 = new URL('../', import.meta.url).pathname;
+    const src = readFileSync(join(goc2, 'js/engine/casino.js'), 'utf8')
+      + readFileSync(join(goc2, 'js/engine/casinogame.js'), 'utf8');
+    return !/\b(iap|purchase|stripe|paypal|usd|vnd_that|napthe|topup)\b/i.test(src);
+  })());
 }
 
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài

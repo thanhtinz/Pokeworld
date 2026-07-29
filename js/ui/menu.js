@@ -28,6 +28,7 @@ const HUB = [
   { to: 'craft',      icon: 'bep',     label: 'Nhà bếp' },
   { to: 'wardrobe',   icon: 'slot_outfit', label: 'Tủ đồ' },
   { to: 'diadiem',    icon: 'compass',     label: 'Địa điểm' },
+  { to: 'casino',     icon: 'coin',        label: 'Sòng bài' },
   { to: 'garage',     icon: 'car',     label: 'Nhà xe' },
   { to: 'events',     icon: 'flag',    label: 'Sự kiện', on: true },
   { to: 'boss',       icon: 'battle',  label: 'Săn boss', on: true },

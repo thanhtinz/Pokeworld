@@ -2971,3 +2971,70 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .dd-o small { color: var(--muted); font-size: .8rem; line-height: 1.4; }
 .dd-co { color: var(--muted); font-size: .74rem; }
 .dd-o .btn { margin-top: 4px; }
+
+/* ==== Sòng bài ==== */
+.cs-vi { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  padding: 9px 12px; font-size: .86rem; }
+.cs-ngay { color: var(--muted); font-size: .78rem; }
+.cs-chan { border-color: rgba(240, 120, 60, .5); color: var(--gold); font-size: .86rem; }
+.cs-gioi p { color: var(--muted); font-size: .84rem; line-height: 1.5; margin-top: 4px; }
+.cs-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.cs-o { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 11px; }
+.cs-o b { font-size: .92rem; }
+.cs-o small { color: var(--muted); font-size: .76rem; line-height: 1.35; }
+.cs-ke { text-align: center; font-size: .9rem; }
+.cs-an { color: var(--green); }
+.cs-mat { color: var(--accent); }
+
+.cs-cuoc { display: flex; flex-direction: column; gap: 7px; }
+.cs-muc { display: flex; flex-wrap: wrap; gap: 5px; }
+.cs-muc .seg-btn { flex: 0 0 auto; min-height: 32px; padding: 0 12px; font-size: .78rem;
+  background: rgba(255, 255, 255, .05); border: 1px solid var(--line); border-radius: 999px; }
+
+/* Máy quay */
+.cs-slot { background: linear-gradient(180deg, rgba(120, 40, 30, .5), var(--card)); }
+.cs-reel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.cs-oq { display: flex; align-items: center; justify-content: center; min-height: 68px;
+  border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, .32);
+  font-size: .84rem; font-weight: 600; text-align: center; }
+.cs-bang { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: .8rem; }
+.cs-bang b { display: block; width: 100%; margin-bottom: 2px; font-size: .86rem; }
+.cs-bang small { width: 100%; color: var(--muted); font-size: .76rem; }
+
+/* Sấp ngửa */
+.cs-coin { display: flex; justify-content: center; padding: 18px; }
+.cs-dong { width: 96px; height: 96px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-weight: 700; font-size: 1.05rem;
+  color: #3a2a08; background: radial-gradient(circle at 38% 32%, #ffe89a, #d79a1e 70%, #a06d10);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .45); }
+
+/* Bàn bài */
+.cs-ban { background: linear-gradient(180deg, rgba(20, 70, 45, .55), var(--card)); }
+.cs-ban > small { display: block; color: var(--muted); font-size: .78rem; margin: 6px 0 4px; }
+.cs-tay { margin-bottom: 8px; }
+.cs-tay small { color: var(--muted); font-size: .78rem; }
+.cs-la-hang { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.cs-la-hang i { color: var(--muted); font-size: .8rem; }
+.cs-la { display: inline-flex; align-items: center; justify-content: center;
+  min-width: 34px; height: 46px; padding: 0 5px; border-radius: 6px;
+  background: #f4f1e8; color: #14121c; border: 1px solid rgba(0, 0, 0, .35);
+  font-size: .84rem; font-weight: 700; }
+.cs-la.do { color: #c62828; }
+.cs-la.up { background: repeating-linear-gradient(45deg, #3b3f7a, #3b3f7a 4px, #2c2f5e 4px, #2c2f5e 8px); }
+.cs-la-hang.chon .cs-la { cursor: pointer; }
+.cs-la.chon { transform: translateY(-8px); box-shadow: 0 0 0 2px var(--gold); }
+.cs-tay-toi small { display: block; color: var(--muted); font-size: .78rem; }
+.cs-doi { display: flex; gap: 8px; }
+.cs-doi .btn { flex: 1; }
+.cs-nha { display: flex; justify-content: space-between; gap: 6px; font-size: .78rem;
+  color: var(--muted); margin-bottom: 6px; flex-wrap: wrap; }
+.cs-nha .di { color: var(--gold); font-weight: 600; }
+
+/* Đô-mi-nô */
+.cs-day { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.cs-quan { display: inline-flex; align-items: center; gap: 3px; padding: 5px 8px;
+  border-radius: 6px; background: #f4f1e8; color: #14121c;
+  border: 1px solid rgba(0, 0, 0, .35); font-weight: 700; font-size: .82rem; }
+.cs-quan i { width: 1px; height: 14px; background: rgba(0, 0, 0, .4); }
+.cs-quan.tit { opacity: .38; }
+.cs-quan.duoc { box-shadow: 0 0 0 2px rgba(240, 180, 41, .55); }

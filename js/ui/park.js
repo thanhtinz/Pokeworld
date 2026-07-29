@@ -20,7 +20,7 @@ export function render(el) {
     el.innerHTML = `
       ${header('Công Viên Pepper', 'menu')}
       <div class="card park-gate">
-        <b class="park-title">Vé vào cổng ${tien(GIA_VE)}</b>
+        <b class="park-title">${GIA_VE > 0 ? `Vé vào cổng ${tien(GIA_VE)}` : 'Vào cổng miễn phí'}</b>
         <p>Trong công viên <b>không đánh nhau</b>. Bạn chỉ được ném
         ${itemIcon(BONG, '', 18)} <b>Tuxeball Công Viên</b>, cho ăn để nó bớt
         cảnh giác, hoặc bỏ qua đi tìm con khác.</p>
@@ -29,7 +29,7 @@ export function render(el) {
           <li>${itemIcon(BONG, '', 15)} Mang theo <b>${SO_BONG} bóng</b></li>
           <li>${uiIcon('flag', 15)} Mỗi con chỉ đứng lại <b>${LUOT_MOI_CON} lượt</b></li>
         </ul>
-        <button class="btn btn-primary" id="park-in">Mua vé vào</button>
+        <button class="btn btn-primary" id="park-in">${GIA_VE > 0 ? 'Mua vé vào' : 'Vào công viên'}</button>
       </div>
       ${tongKet ? bangTongKet(tongKet) : ''}`;
 
