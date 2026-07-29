@@ -155,12 +155,14 @@ export function render(el) {
     el.innerHTML = `
       <div class="splash create-scr">
         <div class="splash-bg"></div>
-        <div class="splash-inner cc-wrap">
+        <div class="splash-inner cc-wrap cc-co-day">
           <div class="cc-dinh">
             <button type="button" class="cc-lui" id="cc-lui">‹ ${esc(tenGioi())}</button>
             <h2 class="login-title cc-title">Tạo nhân vật</h2>
           </div>
 
+          <!-- Bục + hàng mục ghim chung một khối lên đỉnh khi cuộn -->
+          <div class="cc-tren">
           <div class="cc-buc">
             <div class="cc-sang"></div>
             <button type="button" class="cc-random" id="cc-random">🎲 Ngẫu nhiên</button>
@@ -179,6 +181,7 @@ export function render(el) {
           <div class="cc-rail">
             ${dsMuc.map(x => `<button type="button" class="cc-rail-o ${x.k === m.k ? 'on' : ''}"
               data-muc="${esc(x.k)}">${esc(x.ten)}</button>`).join('')}
+          </div>
           </div>
 
           <div class="card cc-buoc">

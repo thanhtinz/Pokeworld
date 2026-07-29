@@ -171,6 +171,10 @@ html, body {
   position: relative;
   z-index: 1;
 }
+/* Màn nào ẩn thanh nav dưới thì đừng chừa 92px cho nó nữa. Chừa thừa là trang
+   dài hơn màn hình đúng chỗ trống đó: nhìn thì đứng yên mà vuốt cái là cả
+   khung trôi đi, người chơi tưởng giao diện bị lỗi. */
+#screen.khong-nav { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
 .screen-battle, .screen-starter { padding-bottom: 14px !important; }
 /* Man battle: nen do chinh .battle lo (anh dau truong theo khu vuc) */
 .screen-battle { background: #0b0716; }
@@ -1375,10 +1379,17 @@ img[src*='sprites'] { image-rendering: pixelated; }
 /* Khung chung cho splash / loading / auth / server / create */
 .splash {
   position: relative;
-  min-height: calc(100dvh - 28px);
+  /* 100% của khung cuộn chứ KHÔNG phải 100dvh: dvh tính cả thanh trên cùng
+     nên lúc nào cũng dôi ra vài chục pixel — trang dài hơn màn hình, vuốt cái
+     là cả khung trôi đi. */
+  min-height: 100%;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   text-align: center; padding: 20px 4px;
+  /* .splash-bg tràn ra ngoài 20px cho khỏi lộ mép mờ, nhưng phần tràn đó vẫn
+     tính vào chiều cao cuộn. `clip` cắt nó đi mà không biến .splash thành
+     khung cuộn — dùng `hidden` là hỏng luôn `position: sticky` của cái bục. */
+  overflow: clip;
 }
 .splash-bg {
   position: absolute; inset: -20px;
@@ -2693,7 +2704,9 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 /* ---- Bước một: chọn giới tính ---- */
 /* Dáng người của LPC chia hẳn theo giới (đồ cắt riêng từng bên), nên chốt
    giới tính trước rồi mới bày dáng của giới đó. */
-.cc-gioi-man { justify-content: center; min-height: 70vh; }
+/* .splash đã canh giữa sẵn rồi; ép thêm min-height ở đây là đẩy trang dài ra
+   quá màn hình, vuốt cái là trôi. */
+.cc-gioi-man { justify-content: center; }
 .cc-gioi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .cc-gioi-o {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
@@ -2725,7 +2738,7 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   border: 1px solid var(--line);
   background:
     radial-gradient(ellipse 62% 46% at 50% 78%, rgba(112, 72, 232, .42), transparent 72%),
-    linear-gradient(180deg, rgba(24, 17, 50, .92), rgba(11, 7, 24, .96));
+    linear-gradient(180deg, #181132, #0b0718);
   overflow: hidden;
 }
 .cc-sang {
@@ -2775,6 +2788,18 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 }
 .cc-huong i.on { background: var(--gold); box-shadow: 0 0 6px rgba(240, 180, 41, .7); }
 .cc-huong span { margin-left: 4px; }
+
+/* Bục nhân vật + hàng mục ghim lên đỉnh khi cuộn. Trước đây cả khối cuộn theo:
+   đang đổi kiểu tóc thì phải cuộn ngược lên mới thấy mình vừa đổi ra sao, chọn
+   kiểu gì cũng như mù. Nền phải ĐỤC hẳn, không thì mấy hàng chọn cuộn ở dưới
+   hiện xuyên qua trông như vỡ giao diện. */
+.cc-tren {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--bg-0, #0b0716);
+  padding-bottom: 6px; margin: 0 -6px; padding-left: 6px; padding-right: 6px;
+  border-bottom: 1px solid var(--line-soft);
+}
 
 /* Tám mục chỉnh: thanh trượt ngang, không bẻ dòng thành mấy hàng lổn nhổn */
 .cc-rail {
@@ -2882,8 +2907,10 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .cc-day input::placeholder { color: var(--muted); }
 /* .btn dùng chung có width:100%, để nguyên thì nút nuốt sạch chỗ của ô tên */
 .cc-day .btn { flex: 0 0 auto; width: auto; min-height: 44px; padding: 0 22px; font-size: .95rem; }
-/* Chừa chỗ cho thanh đáy, không thì nó che mất thẻ bộ đồ cuối cùng */
-.create-scr .splash-inner { padding-bottom: 76px; }
+/* Chừa chỗ cho thanh đáy, không thì nó che mất thẻ bộ đồ cuối cùng.
+   Chỉ bước chỉnh mặt mới có thanh này; bước chọn giới tính mà cũng chừa thì
+   dư ra 76px trống, trang dài hơn màn hình và bị trôi khi vuốt. */
+.create-scr .cc-co-day { padding-bottom: 76px; }
 
 /* ==== Tủ đồ / tiệm quần áo ==== */
 .td-xem { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }

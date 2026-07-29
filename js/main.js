@@ -117,6 +117,8 @@ export function show(name, params = {}) {
   // Bottom nav: ẩn trong suốt luồng mở đầu và khi đang đánh
   const nav = document.getElementById('bottom-nav');
   nav.hidden = NO_NAV.has(name);
+  // Ẩn nav thì khung cuộn khỏi phải chừa chỗ cho nó (xem #screen.khong-nav)
+  el.classList.toggle('khong-nav', nav.hidden);
   nav.querySelectorAll('button').forEach(b =>
     b.classList.toggle('active', b.dataset.nav === name));
   // Nút chat nổi: ẩn cùng lúc với nav, và ẩn luôn khi đang ở chính trang chat
