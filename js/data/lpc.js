@@ -16,15 +16,15 @@ export const THAN = [
   { id: "gay", name: "Mảnh Khảnh", do: "nam" },
 ];
 
-export const DA = [{ id: "ivory", name: "Ngà" }, { id: "gold", name: "Vàng Ấm" }, { id: "copper", name: "Đồng" }, { id: "sienna", name: "Nâu Đỏ" }, { id: "coffee", name: "Nâu Đậm" }, { id: "dove", name: "Xám Nhạt" }];
+export const DA = [{ id: "ivory", name: "Ngà", mau: "#f9d5ba" }, { id: "gold", name: "Vàng Ấm", mau: "#fdd082" }, { id: "copper", name: "Đồng", mau: "#aa6030" }, { id: "sienna", name: "Nâu Đỏ", mau: "#d68c61" }, { id: "coffee", name: "Nâu Đậm", mau: "#603429" }, { id: "dove", name: "Xám Nhạt", mau: "#e5e6c7" }];
 export const TAI = [{ id: "big", name: "Tai To" }, { id: "nhon", name: "Tai Nhọn" }, { id: "dainhon", name: "Tai Nhọn Dài" }];
 export const MUI = [{ id: "hech", name: "Mũi Hếch" }, { id: "to", name: "Mũi To" }, { id: "thang", name: "Mũi Thẳng" }];
 export const BIEU_CAM = [{ id: "gian", name: "Cau Có" }, { id: "khoc", name: "Mếu Máo" }, { id: "vui", name: "Tươi Cười" }, { id: "buon", name: "Buồn Rầu" }];
-export const MAT = [{ id: "xanhduong", name: "Xanh Dương" }, { id: "nau", name: "Nâu" }, { id: "xam", name: "Xám" }, { id: "xanhla", name: "Xanh Lá" }, { id: "cam", name: "Cam" }, { id: "tim", name: "Tím" }, { id: "do", name: "Đỏ" }, { id: "vang", name: "Vàng" }];
+export const MAT = [{ id: "xanhduong", name: "Xanh Dương", mau: "#50d4ec" }, { id: "nau", name: "Nâu", mau: "#7e4e20" }, { id: "xam", name: "Xám", mau: "#ada18f" }, { id: "xanhla", name: "Xanh Lá", mau: "#84ec50" }, { id: "cam", name: "Cam", mau: "#a45227" }, { id: "tim", name: "Tím", mau: "#b90da0" }, { id: "do", name: "Đỏ", mau: "#ff3d62" }, { id: "vang", name: "Vàng", mau: "#fedf47" }];
 export const TOC_KIEU = [{ id: "thang", name: "Tóc Thẳng" }, { id: "dai", name: "Tóc Dài" }, { id: "mai", name: "Tóc Mái" }, { id: "duoi", name: "Tóc Đuôi Ngựa" }, { id: "xoan", name: "Tóc Xoăn" }, { id: "afro", name: "Tóc Xù" }, { id: "roi", name: "Tóc Rối" }, { id: "tem", name: "Tóc Tém" }, { id: "tet", name: "Tóc Tết" }, { id: "haichum", name: "Hai Chùm" }, { id: "mohican", name: "Mohican" }, { id: "congchua", name: "Tóc Công Chúa" }];
-export const TOC_MAU = [{ id: "den", name: "Đen" }, { id: "nau", name: "Nâu" }, { id: "hatde", name: "Hạt Dẻ" }, { id: "vang", name: "Vàng" }, { id: "do", name: "Đỏ" }, { id: "bac", name: "Bạc" }];
+export const TOC_MAU = [{ id: "den", name: "Đen", mau: "#154259" }, { id: "nau", name: "Nâu", mau: "#44160a" }, { id: "hatde", name: "Hạt Dẻ", mau: "#81310a" }, { id: "vang", name: "Vàng", mau: "#e09e2b" }, { id: "do", name: "Đỏ", mau: "#9e1f1f" }, { id: "bac", name: "Bạc", mau: "#6a6e74" }];
 export const RAU_KIEU = [{ id: "quaiham", name: "Râu Quai Nón" }, { id: "mep", name: "Ria Mép" }, { id: "lomchom", name: "Râu Lởm Chởm" }, { id: "vuot", name: "Ria Vuốt" }, { id: "phap", name: "Ria Kiểu Pháp" }];
-export const RAU_MAU = [{ id: "den", name: "Đen" }, { id: "nau", name: "Nâu" }, { id: "vang", name: "Vàng" }, { id: "bac", name: "Bạc" }];
+export const RAU_MAU = [{ id: "den", name: "Đen", mau: "#0d384d" }, { id: "nau", name: "Nâu", mau: "#bd6002" }, { id: "vang", name: "Vàng", mau: "#eddc7e" }, { id: "bac", name: "Bạc", mau: "#aaaaaa" }];
 
 // Ô quần áo, xếp theo THỨ TỰ VẼ (trước ra sau)
 export const O_DO = [

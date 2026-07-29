@@ -1381,16 +1381,27 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   con.hpCur = maxHp(con);
   con.status = 'poison';
   G.p.party = [con];
-  enterMap('taba_town');
-  const truoc = con.hpCur;
   // NPC của bản đồ là biến chung, các test khác cho họ đi lang thang nên có lần
   // một người đứng chắn ngay lối, người chơi không nhích được ô nào và test này
-  // đỏ oan. Tạm dọn NPC đi cho phần đường thông thoáng.
+  // đỏ oan. Dọn NPC đi TRƯỚC KHI vào bản đồ: enterMap tránh chỗ có NPC nên dọn
+  // sau thì chỗ đứng đã lệch mất rồi.
   const npcCu = MAPS.taba_town.npcs;
   MAPS.taba_town.npcs = [];
-  // đi tới đi lui cho đủ bước; mỗi lần sang ô mới tính một bước
-  for (let k = 0; k < 400; k++) update(0.05, (k % 20 < 10) ? 1 : -1, 0);
+  enterMap('taba_town');
+  const truoc = con.hpCur;
+  // Đếm bằng tổng số bước cả đời: player.steps bị đặt lại mỗi lần rơi vào ô
+  // gặp thú hoang, còn toạ độ thì đi vòng bốn hướng xong lại về đúng chỗ cũ.
+  const buocTruoc = G.p.stats.steps || 0;
+  // Đi vòng đủ bốn hướng: chỉ đi tới lui theo một trục thì gặp hôm đứng lọt
+  // giữa hai bức tường là không nhích được bước nào.
+  for (let k = 0; k < 800; k++) {
+    const pha = Math.floor(k / 10) % 4;
+    update(0.05, pha === 0 ? 1 : pha === 2 ? -1 : 0, pha === 1 ? 1 : pha === 3 ? -1 : 0);
+  }
   MAPS.taba_town.npcs = npcCu;
+  const daBuoc = (G.p.stats.steps || 0) - buocTruoc;
+  ok('trúng độc đi bộ thì thật sự có nhúc nhích', daBuoc >= 10,
+    `mới đi ${daBuoc} bước từ ${player.x},${player.y}`);
   ok('đi bộ khi trúng độc thì mất máu dần', con.hpCur < truoc, `${truoc} -> ${con.hpCur}`);
   ok('nhưng không gục hẳn ngoài bản đồ', con.hpCur >= 1, String(con.hpCur));
 }
@@ -3124,6 +3135,41 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('đổi dáng xong mặc lại đồ hợp dáng được', AV.mac(aoNu.id)[0] !== null);
   ok('đổi sang dáng không có thật thì lùi về nam',
     (AV.doiThan('ma_troi'), AV.nguoi().than === 'nam'));
+
+  // ---- Ô màu + ảnh xem trước ----
+  // Bày "Nâu Đỏ", "Hạt Dẻ" bằng chữ thì phải bấm từng cái mới biết nó ra sao,
+  // nên mỗi mục CHỌN MÀU phải kèm mã màu thật đọc ngược từ chính tệp ảnh.
+  const laMau = (s) => /^#[0-9a-f]{6}$/.test(s || '');
+  for (const [ten, ds] of [['màu da', DA], ['màu tóc', TOC_MAU],
+    ['màu râu', RAU_MAU], ['màu mắt', MAT]]) {
+    ok(`${ten} nào cũng có mã màu để bày ô màu`, ds.every(x => laMau(x.mau)),
+      ds.filter(x => !laMau(x.mau)).map(x => `${x.id}=${x.mau}`).join(' '));
+  }
+  ok('sáu màu da khác hẳn nhau, không phải một màu chép sáu lần',
+    new Set(DA.map(x => x.mau)).size === DA.length);
+  ok('màu tóc cũng vậy', new Set(TOC_MAU.map(x => x.mau)).size === TOC_MAU.length);
+
+  // Khung cắt phần đầu phải trùm hết mũ (dòng 6..42) và tóc (9..51), cắt hẹp
+  // thì ảnh trong tiệm chỉ còn cái chỏm mũ.
+  ok('khung xem trước phần đầu trùm đủ mũ và tóc',
+    AV.VUNG_DAU.y <= 6 && AV.VUNG_DAU.y + AV.VUNG_DAU.h >= 42
+    && AV.VUNG_DAU.x === 0 && AV.VUNG_DAU.w === 32,
+    JSON.stringify(AV.VUNG_DAU));
+
+  // Ảnh xem trước phải trỏ đúng tệp có thật, không thì thẻ nào cũng ô trống
+  const anhDo = AV.oMonDo(DO.find(d => d.o === 'mu' && d.than === 'nam').id);
+  ok('ảnh món đồ có cả ma-nơ-canh lẫn món đồ',
+    (anhDo.match(/<img/g) || []).length === 2 && anhDo.includes('lop-nen'));
+  const src = [...anhDo.matchAll(/src="([^"]+)"/g)].map(m => m[1]);
+  ok('ảnh món đồ trỏ tới tệp có thật', src.length === 2
+    && src.every(x => existsSync(join(goc, x))), src.join(' '));
+  ok('ảnh cả bộ đồ xếp đúng số lớp', (() => {
+    const bo = monBoMau('nam', 1);
+    const h = AV.oBoDo(bo);
+    return (h.match(/<img/g) || []).length === bo.length + 1;
+  })());
+  ok('phần đầu bỏ trống thì chỉ còn mỗi ma-nơ-canh',
+    (AV.oPhanDau('toc', '').match(/<img/g) || []).length === 1);
 
   // Tiệm quần áo phải có NPC đứng bán, không thì không ai mở được màn đó
   ok('có NPC bán quần áo trong Khu Dân Cư',

@@ -239,6 +239,50 @@ def cat(im):
     return ra
 
 
+def mau_chinh(ten, loc_vien=True):
+    """Mau dai dien cua mot lop, doc nguoc lai tu tep da cat.
+
+    Man tao nhan vat bay 'Nau Do', 'Xam Nhat'... bang CHU thi nguoi choi phai
+    bam tung cai moi biet no ra sao. Lay dung mau cua lop ra lam o mau thi
+    nhin phat la thay.
+
+    Bo pixel vien (gan den) va pixel gan trang: hai thu do lop nao cung co,
+    de lai thi mau toc nao cung ra den si.
+    """
+    p = os.path.join(RA, ten + '.png')
+    if not os.path.exists(p):
+        return '#888888'
+    im = Image.open(p).convert('RGBA')
+    dem = {}
+    for r, g, b, a in im.getdata():
+        if a < 200:
+            continue
+        if loc_vien and (max(r, g, b) < 60 or min(r, g, b) > 235):
+            continue
+        dem[(r, g, b)] = dem.get((r, g, b), 0) + 1
+    if not dem:
+        return '#888888'
+    r, g, b = max(dem, key=dem.get)
+    return '#%02x%02x%02x' % (r, g, b)
+
+
+def mau_ruc(ten):
+    """Mau RUC NHAT cua lop — dung cho mat: trong mat chi vai chuc pixel, lay
+    mau hay gap nhat thi ra long trang chu khong ra mau mat."""
+    p = os.path.join(RA, ten + '.png')
+    if not os.path.exists(p):
+        return '#888888'
+    im = Image.open(p).convert('RGBA')
+    tot, diem = None, -1
+    for r, g, b, a in im.getdata():
+        if a < 200:
+            continue
+        d = max(r, g, b) - min(r, g, b)          # do bao hoa tho
+        if d > diem:
+            tot, diem = (r, g, b), d
+    return '#%02x%02x%02x' % tot if tot else '#888888'
+
+
 def luu(root, duong, ten, thieu):
     im = doc_walk(root, duong)
     if im is None:
@@ -299,9 +343,23 @@ def main():
         n += luu(root, f'Clothes/{phan}/{THU_DANG[than]}/{con}', f'do/{ma}', thieu)
 
     # ==== js/data/lpc.js ====
-    def bang(ds):
-        return '[' + ', '.join('{ id: %s, name: %s }' % (js(a), js(b))
-                               for a, b, *_ in ds) + ']'
+    def bang(ds, mau=None):
+        ra = []
+        for a, b, *_ in ds:
+            if mau:
+                ra.append('{ id: %s, name: %s, mau: %s }' % (js(a), js(b), js(mau(a))))
+            else:
+                ra.append('{ id: %s, name: %s }' % (js(a), js(b)))
+        return '[' + ', '.join(ra) + ']'
+
+    # O mau cho nhung muc CHON MAU. Kieu toc, kieu tai... thi khong can vi
+    # khac nhau o hinh dang chu khong phai mau.
+    MAU = {
+        'DA': lambda a: mau_chinh('base/nam_%s' % a),
+        'TOC_MAU': lambda a: mau_chinh('toc/%s_%s' % (TOC_KIEU[0][0], a)),
+        'RAU_MAU': lambda a: mau_chinh('rau/%s_%s' % (RAU_KIEU[0][0], a)),
+        'MAT': lambda a: mau_ruc('mat/%s' % a),
+    }
 
     dong = [
         '// TuxeWorld H5 | data/lpc.js | Danh mục ngoại hình + quần áo nhân vật',
@@ -324,7 +382,7 @@ def main():
                          ('BIEU_CAM', BIEU_CAM), ('MAT', MAT),
                          ('TOC_KIEU', TOC_KIEU), ('TOC_MAU', TOC_MAU),
                          ('RAU_KIEU', RAU_KIEU), ('RAU_MAU', RAU_MAU)):
-        dong.append('export const %s = %s;' % (ten_bien, bang(ds)))
+        dong.append('export const %s = %s;' % (ten_bien, bang(ds, MAU.get(ten_bien))))
     dong += ['', '// Ô quần áo, xếp theo THỨ TỰ VẼ (trước ra sau)',
              'export const O_DO = [']
     for ma, ten in O_DO:

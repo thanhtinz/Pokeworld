@@ -2674,54 +2674,155 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .tien { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .tien-ico { width: 1em; height: 1em; image-rendering: pixelated; flex: none; }
 
+/* ==== Ô ảnh ghép lớp: chồng mấy tấm sprite rồi hé đúng một khung ====
+   Dùng cho ảnh món đồ trong tiệm và ảnh cái đầu trong màn tạo nhân vật. Ảnh
+   to hơn cái khung, kéo lệch đi cho lộ đúng ô cần — rẻ hơn hẳn so với dựng
+   một cái canvas cho mỗi món. */
+.lop-o { display: block; position: relative; overflow: hidden; }
+.lop-o img {
+  position: absolute; image-rendering: pixelated; max-width: none;
+}
+/* Thân người chỉ làm ma-nơ-canh: mờ đi cho món đồ nổi lên */
+.lop-o .lop-nen { opacity: .3; filter: grayscale(.55); }
+
 /* ==== Tạo nhân vật (ghép lớp LPC) ==== */
 .cc-wrap { gap: 10px; }
-.cc-xem {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 10px;
+
+/* Cái bục: nhân vật đứng giữa vầng sáng, hai bên là nút xoay bốn hướng */
+.cc-buc {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 14px 8px 86px; border-radius: 20px;
+  border: 1px solid var(--line);
   background:
-    radial-gradient(ellipse 70% 55% at 50% 78%, rgba(112, 72, 232, .3), transparent 70%),
-    var(--card);
+    radial-gradient(ellipse 62% 46% at 50% 74%, rgba(112, 72, 232, .42), transparent 72%),
+    linear-gradient(180deg, rgba(20, 14, 42, .9), rgba(12, 8, 26, .95));
+  overflow: hidden;
 }
-.cc-xem canvas { image-rendering: pixelated; width: 128px; height: 256px; }
-/* Mười mục chỉnh thì lưới cột bằng nhau bóp chữ nát ra — cho xuống hàng theo
-   bề rộng thật của từng chữ. */
-.seg-row.cc-tabs {
-  display: flex; flex-wrap: wrap; gap: 4px; border-radius: 16px;
-  margin-bottom: 4px;
+.cc-sang {
+  position: absolute; left: 50%; top: 8%; width: 190px; height: 190px;
+  transform: translateX(-50%); pointer-events: none;
+  background: radial-gradient(circle, rgba(240, 180, 41, .16), transparent 65%);
 }
-.cc-tabs .seg-btn {
-  flex: 0 0 auto; font-size: .76rem; padding: 0 10px; min-height: 32px;
+.cc-buc canvas {
+  image-rendering: pixelated; width: 128px; height: 216px;
+  position: relative; z-index: 1;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .55));
 }
+/* Vệt sáng dưới chân cho nhân vật khỏi lơ lửng giữa không trung */
+.cc-san {
+  position: absolute; left: 50%; bottom: 78px; width: 124px; height: 22px;
+  transform: translateX(-50%); pointer-events: none; z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(150, 120, 255, .5), transparent 70%);
+}
+.cc-xoay {
+  position: relative; z-index: 2; flex: none; margin-top: -40px;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .07);
+  color: var(--text); font-size: 1.5rem; line-height: 1;
+}
+.cc-xoay:active { transform: scale(.94); }
+.cc-huong {
+  position: absolute; left: 0; right: 0; bottom: 54px; z-index: 2;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  color: var(--muted); font-size: .72rem;
+}
+.cc-huong i {
+  width: 5px; height: 5px; border-radius: 50%; background: rgba(255, 255, 255, .22);
+}
+.cc-huong i.on { background: var(--gold); box-shadow: 0 0 6px rgba(240, 180, 41, .7); }
+.cc-huong span { margin-left: 4px; }
+.cc-random {
+  position: absolute; left: 50%; bottom: 10px; z-index: 2;
+  transform: translateX(-50%);
+}
+
+/* Mười mục chỉnh: thanh trượt ngang, không bẻ dòng thành mấy hàng lổn nhổn */
+.cc-rail {
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px;
+  scrollbar-width: none;
+}
+.cc-rail::-webkit-scrollbar { display: none; }
+.cc-rail-o {
+  flex: none; min-height: 34px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .05);
+  color: var(--muted); font-size: .8rem; white-space: nowrap;
+}
+.cc-rail-o.on {
+  background: linear-gradient(180deg, #ff5a36, var(--accent));
+  color: #fff; border-color: transparent; font-weight: 600;
+}
+
+/* Đầu thẻ: tên lựa chọn đang chọn + hai nút lật + số thứ mấy trên mấy */
+.cc-buoc { padding: 8px; }
+.cc-buoc-dau {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.cc-buoc-dau b { flex: 1; text-align: center; font-size: .92rem; }
+.cc-dem { color: var(--muted); font-size: .74rem; }
+.cc-mui {
+  flex: none; width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .06);
+  color: var(--text); font-size: 1.25rem; line-height: 1;
+}
+.cc-mui:active { transform: scale(.94); }
+
 /* Danh sách lựa chọn của mục đang mở — cuộn ngang, ô nào đang chọn thì nổi lên */
 .cc-chon {
-  display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 8px;
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px;
   scrollbar-width: none;
 }
 .cc-chon::-webkit-scrollbar { display: none; }
 .cc-o {
-  flex: none; padding: 8px 14px; min-height: 40px;
-  border: 1px solid var(--line); border-radius: 999px;
+  flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 10px; border: 1px solid var(--line); border-radius: 14px;
   background: rgba(0, 0, 0, .22); color: var(--muted);
-  font-size: .84rem; white-space: nowrap;
+  font-size: .74rem; white-space: nowrap;
 }
 .cc-o.chon {
-  background: linear-gradient(180deg, #ff5a36, var(--accent));
-  color: #fff; border-color: transparent; font-weight: 600;
+  border-color: var(--gold); color: var(--text);
+  background: rgba(240, 180, 41, .12);
+  box-shadow: 0 0 12px rgba(240, 180, 41, .22);
 }
+/* Mục chọn MÀU: ô màu tròn to, chữ nhỏ ở dưới */
+.cc-mau {
+  display: block; width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .18);
+  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, .35);
+}
+.cc-o.chon .cc-mau { border-color: var(--gold); }
+/* Mục chọn KIỂU: nút chữ thường, không có ảnh nên bỏ khoảng trống thừa.
+   Tên lớp phải có tiền tố cc-k-: đặt thẳng là `cc-mau` thì cái khung ngoài
+   dính luôn kiểu của ô màu bên trên, xẹp thành một hòn tròn 34px. */
+.cc-chon.cc-k-chu .cc-o { padding: 10px 16px; font-size: .84rem; }
+
 .cc-h3 { font-size: .95rem; margin: 4px 2px 2px; }
 .cc-bo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .cc-bo-o {
-  display: flex; flex-direction: column; gap: 2px; padding: 9px 6px;
-  text-align: center; min-height: 74px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 9px 6px; text-align: center;
 }
-.cc-bo-o b { font-size: .82rem; }
-.cc-bo-o small { color: var(--muted); font-size: .72rem; line-height: 1.3; }
+.cc-bo-o .lop-o { margin-bottom: 2px; }
+.cc-bo-o b { font-size: .8rem; }
+.cc-bo-o small { color: var(--muted); font-size: .7rem; line-height: 1.3; }
 .cc-bo-o.chon { border-color: var(--gold); box-shadow: 0 0 12px rgba(240, 180, 41, .2); }
 
 /* ==== Tủ đồ / tiệm quần áo ==== */
 .td-xem { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.td-xem canvas { image-rendering: pixelated; width: 96px; height: 192px; flex: none; }
+/* Nhân vật cũng đứng trên bục có vầng sáng như bên màn tạo nhân vật */
+.td-buc {
+  position: relative; flex: none; padding: 6px 8px; border-radius: 16px;
+  background: radial-gradient(ellipse 66% 48% at 50% 76%, rgba(112, 72, 232, .34), transparent 72%);
+}
+.td-sang {
+  position: absolute; left: 50%; bottom: 10px; width: 86px; height: 16px;
+  transform: translateX(-50%); border-radius: 50%; pointer-events: none;
+  background: radial-gradient(ellipse, rgba(150, 120, 255, .45), transparent 70%);
+}
+.td-xem canvas {
+  image-rendering: pixelated; width: 96px; height: 192px; position: relative;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, .5));
+}
 .td-slot { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 8px; flex: 1; min-width: 0; }
 /* Chín ô đồ xếp thành lưới nên phải cùng chiều cao, không thì hàng so le */
 .td-oo { display: flex; flex-direction: column; justify-content: center;
@@ -2730,6 +2831,21 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .td-oo b { font-size: .78rem; color: var(--muted);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .td-oo.co b { color: var(--text); }
+/* Ô đang mặc thử tô vàng để phân biệt với đồ đang mặc thật */
+.td-oo.thu b { color: var(--gold); }
+
+/* Thanh chốt lúc đang mặc thử: mua/mặc luôn hay thôi, khỏi phải mò lại cái thẻ */
+.td-thanh {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 10px; margin-bottom: 8px;
+  border-color: rgba(240, 180, 41, .5);
+  background: linear-gradient(180deg, rgba(240, 180, 41, .12), var(--card));
+}
+.td-thanh-chu { flex: 1; min-width: 120px; font-size: .84rem; color: var(--muted); }
+.td-thanh-chu b { color: var(--text); }
+.td-thanh-nut { display: flex; gap: 6px; }
+.td-thanh-nut .btn { min-height: 34px; }
+
 /* Tiệm bày mấy chục món nên phải lọc theo ô, không thì cuộn mỏi tay.
    Chín ô không nhét vừa một hàng, mà bọc trong khung viên thuốc kiểu .seg-row
    thì bẻ dòng xong cái khung phình ra rất xấu — nên để rời từng con chip. */
@@ -2740,10 +2856,29 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   border: 1px solid var(--line); border-radius: 999px;
 }
 .td-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.td-o { display: flex; flex-direction: column; gap: 3px; padding: 9px 8px; }
-.td-o b { font-size: .86rem; }
-.td-o small { color: var(--muted); font-size: .76rem; }
-.td-nut { margin-top: auto; padding-top: 5px; }
+/* Cả cái thẻ là một cái nút: bấm đâu cũng mặc thử được */
+.td-o {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 10px 8px; text-align: center;
+}
+.td-o:active { transform: scale(.98); }
+.td-anh {
+  display: block; padding: 4px 0 2px;
+  background: radial-gradient(ellipse 60% 42% at 50% 84%, rgba(112, 72, 232, .3), transparent 72%);
+}
+.td-o b { font-size: .84rem; line-height: 1.25; }
+.td-o small { color: var(--muted); font-size: .74rem; }
+.td-o.thu { border-color: var(--gold); box-shadow: 0 0 14px rgba(240, 180, 41, .25); }
+.td-o.mac { border-color: rgba(75, 200, 130, .55); }
+/* Nhãn góc: đang mặc thật (xanh) hay mới chỉ mặc thử (vàng) */
+.td-co-mac, .td-dang-thu {
+  position: absolute; top: 6px; right: 6px;
+  padding: 2px 7px; border-radius: 999px;
+  font-size: .66rem; font-weight: 600; color: #10121c;
+}
+.td-co-mac { background: var(--green); }
+.td-dang-thu { background: var(--gold); }
+.td-nut { display: block; width: 100%; margin-top: auto; padding-top: 6px; }
 .td-nut .btn { width: 100%; min-height: 38px; }
 .td-co { color: var(--green); font-size: .8rem; }
 

@@ -71,7 +71,10 @@ export const danDo = (than = nguoi().than) =>
   THAN.find(t => t.id === than)?.do || 'nam';
 
 // ==== Đường dẫn từng lớp ====
-const P = (nhom, ten) => `${THU_MUC}/${nhom}/${ten}.png`;
+export const P = (nhom, ten) => `${THU_MUC}/${nhom}/${ten}.png`;
+
+/** Ảnh của riêng một món đồ (dùng để bày trong tiệm và tủ đồ). */
+export const duongDo = (id) => P('do', id);
 
 /**
  * Danh sách lớp theo ĐÚNG thứ tự vẽ, từ trong ra ngoài.
@@ -163,6 +166,57 @@ export function capNhatO(root = document) {
       if (cho) cho.addEventListener('load', () => { im.src = cho.src; }, { once: true });
     }
   }
+}
+
+// ==== Ảnh xem trước từng phần (không cần canvas) ====
+//
+// Tiệm bày mấy chục món mà chỉ ghi tên thì người chơi phải bấm từng cái mới
+// biết nó ra sao. Mấy hàm dưới cắt đúng KHUNG ĐỨNG NHÌN THẲNG của các lớp
+// bằng CSS (ảnh to hơn khung, kéo lệch cho lộ đúng ô cần) — rẻ hơn hẳn so với
+// dựng một cái canvas cho mỗi món.
+// Đo trên chính bộ ảnh đã cắt: mũ chiếm dòng 6..42, tóc 9..51, râu 29..38, và
+// có món rộng hết cả 32 cột. Khung đầu phải trùm đủ chỗ đó, cắt hẹp thì mũ
+// chỉ còn cái chỏm còn tóc dài thì cụt ngang.
+export const VUNG_NGUOI = { x: 0, y: 2, w: KHUNG_W, h: 62 };
+export const VUNG_DAU = { x: 0, y: 5, w: KHUNG_W, h: 43 };
+
+/**
+ * Chồng vài lớp lại thành một ô ảnh tĩnh.
+ * @param {Array<[string, string]>} ds cặp [đường dẫn, class thêm vào]
+ */
+export function oLop(ds, { cao = 96, vung = VUNG_NGUOI, cls = '' } = {}) {
+  const ti = cao / vung.h;
+  const st = `width:${Math.round(SHEET_W * ti)}px;height:${Math.round(SHEET_H * ti)}px;` +
+    `left:${Math.round(-vung.x * ti)}px;top:${Math.round(-vung.y * ti)}px`;
+  return `<span class="lop-o ${cls}" style="width:${Math.round(vung.w * ti)}px;height:${cao}px">
+    ${ds.map(([src, k]) => `<img src="${esc(src)}" class="${k || ''}" style="${st}" alt="">`).join('')}
+  </span>`;
+}
+
+/** Một món đồ, khoác lên thân người mờ làm ma-nơ-canh cho dễ hình dung. */
+export function oMonDo(id, { cao = 96, nv = nguoi() } = {}) {
+  const d = DO_BY_ID[id];
+  if (!d) return '';
+  const tren = d.o === 'mu';           // mũ thì soi phần đầu cho rõ
+  return oLop([[P('base', `${nv.than}_${nv.da}`), 'lop-nen'], [P('do', id), '']],
+    { cao, vung: tren ? VUNG_DAU : VUNG_NGUOI, cls: 'do-o' });
+}
+
+/** Một phần ngoại hình (tóc, râu, tai...) đặt trên đầu người mờ. */
+export function oPhanDau(nhom, ten, { cao = 64, nv = nguoi() } = {}) {
+  const ds = [[P('base', `${nv.than}_${nv.da}`), 'lop-nen']];
+  if (ten) ds.push([P(nhom, ten), '']);
+  return oLop(ds, { cao, vung: VUNG_DAU, cls: 'do-o' });
+}
+
+/** Cả một bộ đồ mẫu khoác lên người, dùng cho thẻ chọn bộ lúc tạo nhân vật. */
+export function oBoDo(ds, { cao = 96, nv = nguoi() } = {}) {
+  const lop = [[P('base', `${nv.than}_${nv.da}`), 'lop-nen']];
+  for (const o of O_DO) {
+    const id = ds.find(x => DO_BY_ID[x]?.o === o.id);
+    if (id) lop.push([P('do', id), '']);
+  }
+  return oLop(lop, { cao, cls: 'do-o' });
 }
 
 // ==== Tủ đồ ====

@@ -4,6 +4,10 @@
 //   tab 'tu'   — tủ đồ: mặc / cởi những món đang có
 //   tab 'tiem' — quầy của cô Thắm trong Khu Dân Cư, CHỈ mở được từ NPC đó
 //
+// Bản trước chỉ liệt kê TÊN món với một cái nút giá, mua rồi mới biết nó ra
+// sao. Nay mỗi món hiện luôn ảnh khoác trên ma-nơ-canh, và bấm vào là MẶC THỬ:
+// nhân vật ở trên đổi đồ ngay, ưng thì mới trả tiền.
+//
 // Quần áo bên LPC vẽ riêng cho dáng nam và dáng nữ, không phải một mẫu hai bản.
 // Nên tiệm chỉ bày đồ hợp dáng người của người chơi.
 import { G, save } from '../state.js';
@@ -18,26 +22,40 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
   const tiem = tab === 'tiem';
   let raf = null;
   let loc = '';                     // ô đang lọc, '' là xem tất cả
+  let thu = null;                   // món đang mặc thử (chưa mua / chưa mặc thật)
 
   const hopDang = (d) => d.than === AV.danDo();
 
+  // Bộ đồ đang HIỂN THỊ = đồ thật, đè lên món đang thử
+  function macXem() {
+    const m = { ...AV.dangMac() };
+    if (thu && DO_BY_ID[thu]) m[DO_BY_ID[thu].o] = thu;
+    return m;
+  }
+
   function oHtml(d, dangMac2, coRoi) {
-    return `<div class="card td-o">
+    const dangThu = thu === d.id;
+    return `<button type="button" class="card td-o ${dangThu ? 'thu' : ''} ${dangMac2 ? 'mac' : ''}"
+      data-thu="${esc(d.id)}">
+      <span class="td-anh">${AV.oMonDo(d.id, { cao: 88 })}</span>
+      ${dangMac2 ? '<span class="td-co-mac">Đang mặc</span>'
+        : dangThu ? '<span class="td-dang-thu">Đang thử</span>' : ''}
       <b>${esc(d.name)}</b>
       <small>${esc(O_DO.find(o => o.id === d.o)?.name || d.o)}</small>
-      <div class="td-nut">
+      <span class="td-nut">
         ${tiem
           ? (coRoi ? '<span class="td-co">Đã có</span>'
-                   : `<button class="btn btn-sm btn-primary td-mua" data-id="${esc(d.id)}">${tien(d.gia)}</button>`)
+                   : `<span class="btn btn-sm btn-primary td-mua" data-id="${esc(d.id)}">${tien(d.gia)}</span>`)
           : (dangMac2
-            ? `<button class="btn btn-sm td-coi" data-o="${esc(d.o)}">Cởi ra</button>`
-            : `<button class="btn btn-sm btn-primary td-mac" data-id="${esc(d.id)}">Mặc</button>`)}
-      </div>
-    </div>`;
+            ? `<span class="btn btn-sm td-coi" data-o="${esc(d.o)}">Cởi ra</span>`
+            : `<span class="btn btn-sm btn-primary td-mac" data-id="${esc(d.id)}">Mặc</span>`)}
+      </span>
+    </button>`;
   }
 
   function ve() {
     const mac = AV.dangMac();
+    const xem = macXem();
     const co = AV.tuDo();
     const tatCa = tiem
       ? DO.filter(d => d.gia > 0 && hopDang(d))
@@ -46,21 +64,39 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
     const oCo = O_DO.filter(o => tatCa.some(d => d.o === o.id));
     if (loc && !oCo.some(o => o.id === loc)) loc = '';
     const ds = loc ? tatCa.filter(d => d.o === loc) : tatCa;
+    const mThu = thu && DO_BY_ID[thu];
 
     el.innerHTML = `
       ${header(tiem ? 'Tiệm Quần Áo Cô Thắm' : 'Tủ Đồ', from)}
       <div class="card td-xem">
-        <canvas id="td-canvas" width="96" height="192"></canvas>
+        <div class="td-buc">
+          <div class="td-sang"></div>
+          <canvas id="td-canvas" width="96" height="192"></canvas>
+        </div>
         <div class="td-slot">
           ${O_DO.map(o => {
-            const d = mac[o.id] && DO_BY_ID[mac[o.id]];
-            return `<span class="td-oo ${d ? 'co' : ''}">
+            const d = xem[o.id] && DO_BY_ID[xem[o.id]];
+            const laThu = mThu && mThu.o === o.id;
+            return `<span class="td-oo ${d ? 'co' : ''} ${laThu ? 'thu' : ''}">
               <small>${esc(o.name)}</small>
               <b>${d ? esc(d.name) : '—'}</b>
             </span>`;
           }).join('')}
         </div>
       </div>
+
+      ${mThu ? `<div class="card td-thanh">
+        <span class="td-thanh-chu">Đang thử <b>${esc(mThu.name)}</b></span>
+        <span class="td-thanh-nut">
+          ${tiem
+            ? (co.includes(mThu.id)
+              ? '<button class="btn btn-sm btn-primary td-mac" data-id="' + esc(mThu.id) + '">Mặc luôn</button>'
+              : '<button class="btn btn-sm btn-primary td-mua" data-id="' + esc(mThu.id) + '">Mua ' + tien(mThu.gia) + '</button>')
+            : '<button class="btn btn-sm btn-primary td-mac" data-id="' + esc(mThu.id) + '">Mặc luôn</button>'}
+          <button class="btn btn-sm td-thoi">Thôi</button>
+        </span>
+      </div>` : ''}
+
       ${oCo.length > 1 ? `<div class="td-loc">
         <button type="button" class="seg-btn ${loc ? '' : 'active'}" data-loc="">Tất cả</button>
         ${oCo.map(o => `<button type="button" class="seg-btn ${loc === o.id ? 'active' : ''}"
@@ -78,18 +114,29 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
       loc = b.dataset.loc;
       ve();
     }));
+    // Bấm vào cả cái thẻ là mặc thử; bấm lại lần nữa thì thôi
+    el.querySelectorAll('[data-thu]').forEach(b => b.addEventListener('click', (e) => {
+      if (e.target.closest('.td-mua, .td-mac, .td-coi')) return;   // mấy nút kia lo phần việc riêng
+      thu = thu === b.dataset.thu ? null : b.dataset.thu;
+      ve();
+    }));
+    el.querySelector('.td-thoi')?.addEventListener('click', () => { thu = null; ve(); });
 
-    el.querySelectorAll('.td-mac').forEach(b => b.addEventListener('click', () => {
-      const [ok, err] = AV.mac(b.dataset.id);
-      toast(err || ok);
+    el.querySelectorAll('.td-mac').forEach(b => b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const [okMac, err] = AV.mac(b.dataset.id);
+      toast(err || okMac);
+      if (!err) thu = null;
       ve();
     }));
-    el.querySelectorAll('.td-coi').forEach(b => b.addEventListener('click', () => {
-      const [ok, err] = AV.coi(b.dataset.o);
-      toast(err || ok);
+    el.querySelectorAll('.td-coi').forEach(b => b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const [okCoi, err] = AV.coi(b.dataset.o);
+      toast(err || okCoi);
       ve();
     }));
-    el.querySelectorAll('.td-mua').forEach(b => b.addEventListener('click', () => {
+    el.querySelectorAll('.td-mua').forEach(b => b.addEventListener('click', (e) => {
+      e.stopPropagation();
       const d = DO_BY_ID[b.dataset.id];
       if (!d) return;
       if ((G.p.money || 0) < d.gia) { toast('Không đủ tiền.'); return; }
@@ -98,6 +145,7 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
       AV.mac(d.id);
       save();
       toast(`Mua ${d.name} hết ${tienChu(d.gia)} — mặc luôn cho nóng.`);
+      thu = null;
       ve();
     }));
 
@@ -112,7 +160,7 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
     const chay = () => {
       if (!cv.isConnected) return;
       ctx.clearRect(0, 0, cv.width, cv.height);
-      const im = AV.anhNhanVat();
+      const im = AV.anhNhanVat(AV.nguoi(), macXem());
       if (owReady(im)) {
         const f = owFrame('down', true, Date.now() * 0.5, im);
         ctx.drawImage(im, f.sx, f.sy, f.sw, f.sh, 0, 0, cv.width, cv.height);
