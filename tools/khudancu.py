@@ -90,9 +90,14 @@ def dung(goc):
         return y in DUONG_NGANG and 2 <= x < W - 2
 
     def la_lo(x, y):
-        """San dat 5x5 om lay vung 3x3 cua tung lo."""
+        """San dat = DUNG vung 3x3 cua lo, khong rong hon.
+
+        Truoc san rong 5x5 con rao vay o vong 3x3+1 — thanh ra rao nam de len
+        mep san, con dat thi loi ra ca mot vong ben ngoai rao. Thu san ve dung
+        o lo thi vong rao roi vao dai chuyen tiep co-dat, tuc la nam NGOAI san.
+        """
         for _id, _ten, _gia, lx, ly in LO:
-            if lx - 1 <= x <= lx + 3 and ly - 1 <= y <= ly + 3:
+            if lx <= x <= lx + 2 and ly <= y <= ly + 2:
                 return True
         return False
 
@@ -120,9 +125,10 @@ def dung(goc):
     # khong noi. Hai canh ngang o tren va duoi, hai coc o hai ben.
     dau, than, duoi = CT.RAO_NGANG
     for _id, _ten, _gia, lx, ly in LO:
+        cong = (lx + 1, ly + 3)                   # chua mot o lam loi vao cua
         for hang in (ly - 1, ly + 3):
             for i2, x in enumerate(range(lx - 1, lx + 4)):
-                if not trong_ban_do(x, hang):
+                if not trong_ban_do(x, hang) or (x, hang) == cong:
                     continue
                 o = dau if i2 == 0 else (duoi if i2 == 4 else than)
                 dat_tren(x, hang, o, chan=False)
