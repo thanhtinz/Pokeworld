@@ -14,10 +14,18 @@ la canh DEMO: tuong cut ngang, cua mo ra khoang khong, nhap thang vao game thi
 nhin nhu chap va. Xep tay tung o thi kiem soat duoc het — giong cach
 tools/khudancu.py dung Khu Dan Cu.
 
+NGUOI TRONG SANH
+Sprite nhan vat lay tu "2D Top Down Pixel Art Characters" — cung tac gia
+Jephed, cung giay phep mien phi. Sheet cua ho la 64x128 nhung 4 cot cuoi bo
+trong: noi dung that la 3 cot x 4 hang, o 20x32, hang xep xuong/trai/phai/len
+— TRUNG KHIT thu tu cua assets/ow nen chi can cat bo phan trong ben phai.
+
 Ghi ra:
   js/data/casino.js   toa do tung may/ban de engine biet cho nao bam duoc
+  assets/ow/bac_*.png sprite may nguoi lam trong sanh
 """
 import os
+import shutil
 
 TILE = 16
 SLUG = 'sanh_bac'
@@ -45,6 +53,29 @@ BAN_XANH = (57, 8, 7, 4)         # ban da, vong quay ben PHAI
 BAN_XANH2 = (57, 12, 7, 4)       # ban da, vong quay ben TRAI
 BAN_TRON = (59, 4, 3, 4)         # ban go tron
 
+# ---- Nguoi trong sanh ----
+# (ma tep nguon, ten trong game, ma sprite, x, y, huong, ai, loi thoai)
+NGUOI = [
+    ('021', 'Anh Chia Bài', 'bac_chia1', 5, 7, 'down', 'stand',
+     'Xì dách nhé? Rút tới 21 thôi, quá là mất.'),
+    ('017', 'Chị Chia Bài', 'bac_chia2', 20, 7, 'down', 'stand',
+     'Bàn tiến lên bên này. Ba nhà kia đánh rát lắm đấy.'),
+    ('019', 'Chú Chia Bài', 'bac_chia3', 8, 14, 'left', 'stand',
+     'Đô-mi-nô đi cho thư thả. Nối được thì nối, tắc thì bốc.'),
+    ('006', 'Bảo Vệ Sảnh', 'bac_gac1', 12, 17, 'up', 'watch',
+     'Vào chơi thoải mái. Thua sạch rồi thì đừng làm ầm lên.'),
+    ('007', 'Bảo Vệ Cửa', 'bac_gac2', 14, 17, 'up', 'watch',
+     'Cửa ra ngay sau lưng tôi. Đi về sớm còn hơn nướng hết.'),
+    ('015', 'Cô Lao Công', 'bac_lau', 11, 13, 'down', 'wander',
+     'Quét cả ngày. Người ta rơi chip xuống thảm suốt.'),
+    ('012', 'Khách Quen', 'bac_khach1', 10, 6, 'down', 'wander',
+     'Máy đầu dãy hôm nay nóng lắm, tôi ăn hai lần rồi!'),
+    ('026', 'Khách Áo Choàng', 'bac_khach2', 23, 7, 'down', 'stand',
+     'Cược nhỏ thôi. Nhà cái nuôi mình chứ mình có nuôi được nó đâu.'),
+    ('009', 'Khách Mới', 'bac_khach3', 16, 14, 'left', 'wander',
+     'Mới vào lần đầu. Chơi cái nào dễ ăn nhất vậy anh?'),
+]
+
 # Cho dat tung tro. `bam` = o nguoi choi quay mat vao thi bam duoc.
 # Toa do dat theo goc trai-tren cua mon do.
 # Cot giua de trong lam loi di tu cua vao, khong ke ban chan ngang.
@@ -58,6 +89,29 @@ CHO = [
     ('tienlen', 'Tiến Lên', BAN_XANH2, 17, 8),
     ('domino', 'Đô-mi-nô', BAN_TRON, 4, 13),
 ]
+
+
+def cat_nguoi(goc):
+    """Cat sprite nguoi tu pack ve assets/ow. Tra so tep da ghi."""
+    from PIL import Image
+    nguon = None
+    for dp, _, fs in os.walk(goc):
+        if '000.png' in fs and '021.png' in fs:
+            nguon = dp
+            break
+    if not nguon:
+        return 0
+    ra = 0
+    for ma, _, sprite, *_ in NGUOI:
+        f = os.path.join(nguon, ma + '.png')
+        if not os.path.exists(f):
+            continue
+        im = Image.open(f).convert('RGBA')
+        # Bo 4 cot trong ben phai: 64 -> 60, tuc 3 cot x 20px
+        im.crop((0, 0, 60, im.size[1])).save('assets/ow/%s.png' % sprite,
+                                             optimize=True)
+        ra += 1
+    return ra
 
 
 def gid(o):
@@ -118,7 +172,7 @@ def dung(goc):
     solid[i(CUA, H - 1)] = 0
 
     # ---- Dat do dac ----
-    im = None
+    nguoi_ra = []
     diem = []                     # [{id, tro, ten, x, y}] o bam duoc
     for tro, ten, (sx, sy, sw, sh), x, y in CHO:
         for dy in range(sh):
@@ -153,8 +207,27 @@ def dung(goc):
         'trong': 1,
         'spawn': {'x': CUA, 'y': H - 3},
     }
+    # ---- Nguoi lam trong sanh ----
+    # O ngay TRUOC may la cho nguoi choi dung de bam. Cho NPC dung vao do la
+    # bam may khong duoc nua (facingThing bat trung NPC chu khong trung may).
+    cho_bam = set()
+    for d in diem:
+        for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+            cho_bam.add((d['x'] + dx, d['y'] + dy))
+    for _, ten, sprite, nx, ny, huong, ai, loi in NGUOI:
+        if not (0 <= nx < W and 0 <= ny < H) or solid[i(nx, ny)]:
+            print('  BO QUA NPC %s: o (%d,%d) khong dung duoc' % (ten, nx, ny))
+            continue
+        if (nx, ny) in cho_bam:
+            print('  BO QUA NPC %s: (%d,%d) la cho dung de bam may' % (ten, nx, ny))
+            continue
+        m_npc = {'x': nx, 'y': ny, 'dir': huong, 'sprite': sprite,
+                 'name': ten, 'lines': [loi], 'ai': ai}
+        nguoi_ra.append(m_npc)
+
     # Cong ra o ngay o cua
     m['warps'].append({'x': CUA, 'y': H - 1, 'to': 'khu_dan_cu', 'tx': 16, 'ty': 13})
+    m['npcs'] = nguoi_ra
     return m, diem
 
 
@@ -186,6 +259,8 @@ def them_vao(out_maps, goc):
     if not m:
         print('BỎ QUA sảnh bạc: không thấy %s trong %s/casino' % (TEP, goc))
         return {}
+    n = cat_nguoi(os.path.join(goc, 'nhanvat'))
     viet_js(diem)
-    print('OK: sảnh bạc %dx%d, %d ô bấm được' % (W, H, len(diem)))
+    print('OK: sảnh bạc %dx%d, %d ô bấm được, %d người (%d sprite)'
+          % (W, H, len(diem), len(m['npcs']), n))
     return {SLUG: m}

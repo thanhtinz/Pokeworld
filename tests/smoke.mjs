@@ -3628,6 +3628,33 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('ô sàn thường thì không bắt nhầm thành máy',
       ES.vatTheODay(SANH, m.spawn.x, m.spawn.y) === null);
 
+    // ---- Người trong sảnh ----
+    const npcs = m.npcs || [];
+    ok('sảnh bạc có người làm', npcs.length >= 6, `${npcs.length} người`);
+    ok('người nào cũng đứng trên ô đi được',
+      npcs.every(n => !m.solid[n.y * m.w + n.x]),
+      npcs.filter(n => m.solid[n.y * m.w + n.x]).map(n => n.name).join(' '));
+    ok('người nào cũng có tên và lời thoại',
+      npcs.every(n => n.name && n.lines?.length && n.sprite));
+    // Ô ngay trước máy là chỗ người chơi đứng để bấm. NPC đứng vào đó là
+    // facingThing() bắt trúng NPC chứ không trúng máy -> bấm không ra trò.
+    const choBam = new Set();
+    for (const o of MAY) {
+      for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+        choBam.add(`${o.x + dx},${o.y + dy}`);
+      }
+    }
+    ok('không ai đứng chắn chỗ bấm máy',
+      npcs.every(n => !choBam.has(`${n.x},${n.y}`)),
+      npcs.filter(n => choBam.has(`${n.x},${n.y}`)).map(n => n.name).join(' '));
+    ok('không có hai người đứng chồng ô',
+      new Set(npcs.map(n => `${n.x},${n.y}`)).size === npcs.length);
+    // Sprite phải có tệp thật, không thì NPC vô hình
+    ok('sprite người trong sảnh đều có tệp',
+      npcs.every(n => existsSync(join(kho2, `assets/ow/${n.sprite}.png`))),
+      npcs.filter(n => !existsSync(join(kho2, `assets/ow/${n.sprite}.png`)))
+        .map(n => n.sprite).join(' '));
+
     // Cắt lệch khung là mất mảnh: hai lần liền tôi lấy bàn lệch 1-2 hàng/cột
     // nên vớ phải ghế sofa bên cạnh, trong game bàn cụt còn ghế thì lơ lửng.
     // Bài này bắt: mỗi món đồ phải KÍN, không được thủng ô nào ở giữa.

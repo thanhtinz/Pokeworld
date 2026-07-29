@@ -307,8 +307,14 @@ export function render(el) {
     const put = (img, dir, moving, cx, cy) => {
       if (!owReady(img)) return;
       const f = owFrame(dir, moving, Date.now(), img);
+      // Bề ngang vẽ theo ĐÚNG tỉ lệ ô của chính sprite đó, không ép cứng bằng
+      // một ô. Sprite của Tuxemon và bản ghép LPC đều là 1:2 nên không đổi gì;
+      // nhưng bộ nhân vật của Jephed ô 20×32, ép về 1:2 là bóp ngang 20%,
+      // người trông gầy nhom.
+      const w = chH * (f.sw / f.sh);
       ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
-        Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
+        Math.round(cx - w / 2), Math.round(cy - chH + size * 0.34),
+        Math.round(w), Math.round(chH));
     };
     // Nằm trên giường: giường trong game đều DỰNG ĐỨNG (rộng 1-2 ô, cao 2 ô)
     // nên xoay nhân vật 90° là nằm vắt ngang qua giường, thò cả người ra ngoài.

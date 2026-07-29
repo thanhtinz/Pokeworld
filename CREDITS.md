@@ -141,9 +141,16 @@ Bản đồ sòng bài dựng từ **2D Top Down Pixel Art Tileset Casino** củ
 `ReadMe.txt` của pack ghi rõ: miễn phí cho cả mục đích thương mại lẫn phi
 thương mại, ghi công thì tốt — chính là dòng này.
 
+Người làm trong sảnh (chia bài, bảo vệ, lao công, khách) lấy từ
+**2D Top Down Pixel Art Characters** — cũng của Jephed, cũng miễn phí cho cả
+mục đích thương mại. Sheet của họ là 64×128 nhưng 4 cột cuối bỏ trống: nội
+dung thật là 3 cột × 4 hàng, ô 20×32, hàng xếp xuống/trái/phải/lên — **trùng
+khít** thứ tự của `assets/ow` nên chỉ cần cắt bỏ phần trống bên phải.
+
 `tools/casino.py` tự xếp từng ô (thảm, tường, máy quay, bàn) rồi nướng ra
-`assets/maps/sanh_bac.png`. Như mấy pack khác: **không chép tệp gốc của pack
-vào kho**, chỉ có atlas đã nướng gồm đúng những ô bản đồ này dùng.
+`assets/maps/sanh_bac.png`, và cắt 9 sprite người vào `assets/ow/bac_*.png`.
+Chỉ chép **9 nhân vật thật sự dùng** trong 40 cái của pack; tileset thì không
+chép tệp gốc, chỉ có atlas gồm đúng những ô bản đồ này dùng.
 
 Còn bốn pack **Pixel Fantasy của Caz** (máy quay, bài tây, coin flip, icon
 Valentine) vẫn **chưa dùng**. EULA nằm trong một tệp Google Docs mà ở
