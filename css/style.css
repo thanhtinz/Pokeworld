@@ -3092,3 +3092,10 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 .ck-desc { font-style: italic; }
 .ck-o-nut { display: flex; gap: 5px; margin-top: 4px; }
 .ck-o-nut .btn { width: auto; }
+
+/* Nút A lúc phao giật: phải đập vào mắt, đó là tín hiệu duy nhất để bấm */
+.act-btn.cau-giat {
+  animation: cau-nhay .22s linear infinite;
+  box-shadow: 0 0 0 8px rgba(240, 180, 41, .35);
+}
+@keyframes cau-nhay { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }

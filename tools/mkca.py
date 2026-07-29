@@ -171,6 +171,29 @@ def main():
     with open(DL, 'w', encoding='utf-8') as f:
         f.write('\n'.join(dong) + '\n')
 
+    # Bang xep hang cham diem o MAY CHU, ma may chu khong doc duoc js/data.
+    # Nen xuat them mot ban gon chi co thu can de tinh diem — dung y het cong
+    # thuc cua engine/cauca.js, lech mot ly la thu hang sai.
+    sv = [
+        '// TuxeWorld H5 | server/src/ca.data.js | Bậc hiếm của từng loài cá',
+        '// SINH TU DONG boi tools/mkca.py — KHONG SUA TAY.',
+        '// Máy chủ dùng bảng này để chấm điểm câu cá cho bảng xếp hạng.',
+        'export const HIEM_CA = %s;' % js({m: h for m, _t, h, *_ in CA}),
+        '',
+        '// Phải khớp y hệt diemCauCa() bên js/engine/cauca.js',
+        'export function diemCauCa(save) {',
+        '  const dex = save?.ca?.dex || {};',
+        '  let d = 0;',
+        '  for (const [id, v] of Object.entries(dex)) {',
+        '    const h = HIEM_CA[id];',
+        '    if (h) d += Math.round((v?.dai || 0) * (1 + (h - 1) * 0.6));',
+        '  }',
+        '  return d;',
+        '}',
+    ]
+    with open('server/src/ca.data.js', 'w', encoding='utf-8') as f:
+        f.write('\n'.join(sv) + '\n')
+
     tong = sum(os.path.getsize(os.path.join(RA, f)) for f in os.listdir(RA))
     print('OK: %d loài cá, %d chỗ câu, %d cần -> %s (%.1f KB icon)'
           % (len(CA), len(CHO), len(CAN), DL, tong / 1024))

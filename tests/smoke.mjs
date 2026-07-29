@@ -3767,6 +3767,27 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('cá huyền thoại hiếm hơn hẳn cá thường', quy > 0 && thuong > quy * 8,
       `thường ${thuong} · huyền thoại ${quy}`);
   }
+  // Máy chủ chấm điểm xếp hạng bằng bản sao của công thức bên client. Lệch một
+  // ly là thứ hạng sai mà chẳng ai biết — nên bắt hai bên phải ra CÙNG một số.
+  {
+    const SV = await import('../server/src/ca.data.js');
+    newGame('SoDiem');
+    const mau = {};
+    for (const c of CA) mau[c.id] = { dai: c.dai[1], soLan: 1 };
+    F.kho().dex = mau;
+    ok('máy chủ chấm điểm câu cá y hệt client',
+      SV.diemCauCa({ ca: { dex: mau } }) === F.diemCauCa(),
+      `server ${SV.diemCauCa({ ca: { dex: mau } })} vs client ${F.diemCauCa()}`);
+    ok('bảng bậc hiếm bên máy chủ đủ mọi loài',
+      CA.every(c => SV.HIEM_CA[c.id] === c.hiem),
+      CA.filter(c => SV.HIEM_CA[c.id] !== c.hiem).map(c => c.id).join(' '));
+    const goc3 = new URL('../', import.meta.url).pathname;
+    const rk = readFileSync(join(goc3, 'js/ui/rank.js'), 'utf8');
+    ok('màn Xếp hạng có mục Câu cá', /'cauca'/.test(rk));
+    const rt = readFileSync(join(goc3, 'server/src/routes.js'), 'utf8');
+    ok('máy chủ có bảng xếp hạng câu cá', /cauca:/.test(rt) && /diemCauCa/.test(rt));
+  }
+
   // Câu cá phải làm NGAY TRÊN BẢN ĐỒ, không phải mở panel từ Menu
   {
     const goc2 = new URL('../', import.meta.url).pathname;
@@ -3774,6 +3795,10 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('Menu không còn ô Câu cá', !/'cauca'|"cauca"/.test(menu2));
     const w2 = readFileSync(join(goc2, 'js/ui/world.js'), 'utf8');
     ok('bản đồ có nhánh câu cá ở mặt nước', /caRia\(/.test(w2) && /facingWater/.test(w2));
+    // Nhịp canh phao phải nằm trên bản đồ: quăng cần xong hiện luôn kết quả
+    // thì chỉ là bấm một nút lấy đồ, chẳng còn là câu cá.
+    ok('trên bản đồ có nhịp chờ rồi giật', /function doiGiat/.test(w2)
+      && /buongCan\(\)/.test(w2) && /cuaSo\(\)/.test(w2));
     // Muốn xem giỏ/bể/dex thì phải ra tận chỗ ông lái cá
     const lai = (MAPS.khu_dan_cu.npcs || []).filter(n => n.mo === 'cauca');
     ok('có ông lái cá đứng cạnh hồ', lai.length === 1, `${lai.length} người`);

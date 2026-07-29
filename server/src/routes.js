@@ -1,5 +1,6 @@
 // TuxeWorld server | src/routes.js | REST API cho client
 import express from 'express';
+import { diemCauCa } from './ca.data.js';
 import { getDb, find, filter, markDirty } from './db.js';
 import { registerUser, loginUser, signToken, publicUser, authRequired } from './auth.js';
 import { validateSave } from './validate.js';
@@ -83,6 +84,8 @@ router.put('/save', authRequired, (req, res) => {
 // ==== Bảng xếp hạng ====
 const METRICS = {
   money: u => u.save?.money || 0,
+  // Điểm câu cá chấm y hệt công thức bên js/engine/cauca.js (xem ca.data.js)
+  cauca: u => diemCauCa(u.save),
   dex: u => Object.keys(u.save?.dex?.caught || {}).length,
   badges: u => (u.save?.badges || []).length,
   level: u => Math.max(0, ...(u.save?.party || []).map(m => m.lv || 0)),

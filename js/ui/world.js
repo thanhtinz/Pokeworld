@@ -973,6 +973,35 @@ export function render(el) {
     return co.sort((a, b) => FISHING[b].trigger - FISHING[a].trigger)[0];
   }
 
+  /**
+   * Chờ người chơi bấm A trong `han` ms. Trả số ms trễ so với lúc phao giật,
+   * hoặc `Infinity` nếu để lỡ.
+   *
+   * Nhịp canh phao phải nằm NGAY TRÊN BẢN ĐỒ chứ không mở panel: nghe tiếng
+   * "phao giật" rồi bấm mới ra chất câu cá, chứ quăng cần xong hiện luôn kết
+   * quả thì chỉ là bấm một nút lấy đồ.
+   */
+  function doiGiat(han) {
+    return new Promise(xong => {
+      const nut = el.querySelector('#btn-act');
+      const luc = Date.now();
+      let het = null;
+      const thoi = (tre) => {
+        clearTimeout(het);
+        window.removeEventListener('keydown', phim);
+        nut?.removeEventListener('click', bam);
+        nut?.classList.remove('cau-giat');
+        xong(tre);
+      };
+      const bam = () => thoi(Date.now() - luc);
+      const phim = (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); bam(); } };
+      window.addEventListener('keydown', phim);
+      nut?.addEventListener('click', bam);
+      nut?.classList.add('cau-giat');
+      het = setTimeout(() => thoi(Infinity), han);
+    });
+  }
+
   // Thả câu. Mỗi lần thả cần mòn một điểm, hết là gãy.
   async function thaCau(rod) {
     busy = true;
@@ -988,7 +1017,12 @@ export function render(el) {
       if (!r.ok) {
         const con = CAU.caRia(CAU.choTheoMap(player.mapId));
         if (!con) { toast('Chờ mãi mà chẳng con nào cắn...'); return; }
-        const [duoc, loi] = CAU.giatCan(con, 200);
+        // Chờ cá rỉa — trong lúc này bấm A là giật SỚM, cá nhả mất
+        const som = await doiGiat(CAU.buongCan());
+        if (som !== Infinity) { CAU.giatCan(con, -1); toast('Giật sớm quá, cá nhả mất rồi.'); return; }
+        toast('PHAO GIẬT! Bấm A ngay!', 1200);
+        const tre = await doiGiat(CAU.cuaSo() + 120);
+        const [duoc, loi] = CAU.giatCan(con, tre === Infinity ? 1e9 : tre);
         if (loi) { toast(loi); return; }
         const d = CAU.CA_BY_ID[duoc.id];
         await playDialog([[{ name: 'Bạn' },
