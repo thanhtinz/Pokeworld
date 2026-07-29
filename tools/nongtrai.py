@@ -30,7 +30,7 @@ Goi tu tools/mktmx.py, dung chay truc tiep.
 """
 import os
 
-W, H = 65, 18
+W, H = 65, 19
 SLUG = 'nong_trai'
 TEN = 'Nông Trại Bờ Suối'
 
@@ -50,7 +50,11 @@ BUI, HOA, DA_TANG = CT.BUI, CT.HOA, CT.DA_TANG
 RAO_NGOAI = (1, 3, W - 2, H - 3)     # x, y, rong, cao — vong rao quanh ban do
 
 # DUY NHAT mot dai loi di, chay ngang suot ban do.
-DUONG_NGANG = (11, 12)
+#
+# Cao them mot hang so voi truoc de CHUA MOT HANG CO giua hang o ruong duoi
+# cung va loi di. Truoc hai thu ap sat nhau, ma dat ruong voi dat nen loi di
+# deu la mang nau — dinh lien vao nhau thi nhin khong ra dau la duong.
+DUONG_NGANG = (12, 13)
 # CONG BO o dau dai phia tay, duc thang qua vong rao. Noi hai chieu voi ngo bac
 # cua Khu Dan Cu.
 #
@@ -73,12 +77,14 @@ KHU_TRONG = (6, 4, 25, 7)       # vung luoi o ruong: x, y, rong, cao (o)
 BUOC_O = 2                      # hai o ruong cach nhau bay nhieu o
 O_TOI_DA = 50
 
-CHUONG = (33, 5, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
-AO = (41, 6, 46, 10)            # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
-NHA_KHO = (49, 6, 5, 5)         # nha kho: x, y, rong, cao (o)
+# Chuong, ho va hai toa nha thi CO Y cham toi loi di: chung la thu buoc tu duoi
+# duong len de dung truoc mat ma bam. Chi rieng khu dat trong phai chua ra.
+CHUONG = (33, 6, 6, 6)          # chuong thu KE CA hang rao: x, y, rong, cao
+AO = (41, 6, 46, 11)            # mat nuoc: x0, y0, x1, y1 (bao gom hai dau)
+NHA_KHO = (49, 7, 5, 5)         # nha kho: x, y, rong, cao (o)
 # Cot cuoi cua nha bep phai cach vong rao mot o: san truoc cua duoc don sach
 # solid, don trum len cot rao la thung mot lo ra ngoai ban do.
-NHA_BEP = (54, 4, 9, 7)         # nha bep: x, y, rong, cao (o)
+NHA_BEP = (54, 5, 9, 7)         # nha bep: x, y, rong, cao (o)
 
 BAC_NONG = (51, DUONG_NGANG[0])   # nguoi coi kho, dung ngay truoc cua
 LAI_CA = (43, DUONG_NGANG[0])     # ong lai ca, dung ngay duoi bo ho

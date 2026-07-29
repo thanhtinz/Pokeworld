@@ -4649,6 +4649,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         && o.y >= NM.KHU_TRONG.y && o.y < NM.KHU_TRONG.y + NM.KHU_TRONG.h));
     ok('ô ruộng nằm trong danh sách cấm kê máy/chuồng',
       NM.O_RUONG.every(o => NM.CAM.has(`${o.x},${o.y}`)));
+    // Đất ruộng KHÔNG được chạm vào lối đi: hai thứ đều là mảng nâu, dính vào
+    // nhau thì nhìn không ra đâu là đường. Phải chừa ít nhất một hàng cỏ.
+    ok('không ô ruộng nào chạm vào lối đi',
+      NM.O_RUONG.every(o => NM.LOI_NGANG.every(y => Math.abs(o.y - y) > 1)),
+      NM.O_RUONG.filter(o => NM.LOI_NGANG.some(y => Math.abs(o.y - y) <= 1))
+        .map(o => `${o.x},${o.y}`).join(' '));
     // Ô đầu tiên phải sát lối đi: khu ruộng lớn dần ra XA đường
     ok('ô mua đầu tiên nằm ở hàng sát lối đi',
       NM.O_RUONG[0].y === NM.KHU_TRONG.y + NM.KHU_TRONG.h - 1,
