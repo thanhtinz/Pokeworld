@@ -27,13 +27,13 @@ import { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   GIAI_DOAN, GIA_CO_KHO, SUC_CHUA_GOC } from '../data/nongtrai.js';
 import { NONG_TRAI_MAP, VUNG, CAM, MAC_DINH, BAC_NONG, VUNG_THU,
   CHUONG, NHA_KHO, NHA_BEP, NGUOI_BAN, KHU_TRONG, O_RUONG,
-  O_TOI_DA, RAO_NGOAI, LOI_NGANG } from '../data/nongtraimap.js';
+  O_TOI_DA, RAO_NGOAI, LOI_NGANG, MANG_AN, QUA_DUOC } from '../data/nongtraimap.js';
 
 export { CAY, CAY_BY_ID, THU, THU_BY_ID, MON, MON_BY_ID, VAT_THE, VAT_BY_ID,
   MAY, MAY_BY_ID, CONG_THUC, congThucCua,
   GIAI_DOAN, GIA_CO_KHO, NONG_TRAI_MAP, VUNG, CAM, BAC_NONG, VUNG_THU,
   CHUONG, NHA_KHO, NHA_BEP, NGUOI_BAN, KHU_TRONG, O_RUONG, O_TOI_DA,
-  RAO_NGOAI, LOI_NGANG };
+  RAO_NGOAI, LOI_NGANG, MANG_AN, QUA_DUOC };
 
 const PHUT = 60000;
 export const CHIN = GIAI_DOAN - 1;      // giai đoạn cuối là lúc chín
@@ -51,6 +51,7 @@ export function nt() {
   if (!n.kho || typeof n.kho !== 'object') n.kho = {};
   if (!Array.isArray(n.don)) n.don = [];
   if (typeof n.diem !== 'number') n.diem = 0;
+  if (typeof n.mang !== 'number') n.mang = 0;
   // Bản lưu cũ chưa có mục thú canh. Bản lưu giữa đường có thể cất một cái mã
   // trỏ vào đội thay vì cả con — mã đó vô nghĩa rồi, dọn đi.
   if (n.canh && !n.canh.sp) n.canh = null;
@@ -239,6 +240,59 @@ export function thu(o, gio = Date.now(), rnd = Math.random) {
   return [{ id, n }, null];
 }
 
+// ==== Máng ăn cho gia cầm ====
+//
+// Gà vịt thả rông khắp nông trại, nên cho ăn kiểu đứng trước mặt từng con mà
+// bấm thì thành trò đuổi gà: mỗi lứa sản phẩm là một vòng chạy quanh bản đồ.
+// Đổ cỏ vào máng thì chúng TỰ TÌM TỚI — người chơi làm một việc, cả đàn ăn.
+//
+// Thú bốn chân không dùng máng: chúng ở yên trong chuồng, tới tận nơi cho ăn
+// cũng chỉ vài bước.
+export const MANG_TOI_DA = 20;      // máng chứa nhiều nhất bấy nhiêu bó
+
+/** Số bó cỏ còn trong máng. */
+export const coTrongMang = () => nt().mang || 0;
+
+/** Đổ cỏ khô từ kho vào máng. Trả [số bó đã đổ, lỗi]. */
+export function doVaoMang(n = 1) {
+  const nt_ = nt();
+  const cho = Math.min(n, MANG_TOI_DA - coTrongMang());
+  if (cho <= 0) return [null, 'Máng đầy rồi.'];
+  const soCo = Math.min(cho, co('co_kho'));
+  if (soCo <= 0) return [null, 'Hết cỏ khô rồi — mua ở chỗ Anh Lái Thú.'];
+  bot('co_kho', soCo);
+  nt_.mang = coTrongMang() + soCo;
+  save();
+  return [soCo, null];
+}
+
+/** Con này có đang tìm tới máng ăn không. */
+export function dangTimMang(con, gio = Date.now()) {
+  if (THU_BY_ID[con?.id]?.chan !== 2) return false;
+  if (dangDoi(con, gio) || sanSang(con, gio)) return false;   // no rồi / có hàng rồi
+  return coTrongMang() > 0;
+}
+
+/**
+ * Con đứng SÁT máng và đang đói thì ăn một bó. Trả true nếu vừa ăn.
+ *
+ * Sát chứ không phải đứng đúng trên ô máng: ô máng là ô cấm (khỏi ai kê máy đè
+ * lên), mà nếu cho đứng lên thì mỗi lượt cũng chỉ một con ăn được, cả đàn xếp
+ * hàng chờ. Đứng quanh cái máng mà mổ mới đúng là đàn gà.
+ */
+export function anTaiMang(con, gio = Date.now()) {
+  if (!dangTimMang(con, gio)) return false;
+  if (Math.abs(con.x - MANG_AN.x) + Math.abs(con.y - MANG_AN.y) > 1) return false;
+  const t = THU_BY_ID[con.id];
+  const nt_ = nt();
+  const can = t.an || 1;
+  if (nt_.mang < can) return false;
+  nt_.mang -= can;
+  con.sanLuc = gio + t.phut * PHUT;
+  save();
+  return true;
+}
+
 // ==== Con vật ====
 
 /** Con vật đứng ở ô này (nếu có). */
@@ -357,7 +411,12 @@ export function thuDiDuoc(x, y, boQua = null, con = boQua) {
   const v = vungCuaThu(con);
   if (x < v.x0 || x > v.x1) return false;
   if (y < v.y0 || y > v.y1) return false;
-  if (CAM.has(`${x},${y}`)) return false;
+  // Gia cầm băng qua được mấy ô lối đi trống (QUA_DUOC). Cấm tuyệt đối thì con
+  // đường cắt đôi nông trại, gà thả nửa này không bao giờ sang nửa kia được.
+  // Thú bốn chân vẫn cấm — mà chúng ở trong chuồng nên cũng chẳng tới đường.
+  const k = `${x},${y}`;
+  const quaDuoc = THU_BY_ID[con?.id]?.chan === 2 && QUA_DUOC.has(k);
+  if (CAM.has(k) && !quaDuoc) return false;
   if (oTaiO(x, y)) return false;                  // không giẫm lên ruộng với máy
   // Phải tránh cả con ĐANG ĐI TỚI ô đó, không thì hai con cùng nhắm một ô rồi
   // chồng lên nhau — con đang đi thì x,y vẫn là ô cũ nên xét mỗi x,y là hụt.
@@ -392,6 +451,7 @@ export function diChuyenThu(dt, nx = null, ny = null, rnd = Math.random) {
         t.x = t.tx; t.y = t.ty; t.ox = 0; t.oy = 0;
         t.di = false;
         t.cho = CHO_THU * (0.6 + rnd() * 1.2);
+        anTaiMang(t);              // vừa tới máng thì ăn luôn
       }
       continue;
     }
@@ -405,18 +465,44 @@ export function diChuyenThu(dt, nx = null, ny = null, rnd = Math.random) {
     }
     t.cho -= dt;
     if (t.cho > 0) continue;
-    const [dir, dx, dy] = HUONG[Math.floor(rnd() * HUONG.length)];
-    const tx = t.x + dx;
-    const ty = t.y + dy;
-    t.dir = dir;
-    const xa = Math.abs(tx - t.goc.x) + Math.abs(ty - t.goc.y);
-    if (xa > xaDuoc(t) || !thuDiDuoc(tx, ty, t)) {
-      // Hướng đó bị chặn thì nghĩ lại NHANH thôi, không thì con nào bị kẹp
-      // giữa mấy con khác cứ đứng đơ cả buổi
-      t.cho = 0.3 + rnd() * 0.5;
-      continue;
+
+    // Máng có cỏ mà con này đang đói thì THẲNG TIẾN tới máng, không đi lang
+    // nữa. Đây là cả điểm của cái máng: đổ cỏ một lần, cả đàn tự kéo về.
+    const doi = dangTimMang(t);
+    if (doi && anTaiMang(t)) continue;
+    let huong = HUONG;
+    if (doi) {
+      const ux = MANG_AN.x - t.x;
+      const uy = MANG_AN.y - t.y;
+      // Ưu tiên đi theo trục còn lệch nhiều hơn, rồi mới tới trục kia — có thế
+      // mới lách được quanh mấy ô cấm chứ không dí thẳng vào tường.
+      const uu = Math.abs(ux) >= Math.abs(uy)
+        ? [[ux > 0 ? 'right' : 'left', Math.sign(ux), 0],
+           [uy > 0 ? 'down' : 'up', 0, Math.sign(uy)]]
+        : [[uy > 0 ? 'down' : 'up', 0, Math.sign(uy)],
+           [ux > 0 ? 'right' : 'left', Math.sign(ux), 0]];
+      huong = uu.filter(([, dx2, dy2]) => dx2 || dy2).concat(HUONG);
     }
-    t.tx = tx; t.ty = ty; t.di = true;
+    const bat = doi ? 0 : Math.floor(rnd() * huong.length);
+    let daDi = false;
+    for (let i = 0; i < huong.length && !daDi; i++) {
+      const [dir, dx, dy] = huong[(bat + i) % huong.length];
+      const tx = t.x + dx;
+      const ty = t.y + dy;
+      // Đi ăn thì bỏ qua giới hạn quanh chỗ thả — cái máng mới là đích
+      const xa = Math.abs(tx - t.goc.x) + Math.abs(ty - t.goc.y);
+      if (!doi && xa > xaDuoc(t)) continue;
+      if (!thuDiDuoc(tx, ty, t)) continue;
+      t.dir = dir;
+      t.tx = tx; t.ty = ty; t.di = true;
+      daDi = true;
+    }
+    if (!daDi) {
+      // Hướng nào cũng bị chặn thì nghĩ lại NHANH thôi, không thì con nào bị
+      // kẹp giữa mấy con khác cứ đứng đơ cả buổi
+      t.dir = HUONG[Math.floor(rnd() * HUONG.length)][0];
+      t.cho = 0.3 + rnd() * 0.5;
+    }
   }
 }
 
@@ -894,6 +980,11 @@ export function vatNongTrai(mapId, x, y) {
     const v = VAT_BY_ID[o.id];
     const kind = v.loai === 'ruong' ? 'ruong' : v.loai === 'may' ? 'may' : 'congtrinh';
     return { type: 'nongtrai', kind, name: v.name, o };
+  }
+  // Máng ăn cho gia cầm
+  if (x === MANG_AN.x && y === MANG_AN.y) {
+    return { type: 'nongtrai', kind: 'mang-an', name: 'Máng Ăn',
+      con: coTrongMang() };
   }
   // Ô ruộng kế tiếp đang cắm biển bán
   const ban = oDangBan();

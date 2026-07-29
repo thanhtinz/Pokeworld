@@ -4330,8 +4330,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('con vật không đi ra ngoài vùng nông trại',
       g.x >= NM.VUNG.x0 && g.x <= NM.VUNG.x1
       && g.y >= NM.VUNG.y0 && g.y <= NM.VUNG.y1, `${g.x},${g.y}`);
-    ok('con vật không giẫm lên lối đi hay mặt nước',
-      !NM.CAM.has(`${g.x},${g.y}`), `${g.x},${g.y}`);
+    // Gà vịt được phép ĐỨNG TRÊN lối đi (QUA_DUOC) — không cho thì lối đi cắt
+    // đôi nông trại, nửa dưới chúng không bao giờ tới được. Mọi ô cấm khác
+    // (mặt nước, nền nhà, máng ăn) thì vẫn cấm.
+    ok('con vật chỉ giẫm lên ô cấm nếu đó là chỗ băng qua lối đi',
+      !NM.CAM.has(`${g.x},${g.y}`) || NM.QUA_DUOC.has(`${g.x},${g.y}`), `${g.x},${g.y}`);
     ok('con vật không đứng đè lên ruộng', !NT.oTaiO(g.x, g.y));
     ok('con vật không đi quá xa chỗ được thả',
       Math.abs(g.x - cho.x) + Math.abs(g.y - cho.y) <= 5,
@@ -4852,6 +4855,54 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
         xaNhat = Math.max(xaNhat, Math.abs(g.x - g0.x) + Math.abs(g.y - g0.y));
       }
       ok('gà đi lang được ra xa chỗ thả', xaNhat >= 8, `xa nhất ${xaNhat} ô`);
+    }
+
+    // ---- Máng ăn: đổ cỏ một chỗ, cả đàn tự chạy tới ----
+    {
+      newGame('MangAn');
+      G.p.money = 900000;
+      ok('ô máng ăn là ô cấm kê', NM.CAM.has(`${NM.MANG_AN.x},${NM.MANG_AN.y}`));
+      ok('chỗ băng qua lối đi nằm hết trên lối đi',
+        [...NM.QUA_DUOC].every(k => NM.LOI_NGANG.includes(Number(k.split(',')[1]))));
+      ok('chỗ băng qua lối đi tránh xa người bán',
+        [...NM.QUA_DUOC].every(k => {
+          const [x, y] = k.split(',').map(Number);
+          return NM.NGUOI_BAN.every(b => Math.abs(x - b.x) > 1 || Math.abs(y - b.y) > 1);
+        }));
+
+      ok('chưa có cỏ trong kho thì không đổ được', NT.doVaoMang(1)[1] !== null);
+      NT.muaCoKho(30);
+      const [so] = NT.doVaoMang(5);
+      ok('đổ được cỏ vào máng', so === 5 && NT.coTrongMang() === 5);
+      ok('đổ vào máng thì kho bị trừ đúng bấy nhiêu', NT.co('co_kho') === 25);
+      NT.doVaoMang(100);
+      ok('máng không chứa quá sức chứa', NT.coTrongMang() === NT.MANG_TOI_DA);
+      ok('máng đầy thì báo lỗi chứ không nuốt cỏ', NT.doVaoMang(1)[1] !== null);
+
+      // Thả ba con gà rải khắp nông trại rồi để chúng tự đi
+      G.p.nt.thu = [];
+      NT.muaThu('ga'); NT.muaThu('ga_nau'); NT.muaThu('bo');
+      const dan = NT.danhSachThu();
+      const giaCam = dan.filter(t => D.THU_BY_ID[t.id].chan === 2);
+      const bon = dan.find(t => D.THU_BY_ID[t.id].chan === 4);
+      ok('có cả gia cầm lẫn thú bốn chân để so', giaCam.length === 2 && !!bon);
+      ok('gia cầm đang đói thì đi tìm máng', giaCam.every(t => NT.dangTimMang(t)));
+      ok('thú bốn chân không dùng máng', !NT.dangTimMang(bon));
+
+      let seed = 11;
+      const rnd2 = () => { seed = (seed * 1103515245 + 12345) % 2147483648;
+        return seed / 2147483648; };
+      const gio = Date.now();
+      for (let i = 0; i < 20000; i++) NT.diChuyenThu(1 / 30, null, null, rnd2);
+      ok('gia cầm tự chạy tới máng ăn hết',
+        giaCam.every(t => t.sanLuc > gio),
+        giaCam.map(t => `${t.id}@${t.x},${t.y}`).join(' '));
+      ok('thú bốn chân vẫn nằm trong chuồng, không ra máng',
+        bon.x >= NM.VUNG_THU.x0 && bon.x <= NM.VUNG_THU.x1
+        && bon.y >= NM.VUNG_THU.y0 && bon.y <= NM.VUNG_THU.y1, `${bon.x},${bon.y}`);
+      ok('ăn xong thì máng vơi đi', NT.coTrongMang() < NT.MANG_TOI_DA);
+      ok('không con nào đứng đè lên máng',
+        dan.every(t => t.x !== NM.MANG_AN.x || t.y !== NM.MANG_AN.y));
     }
     // Chỗ mua hàng phải có NGƯỜI bán, không phải một cái cọc cắm biển
     ok('có người bán hạt giống và người bán con vật',

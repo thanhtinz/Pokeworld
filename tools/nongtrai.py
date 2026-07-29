@@ -89,6 +89,11 @@ NHA_KHO = (37, 7, 5, 5)         # nha kho: x, y, rong, cao (o)
 # solid, don trum len cot rao la thung mot lo ra ngoai ban do.
 NHA_BEP = (43, 5, 9, 7)         # nha bep: x, y, rong, cao (o)
 
+# MANG AN cho gia cam, dat o khoang san trong giua cong va khu dat trong. Do
+# co vao day thi ga vit tu chay lai an — khong thi moi lan cho an la phai duoi
+# theo tung con khap nong trai.
+MANG_AN = (3, 10)
+
 # Bam theo chinh toa do cua khu minh dung truoc, khoi lech khi doi bo cuc
 BAC_NONG = (NHA_KHO[0] + 2, DUONG_NGANG[0])   # nguoi coi kho, truoc cua
 LAI_CA = (AO[0] + 2, DUONG_NGANG[0])          # ong lai ca, duoi bo ho
@@ -287,6 +292,9 @@ def dung(goc):
         for _ma, _t, _sp, sx, sy in NGUOI_BAN:
             if sx - 1 <= x <= sx + 1 and sy - 1 <= y <= sy + 1:
                 return True
+        if MANG_AN[0] - 1 <= x <= MANG_AN[0] + 1 \
+                and MANG_AN[1] - 1 <= y <= MANG_AN[1] + 1:
+            return True
         return False
 
     def cho_trong_cay(x, y):
@@ -363,6 +371,9 @@ def dung(goc):
         for x in range(n[0], n[0] + n[2]):
             don(x, n[1] + n[3])
 
+    # Mang an phai dung duoc: ga vit di toi tan noi moi an duoc
+    don(MANG_AN[0], MANG_AN[1])
+
     # ==== Cong bo ====
     # Duc thang qua vong rao o hai hang loi di. Vong don loi di phia tren chua
     # hai cot rao hai dau lai, nen phai mo tay dung hai o nay.
@@ -405,8 +416,22 @@ def dung(goc):
     # 50 o ruong la cho DA DANH SAN cho dat trong: ke may hay chuong de len thi
     # mua o dat den luot do la dam vao nhau.
     cam |= set(O_RUONG)
+    cam.add(MANG_AN)          # khoi ai ke may de len cai mang
 
-    viet_js(cam)
+    # O tren LOI DI ma gia cam duoc phep bang qua. Loi di nam trong danh sach o
+    # cam (khong ai ke ruong len duong duoc), nhung cam luon ca gia cam thi con
+    # duong cat doi nong trai lam hai nua — ga tha o nua nay khong bao gio sang
+    # duoc nua kia. Chua ra dung may o duong trong, tru cho NPC dung.
+    qua = set()
+    for y in DUONG_NGANG:
+        for x in range(VUNG[0], VUNG[2] + 1):
+            if not trong_ban_do(x, y) or solid[idx(x, y)] or water[idx(x, y)]:
+                continue
+            gan_ai = any(abs(x - n['x']) <= 1 and abs(y - n['y']) <= 1 for n in npcs)
+            if not gan_ai:
+                qua.add((x, y))
+
+    viet_js(cam, qua)
 
     return {
         'w': W, 'h': H, 'layers': [nen, tren], 'above': None,
@@ -425,7 +450,7 @@ LOI_BAN = {
 }
 
 
-def viet_js(cam=()):
+def viet_js(cam=(), qua=()):
     """Ghi js/data/nongtraimap.js — toa do de ben engine dung lai."""
     out = [
         '// TuxeWorld H5 | data/nongtraimap.js | TỰ SINH TỪ tools/nongtrai.py, đừng sửa tay',
@@ -461,6 +486,8 @@ def viet_js(cam=()):
         '// js/ui/world.js lo.',
         'export const NHA_KHO = { x: %d, y: %d, w: %d, h: %d };' % NHA_KHO,
         'export const NHA_BEP = { x: %d, y: %d, w: %d, h: %d };' % NHA_BEP,
+        '// Máng ăn cho gia cầm — đổ cỏ vào đây thì gà vịt tự chạy lại.',
+        'export const MANG_AN = { x: %d, y: %d };' % MANG_AN,
         'export const BAC_NONG = { x: %d, y: %d };' % BAC_NONG,
         '',
         '// Người bán hàng đứng dưới lối đi, đối diện từng khu. Nói chuyện là ra',
@@ -491,6 +518,12 @@ def viet_js(cam=()):
         '// mà kê đè lên NPC thì bấm A ra câu thoại chứ không ra ruộng.',
         'export const CAM = new Set(%s);'
         % ('[' + ', '.join('"%d,%d"' % (x, y) for x, y in trong_vung) + ']'),
+        '',
+        '// Ô trên lối đi mà GIA CẦM được phép băng qua. Lối đi nằm trong CAM để',
+        '// không ai kê ruộng lên đường, nhưng cấm luôn cả gà vịt thì con đường',
+        '// cắt đôi nông trại — gà thả ở nửa này không bao giờ sang được nửa kia.',
+        'export const QUA_DUOC = new Set(%s);'
+        % ('[' + ', '.join('"%d,%d"' % (x, y) for x, y in sorted(qua)) + ']'),
         '',
     ]
     with open('js/data/nongtraimap.js', 'w', encoding='utf-8') as f:

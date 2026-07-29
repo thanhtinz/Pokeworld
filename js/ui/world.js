@@ -2,7 +2,7 @@
 import { G, save } from '../state.js';
 import * as CAU from '../engine/cauca.js';
 import { ANH_BONG, BONG_KHUNG, BONG_NHIP } from '../data/ca.js';
-import { NHA_KHO, NHA_BEP, CHO_VAO } from '../data/nongtraimap.js';
+import { NHA_KHO, NHA_BEP, CHO_VAO, MANG_AN } from '../data/nongtraimap.js';
 
 // Chỗ thú canh đứng: ngay cạnh ô đặt chân, nên ai vào nông trại cũng gặp nó
 // trước tiên.
@@ -49,7 +49,7 @@ import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
 import * as AV from '../engine/avatar.js';
 import * as NT from '../engine/nongtrai.js';
-import { anhCay, anhThu as anhConThu, anhNha as anhNhaNT, anhMay, anhDat,
+import { anhCay, anhThu as anhConThu, anhNha as anhNhaNT, anhMay, anhDat, anhMon,
   NHIP_MAY } from '../data/nongtrai.js';
 import { esc, tien, tienChu, monPath } from '../util.js';
 import { toast, choose } from './kit.js';
@@ -346,6 +346,12 @@ export function render(el) {
     // thêm được gì.
     const LE_O = 1 / 16;
     const veO = (src, x, y) => ve1(src, x + LE_O, y + LE_O, 1 - LE_O * 2, 1 - LE_O * 2);
+    // Chip đếm ngược GOM LẠI vẽ sau cùng. Vẽ ngay trong vòng lặp thì ô ruộng kế
+    // bên đè lên mất, chỉ còn hở hai đầu bo tròn thò ra hai bên — nhìn như một
+    // vệt xanh lạ nằm dưới mặt đất.
+    const cacChip = [];
+    const hen = (...a) => cacChip.push(a);
+    veMangAn(size, camX, camY, ve1);
     for (const o of NT.nt().o) {
       const v = NT.VAT_BY_ID[o.id];
       if (!v) continue;
@@ -354,8 +360,7 @@ export function render(el) {
         if (o.cay) {
           veO(anhCay(o.cay, NT.giaiDoan(o, gio), NT.dangUot(o, gio)), o.x, o.y);
           // Chín rồi thì nhấp nháy một chấm vàng cho dễ thấy từ xa
-          veDongHo({ loai: 'ruong', o }, o.x + 0.5, o.y, size, camX, camY, gio,
-            'Nước', '#4dabf7');
+          hen({ loai: 'ruong', o }, o.x + 0.5, o.y, 'Nước', '#4dabf7');
         }
       } else if (v.loai === 'may') {
         // Máy chỉ chiếm MỘT ô nhưng ảnh cao hai ô — vẽ vươn lên trên ô nó đứng.
@@ -371,7 +376,7 @@ export function render(el) {
             Math.round(o.x * size - camX), Math.round((o.y + 1) * size - camY - cao),
             Math.round(size), Math.round(cao));
         }
-        veDongHo({ loai: 'may', o }, o.x + 0.5, o.y - 1, size, camX, camY, gio);
+        hen({ loai: 'may', o }, o.x + 0.5, o.y - 1);
       } else {
         // Công trình vẽ cao hơn ô nó chiếm: ảnh gốc là mặt tiền nhìn nghiêng,
         // vẽ đúng bằng số ô thì lùn tịt.
@@ -392,8 +397,10 @@ export function render(el) {
       ctx.drawImage(im, f.sx, f.sy, f.sw, f.sh,
         Math.round(cx * size - camX - w / 2), Math.round(cy * size - camY - w),
         Math.round(w), Math.round(w));
-      veDongHo({ loai: 'thu', con }, cx, cy - 1, size, camX, camY, gio,
-        'Ăn', '#ff8787');
+      hen({ loai: 'thu', con }, cx, cy - 1, 'Ăn', '#ff8787');
+    }
+    for (const [thing, cx, cy, chuCho, mauCho] of cacChip) {
+      veDongHo(thing, cx, cy, size, camX, camY, gio, chuCho, mauCho);
     }
     // Đang cầm món chờ kê: vẽ bóng mờ ngay ô trước mặt cho biết sẽ đặt vào đâu
     const cam = NT.choKe();
@@ -446,6 +453,43 @@ export function render(el) {
     if (NT.thuCanh()) {
       veBangTen('Thú Canh', CHO_CANH.x + 0.5, CHO_CANH.y, size, camX, camY);
     }
+    // Máng ăn: bảng tên, kèm số bó còn lại nếu trong máng còn cỏ
+    veBangTen('Máng Ăn', MANG_AN.x + 0.5, MANG_AN.y, size, camX, camY);
+    const trongMang = NT.coTrongMang();
+    if (trongMang > 0) {
+      veChip(`${trongMang}/${NT.MANG_TOI_DA}`, MANG_AN.x + 0.5, MANG_AN.y - 1.05,
+        size, camX, camY, 'rgba(20,18,30,0.82)');
+    }
+  }
+
+  /**
+   * Cái máng ăn ở góc tây nông trại.
+   *
+   * Pack không có ảnh máng nào nên vẽ tay bằng mấy hình khối: một cái khay gỗ
+   * nhìn nghiêng. Đổ cỏ vào thì chồng luôn icon bó cỏ khô lên trên, nhìn từ xa
+   * là biết máng còn đồ hay đã sạch, khỏi phải bấm vào mới biết.
+   */
+  function veMangAn(size, camX, camY, ve1) {
+    const co = NT.coTrongMang();
+    const bx = MANG_AN.x * size - camX;
+    const by = MANG_AN.y * size - camY;
+    ctx.save();
+    // Thành sau thấp, lòng máng, rồi thành trước — ba dải cho ra chiều sâu
+    ctx.fillStyle = '#8a6236';
+    ctx.fillRect(Math.round(bx + size * 0.06), Math.round(by + size * 0.34),
+      Math.round(size * 0.88), Math.round(size * 0.2));
+    ctx.fillStyle = '#4a3320';
+    ctx.fillRect(Math.round(bx + size * 0.06), Math.round(by + size * 0.5),
+      Math.round(size * 0.88), Math.round(size * 0.14));
+    ctx.fillStyle = '#a97c46';
+    ctx.fillRect(Math.round(bx + size * 0.06), Math.round(by + size * 0.6),
+      Math.round(size * 0.88), Math.round(size * 0.26));
+    ctx.strokeStyle = 'rgba(30,20,10,0.6)';
+    ctx.lineWidth = Math.max(1, size * 0.05);
+    ctx.strokeRect(Math.round(bx + size * 0.06), Math.round(by + size * 0.34),
+      Math.round(size * 0.88), Math.round(size * 0.52));
+    ctx.restore();
+    if (co > 0) ve1(anhMon('co_kho'), MANG_AN.x + 0.16, MANG_AN.y + 0.1, 0.68, 0.68);
   }
 
   /**
@@ -1388,6 +1432,23 @@ export function render(el) {
     if (thing.kind === 'nha-bep') {
       cleanup();
       show('craft', { from: 'world' });
+      return;
+    }
+
+    // Máng ăn: đổ cỏ khô vào rồi gà vịt tự chạy tới
+    if (thing.kind === 'mang-an') {
+      const coKho = NT.co('co_kho');
+      const trong = NT.MANG_TOI_DA - thing.con;
+      if (trong <= 0) { toast('Máng đang đầy, để đàn ăn bớt đã.'); return; }
+      if (coKho <= 0) { toast('Hết cỏ khô rồi — mua ở chỗ Anh Lái Thú.'); return; }
+      const muc = [1, 5, Math.min(coKho, trong)].filter((n, i, a) => n > 0 && a.indexOf(n) === i);
+      const i = await choose(`Máng Ăn · ${thing.con}/${NT.MANG_TOI_DA} bó`, [
+        ...muc.map(n => ({ label: `Đổ ${n} bó cỏ khô`, sub: `Trong kho còn ${coKho} bó` })),
+        { label: 'Thôi' },
+      ]);
+      if (i == null || i >= muc.length) return;
+      const [so, err] = NT.doVaoMang(muc[i]);
+      toast(err || `Đổ ${so} bó vào máng. Gà vịt sẽ tự chạy tới ăn.`);
       return;
     }
 
