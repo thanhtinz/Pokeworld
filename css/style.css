@@ -2688,6 +2688,35 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 /* ==== Tạo nhân vật (ghép lớp LPC) ==== */
 .cc-wrap { gap: 10px; padding-bottom: 4px; }
 .cc-title { margin-bottom: 2px; }
+.cc-nho { color: var(--muted); font-size: .82rem; text-align: center; margin-bottom: 6px; }
+
+/* ---- Bước một: chọn giới tính ---- */
+/* Dáng người của LPC chia hẳn theo giới (đồ cắt riêng từng bên), nên chốt
+   giới tính trước rồi mới bày dáng của giới đó. */
+.cc-gioi-man { justify-content: center; min-height: 70vh; }
+.cc-gioi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.cc-gioi-o {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 14px 8px 12px; margin-bottom: 0;
+  background:
+    radial-gradient(ellipse 66% 40% at 50% 72%, rgba(112, 72, 232, .34), transparent 72%),
+    var(--card);
+}
+.cc-gioi-o .lop-o { margin-bottom: 6px; }
+.cc-gioi-o b { font-size: 1.05rem; }
+.cc-gioi-o small { color: var(--muted); font-size: .72rem; line-height: 1.35; }
+.cc-gioi-o.chon { border-color: var(--gold); box-shadow: 0 0 16px rgba(240, 180, 41, .22); }
+
+/* Đầu màn bước hai: nút lùi về chọn lại giới tính, kèm tên giới đang chọn */
+.cc-dinh { position: relative; display: flex; align-items: center; min-height: 34px; }
+.cc-dinh .cc-title { flex: 1; margin: 0; }
+.cc-lui {
+  position: absolute; left: 0; z-index: 2;
+  min-height: 30px; padding: 0 11px; border-radius: 999px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .06);
+  color: var(--muted); font-size: .78rem;
+}
+.cc-lui:active { transform: scale(.95); }
 
 /* Cái bục: nhân vật đứng giữa vầng sáng, hai bên là nút xoay bốn hướng */
 .cc-buc {

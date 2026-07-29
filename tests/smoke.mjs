@@ -3046,6 +3046,28 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('có đủ bốn dáng người và sáu màu da', THAN.length === 4 && DA.length === 6);
   ok('mỗi dáng người đều chỉ về một bộ quần áo có thật',
     THAN.every(t => t.do === 'nam' || t.do === 'nu'));
+
+  // ---- Giới tính chọn trước, dáng người chọn sau ----
+  const { GIOI } = LPC;
+  ok('có hai giới tính', GIOI.length === 2 && GIOI.every(g => g.id && g.name));
+  ok('dáng người nào cũng thuộc về một giới có thật',
+    THAN.every(t => GIOI.some(g => g.id === t.gioi)),
+    THAN.filter(t => !GIOI.some(g => g.id === t.gioi)).map(t => t.id).join(' '));
+  ok('giới nào cũng có ít nhất hai dáng để chọn',
+    GIOI.every(g => AV.thanTheoGioi(g.id).length >= 2),
+    GIOI.map(g => `${g.id}:${AV.thanTheoGioi(g.id).length}`).join(' '));
+  ok('dáng mặc định của mỗi giới đúng là dáng của giới đó',
+    GIOI.every(g => AV.gioiCua(AV.thanDauCuaGioi(g.id)) === g.id));
+  ok('tên dáng trong cùng một giới không trùng nhau',
+    GIOI.every(g => {
+      const ten = AV.thanTheoGioi(g.id).map(t => t.name);
+      return new Set(ten).size === ten.length;
+    }));
+  // Đồ cắt cho nữ phủ 0.991 lên thân "Mảnh Khảnh" còn đồ nam chỉ được 0.811 —
+  // nên dáng đó phải ăn theo tủ đồ của giới nó thuộc về, không được lệch.
+  ok('dáng nào cũng dùng tủ đồ đúng giới của nó',
+    THAN.every(t => t.do === t.gioi),
+    THAN.filter(t => t.do !== t.gioi).map(t => `${t.id}:${t.do}≠${t.gioi}`).join(' '));
   ok('có đủ phần mặt để chỉnh', TAI.length >= 3 && MUI.length >= 3
     && MAT.length >= 6 && BIEU_CAM.length >= 3
     && TOC_KIEU.length >= 10 && TOC_MAU.length >= 4
@@ -3135,6 +3157,17 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('đổi dáng xong mặc lại đồ hợp dáng được', AV.mac(aoNu.id)[0] !== null);
   ok('đổi sang dáng không có thật thì lùi về nam',
     (AV.doiThan('ma_troi'), AV.nguoi().than === 'nam'));
+
+  // Bản lưu cũ mặc đồ lệch dáng (dáng "Mảnh Khảnh" trước ăn theo tủ đồ nam,
+  // đo lại thấy đồ nữ mới vừa người) phải tự cởi ra lúc nạp, không thì nhân
+  // vật mặc áo cắt cho dáng khác.
+  newGame('Bản Cũ');
+  const aoNam = DO.find(d => d.than === 'nam' && d.gia > 0);
+  G.p.look = { nv: { than: 'gay' }, mac: { [aoNam.o]: aoNam.id }, tuDo: [aoNam.id] };
+  const L3 = AV.look();
+  ok('nạp bản lưu cũ thì cởi luôn món lệch dáng',
+    !L3.mac[aoNam.o], JSON.stringify(L3.mac));
+  ok('món lệch dáng vẫn còn trong tủ chứ không bốc hơi', L3.tuDo.includes(aoNam.id));
 
   // ---- Ô màu + ảnh xem trước ----
   // Bày "Nâu Đỏ", "Hạt Dẻ" bằng chữ thì phải bấm từng cái mới biết nó ra sao,

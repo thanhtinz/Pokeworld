@@ -12,7 +12,7 @@
 // vẽ mười mấy lớp mỗi khung hình thì máy yếu tụt khung ngay.
 import { G, save } from '../state.js';
 import { esc } from '../util.js';
-import { THU_MUC, THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU,
+import { THU_MUC, GIOI, THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU,
   RAU_KIEU, RAU_MAU, O_DO, DO_BY_ID, monBoMau } from '../data/lpc.js';
 
 export const KHUNG_W = 32;      // một khung trong sheet đã cắt
@@ -59,6 +59,14 @@ export function look() {
   L.nv = hopLe(L.nv);
   if (!L.mac || typeof L.mac !== 'object') L.mac = {};
   if (!Array.isArray(L.tuDo)) L.tuDo = [];
+  // Bản lưu cũ có thể đang mặc đồ lệch dáng: dáng "Mảnh Khảnh" trước ăn theo
+  // tủ đồ của nam, đo lại thấy đồ nữ mới vừa người nên đã đổi. Cởi ra ở đây
+  // chứ không thì nhân vật mặc áo cắt cho dáng khác, nhìn lệch hẳn.
+  const kieu = danDo(L.nv.than);
+  for (const o of Object.keys(L.mac)) {
+    const d = DO_BY_ID[L.mac[o]];
+    if (L.mac[o] && (!d || d.than !== kieu)) L.mac[o] = null;
+  }
   return L;
 }
 
@@ -69,6 +77,20 @@ export const tuDo = () => look().tuDo;
 // Dáng người quyết định lấy quần áo bản nào (LPC chỉ vẽ đồ cho nam và nữ)
 export const danDo = (than = nguoi().than) =>
   THAN.find(t => t.id === than)?.do || 'nam';
+
+// ==== Giới tính ====
+// Chọn giới tính TRƯỚC, rồi mới tới dáng người trong giới đó.
+export const gioiCua = (than = nguoi().than) =>
+  THAN.find(t => t.id === than)?.gioi || 'nam';
+
+/** Các dáng người thuộc một giới. */
+export const thanTheoGioi = (gioi) => THAN.filter(t => t.gioi === gioi);
+
+/** Dáng mặc định của một giới — dùng lúc vừa chọn xong giới tính. */
+export const thanDauCuaGioi = (gioi) =>
+  (thanTheoGioi(gioi)[0] || THAN[0]).id;
+
+export { GIOI };
 
 // ==== Đường dẫn từng lớp ====
 export const P = (nhom, ten) => `${THU_MUC}/${nhom}/${ten}.png`;
@@ -210,6 +232,15 @@ export function oPhanDau(nhom, ten, { cao = 64, nv = nguoi() } = {}) {
   const ds = [[P('base', `${nv.than}_${nv.da}`), 'lop-nen']];
   if (ten) ds.push([P(nhom, ten), '']);
   return oLop(ds, { cao, vung: VUNG_MAT, cls: 'do-o' });
+}
+
+/**
+ * Nhân vật ĐẦY ĐỦ (thân, mặt, tóc, quần áo) ở khung đứng nhìn thẳng, không làm
+ * mờ lớp nào. Khác `oBoDo` đúng chỗ đó: thẻ chọn bộ đồ thì làm mờ người đi cho
+ * bộ đồ nổi lên, còn thẻ chọn giới tính phải thấy nguyên cả con người.
+ */
+export function oNguoiDu(nv = nguoi(), mac = dangMac(), { cao = 128 } = {}) {
+  return oLop(cacLop(nv, mac).map(p => [p, '']), { cao, cls: 'do-o' });
 }
 
 /** Cả một bộ đồ mẫu khoác lên người, dùng cho thẻ chọn bộ lúc tạo nhân vật. */

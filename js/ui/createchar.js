@@ -11,7 +11,7 @@
 import { activeAccount, setAvatar, setCharCreated } from '../engine/accounts.js';
 import { G, newGame, save, hasSave } from '../state.js';
 import * as AV from '../engine/avatar.js';
-import { THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU, RAU_KIEU, RAU_MAU,
+import { GIOI, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU, RAU_KIEU, RAU_MAU,
   BO_MAU, DO_BY_ID, monBoMau } from '../data/lpc.js';
 import { owFrame, owReady } from '../engine/owsprite.js';
 import { esc } from '../util.js';
@@ -24,14 +24,16 @@ import { show } from '../main.js';
 //   'chu'  — nút chữ             (dáng người)
 // `trong` = cho phép để trống (không có phần đó).
 // `phu`   = mục chọn màu đi kèm, bày ngay dưới cùng một thẻ.
+// `ds` để hàm — danh sách dáng người đổi theo giới tính đã chọn ở bước một.
 const MUC = [
-  { k: 'than', ten: 'Dáng', ds: THAN, kieu: 'chu' },
+  { k: 'than', ten: 'Dáng', ds: (gioi) => AV.thanTheoGioi(gioi), kieu: 'chu' },
   { k: 'da', ten: 'Da', ds: DA, kieu: 'mau' },
   { k: 'tocKieu', ten: 'Tóc', ds: TOC_KIEU, kieu: 'dau', nhom: 'toc', trong: 'Hói',
     phu: { k: 'tocMau', ten: 'Màu tóc', ds: TOC_MAU } },
   { k: 'mat', ten: 'Mắt', ds: MAT, kieu: 'mau' },
+  // LPC chỉ vẽ râu cho dáng nam, nên bên nữ không bày mục này
   { k: 'rauKieu', ten: 'Râu', ds: RAU_KIEU, kieu: 'dau', nhom: 'rau', trong: 'Không',
-    phu: { k: 'rauMau', ten: 'Màu râu', ds: RAU_MAU } },
+    gioi: 'nam', phu: { k: 'rauMau', ten: 'Màu râu', ds: RAU_MAU } },
   { k: 'tai', ten: 'Tai', ds: TAI, kieu: 'dau', nhom: 'tai', trong: 'Thường' },
   { k: 'mui', ten: 'Mũi', ds: MUI, kieu: 'dau', nhom: 'mui', trong: 'Thường' },
   { k: 'bieucam', ten: 'Biểu cảm', ds: BIEU_CAM, kieu: 'dau', nhom: 'bieucam', trong: 'Bình thường' },
@@ -52,7 +54,9 @@ const bocNgauNhien = (ds) => ds[Math.floor(Math.random() * ds.length)]?.id ?? ''
 
 export function render(el) {
   const acc = activeAccount();
-  const nv = AV.macDinh(acc?.avatar === 'leaf' ? 'nu' : 'nam');
+  let gioi = acc?.avatar === 'leaf' ? 'nu' : 'nam';
+  const nv = AV.macDinh(AV.thanDauCuaGioi(gioi));
+  let buoc = 'gioi';                // 'gioi' = chọn giới tính, 'chinh' = chỉnh dáng
   let boDo = 1;
   let muc = 'than';                 // mục đang mở
   let huong = 0;                    // đang nhìn hướng nào
@@ -64,7 +68,9 @@ export function render(el) {
     monTrongBo(boDo).map(id => [DO_BY_ID[id].o, id]));
 
   // Danh sách lựa chọn của một mục, kèm ô trống nếu mục đó bỏ được
-  const luaChon = (m) => (m.trong ? [{ id: '', name: m.trong }, ...m.ds] : m.ds);
+  const mucHienCo = () => MUC.filter(x => !x.gioi || x.gioi === gioi);
+  const dsCua = (m) => (typeof m.ds === 'function' ? m.ds(gioi) : m.ds);
+  const luaChon = (m) => (m.trong ? [{ id: '', name: m.trong }, ...dsCua(m)] : dsCua(m));
 
   // Ảnh/màu của một lựa chọn — đây là chỗ làm màn này hết giống trang thiết lập
   function oChon(m, o) {
@@ -88,8 +94,56 @@ export function render(el) {
       : oChon(m, o)}<span>${esc(o.name)}</span>
   </button>`;
 
+  // ==== Bước một: chọn giới tính ====
+  // Dáng người của LPC chia hẳn theo giới (đồ cắt riêng cho từng bên, mặc chéo
+  // là lệch người), nên phải chốt giới tính trước rồi mới bày dáng của giới đó.
+  function veGioi() {
+    el.innerHTML = `
+      <div class="splash create-scr">
+        <div class="splash-bg"></div>
+        <div class="splash-inner cc-wrap cc-gioi-man">
+          <h2 class="login-title cc-title">Chọn giới tính</h2>
+          <p class="cc-nho">Chọn xong mới tới phần chỉnh dáng và khuôn mặt.</p>
+          <div class="cc-gioi">
+            ${GIOI.map(g => {
+              const t = AV.thanDauCuaGioi(g.id);
+              // Mỗi bên một kiểu tóc khác nhau cho dễ phân biệt ngay từ ảnh
+              const xem = { ...AV.macDinh(t), tocKieu: g.id === 'nu' ? 'dai' : 'thang' };
+              const mac = Object.fromEntries(monBoMau(AV.danDo(t), 1)
+                .map(id => [DO_BY_ID[id].o, id]));
+              return `<button type="button" class="card cc-gioi-o ${g.id === gioi ? 'chon' : ''}"
+                data-gioi="${esc(g.id)}">
+                ${AV.oNguoiDu(xem, mac, { cao: 150 })}
+                <b>${esc(g.name)}</b>
+                <small>${AV.thanTheoGioi(g.id).map(x => esc(x.name)).join(' · ')}</small>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
+    el.querySelectorAll('[data-gioi]').forEach(b => b.addEventListener('click', () => {
+      doiGioi(b.dataset.gioi);
+      buoc = 'chinh';
+      veHtml();
+    }));
+  }
+
+  // Đổi giới thì dáng người phải nhảy sang dáng của giới mới, không thì nhân
+  // vật vẫn giữ thân cũ mà tủ đồ lại là của bên kia.
+  const tenGioi = () => GIOI.find(g => g.id === gioi)?.name || 'Nam';
+
+  function doiGioi(g) {
+    if (gioi === g) return;
+    gioi = g;
+    nv.than = AV.thanDauCuaGioi(g);
+    // Râu chỉ vẽ cho dáng nam; đổi sang nữ mà còn râu thì trông rất kỳ
+    if (gioi === 'nu') nv.rauKieu = '';
+  }
+
   function veHtml() {
-    const m = MUC.find(x => x.k === muc) || MUC[0];
+    if (buoc === 'gioi') { veGioi(); return; }
+    const dsMuc = mucHienCo();
+    const m = dsMuc.find(x => x.k === muc) || dsMuc[0];
     const ds = luaChon(m);
     const i = Math.max(0, ds.findIndex(o => o.id === (nv[m.k] || '')));
 
@@ -97,7 +151,10 @@ export function render(el) {
       <div class="splash create-scr">
         <div class="splash-bg"></div>
         <div class="splash-inner cc-wrap">
-          <h2 class="login-title cc-title">Tạo nhân vật</h2>
+          <div class="cc-dinh">
+            <button type="button" class="cc-lui" id="cc-lui">‹ ${esc(tenGioi())}</button>
+            <h2 class="login-title cc-title">Tạo nhân vật</h2>
+          </div>
 
           <div class="cc-buc">
             <div class="cc-sang"></div>
@@ -115,7 +172,7 @@ export function render(el) {
           </div>
 
           <div class="cc-rail">
-            ${MUC.map(x => `<button type="button" class="cc-rail-o ${x.k === muc ? 'on' : ''}"
+            ${dsMuc.map(x => `<button type="button" class="cc-rail-o ${x.k === m.k ? 'on' : ''}"
               data-muc="${esc(x.k)}">${esc(x.ten)}</button>`).join('')}
           </div>
 
@@ -154,6 +211,10 @@ export function render(el) {
         </div>
       </div>`;
 
+    el.querySelector('#cc-lui').addEventListener('click', () => {
+      buoc = 'gioi';
+      veHtml();
+    });
     el.querySelectorAll('[data-muc]').forEach(b => b.addEventListener('click', () => {
       muc = b.dataset.muc;
       veHtml();
@@ -181,7 +242,7 @@ export function render(el) {
       veHtml();
     }));
     el.querySelector('#cc-random').addEventListener('click', () => {
-      for (const x of MUC) {
+      for (const x of dsMuc) {
         nv[x.k] = bocNgauNhien(luaChon(x));
         if (x.phu) nv[x.phu.k] = bocNgauNhien(x.phu.ds);
       }

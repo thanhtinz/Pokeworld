@@ -45,11 +45,20 @@ RA = 'assets/lpc'
 # ==== Danh muc: sua o day la doi ca bo, khong phai sua ma nguon nao khac ====
 
 # Dang nguoi. Quan ao chi co ban cho nam/nu nen hai dang con lai muon do cua nam.
+GIOI = [('nam', 'Nam'), ('nu', 'Nữ')]
+
+# Dang nguoi, xep theo GIOI TINH: chon gioi tinh truoc roi moi chon dang.
+#   (ma, ten, thu muc ben LPC, lay quan ao ban nao, thuoc gioi nao)
+#
+# Cot 'lay quan ao ban nao' do khong doan: da do do phu cua tung bo do len
+# tung than nguoi. Ao cat cho NU dat 0.991 tren than androgynous, con ao cat
+# cho NAM chi duoc 0.811 — nen than do phai an theo tu do cua nu. Nguoc lai
+# than luc luong an theo tu do cua nam (0.996).
 THAN = [
-    ('nam',   'Nam',       'Human_male',          'nam'),
-    ('nu',    'Nữ',        'Human_female',        'nu'),
-    ('luc',   'Lực Lưỡng', 'Human_male_muscular', 'nam'),
-    ('gay',   'Mảnh Khảnh', 'Human_androgynous',  'nam'),
+    ('nam',   'Thường',     'Human_male',          'nam', 'nam'),
+    ('luc',   'Lực Lưỡng',  'Human_male_muscular', 'nam', 'nam'),
+    ('nu',    'Thường',     'Human_female',        'nu',  'nu'),
+    ('gay',   'Mảnh Khảnh', 'Human_androgynous',   'nu',  'nu'),
 ]
 
 DA = [
@@ -311,7 +320,7 @@ def main():
     n = 0
 
     # Than nguoi theo tung mau da
-    for ma, _, thu, _ in THAN:
+    for ma, _, thu, _, _ in THAN:
         for mda, _, cda in DA:
             n += luu(root, f'Body/Base/{thu}/{cda}', f'base/{ma}_{mda}', thieu)
 
@@ -372,11 +381,17 @@ def main():
         '',
         'export const THU_MUC = %s;' % js(RA),
         '',
-        '// Dáng người. `do` = lấy quần áo bản của dáng nào (LPC chỉ vẽ đồ cho nam/nữ).',
+        '// Giới tính chọn TRƯỚC, rồi mới tới dáng người trong giới đó.',
+        'export const GIOI = %s;' % ('[' + ', '.join(
+            '{ id: %s, name: %s }' % (js(a), js(b)) for a, b in GIOI) + ']'),
+        '',
+        '// Dáng người. `do` = lấy quần áo bản của dáng nào (LPC chỉ vẽ đồ cho',
+        '// nam/nữ), `gioi` = thuộc giới tính nào.',
         'export const THAN = [',
     ]
-    for ma, ten, _, kieu_do in THAN:
-        dong.append('  { id: %s, name: %s, do: %s },' % (js(ma), js(ten), js(kieu_do)))
+    for ma, ten, _, kieu_do, gioi in THAN:
+        dong.append('  { id: %s, name: %s, do: %s, gioi: %s },'
+                    % (js(ma), js(ten), js(kieu_do), js(gioi)))
     dong += ['];', '']
     for ten_bien, ds in (('DA', DA), ('TAI', TAI), ('MUI', MUI),
                          ('BIEU_CAM', BIEU_CAM), ('MAT', MAT),
