@@ -10,9 +10,9 @@
 // cạnh nhà khác — chẳng bao giờ ra đúng cửa mình vừa bước vào. Giờ cổng để
 // nguyên như dữ liệu, ra chỗ nào là đúng thềm chỗ đó.
 import { MAPS } from '../data/maps.js';
-import { NONG_TRAI_MAP, CONG_RA as CONG_NONG_TRAI } from '../data/nongtraimap.js';
+import { NONG_TRAI_MAP, CHO_VAO as VAO_NONG_TRAI } from '../data/nongtraimap.js';
 import { KHU_DAT_MAP, CONG_RA as CONG_KHU_DAT } from '../data/khudancu.js';
-import { nhaXong } from './estate.js';
+import { isUnlocked } from './unlock.js';
 
 export const DIA_DIEM = [
   { id: 'nha_nguyen', ten: 'Nhà Nguyện',
@@ -33,14 +33,12 @@ export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));
 // tắt. Không gộp chung DIA_DIEM vì `dangOChoi()` dùng bảng đó để biết lúc mở
 // game lên có nên kéo người chơi về giường không — nông trại thì nên kéo.
 export const DIEM_NHANH = [
-  // Nông trại là SÂN SAU của căn nhà, nên chưa xây nhà thì nó chưa tồn tại với
-  // người chơi: `hien` bắt điều đó, màn Địa Điểm lọc theo. Bỏ qua bước này thì
-  // đi nhanh vào được một mảnh đất chẳng có gì, mà cửa sau cũng chưa có nên
-  // đường ra duy nhất là cổng bộ — vào trước khi đáng lẽ được vào.
+  // Nông trại mở theo CẤP TRAINER, không liên quan gì tới nhà riêng nữa. Mở rồi
+  // thì đi bộ vào được qua ngõ bắc Khu Dân Cư, mà bấm ở đây cũng vào luôn.
   { id: NONG_TRAI_MAP, ten: 'Nông Trại Bờ Suối',
-    mo: 'Sân sau nhà bạn: khu đất trồng, chuồng thú, hồ cá, nhà kho, nhà bếp.',
-    hien: () => nhaXong(),
-    cho: { x: CONG_NONG_TRAI.x, y: CONG_NONG_TRAI.y - 1 } },
+    mo: 'Khu đất trồng, chuồng thú, hồ cá, nhà kho, nhà bếp.',
+    hien: () => isUnlocked('nongtrai'),
+    cho: { x: VAO_NONG_TRAI.x, y: VAO_NONG_TRAI.y } },
   { id: KHU_DAT_MAP, ten: 'Khu Dân Cư Taba',
     mo: 'Khu đất ở đã chia lô. Nhà của bạn dựng ở đây.',
     cho: { x: CONG_KHU_DAT.x, y: CONG_KHU_DAT.y - 1 } },
@@ -57,7 +55,7 @@ export function diNhanh(id) {
   const d = DIEM_NHANH.find(x => x.id === id);
   const m = d && MAPS[id];
   if (!m) return [null, 'Chỗ này chưa dựng xong.'];
-  if (d.hien && !d.hien()) return [null, 'Chưa tới lúc đi được chỗ này.'];
+  if (d.hien && !d.hien()) return [null, 'Chỗ này còn khoá.'];
   return [{ map: id, x: d.cho.x, y: d.cho.y }, null];
 }
 

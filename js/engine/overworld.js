@@ -11,6 +11,7 @@ import { dangOChoi } from './diadiem.js';
 import { dangTham } from './visit.js';
 import { khoaODay, vatBangDuong } from './bangduong.js';
 import { vatNongTrai } from './nongtrai.js';
+import { isUnlocked, lockNote } from './unlock.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
 import { rng } from '../util.js';
@@ -432,6 +433,13 @@ export function update(dt, vx, vy) {
   const tx = Math.floor(player.x), ty = Math.floor(player.y);
   const warp = (map.warps || []).find(w => w.x === tx && w.y === ty);
   if (warp) {
+    // Cổng có thể bị KHOÁ theo cấp Trainer (`moKhoa` = mã tính năng trong
+    // engine/unlock.js). Chặn ở đây chứ không xoá cái cổng khỏi bản đồ: xoá thì
+    // người chơi không bao giờ biết là có đường ở đó, mà cũng chẳng biết cần
+    // lên tới cấp nào.
+    if (warp.moKhoa && !isUnlocked(warp.moKhoa)) {
+      return { t: 'khoa', moKhoa: warp.moKhoa, name: MAPS[warp.to]?.name };
+    }
     enterMap(warp.to, warp.tx, warp.ty);
     return { t: 'warp', to: warp.to, name: MAPS[warp.to]?.name };
   }

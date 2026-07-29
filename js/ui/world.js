@@ -2,11 +2,11 @@
 import { G, save } from '../state.js';
 import * as CAU from '../engine/cauca.js';
 import { ANH_BONG, BONG_KHUNG, BONG_NHIP } from '../data/ca.js';
-import { NHA_KHO, NHA_BEP, CONG_RA } from '../data/nongtraimap.js';
+import { NHA_KHO, NHA_BEP, CHO_VAO } from '../data/nongtraimap.js';
 
 // Chỗ thú canh đứng: ngay cạnh ô đặt chân, nên ai vào nông trại cũng gặp nó
 // trước tiên.
-const CHO_CANH = { x: CONG_RA.x + 2, y: CONG_RA.y };
+const CHO_CANH = { x: CHO_VAO.x + 2, y: CHO_VAO.y };
 import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
@@ -18,6 +18,7 @@ import { nhaTrenBanDo, LOTS, KHU_DAT_MAP } from '../engine/estate.js';
 import { MAPS } from '../data/maps.js';
 import { FURN_BY_ID, TOA_BANG } from '../data/estate.js';
 import * as ES from '../engine/estate.js';
+import { lockNote } from '../engine/unlock.js';
 import * as TT from '../engine/furniture.js';
 import * as MT from '../engine/mounts.js';
 import * as BD from '../engine/bangduong.js';
@@ -438,11 +439,6 @@ export function render(el) {
     }
     if (NT.thuCanh()) {
       veBangTen('Thú Canh', CHO_CANH.x + 0.5, CHO_CANH.y, size, camX, camY);
-    }
-    const nhaMinh = ES.nhaTrenBanDo(NT.NONG_TRAI_MAP);
-    if (nhaMinh) {
-      veBangTen(ES.dangXay() ? 'Đang xây' : 'Nhà Bạn',
-        nhaMinh.x + 1.5, nhaMinh.y + 3, size, camX, camY);
     }
   }
 
@@ -938,16 +934,6 @@ export function render(el) {
       vaoNha();
       return;
     }
-    // Cùng căn nhà đó nhưng nhìn từ phía sân sau (Nông Trại)
-    if (thing.kind === 'cua-sau' || thing.kind === 'nha-sau') {
-      if (thing.kind === 'nha-sau') {
-        const c = ES.oCuaNongTrai();
-        toast(`Cửa sau ở phía dưới căn nhà (ô ${c.x}, ${c.y}).`);
-        return;
-      }
-      vaoNha(true);
-      return;
-    }
   }
 
   // Đang ở trong một căn nhà nào đó (nhà mình hay nhà người ta đang thăm)
@@ -991,10 +977,8 @@ export function render(el) {
 
   // Vào trong nhà: mượn bản đồ nội thất trống của bản gốc, cắm thêm một cổng
   // quay ra đúng chỗ vừa đứng.
-  function vaoNha(tuRuong = false) {
-    // Vào bằng cửa nào thì đứng ngay trong cửa đó — vào cửa sau mà bị quăng ra
-    // tận cửa trước thì đi cả căn phòng mới quay lại được ruộng.
-    const cho = tuRuong ? ES.camCongTuNongTrai() : ES.camCongVeNha();
+  function vaoNha() {
+    const cho = ES.camCongVeNha();
     if (!cho) { toast('Chưa vào được.'); return; }
     enterMap(ES.mapTrongNha(), cho.x, cho.y);
   }
@@ -1076,6 +1060,10 @@ export function render(el) {
       // Nhấn hướng là đứng dậy. Không cần báo gì — nhìn nhân vật là thấy.
       if (vec.x + k.x || vec.y + k.y) TT.dungDay();
       const ev = update(dt, vec.x + k.x, vec.y + k.y);
+      // Cổng còn khoá theo cấp: nói rõ cần cấp nào chứ không im lặng chặn
+      if (ev?.t === 'khoa') {
+        toast(`${ev.name || 'Chỗ này'} còn khoá — ${lockNote(ev.moKhoa)}.`, 2200);
+      }
       if (ev?.t === 'warp') {
         el.querySelector('#world-zone').textContent = currentMap().name;
         playMusic(currentMap().music || 'town');

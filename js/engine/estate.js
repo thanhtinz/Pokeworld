@@ -17,8 +17,7 @@
 //   6. Đã kết hôn thì vợ/chồng vào được nhà nhau (cần nối máy chủ).
 import { G, save, addMoney } from '../state.js';
 import { BASE_BY_ID, FURN_BY_ID, HOUSE_BASES } from '../data/estate.js';
-import { PHONG_NHA, oCuaSau } from '../data/phongtrong.js';
-import { NONG_TRAI_MAP, NHA_SAU } from '../data/nongtraimap.js';
+import { PHONG_NHA } from '../data/phongtrong.js';
 import { MAPS } from '../data/maps.js';
 import { dangTham } from './visit.js';
 import { SANH as SANH_BAC, MAY_TAI } from '../data/casino.js';
@@ -155,9 +154,10 @@ export function nhaTrenBanDo(mapId) {
   if (!e.lot || !e.base) return null;
   const b = BASE_BY_ID[e.base];
   if (!b) return null;
-  // Cùng một căn nhà, vẽ ở hai bản đồ: mặt tiền ngoài Khu Dân Cư, lưng ra ruộng
-  const goc = mapId === KHU_DAT_MAP ? LOT_BY_ID[e.lot]
-    : mapId === NONG_TRAI_MAP ? NHA_SAU : null;
+  // Nhà chỉ hiện ở ĐÚNG một chỗ: lô đất bên Khu Dân Cư. Trước còn vẽ thêm một
+  // bản lưng ra ruộng trên nông trại, vì nông trại từng là sân sau của nó —
+  // giờ nông trại tách hẳn, chẳng liên quan gì tới căn nhà nữa.
+  const goc = mapId === KHU_DAT_MAP ? LOT_BY_ID[e.lot] : null;
   if (!goc) return null;
   return { x: goc.x, y: goc.y, img: b.img, name: b.name, xay: dangXay() };
 }
@@ -168,10 +168,6 @@ export function oCua() {
   const l = LOT_BY_ID[e.lot];
   return l ? { x: l.x + 1, y: l.y + 2 } : null;
 }
-
-// Ô cửa phía sân sau (trên Nông Trại). Cùng một căn nhà nên cũng nằm giữa
-// hàng dưới cùng của vùng 3x3, chỉ khác chỗ đứng.
-export const oCuaNongTrai = () => ({ x: NHA_SAU.x + 1, y: NHA_SAU.y + 2 });
 
 // ==== Vật thể trên bản đồ mà nút hành động bắt được ====
 // Trả về một "thing" giống NPC/bảng hiệu để js/engine/overworld.js dùng chung
@@ -193,18 +189,6 @@ export function vatTheODay(mapId, x, y) {
       return { type: 'estate', kind: 'do-noi-that', name: f?.name || 'Đồ đạc', mon: d };
     }
     return null;
-  }
-  // Căn nhà nhìn từ phía sân sau: đứng trước cửa bấm A là vào trong
-  if (mapId === NONG_TRAI_MAP) {
-    const e = nha();
-    if (!e.base || x < NHA_SAU.x || x > NHA_SAU.x + 2
-      || y < NHA_SAU.y || y > NHA_SAU.y + 2) return null;
-    if (dangXay()) return { type: 'estate', kind: 'dang-xay', name: 'Công Trường' };
-    const cs = oCuaNongTrai();
-    if (x === cs.x && y === cs.y) {
-      return { type: 'estate', kind: 'cua-sau', name: mauNha()?.name || 'Nhà' };
-    }
-    return { type: 'estate', kind: 'nha-sau', name: mauNha()?.name || 'Nhà' };
   }
   if (mapId === KHU_DAT_MAP) {
     const e = nha();
@@ -317,29 +301,18 @@ function camCongNha() {
   const c = oCua();
   const noi = MAPS[mapTrongNha()];
   if (!noi || !c) return null;
-  const sau = oCuaSau(noi);
-  const cs = oCuaNongTrai();
+  // ĐÚNG MỘT cửa: mép dưới phòng -> thềm nhà ngoài Khu Dân Cư. Trước còn một
+  // cửa sau đục giữa tường trên đổ ra nông trại; nông trại tách hẳn rồi nên
+  // cửa đó không dẫn tới đâu nữa.
   noi.warps = (noi.warps || []).filter(w => !w.veNha && !w.raRuong);
-  // Cửa trước: mép dưới phòng -> thềm nhà ngoài Khu Dân Cư
   noi.warps.push({ x: Math.floor(noi.w / 2), y: noi.h - 1, veNha: true,
     to: KHU_DAT_MAP, tx: c.x, ty: c.y + 1 });
-  // Cửa sau: lỗ thủng giữa tường trên -> thềm nhà bên Nông Trại
-  noi.warps.push({ x: sau.x, y: sau.y, raRuong: true,
-    to: NONG_TRAI_MAP, tx: cs.x, ty: cs.y + 1 });
-  return {
-    truoc: { x: Math.floor(noi.w / 2), y: noi.h - 2 },
-    sau: { x: sau.x, y: sau.y + 2 },      // đứng lọt hẳn vào trong phòng
-  };
+  return { truoc: { x: Math.floor(noi.w / 2), y: noi.h - 2 } };
 }
 
 /** Vào nhà từ MẶT TIỀN (Khu Dân Cư). Trả chỗ đặt chân trong nhà. */
 export function camCongVeNha() {
   return camCongNha()?.truoc || null;
-}
-
-/** Vào nhà từ SÂN SAU (Nông Trại). Trả chỗ đặt chân trong nhà. */
-export function camCongTuNongTrai() {
-  return camCongNha()?.sau || null;
 }
 
 // Cái giường đầu tiên đã kê trong nhà — mở game lên thì nằm lên chính nó

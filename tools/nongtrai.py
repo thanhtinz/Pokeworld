@@ -51,13 +51,16 @@ RAO_NGOAI = (1, 3, W - 2, H - 3)     # x, y, rong, cao — vong rao quanh ban do
 
 # DUY NHAT mot dai loi di, chay ngang suot ban do.
 DUONG_NGANG = (11, 12)
-# Cho dat chan khi di nhanh vao — ngay truoc cua nha minh. Nong trai KHONG co
-# cong bo cong cong nao: duong vao that la cua sau trong nha.
-CONG = (3, DUONG_NGANG[1])
-
-# Can nha cua nguoi choi o dau dai phia tay. Vung 3x3 giong het lo dat ben Khu
-# Dan Cu, o cua nam giua hang duoi cung.
-NHA_SAU = (2, 7)
+# CONG BO o dau dai phia tay, duc thang qua vong rao. Noi hai chieu voi ngo bac
+# cua Khu Dan Cu.
+#
+# Truoc day nong trai la SAN SAU can nha nguoi choi: khong co cong nao, vao bang
+# cua sau trong nha. Bo cach do roi — nong trai gio la mot khu rieng mo theo cap
+# Trainer, chang lien quan gi toi chuyen da mua dat xay nha hay chua.
+CONG = (RAO_NGOAI[0], DUONG_NGANG[1])
+# Cho dat chan khi vao: o NGAY TRONG cong. Dat chan dung tren o cong thi vua vao
+# da buoc len warp, bat sang ban do kia luon.
+CHO_VAO = (CONG[0] + 1, DUONG_NGANG[1])
 
 # KHU DAT TRONG khong quay rao: no la mot luoi 50 O RUONG co dinh, o nao mua
 # roi thi hien ra thanh dat, o chua mua thi cam bien BAN. Quay rao thi cai rao
@@ -150,8 +153,6 @@ def dung(goc):
     # ==== Vung dia hinh ====
     ax0, ay0, ax1, ay1 = AO
     cx, cy, cw, ch = CHUONG
-    kx, ky, kw, kh = NHA_KHO
-    bx, by, bw, bh = NHA_BEP
 
     def la_nuoc(x, y):
         return ax0 <= x <= ax1 and ay0 <= y <= ay1
@@ -163,21 +164,15 @@ def dung(goc):
     def trong_nha(x, y, n):
         return n[0] <= x < n[0] + n[2] and n[1] <= y < n[1] + n[3]
 
-    def la_nha(x, y):
-        return trong_nha(x, y, NHA_KHO) or trong_nha(x, y, NHA_BEP)
-
-    def la_san(x, y):
-        """Nen dat truoc cua hai toa nha — de cua khoi moc thang tu bai co."""
-        if la_duong(x, y):
-            return False
-        if la_nha(x, y):
-            return True
-        return ((kx <= x < kx + kw and y == ky + kh)
-                or (bx <= x < bx + bw and y == by + bh))
-
     def la_nen_cung(x, y):
-        """Moi thu lat cung mot chat dat nen: loi di + san truoc nha."""
-        return la_duong(x, y) or la_san(x, y)
+        """CHI loi di duoc lat dat nen. Khong gi khac.
+
+        Truoc day san truoc hai toa nha cung lat dat nen — cung mot o tile voi
+        loi di. Thanh ra loi di voi san dinh lien thanh mot mang nau, dung giua
+        do thi khong biet cho nao la duong di duoc cho nao khong. Nha cua cu
+        dung tren co, mat tien cua chung da co be nen ve san roi.
+        """
+        return la_duong(x, y)
 
     # ==== Nen ====
     for y in range(H):
@@ -271,9 +266,6 @@ def dung(goc):
             return True
         if tren[idx(x, y)]:
             return True
-        if (NHA_SAU[0] - 1 <= x <= NHA_SAU[0] + 3
-                and NHA_SAU[1] - 1 <= y <= NHA_SAU[1] + 4):
-            return True
         for n in (NHA_KHO, NHA_BEP):
             if n[0] - 1 <= x <= n[0] + n[2] and n[1] - 1 <= y <= n[1] + n[3] + 1:
                 return True
@@ -339,10 +331,6 @@ def dung(goc):
         don(cho[0], cho[1])
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(cho[0] + dx, cho[1] + dy)
-    # Cua nha nguoi choi va them buoc ra
-    for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
-        for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
-            don(x, y)
     # Long hai o quay rao va may cai cong
     for y in range(VUNG_THU[1], VUNG_THU[3] + 1):
         for x in range(VUNG_THU[0], VUNG_THU[2] + 1):
@@ -364,6 +352,12 @@ def dung(goc):
                     solid[idx(x, y)] = 1
         for x in range(n[0], n[0] + n[2]):
             don(x, n[1] + n[3])
+
+    # ==== Cong bo ====
+    # Duc thang qua vong rao o hai hang loi di. Vong don loi di phia tren chua
+    # hai cot rao hai dau lai, nen phai mo tay dung hai o nay.
+    for y in DUONG_NGANG:
+        don(CONG[0], y)
 
     npcs = [
         {'x': BAC_NONG[0], 'y': BAC_NONG[1], 'dir': 'up', 'sprite': 'picnicker',
@@ -398,9 +392,6 @@ def dung(goc):
         for y in range(n[1], n[1] + n[3] + 1):
             for x in range(n[0], n[0] + n[2]):
                 cam.add((x, y))
-    for y in range(NHA_SAU[1], NHA_SAU[1] + 4):
-        for x in range(NHA_SAU[0], NHA_SAU[0] + 3):
-            cam.add((x, y))
     # 50 o ruong la cho DA DANH SAN cho dat trong: ke may hay chuong de len thi
     # mua o dat den luot do la dam vao nhau.
     cam |= set(O_RUONG)
@@ -414,7 +405,7 @@ def dung(goc):
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'grass', 'envNight': 'night_grass',
         'npcs': npcs,
-        'spawn': {'x': CONG[0], 'y': CONG[1] - 1},
+        'spawn': {'x': CHO_VAO[0], 'y': CHO_VAO[1]},
     }
 
 
@@ -432,8 +423,10 @@ def viet_js(cam=()):
         '// bao giờ lệch khỏi nền đất đã kẻ sẵn.',
         '',
         'export const NONG_TRAI_MAP = "%s";' % SLUG,
-        '// Chỗ đặt chân khi đi nhanh vào — ngay trước cửa nhà mình.',
+        '// Ô cổng bộ ở đầu dải phía tây, nối hai chiều với ngõ bắc Khu Dân Cư.',
         'export const CONG_RA = { x: %d, y: %d };' % CONG,
+        '// Ô đặt chân khi vào — ngay TRONG cổng, không phải trên ô cổng.',
+        'export const CHO_VAO = { x: %d, y: %d };' % CHO_VAO,
         '// Hàng rào quây quanh CẢ bản đồ (không có cổng: đường vào là cửa sau',
         '// trong nhà). x, y, rộng, cao tính theo ô.',
         'export const RAO_NGOAI = { x: %d, y: %d, w: %d, h: %d };' % RAO_NGOAI,
@@ -459,10 +452,6 @@ def viet_js(cam=()):
         'export const NHA_KHO = { x: %d, y: %d, w: %d, h: %d };' % NHA_KHO,
         'export const NHA_BEP = { x: %d, y: %d, w: %d, h: %d };' % NHA_BEP,
         'export const BAC_NONG = { x: %d, y: %d };' % BAC_NONG,
-        '// Chỗ dựng nhà của người chơi trên nông trại — vùng 3x3 y hệt lô đất',
-        '// bên Khu Dân Cư, ô cửa nằm giữa hàng dưới cùng. Nông trại là SÂN SAU',
-        '// của căn nhà đó: bước ra cửa sau trong nhà là ra thẳng ngoài ruộng.',
-        'export const NHA_SAU = { x: %d, y: %d };' % NHA_SAU,
         '',
         '// Người bán hàng đứng dưới lối đi, đối diện từng khu. Nói chuyện là ra',
         '// bảng chọn ngay trên bản đồ chứ không mở panel.',
@@ -499,14 +488,25 @@ def viet_js(cam=()):
 
 
 def them_vao(out_maps, goc, kdc_slug):
-    """Dung ban do nong trai. Khong noi cong bo voi Khu Dan Cu."""
-    if not out_maps.get(kdc_slug):
+    """Dung ban do nong trai, noi cong hai chieu voi ngo bac Khu Dan Cu."""
+    kdc = out_maps.get(kdc_slug)
+    if not kdc:
         print('BO QUA nong trai: chua co ban do %s' % kdc_slug)
         return None
     if not CT.co_pack(goc):
         print('BO QUA nong trai: khong thay %s' % TEP_TILE)
         return None
-    # KHONG cam cong bo sang Khu Dan Cu. Nong trai la SAN SAU cua can nha:
-    # duong vao la cua sau trong nha minh (js/engine/estate.js cam luc buoc vao
-    # nha), muon di nhanh thi mo trang Dia Diem.
-    return dung(goc)
+    m = dung(goc)
+    import khudancu
+    bx, by = khudancu.CONG_BAC          # o cong o canh bac Khu Dan Cu
+    cx, cy = CONG
+    # Hai o cong ben nong trai (hai hang loi di) deu do ve mot cho ben Khu Dan Cu.
+    # `moKhoa` la ten tinh nang trong js/engine/unlock.js — engine chan cong lai
+    # neu chua du cap, chu khong phai an cai cong di: an thi nguoi choi khong bao
+    # gio biet la co duong o day.
+    m['warps'] = [{'x': cx, 'y': y, 'to': kdc_slug, 'tx': bx, 'ty': by + 1}
+                  for y in DUONG_NGANG]
+    for x in (bx, bx + 1):
+        kdc['warps'].append({'x': x, 'y': by, 'to': SLUG, 'tx': cx + 1, 'ty': cy,
+                             'moKhoa': 'nongtrai'})
+    return m

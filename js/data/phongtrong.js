@@ -14,4 +14,7 @@ export const MAP_NHA_TRO = "nha_tro";
 
 // Ô cửa sau của một căn phòng: đục giữa bức tường trên cùng. Bước ra
 // cửa này là ra sân sau — tức là nông trại. Nhà trọ chung không có.
-export const oCuaSau = (m) => ({ x: Math.floor(m.w / 2), y: 0 });
+// Nha rieng KHONG con cua sau: nong trai da tach han khoi can nha, la
+// mot khu rieng mo theo cap Trainer. Giu ham nay tra ve null cho ban lu
+// cu goi vao khong vo.
+export const oCuaSau = () => null;

@@ -54,7 +54,7 @@ def mau_phong(m):
     return nen, pho_bien(0), pho_bien(1)
 
 
-def dung(m_goc, w, h, npcs=None, talks=None, cua_sau=True):
+def dung(m_goc, w, h, npcs=None, talks=None, cua_sau=False):
     """Tra ve dict giong parse_map(): mot can phong chu nhat trong khong.
 
     `cua_sau` = duc mot o CUA SAU giua buc tuong tren cung. Nong trai la SAN SAU
@@ -114,7 +114,10 @@ def viet_js():
         '',
         '// Ô cửa sau của một căn phòng: đục giữa bức tường trên cùng. Bước ra',
         '// cửa này là ra sân sau — tức là nông trại. Nhà trọ chung không có.',
-        'export const oCuaSau = (m) => ({ x: Math.floor(m.w / 2), y: 0 });',
+        '// Nha rieng KHONG con cua sau: nong trai da tach han khoi can nha, la',
+        '// mot khu rieng mo theo cap Trainer. Giu ham nay tra ve null cho ban lu',
+        '// cu goi vao khong vo.',
+        'export const oCuaSau = () => null;',
         '',
     ]
     with open('js/data/phongtrong.js', 'w', encoding='utf-8') as f:
@@ -129,7 +132,7 @@ def them_vao(out_maps, parse_map, chon_tep, mdir, tsx_cache):
         if not p:
             print('BO QUA phong', slug, '- khong co ban do goc', goc)
             continue
-        m = dung(parse_map(p, tsx_cache), w, h, cua_sau=(slug != 'nha_tro'))
+        m = dung(parse_map(p, tsx_cache), w, h)
         m['_ten'] = ten
         out_maps[slug] = m
         ra.append(slug)
