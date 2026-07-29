@@ -11,6 +11,7 @@ import { MAPS, TILE_SIZE as TILE } from '../data/maps.js';
 import { bake, atlasReady } from '../engine/mapbake.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { activeAvatar } from '../engine/accounts.js';
+import * as AV from '../engine/avatar.js';
 import { SKINS, imgOf } from '../data/cosmetics.js';
 import { isDaytime } from '../engine/daytime.js';
 
@@ -38,7 +39,11 @@ export function veCanh(canvas) {
   const baked = bake(cho.map);
   const skin = owImage(imgOf(SKINS[G.p?.look?.skin]));
   const goc = owImage(activeAvatar());
-  const nguoi = () => (owSheetOk(skin) ? skin : goc);
+  const nguoi = () => {
+    if (owSheetOk(skin)) return skin;
+    const a = AV.anhNhanVat();
+    return owReady(a) ? a : goc;
+  };
   let raf = null;
   let song = true;
 
@@ -96,7 +101,7 @@ export function veCanh(canvas) {
     const im = nguoi();
     if (owReady(im)) {
       const chW = size, chH = size * (OW_H / OW_W);
-      const f = owFrame('down', true, Date.now() * 0.28);
+      const f = owFrame('down', true, Date.now() * 0.28, im);
       const px = (cho.x + 0.5) * size - camX, py = (cho.y + 1) * size - camY;
       // Bóng đổ dưới chân cho nhân vật dính xuống nền
       ctx.save();

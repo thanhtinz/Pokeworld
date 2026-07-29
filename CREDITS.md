@@ -74,6 +74,32 @@ theo CC BY-SA 4.0.
 
 Chỉ chép những tệp thật sự dùng (`tools/mksounds.py`), tổng khoảng 2 MB.
 
+## Liberated Pixel Cup — nhân vật ghép lớp
+
+Nhân vật người chơi không còn là một tệp sprite cố định mà ghép từ nhiều lớp
+rời, lấy từ **[OpenGameArt/LiberatedPixelCup](https://github.com/OpenGameArt/LiberatedPixelCup)**
+(thư mục `sprite/`).
+
+- Giấy phép: **CC BY-SA 3.0** *hoặc* **GPL 3.0** (song song, chọn một).
+- Tác giả: Stephen Challener (Redshrike), Manuel Riecke (MrBeast),
+  Johannes Sjölund (wulax), makrohn, David Conway Jr. (Jaidyn Reiman),
+  William Thompson, Nila122 — danh sách đầy đủ ở `sprite/original/authors.md`
+  và `sprite/derivative/authors.md` bên kho của họ.
+
+| Lấy gì | Vào đâu |
+|---|---|
+| 4 dáng người × 6 màu da, tai, mũi, mắt, biểu cảm, tóc, râu | `assets/lpc/` |
+| 84 món quần áo chia 9 ô (áo, quần, giày, mũ, thắt lưng, bao tay, giáp vai, cổ, găng) | `assets/lpc/do/` |
+
+Khung gốc của LPC là 64×64, mỗi phần một tấm riêng. `tools/mklpc.py` cắt về
+đúng khuôn 3 cột × 4 hàng (32×64 mỗi khung) mà `js/engine/owsprite.js` đang
+dùng, rồi `js/engine/avatar.js` chồng các lớp lại thành một ảnh duy nhất.
+Tổng cộng **268 lớp, khoảng 0,6 MB** — chỉ chép đúng phần thật sự bày ra trong
+màn tạo nhân vật và tiệm quần áo.
+
+Vì là CC BY-SA / GPL nên phần asset nhân vật của game này cũng phải giữ nguyên
+giấy phép đó khi phát hành lại.
+
 ## Của riêng dự án
 
 | Thứ gì | Làm bằng |

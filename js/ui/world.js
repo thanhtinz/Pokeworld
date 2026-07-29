@@ -39,6 +39,7 @@ import { ITEMS } from '../data/items.js';
 import { SHOPS } from '../data/shops.js';
 import { playMusic } from '../engine/settings.js';
 import { activeAvatar } from '../engine/accounts.js';
+import * as AV from '../engine/avatar.js';
 import { esc, tien, tienChu } from '../util.js';
 import { toast, choose } from './kit.js';
 import { playDialog } from './dialog.js';
@@ -132,7 +133,14 @@ export function render(el) {
   // Skin admin tải lên mà đúng khuôn 3x4 thì dùng làm sprite đi bản đồ luôn
   const skinImg = owImage(imgOf(SKINS[G.p?.look?.skin]));
   const baseImg = owImage(activeAvatar());
-  const avatarImg = () => (owSheetOk(skinImg) ? skinImg : baseImg);
+  // Sprite người chơi ghép từ các lớp ngoại hình + quần áo (engine/avatar.js).
+  // Skin do quản trị viên tải lên vẫn được ưu tiên nếu có, và sprite cũ đứng
+  // đỡ trong lúc mấy lớp còn đang tải.
+  const avatarImg = () => {
+    if (owSheetOk(skinImg)) return skinImg;
+    const a = AV.anhNhanVat();
+    return owReady(a) ? a : baseImg;
+  };
   function sizeCanvas() {
     const r = canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -298,7 +306,7 @@ export function render(el) {
     const chW = size, chH = size * (OW_H / OW_W);
     const put = (img, dir, moving, cx, cy) => {
       if (!owReady(img)) return;
-      const f = owFrame(dir, moving);
+      const f = owFrame(dir, moving, Date.now(), img);
       ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh,
         Math.round(cx - chW / 2), Math.round(cy - chH + size * 0.34), Math.round(chW), Math.round(chH));
     };
@@ -399,7 +407,8 @@ export function render(el) {
         ctx.restore();
       }
       // Bác thợ mộc bán nội thất và cô bán quà đứng cố định hai bên ngõ
-      for (const [cho, spr] of [[ES.THO_MOC, 'nurse'], [ES.TIEM_QUA, 'florist']]) {
+      for (const [cho, spr] of [[ES.THO_MOC, 'nurse'], [ES.TIEM_QUA, 'florist'],
+                                [ES.TIEM_AO, 'barmaid_red']]) {
         const im2 = owImage(spr);
         if (owReady(im2)) {
           put(im2, 'down', false, (cho.x + 0.5) * size - camX, (cho.y + 1) * size - camY);
@@ -585,6 +594,12 @@ export function render(el) {
       await playDialog([[{ name: 'Cô Hoa', ow: 'florist' },
         'Hoa tươi, sô-cô-la, nhẫn cưới — tặng ai thì người ta quý mình hơn đấy.']]);
       cleanup(); show('gifts', { from: 'world' });
+      return;
+    }
+    if (thing.kind === 'tiem-ao') {
+      await playDialog([[{ name: 'Cô Thắm', ow: 'barmaid_red' },
+        'Áo quần giày mũ, cô có đủ. Mặc vào cho tươi tất người ra chứ!']]);
+      cleanup(); show('wardrobe', { tab: 'tiem', from: 'world' });
       return;
     }
     if (thing.kind === 'tho-moc') {

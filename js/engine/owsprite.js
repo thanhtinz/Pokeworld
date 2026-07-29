@@ -28,11 +28,17 @@ export function owImage(name) {
 export const owSheetOk = (img) =>
   owReady(img) && Math.abs(img.naturalWidth / img.naturalHeight - 3 / 8) < 0.02;
 
-// Ô cần cắt trong ảnh: đứng yên thì luôn khung 0, đang đi thì chạy vòng bước chân
-export function owFrame(dir, moving, timeMs = Date.now()) {
+// Ô cần cắt trong ảnh: đứng yên thì luôn khung 0, đang đi thì chạy vòng bước chân.
+//
+// Cỡ ô suy ra TỪ CHÍNH ẢNH chứ không dùng hằng số: sprite của Tuxemon là ô
+// 16x32, còn nhân vật ghép lớp từ LPC (engine/avatar.js) là ô 32x64. Cả hai
+// đều xếp 3 cột x 4 hàng nên chia ra là xong; không truyền ảnh thì lấy cỡ cũ.
+export function owFrame(dir, moving, timeMs = Date.now(), img = null) {
+  const w = img?.naturalWidth ? img.naturalWidth / 3 : OW_W;
+  const h = img?.naturalHeight ? img.naturalHeight / 4 : OW_H;
   const row = DIR_ROW[dir] ?? 0;
   const col = moving ? WALK_CYCLE[Math.floor(timeMs / STEP_MS) % WALK_CYCLE.length] : 0;
-  return { sx: col * OW_W, sy: row * OW_H, sw: OW_W, sh: OW_H };
+  return { sx: col * w, sy: row * h, sw: w, sh: h };
 }
 
 export const owReady = (img) => !!(img && img.complete && img.naturalWidth);

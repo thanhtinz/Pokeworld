@@ -2673,3 +2673,80 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 /* Tiền: số trước, ảnh đồng tiền sau — không dùng ký hiệu chữ nữa */
 .tien { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .tien-ico { width: 1em; height: 1em; image-rendering: pixelated; flex: none; }
+
+/* ==== Tạo nhân vật (ghép lớp LPC) ==== */
+.cc-wrap { gap: 10px; }
+.cc-xem {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 10px;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 78%, rgba(112, 72, 232, .3), transparent 70%),
+    var(--card);
+}
+.cc-xem canvas { image-rendering: pixelated; width: 128px; height: 256px; }
+/* Mười mục chỉnh thì lưới cột bằng nhau bóp chữ nát ra — cho xuống hàng theo
+   bề rộng thật của từng chữ. */
+.seg-row.cc-tabs {
+  display: flex; flex-wrap: wrap; gap: 4px; border-radius: 16px;
+  margin-bottom: 4px;
+}
+.cc-tabs .seg-btn {
+  flex: 0 0 auto; font-size: .76rem; padding: 0 10px; min-height: 32px;
+}
+/* Danh sách lựa chọn của mục đang mở — cuộn ngang, ô nào đang chọn thì nổi lên */
+.cc-chon {
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 8px;
+  scrollbar-width: none;
+}
+.cc-chon::-webkit-scrollbar { display: none; }
+.cc-o {
+  flex: none; padding: 8px 14px; min-height: 40px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(0, 0, 0, .22); color: var(--muted);
+  font-size: .84rem; white-space: nowrap;
+}
+.cc-o.chon {
+  background: linear-gradient(180deg, #ff5a36, var(--accent));
+  color: #fff; border-color: transparent; font-weight: 600;
+}
+.cc-h3 { font-size: .95rem; margin: 4px 2px 2px; }
+.cc-bo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.cc-bo-o {
+  display: flex; flex-direction: column; gap: 2px; padding: 9px 6px;
+  text-align: center; min-height: 74px;
+}
+.cc-bo-o b { font-size: .82rem; }
+.cc-bo-o small { color: var(--muted); font-size: .72rem; line-height: 1.3; }
+.cc-bo-o.chon { border-color: var(--gold); box-shadow: 0 0 12px rgba(240, 180, 41, .2); }
+
+/* ==== Tủ đồ / tiệm quần áo ==== */
+.td-xem { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.td-xem canvas { image-rendering: pixelated; width: 96px; height: 192px; flex: none; }
+.td-slot { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 8px; flex: 1; min-width: 0; }
+/* Chín ô đồ xếp thành lưới nên phải cùng chiều cao, không thì hàng so le */
+.td-oo { display: flex; flex-direction: column; justify-content: center;
+  min-width: 0; min-height: 34px; }
+.td-oo small { color: var(--muted); font-size: .7rem; }
+.td-oo b { font-size: .78rem; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-oo.co b { color: var(--text); }
+/* Tiệm bày mấy chục món nên phải lọc theo ô, không thì cuộn mỏi tay.
+   Chín ô không nhét vừa một hàng, mà bọc trong khung viên thuốc kiểu .seg-row
+   thì bẻ dòng xong cái khung phình ra rất xấu — nên để rời từng con chip. */
+.td-loc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.td-loc .seg-btn {
+  flex: 0 0 auto; min-height: 32px; padding: 0 12px; font-size: .78rem;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid var(--line); border-radius: 999px;
+}
+.td-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.td-o { display: flex; flex-direction: column; gap: 3px; padding: 9px 8px; }
+.td-o b { font-size: .86rem; }
+.td-o small { color: var(--muted); font-size: .76rem; }
+.td-nut { margin-top: auto; padding-top: 5px; }
+.td-nut .btn { width: 100%; min-height: 38px; }
+.td-co { color: var(--green); font-size: .8rem; }
+
+/* Ô ảnh nhân vật ghép lớp dùng trong giao diện */
+.nv-o { display: inline-block; overflow: hidden; position: relative; }
+.nv-o img { position: absolute; left: 0; top: 0; image-rendering: pixelated; max-width: none; }

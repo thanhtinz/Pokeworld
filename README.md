@@ -74,6 +74,13 @@ python3 tools/mkboss.py                    # boss thế giới + boss từng khu
 python3 tools/mkrecipes.py /tmp/Tuxemon    # công thức nấu ăn + bảng nguyên
                                            # liệu rơi ra từ Tuxemon hoang
 python3 tools/mkicons.py                   # icon giao diện pixel (tự vẽ)
+python3 tools/mklpc.py /tmp/LPC            # 268 lớp nhân vật ghép được (thân, da,
+                                           # tai, mũi, mắt, râu, tóc) + 84 món
+                                           # quần áo, cắt từ Liberated Pixel Cup:
+                                           #   git clone --depth 1 --filter=blob:none \
+                                           #     --sparse https://github.com/OpenGameArt/\
+                                           #     LiberatedPixelCup.git /tmp/LPC
+                                           #   cd /tmp/LPC && git sparse-checkout set sprite
 ```
 
 Deploy client: push `main` → CI test + tự đồng bộ nhánh `gh-pages` (GitHub Pages).

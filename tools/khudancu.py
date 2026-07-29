@@ -64,6 +64,7 @@ DUONG_DOC = (9, 10)             # hai cot duong da chay xuong cong
 HO = (24, 3, 28, 5)             # ho nuoc: x0, y0, x1, y1 (bao gom hai dau)
 THO_MOC = (11, 21)              # bac tho moc dung day, quay mat ra duong
 TIEM_QUA = (8, 21)              # co ban hoa dung ben kia duong, ban qua tang
+TIEM_AO = (14, 21)              # co Tham ban quan ao cho nhan vat
 CONG = (DUONG_DOC[0], H - 1)    # o cong o canh duoi ban do
 
 
@@ -225,7 +226,7 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
                 don(x, y)
         don(lx + 1, ly + 3)                       # loi vao cua truoc nha
         don(lx + 1, ly + 4)
-    for cho in (THO_MOC, TIEM_QUA):
+    for cho in (THO_MOC, TIEM_QUA, TIEM_AO):
         don(cho[0], cho[1])
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             don(cho[0] + dx, cho[1] + dy)
@@ -254,6 +255,8 @@ def dung(root, tsx_cache, load_tsx, TILE=16):
          'text': 'Xưởng mộc bác Tư — nhận đóng bàn ghế giường tủ.'},
         {'x': TIEM_QUA[0], 'y': TIEM_QUA[1] - 1, 'name': 'Biển Tiệm Quà',
          'text': 'Tiệm quà cô Hoa — hoa tươi, sô-cô-la, nhẫn cưới.'},
+        {'x': TIEM_AO[0], 'y': TIEM_AO[1] - 1, 'name': 'Biển Tiệm Quần Áo',
+         'text': 'Tiệm quần áo cô Thắm — áo, quần, giày, mũ, đủ cả.'},
     ]
     talks = [t for t in talks if not solid[idx(t['x'], t['y'])]]
 
@@ -341,6 +344,8 @@ def viet_js(lo, tho_moc, duong):
         'export const THO_MOC = { x: %d, y: %d };' % tho_moc,
         '// Cô bán quà tặng đứng ở đây',
         'export const TIEM_QUA = { x: %d, y: %d };' % TIEM_QUA,
+        '// Cô bán quần áo cho nhân vật đứng ở đây',
+        'export const TIEM_AO = { x: %d, y: %d };' % TIEM_AO,
         '// Ô cổng ra thị trấn — dùng để chỉ đường cho người chơi',
         'export const CONG_RA = { x: %d, y: %d };' % duong,
         '',

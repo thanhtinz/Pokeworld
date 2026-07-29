@@ -3025,6 +3025,112 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     chiaChong(5, 0).length === 5);
 }
 
+// ==== Nhân vật ghép lớp (LPC) + tủ đồ ====
+{
+  const LPC = await import('../js/data/lpc.js');
+  const AV = await import('../js/engine/avatar.js');
+  const { THU_MUC, THAN, DA, TAI, MUI, BIEU_CAM, MAT, TOC_KIEU, TOC_MAU,
+    RAU_KIEU, RAU_MAU, O_DO, DO, DO_BY_ID, BO_MAU, monBoMau } = LPC;
+
+  ok('có đủ bốn dáng người và sáu màu da', THAN.length === 4 && DA.length === 6);
+  ok('mỗi dáng người đều chỉ về một bộ quần áo có thật',
+    THAN.every(t => t.do === 'nam' || t.do === 'nu'));
+  ok('có đủ phần mặt để chỉnh', TAI.length >= 3 && MUI.length >= 3
+    && MAT.length >= 6 && BIEU_CAM.length >= 3
+    && TOC_KIEU.length >= 10 && TOC_MAU.length >= 4
+    && RAU_KIEU.length >= 4 && RAU_MAU.length >= 3);
+  ok('chín ô quần áo', O_DO.length === 9 && new Set(O_DO.map(o => o.id)).size === 9);
+  ok('mã món đồ không trùng nhau', new Set(DO.map(d => d.id)).size === DO.length);
+  ok('món nào cũng có ô hợp lệ, dáng hợp lệ và tên tiếng Việt',
+    DO.every(d => O_DO.some(o => o.id === d.o)
+      && (d.than === 'nam' || d.than === 'nu') && d.name && d.gia >= 0),
+    DO.filter(d => !O_DO.some(o => o.id === d.o)).map(d => d.id).join(' '));
+  ok('DO_BY_ID khớp đủ DO', Object.keys(DO_BY_ID).length === DO.length);
+
+  // Ba bộ mở đầu là quà tặng lúc tạo nhân vật -> giá 0, tiệm không được bày lại
+  ok('có ba bộ đồ mẫu, cả hai dáng đều đủ',
+    BO_MAU.length === 3 && BO_MAU.every(b =>
+      monBoMau('nam', b.so).length > 0 && monBoMau('nu', b.so).length > 0));
+  const boDo = new Set(['nam', 'nu'].flatMap(t => BO_MAU.flatMap(b => monBoMau(t, b.so))));
+  ok('món trong bộ mẫu đều có thật', [...boDo].every(id => DO_BY_ID[id]));
+  ok('đồ mẫu không bày bán lại trong tiệm',
+    [...boDo].every(id => DO_BY_ID[id].gia === 0));
+  ok('tiệm còn hàng cho cả hai dáng',
+    ['nam', 'nu'].every(t => DO.filter(d => d.gia > 0 && d.than === t).length >= 20));
+  // Mỗi bộ mẫu chỉ được một món mỗi ô, không thì mặc vào là đè lẫn nhau
+  ok('mỗi bộ mẫu không có hai món chung một ô',
+    ['nam', 'nu'].every(t => BO_MAU.every(b => {
+      const os = monBoMau(t, b.so).map(id => DO_BY_ID[id].o);
+      return new Set(os).size === os.length;
+    })));
+
+  // Mọi lớp phải có tệp thật, thiếu một tệp là nhân vật khuyết một mảng người
+  const goc = new URL('../', import.meta.url).pathname;
+  const thieu = [];
+  const kiem = (nhom, ten) => {
+    const p = join(goc, THU_MUC, nhom, ten + '.png');
+    if (!existsSync(p)) thieu.push(`${nhom}/${ten}`);
+  };
+  for (const t of THAN) for (const d of DA) kiem('base', `${t.id}_${d.id}`);
+  for (const d of DA) {
+    for (const x of TAI) kiem('tai', `${x.id}_${d.id}`);
+    for (const x of MUI) kiem('mui', `${x.id}_${d.id}`);
+    for (const x of BIEU_CAM) kiem('bieucam', `${x.id}_${d.id}`);
+  }
+  for (const x of MAT) kiem('mat', x.id);
+  for (const k of TOC_KIEU) for (const m of TOC_MAU) kiem('toc', `${k.id}_${m.id}`);
+  for (const k of RAU_KIEU) for (const m of RAU_MAU) kiem('rau', `${k.id}_${m.id}`);
+  for (const d of DO) kiem('do', d.id);
+  ok('mọi lớp nhân vật đều có tệp ảnh', thieu.length === 0, thieu.slice(0, 8).join(' '));
+
+  // ---- Engine ghép lớp ----
+  newGame('Thợ May');
+  const L = AV.look();
+  ok('bản lưu mới có sẵn ngoại hình hợp lệ',
+    !!L.nv && THAN.some(t => t.id === L.nv.than) && Array.isArray(L.tuDo));
+  // Bản lưu cũ chưa có mục này, hoặc bị sửa bậy -> phải tự vá chứ không được vỡ
+  G.p.look = { nv: { than: 'khong_co_that', da: 'xxx', tocKieu: 'yyy' } };
+  const L2 = AV.look();
+  ok('ngoại hình hỏng thì vá về mặc định',
+    L2.nv.than === 'nam' && DA.some(d => d.id === L2.nv.da));
+
+  newGame('Thợ May');
+  ok('mặc đồ chưa có trong tủ thì bị chặn', AV.mac(DO.find(d => d.gia > 0).id)[1] !== null);
+  const bo1 = AV.macBoMau(1, 'nam');
+  ok('mặc bộ mẫu thì vào tủ và lên người luôn',
+    bo1.length > 0 && bo1.every(id => AV.coDo(id) && AV.dangMac()[DO_BY_ID[id].o] === id));
+
+  // Thứ tự vẽ: mũ luôn nằm SAU tóc, không thì tóc trùm ra ngoài mũ
+  const muNam = DO.find(d => d.o === 'mu' && d.than === 'nam');
+  AV.themDo(muNam.id);
+  AV.mac(muNam.id);
+  const lop = AV.cacLop();
+  ok('lớp đầu tiên luôn là thân người', lop[0].includes('/base/'));
+  ok('mũ vẽ sau tóc',
+    lop.findIndex(x => x.includes(muNam.id)) > lop.findIndex(x => x.includes('/toc/')));
+  ok('mọi lớp đang dùng đều có tệp thật',
+    lop.every(x => existsSync(join(goc, x))), lop.join(' '));
+
+  ok('cởi ra thì ô trống', AV.coi('mu')[1] === null && !AV.dangMac().mu);
+  ok('cởi ô đang trống thì báo lỗi chứ không im lặng', AV.coi('mu')[1] !== null);
+
+  // Đồ LPC vẽ riêng cho từng dáng, mặc chéo là lệch hẳn người
+  const aoNu = DO.find(d => d.than === 'nu' && d.gia > 0);
+  AV.themDo(aoNu.id);
+  ok('dáng nam không mặc được đồ vẽ cho dáng nữ', AV.mac(aoNu.id)[1] !== null);
+  AV.doiThan('nu');
+  ok('đổi dáng thì cởi hết đồ lệch dáng',
+    Object.values(AV.dangMac()).every(id => !id || DO_BY_ID[id].than === 'nu'));
+  ok('đổi dáng xong mặc lại đồ hợp dáng được', AV.mac(aoNu.id)[0] !== null);
+  ok('đổi sang dáng không có thật thì lùi về nam',
+    (AV.doiThan('ma_troi'), AV.nguoi().than === 'nam'));
+
+  // Tiệm quần áo phải có NPC đứng bán, không thì không ai mở được màn đó
+  ok('có NPC bán quần áo trong Khu Dân Cư',
+    ES.vatTheODay?.('khu_dan_cu', ES.TIEM_AO.x, ES.TIEM_AO.y)?.kind === 'tiem-ao',
+    JSON.stringify(ES.vatTheODay?.('khu_dan_cu', ES.TIEM_AO.x, ES.TIEM_AO.y)));
+}
+
 // Tổng kết PHẢI nằm cuối tệp. Trước đây nó đứng giữa chừng, nên mọi bài
 // thêm về sau nằm sau process.exit() và không bao giờ chạy.
 console.log(fails === 0 ? '=== SMOKE OK ===' : `=== ${fails} FAIL ===`);
