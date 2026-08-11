@@ -35,6 +35,7 @@ import casino
 import craftpix
 import khupho
 import phongtrong
+import vungdat
 
 TILE = 16
 MAX_ATLAS_COLS = 32
@@ -1224,7 +1225,15 @@ def write_encounters(root, maps):
         return 0
     dex = doc_dex()
     bang = {}
+    bo_qua = []
     for slug, m in maps.items():
+        # Thi tran, ben cang, trong nha: KHONG co quai. Ban goc rai co cao ngay
+        # giua thi tran nen di mua thuoc cung dinh tran — cho co nguoi o thi
+        # khong the la cho Tuxemon hoang nhay ra.
+        if not vungdat.la_hoang(slug):
+            if m.get('encs'):
+                bo_qua.append(slug)
+            continue
         rows = []
         for e in chon_bang(slug, m.get('encs') or []):
             p = os.path.join(enc_dir, e + '.yaml')
@@ -1256,6 +1265,9 @@ def write_encounters(root, maps):
             for mid, r, lo, hi in rows)))
     out.append('};')
     open('js/data/encounters.js', 'w', encoding='utf-8').write('\n'.join(out) + '\n')
+    if bo_qua:
+        print('Bỏ bảng gặp ở %d chỗ có người ở: %s'
+              % (len(bo_qua), ', '.join(sorted(bo_qua))))
     return len(bang)
 
 

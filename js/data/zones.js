@@ -8,7 +8,7 @@ export const ZONES = {
     desc: "Thị trấn quê nhà, nơi hành trình bắt đầu.",
     encounters: [],
     trainers: ["vo_duong_dat"],
-    next: ["dryadsgrove", "healing_center", "maple_house", "player_house_downstairs", "professor_lab", "route1", "taba_house1", "taba_house2", "taba_house3", "taba_house4", "tuxe_mart_taba"],
+    next: ["bang_duong", "dryadsgrove", "healing_center", "khu_pho", "maple_house", "player_house_downstairs", "professor_lab", "route1", "taba_house1", "taba_house2", "taba_house3", "taba_house4", "tuxe_mart_taba"],
   },
   player_house_downstairs: {
     name: "Nhà Mình — Tầng Trệt", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -108,14 +108,14 @@ export const ZONES = {
     desc: "Khu vực Nhà Mình — Phòng Ngủ.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["player_house_downstairs"],
   },
   maple_bedroom: {
     name: "Nhà Maple — Phòng Ngủ", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Nhà Maple — Phòng Ngủ.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["maple_house"],
   },
   route1_sanglorian: {
     name: "Đường Số 1 — Ngã Sanglorian", kind: "route", icon: "route", iconSp: 212, iconItem: null,
@@ -154,17 +154,9 @@ export const ZONES = {
     next: ["taba_house3"],
   },
   cotton_town: {
-    name: "Thị Trấn Bông", kind: "town", icon: "town", iconSp: 277, iconItem: null,
+    name: "Thị Trấn Bông", kind: "town", icon: "town", iconSp: null, iconItem: null,
     desc: "Thị trấn buôn bán sầm uất.",
-    encounters: [
-      { sp: 277, w: 30, min: 8, max: 14 },   // Imbrickcile (basic)
-      { sp: 299, w: 30, min: 8, max: 14 },   // Medipup (basic)
-      { sp: 107, w: 30, min: 8, max: 14 },   // Pythwire (basic)
-      { sp: 19, w: 30, min: 8, max: 14 },   // Rockitten (basic)
-      { sp: 307, w: 30, min: 8, max: 14 },   // Scarlant (basic)
-      { sp: 243, w: 30, min: 8, max: 14 },   // Snock (basic)
-      { sp: 268, w: 30, min: 8, max: 14 },   // Woodoor (basic)
-    ],
+    encounters: [],
     trainers: ["vo_duong_nuoc", "xero_grunt_3", "xero_boss"],
     next: ["cotton_artshop", "cotton_cafe", "cotton_house1", "cotton_house2", "cotton_scoop", "cotton_tunnel", "dryadsgrove", "healing_center", "omnichannel1", "route1", "route2"],
   },
@@ -176,16 +168,24 @@ export const ZONES = {
     next: ["dryadsgrove", "flower_city", "leather_town"],
   },
   cotton_tunnel: {
-    name: "Đường Hầm Bông", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    name: "Đường Hầm Bông", kind: "cave", icon: "cave", iconSp: null, iconItem: null,
     desc: "Khu vực Đường Hầm Bông.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["cotton_town", "dragonscave", "dryadsgrove"],
   },
   routec: {
-    name: "Đường Rừng Thông", kind: "route", icon: "route", iconSp: null, iconItem: null,
+    name: "Đường Rừng Thông", kind: "route", icon: "route", iconSp: 277, iconItem: null,
     desc: "Khu vực Đường Rừng Thông.",
-    encounters: [],
+    encounters: [
+      { sp: 277, w: 30, min: 8, max: 14 },   // Imbrickcile (basic)
+      { sp: 299, w: 30, min: 8, max: 14 },   // Medipup (basic)
+      { sp: 107, w: 30, min: 8, max: 14 },   // Pythwire (basic)
+      { sp: 19, w: 30, min: 8, max: 14 },   // Rockitten (basic)
+      { sp: 307, w: 30, min: 8, max: 14 },   // Scarlant (basic)
+      { sp: 243, w: 30, min: 8, max: 14 },   // Snock (basic)
+      { sp: 354, w: 30, min: 8, max: 14 },   // Sprightly (basic)
+    ],
     trainers: [],
     next: ["candy_port", "candy_town", "dragonscave", "dryadsgrove", "paper_town", "route1"],
   },
@@ -254,32 +254,16 @@ export const ZONES = {
     next: ["cotton_town", "omnichannel2"],
   },
   flower_city: {
-    name: "Thành Phố Hoa", kind: "town", icon: "town", iconSp: 119, iconItem: null,
+    name: "Thành Phố Hoa", kind: "town", icon: "town", iconSp: null, iconItem: null,
     desc: "Thành phố ven nước, đâu cũng thấy hoa.",
-    encounters: [
-      { sp: 119, w: 30, min: 19, max: 26 },   // Axolightl (basic)
-      { sp: 41, w: 30, min: 19, max: 26 },   // Dollfin (basic)
-      { sp: 409, w: 30, min: 19, max: 26 },   // Gupphish (basic)
-      { sp: 295, w: 30, min: 19, max: 26 },   // Lesmagu (basic)
-      { sp: 366, w: 30, min: 19, max: 26 },   // Poinchin (basic)
-      { sp: 303, w: 30, min: 19, max: 26 },   // Sheye (basic)
-      { sp: 370, w: 30, min: 19, max: 26 },   // Weedsea (basic)
-    ],
+    encounters: [],
     trainers: [],
     next: ["candy_port", "dojo1", "flower_center", "flower_house1", "flower_house2", "flower_petshop", "flower_scoop", "leather_town", "nimrod_bottom", "paper_town", "route4", "route5", "routea", "routed", "timber_town"],
   },
   leather_town: {
-    name: "Thị Trấn Da", kind: "town", icon: "town", iconSp: 105, iconItem: null,
+    name: "Thị Trấn Da", kind: "town", icon: "town", iconSp: null, iconItem: null,
     desc: "Thị trấn vùng đất khô, gió cát quanh năm.",
-    encounters: [
-      { sp: 105, w: 30, min: 11, max: 18 },   // Forturtle (basic)
-      { sp: 340, w: 30, min: 11, max: 18 },   // Hissiorite (basic)
-      { sp: 407, w: 30, min: 11, max: 18 },   // Hoodoll (basic)
-      { sp: 390, w: 30, min: 11, max: 18 },   // Pawsand (basic)
-      { sp: 177, w: 30, min: 11, max: 18 },   // Wrougon (basic)
-      { sp: 219, w: 30, min: 11, max: 18 },   // Altie (standalone)
-      { sp: 79, w: 30, min: 11, max: 18 },   // Anu (standalone)
-    ],
+    encounters: [],
     trainers: ["leo_nui_marcos", "nghien_cuu_mio", "boi_douglas", "rival_2"],
     next: ["candy_port", "citypark", "flower_city", "leather_center", "leather_gym", "leather_house1", "leather_house2", "leather_museum", "leather_scoop", "leather_shaft1", "leather_shaft2", "paper_town", "route3", "routed", "timber_town"],
   },
@@ -298,21 +282,21 @@ export const ZONES = {
     next: ["brideswood", "candy_port", "downstairs", "flower_city", "leather_town", "paper_daycare", "paper_manor", "paper_rival_downstairs", "paper_scoop", "route1", "routec", "timber_town"],
   },
   dragonscave: {
-    name: "Hang Rồng", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    name: "Hang Rồng", kind: "cave", icon: "cave", iconSp: null, iconItem: null,
     desc: "Khu vực Hang Rồng.",
     encounters: [],
     trainers: [],
     next: ["cotton_tunnel", "routec"],
   },
   candy_port: {
-    name: "Bến Cảng Kẹo", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    name: "Bến Cảng Kẹo", kind: "town", icon: "town", iconSp: null, iconItem: null,
     desc: "Khu vực Bến Cảng Kẹo.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["candy_town", "routec"],
   },
   taba_ba_passageway_1: {
-    name: "Khu Thi Đấu Taba — Hành Lang 1", kind: "indoor", icon: "indoor", iconSp: 397, iconItem: null,
+    name: "Khu Thi Đấu Taba — Hành Lang 1", kind: "cave", icon: "cave", iconSp: 397, iconItem: null,
     desc: "Hành lang khu thi đấu, không khí lạ thường.",
     encounters: [
       { sp: 397, w: 30, min: 21, max: 28 },   // Virware (basic)
@@ -327,7 +311,7 @@ export const ZONES = {
     next: ["taba_ba_br_1", "taba_ba_main"],
   },
   taba_ba_passageway_2: {
-    name: "Khu Thi Đấu Taba — Hành Lang 2", kind: "indoor", icon: "indoor", iconSp: 345, iconItem: null,
+    name: "Khu Thi Đấu Taba — Hành Lang 2", kind: "cave", icon: "cave", iconSp: 345, iconItem: null,
     desc: "Hành lang khu thi đấu, sương giá bám tường.",
     encounters: [
       { sp: 345, w: 30, min: 23, max: 30 },   // Eskipup (basic)
@@ -342,7 +326,7 @@ export const ZONES = {
     next: ["taba_ba_br_2", "taba_ba_main"],
   },
   taba_ba_passageway_3: {
-    name: "Khu Thi Đấu Taba — Hành Lang 3", kind: "indoor", icon: "indoor", iconSp: 86, iconItem: null,
+    name: "Khu Thi Đấu Taba — Hành Lang 3", kind: "cave", icon: "cave", iconSp: 86, iconItem: null,
     desc: "Hành lang khu thi đấu, nghe cả tiếng sóng.",
     encounters: [
       { sp: 86, w: 30, min: 25, max: 32 },   // Fluoresfin (basic)
@@ -357,7 +341,7 @@ export const ZONES = {
     next: ["taba_ba_br_3", "taba_ba_main"],
   },
   taba_ba_passageway_4: {
-    name: "Khu Thi Đấu Taba — Hành Lang 4", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    name: "Khu Thi Đấu Taba — Hành Lang 4", kind: "cave", icon: "cave", iconSp: null, iconItem: null,
     desc: "Khu vực Khu Thi Đấu Taba — Hành Lang 4.",
     encounters: [],
     trainers: [],
@@ -371,17 +355,9 @@ export const ZONES = {
     next: ["taba_ba_main", "taba_ba_stairwell_2"],
   },
   citypark: {
-    name: "Công Viên Thành Phố", kind: "town", icon: "town", iconSp: 354, iconItem: null,
+    name: "Công Viên Thành Phố", kind: "town", icon: "town", iconSp: null, iconItem: null,
     desc: "Công viên giữa phố, chim chóc và người đi dạo.",
-    encounters: [
-      { sp: 354, w: 30, min: 10, max: 16 },   // Sprightly (basic)
-      { sp: 316, w: 30, min: 10, max: 16 },   // Thumpurn (basic)
-      { sp: 216, w: 30, min: 10, max: 16 },   // Turnipper (basic)
-      { sp: 25, w: 30, min: 10, max: 16 },   // Tweesher (basic)
-      { sp: 150, w: 30, min: 10, max: 16 },   // Vivipere (basic)
-      { sp: 117, w: 30, min: 10, max: 16 },   // Abesnaki (standalone)
-      { sp: 118, w: 30, min: 10, max: 16 },   // Araignee (standalone)
-    ],
+    encounters: [],
     trainers: [],
     next: ["citypark_house1", "leather_town", "route2"],
   },
@@ -400,23 +376,47 @@ export const ZONES = {
     next: ["omnichannel1", "omnichannel3"],
   },
   route4: {
-    name: "Đường Số 4", kind: "route", icon: "route", iconSp: null, iconItem: null,
+    name: "Đường Số 4", kind: "route", icon: "route", iconSp: 105, iconItem: null,
     desc: "Khu vực Đường Số 4.",
-    encounters: [],
+    encounters: [
+      { sp: 105, w: 30, min: 11, max: 18 },   // Forturtle (basic)
+      { sp: 340, w: 30, min: 11, max: 18 },   // Hissiorite (basic)
+      { sp: 407, w: 30, min: 11, max: 18 },   // Hoodoll (basic)
+      { sp: 390, w: 30, min: 11, max: 18 },   // Pawsand (basic)
+      { sp: 177, w: 30, min: 11, max: 18 },   // Wrougon (basic)
+      { sp: 219, w: 30, min: 11, max: 18 },   // Altie (standalone)
+      { sp: 79, w: 30, min: 11, max: 18 },   // Anu (standalone)
+    ],
     trainers: [],
     next: ["flower_city", "route3"],
   },
   routea: {
-    name: "Đường Ven Biển", kind: "route", icon: "route", iconSp: null, iconItem: null,
+    name: "Đường Ven Biển", kind: "route", icon: "route", iconSp: 119, iconItem: null,
     desc: "Khu vực Đường Ven Biển.",
-    encounters: [],
+    encounters: [
+      { sp: 119, w: 30, min: 19, max: 26 },   // Axolightl (basic)
+      { sp: 41, w: 30, min: 19, max: 26 },   // Dollfin (basic)
+      { sp: 409, w: 30, min: 19, max: 26 },   // Gupphish (basic)
+      { sp: 295, w: 30, min: 19, max: 26 },   // Lesmagu (basic)
+      { sp: 366, w: 30, min: 19, max: 26 },   // Poinchin (basic)
+      { sp: 303, w: 30, min: 19, max: 26 },   // Sheye (basic)
+      { sp: 370, w: 30, min: 19, max: 26 },   // Weedsea (basic)
+    ],
     trainers: [],
     next: ["flower_city", "mansion", "mansion_top"],
   },
   route5: {
-    name: "Route 5", kind: "route", icon: "route", iconSp: null, iconItem: null,
+    name: "Route 5", kind: "route", icon: "route", iconSp: 316, iconItem: null,
     desc: "Khu vực Route 5.",
-    encounters: [],
+    encounters: [
+      { sp: 316, w: 30, min: 10, max: 16 },   // Thumpurn (basic)
+      { sp: 216, w: 30, min: 10, max: 16 },   // Turnipper (basic)
+      { sp: 25, w: 30, min: 10, max: 16 },   // Tweesher (basic)
+      { sp: 150, w: 30, min: 10, max: 16 },   // Vivipere (basic)
+      { sp: 268, w: 30, min: 10, max: 16 },   // Woodoor (basic)
+      { sp: 117, w: 30, min: 10, max: 16 },   // Abesnaki (standalone)
+      { sp: 118, w: 30, min: 10, max: 16 },   // Araignee (standalone)
+    ],
     trainers: [],
     next: ["flower_city", "timber_town"],
   },
@@ -439,35 +439,35 @@ export const ZONES = {
     desc: "Khu vực Tiệm Thú Cưng Hoa.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["flower_city"],
   },
   flower_house2: {
     name: "Nhà 2 Hoa", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Nhà 2 Hoa.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["flower_city"],
   },
   flower_house1: {
     name: "Nhà 1 Hoa", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Nhà 1 Hoa.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["flower_city"],
   },
   flower_center: {
     name: "Trung Tâm Hồi Phục Hoa", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Trung Tâm Hồi Phục Hoa.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["flower_city"],
   },
   flower_scoop: {
     name: "Tiệm Kem Hoa", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Tiệm Kem Hoa.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["flower_city"],
   },
   timber_town: {
     name: "Thị Trấn Gỗ", kind: "town", icon: "town", iconSp: null, iconItem: null,
@@ -503,7 +503,7 @@ export const ZONES = {
     desc: "Khu vực Bảo Tàng Da.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["leather_town"],
   },
   leather_house1: {
     name: "Nhà 1 Da", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -524,10 +524,10 @@ export const ZONES = {
     desc: "Khu vực Trung Tâm Hồi Phục Da.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["leather_town"],
   },
   leather_shaft2: {
-    name: "Hầm Mỏ Shaft 2", kind: "indoor", icon: "indoor", iconSp: 233, iconItem: null,
+    name: "Hầm Mỏ Shaft 2", kind: "cave", icon: "cave", iconSp: 233, iconItem: null,
     desc: "Tầng sâu của hầm mỏ, ít ai dám xuống tới đây.",
     encounters: [
       { sp: 233, w: 30, min: 17, max: 24 },   // Brewdin (standalone)
@@ -542,7 +542,7 @@ export const ZONES = {
     next: ["leather_town"],
   },
   leather_shaft1: {
-    name: "Hầm Mỏ Shaft 1", kind: "indoor", icon: "indoor", iconSp: 290, iconItem: null,
+    name: "Hầm Mỏ Shaft 1", kind: "cave", icon: "cave", iconSp: 290, iconItem: null,
     desc: "Tầng trên của hầm mỏ, tối om và ẩm thấp.",
     encounters: [
       { sp: 290, w: 30, min: 15, max: 22 },   // Slichen (basic)
@@ -561,7 +561,7 @@ export const ZONES = {
     desc: "Khu vực Võ Đường Da.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["leather_town"],
   },
   route6: {
     name: "Route 6", kind: "route", icon: "route", iconSp: null, iconItem: null,
@@ -582,7 +582,7 @@ export const ZONES = {
     desc: "Khu vực Trung Tâm Hồi Phục Kẹo.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["candy_town"],
   },
   greenwash: {
     name: "Thị Trấn Xanh", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -596,7 +596,7 @@ export const ZONES = {
     desc: "Khu vực Quán Cà Phê Kẹo.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["candy_town"],
   },
   candy_scoop: {
     name: "Tiệm Kem Kẹo", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -638,28 +638,28 @@ export const ZONES = {
     desc: "Khu vực Nhà Trẻ Giấy.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["paper_town"],
   },
   paper_scoop: {
     name: "Tiệm Kem Giấy", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Tiệm Kem Giấy.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["paper_town"],
   },
   paper_manor: {
     name: "Dinh Thự Giấy", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Dinh Thự Giấy.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["paper_town"],
   },
   paper_rival_downstairs: {
     name: "Nhà Đối Thủ Giấy", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
     desc: "Khu vực Nhà Đối Thủ Giấy.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["paper_town"],
   },
   taba_ba_br_1: {
     name: "Phòng Nghỉ 1 Taba", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -743,10 +743,10 @@ export const ZONES = {
     desc: "Khu vực Phòng Thợ Săn.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["nimrod_bottom"],
   },
   tunnel: {
-    name: "Đường Hầm Xuyên Núi", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    name: "Đường Hầm Xuyên Núi", kind: "cave", icon: "cave", iconSp: null, iconItem: null,
     desc: "Khu vực Đường Hầm Xuyên Núi.",
     encounters: [],
     trainers: [],
@@ -764,7 +764,7 @@ export const ZONES = {
     desc: "Khu vực Trung Tâm Hồi Phục Gỗ.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["timber_town"],
   },
   timber_scoop: {
     name: "Tiệm Kem Gỗ", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -785,7 +785,7 @@ export const ZONES = {
     desc: "Khu vực Quán Cà Phê Gỗ.",
     encounters: [],
     trainers: [],
-    next: [],
+    next: ["timber_town"],
   },
   timber_house: {
     name: "Nhà Gỗ", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
@@ -814,6 +814,69 @@ export const ZONES = {
     encounters: [],
     trainers: [],
     next: ["greenwash"],
+  },
+  khu_pho: {
+    name: "Phố Kim Long", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Phố Kim Long.",
+    encounters: [],
+    trainers: [],
+    next: ["den_do_nat", "nha_nguyen", "sanh_bac", "sanh_bang", "taba_town"],
+  },
+  bang_duong: {
+    name: "Bang Đường", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Bang Đường.",
+    encounters: [],
+    trainers: [],
+    next: ["taba_town", "trong_dien", "trong_kho", "trong_sanh"],
+  },
+  trong_sanh: {
+    name: "Sảnh Bang", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Sảnh Bang.",
+    encounters: [],
+    trainers: [],
+    next: ["bang_duong"],
+  },
+  trong_dien: {
+    name: "Điện Thủ Hộ", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Điện Thủ Hộ.",
+    encounters: [],
+    trainers: [],
+    next: ["bang_duong"],
+  },
+  trong_kho: {
+    name: "Kho Bang", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Kho Bang.",
+    encounters: [],
+    trainers: [],
+    next: ["bang_duong"],
+  },
+  nha_nguyen: {
+    name: "Nhà Nguyện", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Nhà Nguyện.",
+    encounters: [],
+    trainers: [],
+    next: ["khu_pho"],
+  },
+  sanh_bang: {
+    name: "Sảnh Bang Hội", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Sảnh Bang Hội.",
+    encounters: [],
+    trainers: [],
+    next: ["khu_pho"],
+  },
+  den_do_nat: {
+    name: "Đền Đổ Nát", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Đền Đổ Nát.",
+    encounters: [],
+    trainers: [],
+    next: ["khu_pho"],
+  },
+  sanh_bac: {
+    name: "Sảnh Bạc Kim Long", kind: "indoor", icon: "indoor", iconSp: null, iconItem: null,
+    desc: "Khu vực Sảnh Bạc Kim Long.",
+    encounters: [],
+    trainers: [],
+    next: ["khu_pho"],
   },
 };
 

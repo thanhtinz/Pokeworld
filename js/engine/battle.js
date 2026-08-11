@@ -15,7 +15,6 @@ import { applyStatus, removeStatus, canAct, endOfTurn, speedMult, rangeBlocked,
   counterDamage, swapDamage, wildRampage, condBlocked, chainStatus } from './status.js';
 import { calcDamage, effText, typeMultiplier, RANGE_MAP } from './damage.js';
 import { attemptCatch, applyBallEffects, keepOnFail, keepOnCatch } from './catchmon.js';
-import { attemptEscape } from './escape.js';
 import { useItem } from './useitem.js';
 import { bestMove, pickItem } from './ai.js';
 
@@ -65,7 +64,7 @@ function moveName(mvId) {
 
 export class Battle {
   // { kind: 'wild'|'trainer', sides: [{mons:[...], kind:'player'|'wild'|'trainer'}, {...}] }
-  constructor({ kind = 'wild', sides, escapeMethod }) {
+  constructor({ kind = 'wild', sides }) {
     this.kind = kind;
     this.turn = 1;
     // Van an toàn chống trận không bao giờ kết thúc — xem beTac() bên dưới
@@ -78,8 +77,6 @@ export class Battle {
     // "lặn xuống" và chiêu "tiên liệu" đều đặt một đòn nữa vào đây, tới lượt
     // ghi trong mục thì đòn đó tự bung ra ở cuối lượt.
     this.pendingActions = [];
-    this.runAttempts = 0;                            // bản gốc: biến run_attempts
-    this.escapeMethod = escapeMethod || CONFIG.ESCAPE_METHOD; // default|relative|always|never
     this.sides = sides.map((s) => {
       const side = {
         mons: s.mons,
@@ -648,18 +645,13 @@ export class Battle {
         continue;
       }
       if (a.t === 'run') {
-        const foeMon = this.activeMon(oi) || mon;
-        const ok = attemptEscape(this.escapeMethod, mon, foeMon, this.runAttempts);
-        ev.push({ t: 'run', ok, side: i });
-        if (ok) {
-          this.runAttempts = 0;
-          ev.push({ t: 'msg', text: 'Chạy thoát thành công!' });
-          this.endBattle(oi, ev);
-        } else {
-          // Hụt một lần thì lần sau dễ hơn (bản gốc: run_attempts + 1)
-          this.runAttempts += 1;
-          ev.push({ t: 'msg', text: 'Không chạy thoát được!' });
-        }
+        // Chạy là chạy được, không bốc thăm. Bản gốc tính tỉ lệ theo chênh cấp
+        // rồi mỗi lần hụt lại dễ hơn một chút — nhưng gặp con mình không muốn
+        // đánh mà phải bấm Chạy ba bốn lần mới thoát thì chỉ tổ bực, chứ không
+        // làm trận đấu hay thêm được tí nào.
+        ev.push({ t: 'run', ok: true, side: i });
+        ev.push({ t: 'msg', text: 'Chạy thoát thành công!' });
+        this.endBattle(oi, ev);
       } else if (a.t === 'switch') {
         // Dính lao: rút lui khỏi sân là mất một phần máu
         const raSan = this.activeMon(i);

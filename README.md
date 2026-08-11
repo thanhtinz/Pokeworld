@@ -11,7 +11,7 @@ Game **đi bộ bắt sinh vật + cốt truyện** chạy trên trình duyệt,
 - 📖 **Cốt truyện nhiều chương** — cutscene chân dung nhân vật, hộp thoại, khoá khu vực theo tiến trình
 - 🗺️ **100 bản đồ** dựng từ tệp `.tmx` gốc của Tuxemon (đi theo đúng chiến dịch Spyder): 369 NPC có AI theo `WanderBehavior` của bản gốc (đứng canh, đi tuần, dạo quanh, bong bóng cảm xúc), 383 cổng dịch chuyển, đồ rơi nhặt được dưới đất, 23 bảng gặp lấy thẳng từ bản gốc + 14 vùng bắt, tổng 137 loài bắt được ngoài thiên nhiên, NPC đổi Tuxemon
 - 🎒 Túi đồ dạng ô với **143 vật phẩm** của bản gốc: 25 loại Tuxeball (theo hệ, giới tính, giờ giấc, đỏ đen...), thuốc, đá tiến hoá, món ăn đổi thân thiết, trà cho EXP, 14 đĩa chiêu + 5 đĩa hệ dạy chiêu mới, 13 quả đổi hệ, 8 bùa hộ mệnh chặn trạng thái, Máy Truyền EXP chia cho cả đội
-- ⚔️ Chiến đấu **đúng công thức bản gốc**: 13 hệ, 6 chỉ số (HP/Giáp/Né/Cận chiến/Tầm xa/Tốc), IV 0–15, TP thay EV, khẩu vị thay tính cách, tầm đánh melee/touch/ranged/reach/reliable, hồi chiêu (recharge) thay PP, tốc độ chiêu quyết định thứ tự ra đòn, 33 trạng thái (có loại nối máu hai bên, có loại bào máu cả lúc đi bộ), bệnh dịch lây qua chiêu, chạy trốn theo `attempt_escape`, AI chấm điểm chiêu và biết uống thuốc
+- ⚔️ Chiến đấu **đúng công thức bản gốc**: 13 hệ, 6 chỉ số (HP/Giáp/Né/Cận chiến/Tầm xa/Tốc), IV 0–15, TP thay EV, khẩu vị thay tính cách, tầm đánh melee/touch/ranged/reach/reliable, hồi chiêu (recharge) thay PP, tốc độ chiêu quyết định thứ tự ra đòn, 33 trạng thái (có loại nối máu hai bên, có loại bào máu cả lúc đi bộ), bệnh dịch lây qua chiêu, AI chấm điểm chiêu và biết uống thuốc
 - 🎣 **Câu cá**: đứng quay mặt ra mặt nước rồi thả câu — 3 loại cần theo `mods/fishing.yaml`, cần càng xịn thì tỉ lệ cắn càng cao, cá càng to, càng bền, và chỉ cần xịn nhất mới câu được thuỷ quái. Cần mòn dần theo số lần thả, hết là gãy. Kèm bình xịt xua đuổi, chìa khoá thoát hiểm về chỗ nghỉ, lều trại hồi cả đội
 - ⚪ Bắt sinh vật theo công thức rung của bản gốc; **Tuxedex 411 loài** có ghi chép, nơi sống, đặc điểm, tìm và lọc theo hệ; **cửa hàng riêng cho từng thị trấn** (giá + hàng lấy thẳng từ `db/economy`, có món số lượng có hạn), nhiệm vụ, điểm danh chuỗi ngày
 - 🎨 Asset thật của Tuxemon: sprite sinh vật, chân dung NPC, icon giao diện, hiệu ứng chiêu, 40 nền trận đấu (có cảnh đêm), 10 bản nhạc, tiếng động từng chiêu và **tiếng kêu riêng cho từng loài**
@@ -29,7 +29,7 @@ Game **đi bộ bắt sinh vật + cốt truyện** chạy trên trình duyệt,
 ```
 index.html, css/, sw.js       # client shell + PWA
 js/data/                      # PURE DATA (tự sinh từ tools/): species, moves, types, maps, encounters...
-js/engine/                    # logic thuần: monster, battle, damage, status, catch, escape, exp, evolution, fishing
+js/engine/                    # logic thuần: monster, battle, damage, status, catch, exp, evolution, fishing
 js/ui/                        # màn hình: login, home, world, battle, party, dex, bag, shop, quest, menu
 js/net/                       # lớp kết nối server (REST + socket) — offline nếu chưa cấu hình
 server/                       # backend Node.js: API, socket, PvP, admin panel, Docker

@@ -23,9 +23,15 @@ import sys
 import json
 import yaml
 
+import vungdat
+
 # Khu vuc -> dia hinh Tuxemon tuong ung + khoang cap
-# Khu vuc = ID ban do do tools/mktmx.py sinh ra. Chi nhung ban do NGOAI TROI
-# moi co bang gap; nha va cua hang thi khong.
+# Khu vuc = ID ban do do tools/mktmx.py sinh ra. Chi VUNG HOANG moi co bang gap
+# (tools/vungdat.py phan loai) — thi tran, ben cang va trong nha thi khong.
+# Truoc day bon thi tran cung co bang gap rieng, nen may loai song o do (do thi,
+# sa mac, ven bien) chi bat duoc ngay giua pho. Gio moi loai do doi sang con
+# duong sat ben canh: van bat duoc du bay nhieu loai, ma khong con canh dang di
+# mua thuoc thi nhay ra mot con.
 # Khu vuc di bo duoc ngoai troi -> (dia hinh cua Tuxemon, cap thap, cap cao).
 # Dia hinh lay tu truong 'terrains' trong db/monster nen con nao song o dau thi
 # gap o do. Thu tu tu de den kho theo duong di trong game.
@@ -34,13 +40,13 @@ ZONE_TERRAIN = {
     'dryadsgrove':       (['woodland', 'jungle'], 5, 11),
     'route1_sanglorian': (['grassland', 'urban'], 6, 12),
     'route2':            (['woodland', 'grassland'], 8, 14),
-    'cotton_town':       (['urban'], 8, 14),
-    'citypark':          (['urban', 'grassland'], 10, 16),
+    'routec':            (['urban', 'woodland'], 8, 14),
+    'route5':            (['urban', 'grassland'], 10, 16),
     'route3':            (['mountains', 'woodland'], 13, 20),
-    'leather_town':      (['desert', 'ruins'], 11, 18),
+    'route4':            (['desert', 'ruins'], 11, 18),
     'leather_shaft1':    (['underground'], 15, 22),
     'leather_shaft2':    (['underground', 'ruins'], 17, 24),
-    'flower_city':       (['coastal', 'freshwater'], 19, 26),
+    'routea':            (['coastal', 'freshwater'], 19, 26),
     'taba_ba_passageway_1': (['extraplanar'], 21, 28),
     'taba_ba_passageway_2': (['swamp', 'boreal_snow'], 23, 30),
     'taba_ba_passageway_3': (['sea', 'coastal'], 25, 32),
@@ -186,12 +192,11 @@ def write_zones(zone_pool, meta):
     for zid, info in meta.items():
         name = info['name']
         nxt = sorted(info['next'])
-        kind = ('town' if 'town' in zid or 'city' in zid
-                else 'route' if 'route' in zid
-                else 'forest' if 'grove' in zid or 'forest' in zid
-                else 'indoor')
+        kind = vungdat.loai_vung(zid)
         desc = DESC.get(zid) or ('Khu vực %s.' % name)
-        pool, lo, hi = zone_pool.get(zid, ([], 1, 5))
+        # Chi vung hoang moi co bang gap — thi tran voi trong nha thi de trong
+        pool, lo, hi = zone_pool.get(zid, ([], 1, 5)) if vungdat.la_hoang(zid) \
+            else ([], 1, 5)
         out.append('  %s: {' % zid)
         icon_sp_txt = str(pool[0]['id']) if pool else 'null'
         out.append('    name: %s, kind: %s, icon: %s, iconSp: %s, iconItem: %s,'

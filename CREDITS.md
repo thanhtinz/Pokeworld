@@ -42,11 +42,11 @@ Cụ thể đã lấy:
 | 136 hiệu ứng hình riêng của chiêu thức | `assets/vfx/tech/`, `js/data/vfx.js` |
 
 Cả **luật chơi** cũng lấy theo bản gốc: công thức sát thương theo tầm đánh,
-chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt và chạy trốn, hiệu ứng
+chỉ số theo dáng thân, đường kinh nghiệm, công thức bắt, hiệu ứng
 vật phẩm, khẩu vị thay cho tính
 cách, bảng trạng thái và hiệu ứng phụ của chiêu — xem `js/engine/damage.js`,
 `js/engine/monster.js`, `js/engine/exp.js`, `js/engine/catchmon.js`,
-`js/engine/status.js`, `js/engine/escape.js`, `js/engine/useitem.js`,
+`js/engine/status.js`, `js/engine/useitem.js`,
 `js/engine/ai.js`, mỗi tệp có ghi rõ lấy từ đâu bên bản gốc.
 
 Toàn bộ do `tools/mktuxemon.py`, `tools/mktmx.py`, `tools/mkworld.py`,

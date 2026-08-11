@@ -49,7 +49,6 @@ import { attemptCatch, ballModifier, statusModifier, applyBallEffects,
   keepOnFail } from '../js/engine/catchmon.js';
 import { CAPDEV } from '../js/data/capdev.js';
 import { useItem, canUse, foodBond } from '../js/engine/useitem.js';
-import { escapeChance } from '../js/engine/escape.js';
 import { scoreMove, pickItem } from '../js/engine/ai.js';
 import { SHAPE_VI, STAGE_VI, HOME_VI, TAG_VI } from '../js/data/traits.js';
 import { MON_CRY, CRY_SFX, cryPath, MUSIC } from '../js/data/sounds.js';
@@ -399,27 +398,31 @@ ok('đường exp = cấp mũ 3', expForLevel(10) === 1000 && expForLevel(20) ==
     coAnim.every(m => fxFor(m.anim, m.types[0])?.src));
 }
 
-// Chạy trốn theo đúng công thức bản gốc: hụt lần nào lần sau dễ hơn
+// Chạy trốn khỏi Tuxemon hoang: bấm là thoát, không bốc thăm
 {
-  const me = newTuxemon(STARTERS[0].sp, 10);
-  const foe = newTuxemon(STARTERS[2].sp, 10);
-  ok('cùng cấp, lần đầu chạy 40%', Math.abs(escapeChance('default', me, foe, 0) - 0.4) < 1e-9);
-  ok('thử lại lần 2 lên 55%', Math.abs(escapeChance('default', me, foe, 1) - 0.55) < 1e-9);
-  ok('thử 4 lần là chắc chắn thoát', escapeChance('default', me, foe, 4) === 1);
-  ok('cấp thấp hơn nhiều thì khó chạy',
-    escapeChance('default', me, newTuxemon(STARTERS[2].sp, 40), 0) === 0);
-  ok('cách tính always/never', escapeChance('always', me, foe) === 1
-    && escapeChance('never', me, foe) === 0);
-  ok('cách tính relative nằm trong [0,1]',
-    escapeChance('relative', me, foe) >= 0 && escapeChance('relative', me, foe) <= 1);
-  // Trong trận thật: chạy trong trận hoang dã phải kết thúc được trận
-  const b = new Battle({ kind: 'wild', escapeMethod: 'always',
+  const tran = () => new Battle({ kind: 'wild',
+    sides: [{ kind: 'player', mons: [newTuxemon(STARTERS[0].sp, 5)] },
+      { kind: 'wild', mons: [newTuxemon(STARTERS[2].sp, 40)] }] });
+  // Cấp thấp hơn địch cả 35 bậc — bản cũ tính ra 0% thoát
+  let het = 0;
+  for (let i = 0; i < 20; i++) {
+    const b = tran();
+    b.submit(0, { t: 'run' });
+    b.submit(1, { t: 'move', i: 0 });
+    const evs = b.resolve().events;
+    if (b.over && evs.some(e => e.t === 'run' && e.ok)) het++;
+  }
+  ok('lần nào bấm Chạy cũng thoát', het === 20, `${het}/20 lần`);
+  const src = readFileSync(new URL('../js/engine/battle.js', import.meta.url), 'utf8');
+  ok('không còn bốc thăm chạy trốn',
+    !/attemptEscape|runAttempts|escapeMethod/.test(src));
+  ok('bỏ hẳn module tính tỉ lệ chạy trốn',
+    !existsSync(new URL('../js/engine/escape.js', import.meta.url)));
+  // Trận với huấn luyện viên thì vẫn không bỏ chạy được
+  const bt = new Battle({ kind: 'trainer',
     sides: [{ kind: 'player', mons: [newTuxemon(STARTERS[0].sp, 10)] },
-      { kind: 'wild', mons: [newTuxemon(STARTERS[2].sp, 5)] }] });
-  b.submit(0, { t: 'run' });
-  b.submit(1, { t: 'move', i: 0 });
-  const evs = b.resolve().events;
-  ok('chạy trốn kết thúc trận', b.over && evs.some(e => e.t === 'run' && e.ok));
+      { kind: 'trainer', mons: [newTuxemon(STARTERS[2].sp, 10)] }] });
+  ok('đấu huấn luyện viên thì không chạy được', bt.submit(0, { t: 'run' })[0] === false);
 }
 
 // Điều kiện tiến hoá lấy đủ từ bản gốc, không chỉ mỗi "đủ cấp"
@@ -1500,6 +1503,31 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
   ok('có chiêu mượn hệ', muon.length >= 2, String(muon.length));
   ok('chiêu mượn hệ vẫn là chiêu đánh',
     muon.every(([, m]) => m.category === 'damage' && m.power > 0));
+}
+
+// Quái hoang CHỈ ở vùng hoang: thị trấn, bến cảng, trong nhà thì không có
+{
+  const HOANG = new Set(['route', 'forest', 'cave']);
+  const { ENCOUNTERS } = await import('../js/data/encounters.js');
+  const lac = Object.entries(ZONES)
+    .filter(([, z]) => z.encounters.length && !HOANG.has(z.kind));
+  ok('không vùng có người ở nào còn bảng gặp', lac.length === 0,
+    lac.map(([id, z]) => `${id}:${z.kind}`).join(' '));
+  const lacMap = Object.keys(ENCOUNTERS)
+    .filter(id => ZONES[id] && !HOANG.has(ZONES[id].kind));
+  ok('bảng gặp lấy từ bản gốc cũng sạch chỗ có người ở', lacMap.length === 0,
+    lacMap.join(' '));
+  ok('thị trấn quê nhà không còn quái',
+    !ENCOUNTERS.taba_town?.length && !ZONES.taba_town.encounters.length);
+  // Hang với đường hầm vẫn là vùng hoang dù nằm trong nhà
+  ok('hang và đường hầm vẫn có quái',
+    !!ENCOUNTERS.dragonscave?.length && !!ENCOUNTERS.cotton_tunnel?.length);
+  // Và engine phải tự biết chỗ nào có quái để khỏi đếm bước vô ích
+  const OW = await import('../js/engine/overworld.js');
+  ok('engine nhận ra vùng hoang',
+    OW.coQuaiHoang('route1') && !OW.coQuaiHoang('taba_town'));
+  ok('đi trong thị trấn không bao giờ ra quái',
+    OW.rollWild('taba_town') === null);
 }
 
 // Khu vực bắt sinh vật: đủ nhiều vùng, cấp tăng dần theo đường đi

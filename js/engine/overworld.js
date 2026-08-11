@@ -396,8 +396,10 @@ export function update(dt, vx, vy) {
     return dau;
   }
 
-  // Gặp Tuxemon khi đi trong cỏ cao
-  if (isEncAt(baked, tx, ty)) {
+  // Gặp Tuxemon khi đi trong cỏ cao — CHỈ ở vùng hoang. Thị trấn, bến cảng,
+  // trong nhà đều không có bảng gặp (tools/vungdat.py phân loại lúc dựng dữ
+  // liệu), nên đi mua thuốc không còn dính trận nào.
+  if (coQuaiHoang(player.mapId) && isEncAt(baked, tx, ty)) {
     player.steps += 1;
     if (player.steps >= ENC_STEP_MIN && rng.roll(ENC_CHANCE * heSoGapHoang())) {
       player.steps = 0;
@@ -434,6 +436,10 @@ function buocDau() {
   save();
   return { t: 'stepHurt', mons: guc };
 }
+
+/** Bản đồ này có Tuxemon hoang không — tức là có bảng gặp nào không rỗng. */
+export const coQuaiHoang = (mapId) =>
+  !!(ENCOUNTERS[mapId]?.length || ZONES[mapId]?.encounters?.length);
 
 // Chọn Tuxemon hoang. Ưu tiên bảng gặp lấy thẳng từ bản gốc (js/data/encounters.js
 // sinh theo lệnh random_encounter ghi trong chính bản đồ đó); bản đồ nào bản gốc

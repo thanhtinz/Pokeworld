@@ -26,7 +26,6 @@ export const CONFIG = {
   BOX_SIZE: 60,
   STARTING_MONEY: 3000,
   MONEY_CAP: 9999999,
-  ESCAPE_METHOD: 'default',   // cách tính chạy trốn của bản gốc (method_escape)
 };
 
 // Trạng thái toàn cục. G.p = dữ liệu người chơi (null nếu chưa có save)
