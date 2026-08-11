@@ -66,8 +66,6 @@ import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor, addTrainerExp,
   trainerLevelFor } from '../js/engine/player.js';
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
-import * as DC from '../js/engine/daycare.js';
-import * as CR from '../js/engine/craft.js';
 import { bangThanhTuu, nhanThuong, nhanHet, choNhan } from '../js/engine/achievements.js';
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -1893,76 +1891,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     isUnlocked('quest', G.p.trainer.level) && isUnlocked('shop', G.p.trainer.level));
 }
 
-// ==== Nhà Trẻ ====
-{
-  newGame('DCTester');
-  G.p.money = 100000;
-  // Tìm một cặp đực/cái đã qua dạng cơ bản để thử nhân giống
-  const daTienHoa = Object.keys(SPECIES).map(Number)
-    .filter(id => DC.hangTienHoa(id) > 1 && !SPECIES[id].glitched);
-  ok('có loài đã qua dạng cơ bản để ghép đôi', daTienHoa.length > 50, String(daTienHoa.length));
-  // Loài chỉ có giống vô tính (robot...) thì không bao giờ ghép được — phải còn
-  // đủ nhiều loài vừa có hai giới vừa đã tiến hoá, không thì tính năng vô dụng
-  const ghepThat = daTienHoa.filter(id => SPECIES[id].gender?.m > 0 && SPECIES[id].gender?.f > 0);
-  ok('còn đủ loài thật sự ghép đôi được', ghepThat.length > 80, String(ghepThat.length));
-
-  const me = newTuxemon(daTienHoa[0], 20); me.gender = 'f';
-  const cha = newTuxemon(daTienHoa[1], 24); cha.gender = 'm';
-  ok('một đực một cái đã tiến hoá thì ghép được', DC.ghepDuoc(me, cha));
-  const voTinh = newTuxemon(daTienHoa[2], 20); voTinh.gender = 'n';
-  ok('con vô tính không ghép đôi được', !DC.ghepDuoc(me, voTinh));
-
-  G.p.party = [me, cha, newTuxemon(STARTERS[0].sp, 10)];
-  ok('gửi được con vào nhà trẻ', DC.gui(0)[0] !== null);
-  ok('gửi rồi thì con rời đội hình', G.p.party.length === 2);
-  DC.gui(0);
-  ok('nhà trẻ giữ tối đa 2 con', DC.kho().mons.length === 2 && DC.gui(0)[1] !== null);
-  ok('phải chừa lại ít nhất một con', G.p.party.length === 1);
-
-  ok('hai con hợp đôi thì vào chế độ nhân giống', DC.cheDo() === 'nhangiong', DC.cheDo());
-
-  // Đi tới mốc nửa đường rồi tới lúc đẻ
-  let nua = false, san = false;
-  for (let i = 0; i < DC.BUOC_CAN + 10; i++) {
-    const e = DC.moiBuoc(1);
-    if (e?.t === 'nuaduong') nua = true;
-    if (e?.t === 'sansang') san = true;
-  }
-  ok('đi nửa đường thì có báo', nua);
-  ok('đi đủ bước thì sẵn sàng', san && DC.sanSang());
-
-  const soTruoc = G.p.party.length;
-  const [con, err] = DC.layConNon();
-  ok('đón được con non', !!con && !err, String(err));
-  ok('con non vào đội hình', G.p.party.length === soTruoc + 1);
-  ok('con non ở dạng gốc của bố mẹ', DC.hangTienHoa(con.sp) === 1,
-    `${SPECIES[con.sp]?.slug} hạng ${DC.hangTienHoa(con.sp)}`);
-  ok('con non có cấp trung bình của bố mẹ', con.lv === Math.floor((20 + 24) / 2), String(con.lv));
-  ok('IV con non lấy giá trị cao hơn của bố mẹ',
-    con.iv.every((v, i) => v >= Math.max(me.iv[i], cha.iv[i]) - 0 && v === Math.max(me.iv[i], cha.iv[i])));
-  ok('đẻ xong thì đếm lại từ đầu', DC.kho().buoc === 0);
-
-  // Chế độ rèn luyện: một con thì ăn EXP và trừ tiền
-  DC.nhanVe();
-  G.p.party = [newTuxemon(STARTERS[0].sp, 5), newTuxemon(STARTERS[1].sp, 5)];
-  DC.gui(0);
-  ok('một con thì vào chế độ rèn luyện', DC.cheDo() === 'renluyen');
-  const expCu = DC.kho().mons[0].exp;
-  const tienCu = G.p.money;
-  for (let i = 0; i < 40; i++) DC.moiBuoc(1);
-  ok('rèn luyện cộng EXP', DC.kho().mons[0].exp > expCu,
-    `${expCu} -> ${DC.kho().mons[0].exp}`);
-  ok('rèn luyện trừ tiền', G.p.money < tienCu, `${tienCu} -> ${G.p.money}`);
-  ok('EXP lẻ 0.25/bước không bị cắt cụt thành 0', DC.kho().tongExp >= 9,
-    String(DC.kho().tongExp));
-
-  G.p.money = 0;
-  const expKhiHetTien = DC.kho().mons[0].exp;
-  for (let i = 0; i < 40; i++) DC.moiBuoc(1);
-  ok('hết tiền thì ngừng cộng EXP chứ không nợ',
-    DC.kho().mons[0].exp === expKhiHetTien && G.p.money === 0);
-}
-
 // ==== Bản đồ: địa hình phải chặn đúng, NPC phải đứng đúng chỗ ====
 {
   let oNuoc = 0, nuocHo = 0, tongO = 0, oChan = 0;
@@ -2048,46 +1976,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       isSolidAt(bake(mid), i % m.w, Math.floor(i / m.w)));
   }
 }
-
-// ==== Nhà Bếp: nấu ăn ====
-{
-  ok('đọc được công thức từ bản gốc', CR.RECIPES.length >= 20, String(CR.RECIPES.length));
-  const xauNg = CR.RECIPES.flatMap(r => Object.keys(r.ng)).filter(id => !ITEMS[id]);
-  ok('mọi nguyên liệu đều là món có thật', xauNg.length === 0, [...new Set(xauNg)].join(', '));
-  const xauOut = CR.RECIPES.flatMap(r => r.out.map(o => o.id)).filter(id => !ITEMS[id]);
-  ok('mọi kết quả đều là món có thật', xauOut.length === 0, [...new Set(xauOut)].join(', '));
-  ok('công thức nào cũng có ít nhất một kết quả',
-    CR.RECIPES.every(r => r.out.length > 0));
-  // Nguyên liệu phải có đường kiếm, không thì công thức chỉ để ngắm
-  const lieu = Object.keys(ITEMS).filter(id => ITEMS[id].kind === 'lieu');
-  ok('nguyên liệu có mặt trong bảng vật phẩm', lieu.length >= 15, String(lieu.length));
-
-  newGame('CraftTester');
-  const r = CR.RECIPES[0];
-  ok('thiếu nguyên liệu thì không làm được', CR.cheTao(r.id)[1] !== null);
-  ok('conThieu liệt kê đúng số loại còn thiếu',
-    CR.conThieu(r).length === Object.keys(r.ng).length);
-
-  for (const [id, n] of Object.entries(r.ng)) G.p.bag[id] = n * 2;
-  ok('đủ đồ thì báo làm được', CR.lamDuoc(r));
-  ok('tính đúng số mẻ làm được', CR.soLanLamDuoc(r) === 2, String(CR.soLanLamDuoc(r)));
-  const [kq, err] = CR.cheTao(r.id);
-  ok('nấu ra một món', !!kq && !err, String(err));
-  ok('kết quả vào túi', (G.p.bag[kq.id] || 0) >= kq.n);
-  ok('nguyên liệu bị tiêu đi',
-    Object.entries(r.ng).every(([id, n]) => (G.p.bag[id] || 0) === n));
-  ok('làm mẻ thứ hai xong là hết đồ',
-    CR.cheTao(r.id)[1] === null && CR.soLanLamDuoc(r) === 0);
-
-  // Tỉ lệ phải cộng lại ra 100% (làm tròn) để bày cho người chơi
-  for (const rr of CR.RECIPES) {
-    const t = CR.tiLe(rr).reduce((a, o) => a + o.pc, 0);
-    if (Math.abs(t - 100) > 2) { ok(`tỉ lệ công thức ${rr.id} cộng lại ~100%`, false, String(t)); break; }
-  }
-  ok('tỉ lệ mọi công thức cộng lại ~100%',
-    CR.RECIPES.every(rr => Math.abs(CR.tiLe(rr).reduce((a, o) => a + o.pc, 0) - 100) <= 2));
-}
-
 
 // ==== Quà tặng + điểm thân mật ====
 {
@@ -2346,26 +2234,23 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 }
 
 // ==== Món ăn phải có icon riêng ====
-// Bản gốc để CẢ 47 món ăn / nguyên liệu trỏ chung vào gfx/items/box.png, nên
-// sau khi chạy mkitems.py là màn Nhà Bếp hiện 25 dòng giống hệt nhau.
-// tools/mkfood.py vẽ đè lên; bài này canh cho ai chạy lại mkitems.py mà quên
-// mkfood.py thì biết ngay.
+// Bản gốc để CẢ 47 món ăn trỏ chung vào gfx/items/box.png, nên sau khi chạy
+// mkitems.py là túi đồ hiện một dãy hộp gỗ giống hệt nhau. tools/mkfood.py vẽ
+// đè lên; bài này canh cho ai chạy lại mkitems.py mà quên mkfood.py thì biết
+// ngay.
 {
   const { readFileSync, existsSync, readdirSync } = await import('node:fs');
   const { createHash } = await import('node:crypto');
-  const { RECIPES } = await import('../js/data/recipes.js');
+  const { ROI_THEO_HE } = await import('../js/data/drops.js');
   const thu = new URL('../assets/items/', import.meta.url);
   const bam = (f) => createHash('md5')
     .update(readFileSync(new URL(f, thu))).digest('hex');
 
-  // Mọi món nhắc tới trong công thức đều phải có ảnh
   const canh = new Set();
-  for (const r of RECIPES) {
-    Object.keys(r.ng).forEach(id => canh.add(id));
-    r.out.forEach(o => canh.add(o.id));
-  }
+  for (const ds of Object.values(ROI_THEO_HE)) ds.forEach(d => canh.add(d.id));
+  ok('có đủ món ăn để kiểm', canh.size >= 20, String(canh.size));
   const thieu = [...canh].filter(id => !existsSync(new URL(`${id}.png`, thu)));
-  ok('món nào trong công thức cũng có ảnh', thieu.length === 0, thieu.join(', '));
+  ok('món ăn nào cũng có ảnh', thieu.length === 0, thieu.join(', '));
 
   // Và không món nào trong đó dùng chung ảnh với món khác
   const theoBam = new Map();
@@ -2471,11 +2356,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   }
 }
 
-// ==== Nguyên liệu nấu ăn phải kiếm được ====
-// Trước đây 17 loại nguyên liệu không bán ở đâu, không rơi ở đâu — mở màn Chế
-// Tạo ra chỉ toàn "Còn thiếu 6 loại", không cách nào nấu nổi một món.
+// ==== Món ăn phải kiếm được ====
+// Món ăn bên bản gốc không bán ở đâu, không rơi ở đâu — bữa no thành thứ chỉ
+// đọc trong mô tả. Nay tiệm tạp hoá bán mấy món bình dân, món khá hơn thì phải
+// đi đánh Tuxemon hoang mới rơi ra.
 {
-  const { RECIPES } = await import('../js/data/recipes.js');
   const { SHOPS } = await import('../js/data/shops.js');
   const { ROI_THEO_HE, TI_LE_ROI } = await import('../js/data/drops.js');
   const { boc } = await import('../js/engine/drops.js');
@@ -2483,26 +2368,24 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   const { ITEMS } = await import('../js/data/items.js');
   const { TYPE_NAMES } = await import('../js/data/types.js');
 
-  const lieu = new Set();
-  for (const r of RECIPES) Object.keys(r.ng).forEach(id => lieu.add(id));
-  ok('có bảng nguyên liệu để kiểm', lieu.size >= 15);
-
-  const banShop = new Set();
-  for (const s of Object.values(SHOPS)) (s.items || []).forEach(i => banShop.add(i.id));
   const roiDuoc = new Set();
   for (const ds of Object.values(ROI_THEO_HE)) ds.forEach(d => roiDuoc.add(d.id));
+  const banShop = new Set();
+  for (const s of Object.values(SHOPS)) (s.items || []).forEach(i => banShop.add(i.id));
 
-  const khongKiem = [...lieu].filter(id => !banShop.has(id) && !roiDuoc.has(id));
-  ok('nguyên liệu nào cũng kiếm được', khongKiem.length === 0, khongKiem.join(', '));
-  ok('có thứ phải đi đánh mới có', [...lieu].some(id => !banShop.has(id)));
-  ok('mua được thì phải có giá', [...banShop].filter(id => lieu.has(id))
-    .every(id => (SHOPS.tuxe_mart_taba?.items || []).concat(
-      ...Object.values(SHOPS).map(s => s.items))
-      .filter(i => i.id === id).every(i => i.price > 0)));
-  ok('hệ nào trong bảng rơi cũng là hệ có thật',
-    Object.keys(ROI_THEO_HE).every(h => TYPE_NAMES[h]));
+  ok('có đủ món ăn rơi ra', roiDuoc.size >= 20, String(roiDuoc.size));
   ok('món rơi nào cũng có trong bảng vật phẩm',
     [...roiDuoc].every(id => !!ITEMS[id]));
+  ok('món ăn nào cũng thật sự là món ăn',
+    [...roiDuoc].every(id => (ITEMS[id].eff || []).some(e => e.t === 'food')),
+    [...roiDuoc].filter(id => !(ITEMS[id].eff || []).some(e => e.t === 'food')).join(' '));
+  const banAn = [...banShop].filter(id => roiDuoc.has(id));
+  ok('tiệm tạp hoá có bán món ăn', banAn.length >= 5, String(banAn.length));
+  ok('món bán ra đều có giá', Object.values(SHOPS)
+    .flatMap(s => s.items).filter(i => roiDuoc.has(i.id)).every(i => i.price > 0));
+  ok('có món phải đi đánh mới có', [...roiDuoc].some(id => !banShop.has(id)));
+  ok('hệ nào trong bảng rơi cũng là hệ có thật',
+    Object.keys(ROI_THEO_HE).every(h => TYPE_NAMES[h]));
   ok('tỉ lệ rơi ở khoảng chơi được', TI_LE_ROI > 0.1 && TI_LE_ROI < 0.6);
 
   // Đánh nhiều lần một con hệ Lửa thì phải ra đồ, và chỉ ra đồ của hệ đó
@@ -2525,7 +2408,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   }
   ok('không có con thì không rơi gì', boc(null) === null);
 }
-
 
 
 // ==== Túi đồ: mỗi ô chứa tối đa 100 món cùng loại ====

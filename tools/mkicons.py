@@ -285,15 +285,6 @@ def ve_bep(d):
     d.polygon([(5, 15), (7, 13), (8, 14), (9, 13), (11, 15)], fill=C['G'])
 
 
-def ve_daycare(d):
-    # Qua trung trong o rom — nha tre giu Tuxemon con
-    d.ellipse((4, 3, 12, 13), fill=C['W'])
-    for x, y in ((6, 6), (9, 8), (7, 10)):
-        d.rectangle((x, y, x + 1, y + 1), fill=C['R'])
-    d.arc((1, 10, 15, 16), 180, 360, fill=C['g'])
-    d.line((2, 14, 14, 14), fill=C['g'])
-
-
 def ve_compass(d):
     # La ban: kim do chi len, duoi trang
     d.ellipse((1, 1, 14, 14), fill=C['G'])
@@ -304,7 +295,7 @@ def ve_compass(d):
 
 ICONS = {
     'home': ve_home, 'car': ve_car,
-    'lich': ve_lich, 'bep': ve_bep, 'daycare': ve_daycare,
+    'lich': ve_lich, 'bep': ve_bep,
     'compass': ve_compass,
     'coin': ve_coin, 'map': ve_map, 'chat': ve_chat, 'gift': ve_gift,
     'quest': ve_quest, 'shop': ve_shop, 'trophy': ve_trophy, 'guild': ve_guild,

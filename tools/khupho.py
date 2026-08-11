@@ -75,8 +75,6 @@ CONG = (13, H - 1)                # cong ve thi tran, o canh duoi
 QUAY = [
     ('tap_hoa', 4, 12, 'Chú Tạp Hoá', 'ceo', 'shop', None,
      'Thuốc men, bóng bắt, đồ lặt vặt — thiếu gì tôi cũng có.'),
-    ('nha_bep', 8, 12, 'Bà Chủ Quán', 'homemaker', 'craft', None,
-     'Mang nguyên liệu lại đây, tôi nấu cho.'),
     ('tiem_qua', 16, 12, 'Cô Hoa', 'florist', 'gifts', None,
      'Hoa tươi, sô-cô-la, nhẫn cưới — tặng ai thì người ta quý mình hơn đấy.'),
     ('tiem_ao', 20, 12, 'Cô Thắm', 'barmaid_red', 'wardrobe', 'tiem',

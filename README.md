@@ -89,8 +89,7 @@ python3 tools/mknoithat.py /tmp/Tuxemon    # sprite ba toà nhà của bang
 python3 tools/mkmounts.py /tmp/Tuxemon     # sprite phương tiện bốn hướng
 python3 tools/mkgifts.py                   # quà tặng (tự vẽ, không cần kho gốc)
 python3 tools/mkboss.py                    # boss thế giới + boss từng khu
-python3 tools/mkrecipes.py /tmp/Tuxemon    # công thức nấu ăn + bảng nguyên
-                                           # liệu rơi ra từ Tuxemon hoang
+python3 tools/mkmonan.py /tmp/Tuxemon      # bảng món ăn rơi ra từ Tuxemon hoang
 python3 tools/mkicons.py                   # icon giao diện pixel (tự vẽ)
 python3 tools/cozy.py "/tmp/Character v.2" # 416 lớp nhân vật ghép được: 8 nước da,
                                            # 14 màu mắt, 13 kiểu tóc x 14 màu,

@@ -15,8 +15,6 @@ import * as news from './ui/news.js';
 import * as events from './ui/events.js';
 import * as profile from './ui/profile.js';
 import * as achievements from './ui/achievements.js';
-import * as daycare from './ui/daycare.js';
-import * as craft from './ui/craft.js';
 import * as cauca from './ui/cauca.js';
 import * as wardrobe from './ui/wardrobe.js';
 import * as diadiem from './ui/diadiem.js';
@@ -65,7 +63,7 @@ const MUSIC_BY_SCREEN = {
 };
 
 const SCREENS = {
-  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements, daycare, craft, cauca, wardrobe, diadiem, casino, garage, gifts, boss,
+  home, battle, party, dex, bag, shop, quest, starter, menu, character, mail, news, events, profile, achievements, cauca, wardrobe, diadiem, casino, garage, gifts, boss,
   chat, rank, guild, friends, pvp, marriage, settings, fashion,
   login: loginScr, splash, loading, auth, serverpick, createchar, intro, world,
 };

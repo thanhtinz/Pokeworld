@@ -1,16 +1,16 @@
 // TuxeWorld H5 | engine/meal.js | Bữa ăn: món nấu ra được việc gì cho Tuxemon
 //
-// Trước đây nấu ăn gần như vô ích: cho ăn chỉ nhích điểm thân thiết, mà thân
-// thiết thì chỉ vài loài dùng tới lúc tiến hoá. Bỏ công gom sáu loại nguyên
-// liệu để được đúng chừng đó thì chẳng ai nấu.
+// Bản gốc cho ăn chỉ nhích điểm thân thiết, mà thân thiết thì chỉ vài loài
+// dùng tới lúc tiến hoá — chẳng bõ công đi kiếm món.
 //
 // Nay mỗi món ăn còn để lại một BỮA NO: chỉ số ứng với vị ấm của món được cộng
-// thêm một khoảng, tính bằng GIỜ THẬT — tắt game vẫn chạy tiếp, giống thời gian
-// xây nhà và khoảng nghỉ của nội thất. Món càng hợp khẩu vị con đó thì cộng
+// thêm một khoảng, tính bằng GIỜ THẬT — tắt game vẫn chạy tiếp. Món càng hợp khẩu vị con đó thì cộng
 // càng nhiều và no càng lâu.
 //
 // Mỗi con chỉ giữ MỘT bữa no; ăn món mới là thay món cũ (kể cả khi món mới
 // kém hơn — người chơi tự quyết cho ăn gì).
+//
+// Món ăn mua ở tiệm tạp hoá hoặc rơi ra khi thắng Tuxemon hoang.
 //
 // Tệp này cố tình KHÔNG import monster.js: monster.js phải gọi ngược sang đây
 // trong stats(), có vòng import là vỡ.

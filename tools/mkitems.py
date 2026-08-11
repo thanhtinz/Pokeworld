@@ -55,9 +55,8 @@ NHOM = {
     'elements': 'element',    # qua doi he
 }
 
-# Nguyen lieu che tao: mon 'category: none' khong co hieu ung gi nen bi loc mat,
-# nhung cong thuc trong mods/recipes.yaml lai can. tools/mkrecipes.py ghi ra
-# danh sach; doc lai o day de giu chung lai voi nhom rieng 'lieu'.
+# Mon an mang 'category: none' hoac khong co hieu ung nao game doc duoc nen bi
+# loc mat. tools/mkmonan.py ghi ra danh sach; doc lai o day de giu chung lai.
 def doc_lieu():
     try:
         with open('tools/_lieu.json', encoding='utf-8') as f:
@@ -87,15 +86,12 @@ MANG_THEO = {
 GIA_TIEN_ICH = {'fishing_rod': 3000, 'neptune': 12000, 'poseidon': 30000,
                 'alpha_seep': 700}
 
-# Nguyen lieu nau an: ban goc khong ghi gia (chung khong ban o dau ca) nen
-# mkitems.py de gia 0 — nghia la KHONG mua duoc, ma cung khong roi o dau. Ca
-# man Che Tao thanh vo dung. Cho tiem tap hoa ban may thu co ban, con may thu
-# quy thi phai di danh Tuxemon hoang moi roi ra (xem js/data/drops.js).
-LIEU_BAN = {
-    'crackle_salt': 120, 'meal_dust': 150, 'sweetroot': 180,
-    'mistflour_eggs': 220, 'moo_bloom': 260, 'suncrust_butter': 280,
-    'glowfat': 300, 'starpepper': 340, 'spice_dust': 380,
-}
+# Mon an: ban goc khong ban o dau ca, ma an vao thi duoc mot bua no cong chi so
+# (js/engine/meal.js). Cho tiem tap hoa ban may mon binh dan theo dung gia ghi
+# trong db/item; mon dat tien hon thi phai danh Tuxemon hoang moi roi ra (xem
+# js/data/drops.js).
+MON_AN_BAN = ['mashed_potatoes', 'potato_fries', 'hash', 'shell_tacos', 'pita',
+              'meatballs', 'rub_chicken', 'pancakes', 'wings']
 
 BUA = {
     'antidote_grapes': ('Chùm Nho Giải Độc', 1800),
@@ -489,8 +485,12 @@ TEN_TIEM = {
 }
 
 
-def viet_shops(root, co_mon):
-    """db/economy -> js/data/shops.js. co_mon = tap ma vat pham game dang co."""
+def viet_shops(root, co_mon, gia_mon):
+    """db/economy -> js/data/shops.js.
+
+    co_mon  = tap ma vat pham game dang co
+    gia_mon = {ma mon: gia mua} de con biet ban mon an gia bao nhieu
+    """
     import glob as _glob
     import json as _json
     rows = []
@@ -508,11 +508,14 @@ def viet_shops(root, co_mon):
                 if it.get('inventory') and int(it['inventory']) > 0:
                     row['stock'] = int(it['inventory'])
                 its.append(row)
-            # Tiem nao ban thuoc hoi la tiem tap hoa — cho ban them nguyen
-            # lieu nau an co ban, khong thi mua o dau ra ma nau
-            if any(it['id'] == 'potion' for it in its):
-                for ma, gia in LIEU_BAN.items():
-                    if ma in co_mon and not any(it['id'] == ma for it in its):
+            # Tiem nao ban thuoc hoi la tiem tap hoa — cho ban them may mon an
+            # binh dan, khong thi ca he thong bua no chi trong cho do roi.
+            # Xet ca thuoc hoi cao cap: tiem cuoi game khong ban 'potion' nua,
+            # bo qua thi ca thi tran do khong mua noi mot mieng an.
+            if any('potion' in it['id'] or it['id'] == 'revive' for it in its):
+                for ma in MON_AN_BAN:
+                    gia = gia_mon.get(ma)
+                    if ma in co_mon and gia and not any(it['id'] == ma for it in its):
                         its.append({'id': ma, 'price': gia})
             if not its:
                 continue
@@ -706,6 +709,8 @@ def main():
             os.remove(os.path.join('assets/items', f))
 
     rows, thieu_anh = [], []
+    gia_mon = {}          # ma mon -> gia mua, de viet_shops() còn tra
+    trung_eff = {}        # ma mon -> so hieu ung cua ban dang giu (xem duoi)
     for f in sorted(os.listdir(db)):
         if not f.endswith('.yaml'):
             continue
@@ -772,10 +777,9 @@ def main():
             mac_dinh = BUA[slug][1]
         elif slug in GIA_TIEN_ICH:
             mac_dinh = GIA_TIEN_ICH[slug]
-        elif slug in LIEU_BAN:
-            mac_dinh = LIEU_BAN[slug]
         mua, ban = gia_goc.get(slug, (d.get('cost') or mac_dinh,
                                       round((d.get('cost') or mac_dinh) * 0.5)))
+        gia_mon[slug] = int(mua)
         trong_tran = 'MainCombatMenuState' in (d.get('usable_in') or [])
         ngoai_tran = 'WorldState' in (d.get('usable_in') or [])
         if huy_hieu:
@@ -812,6 +816,15 @@ def main():
         }
         if chan:
             row['immuneTo'] = js(chan)
+        # Db goc co vai cho TRUNG SLUG: tool_echo_wand.yaml cung khai
+        # 'slug: cream_puffs' nhung rong khong, doc sau la de len ban that.
+        # Gap trung thi giu ban NHIEU HIEU UNG hon.
+        cu = next((i for i, (sl, _) in enumerate(rows) if sl == slug), None)
+        if cu is not None:
+            if len(eff) <= trung_eff.get(slug, 0):
+                continue
+            rows.pop(cu)
+        trung_eff[slug] = len(eff)
         rows.append((slug, obj(row)))
 
     out = ['// TuxeWorld H5 | data/items.js | Vật phẩm — TỰ SINH TỪ tools/mkitems.py',
@@ -834,7 +847,7 @@ export const itemsOfKind = (kind) => Object.entries(ITEMS).filter(([, it]) => it
     with open('js/data/capdev.js', 'w', encoding='utf-8') as fh:
         viet_capdev(capdev_cfg, fh)
 
-    tiem = viet_shops(root, {sl for sl, _ in rows})
+    tiem = viet_shops(root, {sl for sl, _ in rows}, gia_mon)
     print('OK: %d cần câu có cấu hình riêng' % len(CAU))
     print('OK: %d gian hàng trong db/economy' % len(tiem))
     print('OK: %d vật phẩm, %d loại tuxeball có hệ số riêng'

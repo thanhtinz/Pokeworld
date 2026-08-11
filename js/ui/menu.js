@@ -23,8 +23,6 @@ const HUB = [
   { to: 'quest',      icon: 'quest',   label: 'Nhiệm vụ' },
   { to: 'shop',       icon: 'shop',    label: 'Cửa hàng' },
   { to: 'achievements', icon: 'star',   label: 'Thành tựu', badge: 'ach' },
-  { to: 'daycare',    icon: 'daycare', label: 'Nhà trẻ' },
-  { to: 'craft',      icon: 'bep',     label: 'Nhà bếp' },
   { to: 'wardrobe',   icon: 'slot_outfit', label: 'Tủ đồ' },
   { to: 'diadiem',    icon: 'compass',     label: 'Địa điểm' },
   { to: 'garage',     icon: 'car',     label: 'Nhà xe' },

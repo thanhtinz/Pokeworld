@@ -12,6 +12,7 @@
 #
 #   python3 tools/mkitems.py && python3 tools/mkfood.py
 import os
+import re
 
 from PIL import Image, ImageDraw
 
@@ -365,13 +366,27 @@ MON = {
 def main():
     ra = 'assets/items'
     os.makedirs(ra, exist_ok=True)
+    # CHI ve nhung mon game that su co: mkitems.py doc db/item roi ghi ra
+    # js/data/items.js. Ve bua ca bang thi thua ra mot dong anh cua nhung mon
+    # da bo (nguyen lieu nau an, may mon "nau hong") — nam trong kho khong ai
+    # goi tới.
+    co = set()
+    try:
+        with open('js/data/items.js', encoding='utf-8') as f:
+            co = set(re.findall(r'^  ([a-z0-9_]+): \{', f.read(), re.M))
+    except OSError:
+        pass
+    n = 0
     for slug, (ve, m, p) in sorted(MON.items()):
+        if co and slug not in co:
+            continue
+        n += 1
         im, d = moi()
         ve(d, m, p)
         vien(im)
         im.resize((N * SCALE, N * SCALE), Image.NEAREST).save(
             os.path.join(ra, slug + '.png'), optimize=True)
-    print('OK: %d icon món ăn -> %s' % (len(MON), ra))
+    print('OK: %d icon món ăn -> %s' % (n, ra))
 
 
 if __name__ == '__main__':

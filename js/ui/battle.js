@@ -31,8 +31,8 @@ import { addTrainerExp, trainerLevel, trainerExpFor, monLevelCap } from '../engi
 import { unlockedBetween } from '../engine/unlock.js';
 import { monPx } from '../engine/battlesize.js';
 
-// Mã các nguyên liệu nấu ăn — lấy thẳng từ bảng vật phẩm để khỏi ghi tay
-const NGUYEN_LIEU = Object.keys(ITEMS).filter(id => ITEMS[id].kind === 'lieu');
+// Mã các món ăn — lấy thẳng từ bảng vật phẩm để khỏi ghi tay
+const MON_AN = Object.keys(ITEMS).filter(id => ITEMS[id].kind === 'food');
 
 // Chương truyện hoàn thành sau trận -> phát thoại kết + báo thưởng
 async function storyDone(ch) {
@@ -535,8 +535,8 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       } else if (kind === 'wild') {
         G.p.stats.wins++;
         questToasts(emitQuest('win_battles', {}));
-        // Con hoang rơi nguyên liệu nấu ăn theo HỆ của nó — đây là nguồn chính
-        // để có mấy thứ tiệm tạp hoá không bán (xem js/engine/drops.js)
+        // Con hoang rơi món ăn theo HỆ của nó — đây là nguồn chính để có mấy
+        // món tiệm tạp hoá không bán (xem js/engine/drops.js)
         const roi = bocDoRoi(enemy);
         if (roi) {
           addItem(roi.id, roi.n);
@@ -621,10 +621,10 @@ export function render(el, { kind = 'wild', enemy = null, trainerId = null, from
       // chẳng biết vừa có thêm cái gì.
       for (const f of unlockedBetween(before, now)) toast(`Mở khoá: ${f.name}! ${f.note}.`, 3200);
     }
-    // Đồ rơi sau trận. Nguyên liệu nấu ăn rơi ở đây là nguồn kiếm chính của
-    // chúng — không thì có công thức mà chẳng bao giờ đủ đồ để làm.
+    // Đồ rơi sau trận với huấn luyện viên — phần lớn là món ăn, vì đó là thứ
+    // tiệm bán không đủ mà bữa no thì lúc nào cũng cần.
     if (Math.random() < 0.30) {
-      const pool = Math.random() < 0.6 ? NGUYEN_LIEU : ['tuxeball', 'potion', 'restoration'];
+      const pool = Math.random() < 0.6 ? MON_AN : ['tuxeball', 'potion', 'restoration'];
       const id = pool[Math.floor(Math.random() * pool.length)];
       if (id) {
         addItem(id, 1);
