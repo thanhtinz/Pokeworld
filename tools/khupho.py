@@ -271,8 +271,16 @@ def dung(root, tsx_cache, load_tsx):
     warps = [{'x': cx, 'y': cy, 'to': ma, 'tx': 0, 'ty': 0}
              for ma, cx, cy, _ten, _k in TOA]
 
+    # Vat the CHAN DUONG (nha, cay, hang rao) tach ra lop ve DE LEN nhan vat.
+    # Nhan vat cao HAI o ma chi chiem MOT o, nen dung ngay duoi mot buc tuong
+    # la cai dau thò lên o tuong — khong co lop nay thi nhin nhu di xuyen tuong.
+    # Do trang tri khong chan duong (hoa, co) thi de nguyen lop duoi, khong thi
+    # nguoi choi dam len hoa lai bi hoa che mat.
+    duoi = [g if g and not solid[i] else 0 for i, g in enumerate(tren)]
+    tren_cao = [g if g and solid[i] else 0 for i, g in enumerate(tren)]
+
     return {
-        'w': W, 'h': H, 'sets': sets, 'layers': [nen, tren], 'above': None,
+        'w': W, 'h': H, 'sets': sets, 'layers': [nen, duoi], 'above': tren_cao,
         'solid': solid, 'water': water, 'warps': warps, 'talks': talks,
         'trades': [], 'encs': [], 'items': [],
         'music': 'town', 'env': 'grass', 'envNight': 'night_grass',

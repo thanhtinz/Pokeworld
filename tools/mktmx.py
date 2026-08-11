@@ -1156,7 +1156,7 @@ def main():
         kp0['name'] = khupho.TEN
         kp0['cols'] = colsP
         kp0['layers'] = [convP(l) for l in kp0['layers']]
-        kp0['above'] = None
+        kp0['above'] = convP(kp0['above']) if kp0['above'] else None
         out_maps[khupho.SLUG] = kp0
         want.append(khupho.SLUG)
 
@@ -1171,7 +1171,7 @@ def main():
             bd['name'] = bangduong.TEN
             bd['cols'] = cols2
             bd['layers'] = [conv2(l) for l in bd['layers']]
-            bd['above'] = None
+            bd['above'] = conv2(bd['above']) if bd['above'] else None
             out_maps[bangduong.SLUG] = bd
             want.append(bangduong.SLUG)
 

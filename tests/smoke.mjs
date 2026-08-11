@@ -1503,6 +1503,42 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     muon.every(([, m]) => m.category === 'damage' && m.power > 0));
 }
 
+// ==== NPC không đi xuyên tường, và cũng không nhìn như thế ====
+{
+  const OW = await import('../js/engine/overworld.js');
+  newGame('DiTuong');
+  // Đi hết một lượt: NPC nào cũng phải dừng ở ô đi được
+  const trongTuong = [];
+  for (const [id, m] of Object.entries(MAPS)) {
+    if (!(m.npcs || []).length) continue;
+    OW.enterMap(id);
+    for (let i = 0; i < 900; i++) OW.updateNpcs(1 / 30);
+    for (const n of m.npcs) {
+      const x = Math.round(n.x + (n.ox || 0));
+      const y = Math.round(n.y + (n.oy || 0));
+      if (m.solid[y * m.w + x]) trongTuong.push(`${id}:${n.name}@${x},${y}`);
+    }
+  }
+  ok('đi cả buổi không NPC nào lọt vào tường', trongTuong.length === 0,
+    trongTuong.slice(0, 5).join(' '));
+
+  // Nhân vật cao HAI ô mà chỉ chiếm MỘT ô, nên đứng sát chân tường là cái đầu
+  // thò lên ô tường. Bản đồ phải có lớp `above` vẽ tường ĐÈ LẠI lên đầu, không
+  // thì nhìn y như đang đứng lọt trong tường.
+  const tuHo = ['khu_pho', 'bang_duong'];
+  ok('bản đồ tự dựng có lớp vẽ đè lên nhân vật',
+    tuHo.every(id => Array.isArray(MAPS[id]?.above)),
+    tuHo.filter(id => !Array.isArray(MAPS[id]?.above)).join(' '));
+  ok('lớp đè chỉ chứa ô chặn đường', tuHo.every(id => {
+    const m = MAPS[id];
+    return m.above.every((g, i) => g < 0 || m.solid[i]);
+  }));
+  ok('nhà cửa nằm hết ở lớp đè chứ không sót lại lớp dưới', tuHo.every(id => {
+    const m = MAPS[id];
+    return m.layers.slice(1).every(l => l.every((g, i) => g < 0 || !m.solid[i]));
+  }));
+}
+
 // ==== Việc gì cũng phải ĐI TỚI CHỖ ĐÓ trên bản đồ ====
 // Trước đây màn chính có bốn cái nút to: Hồi phục, Cửa hàng, Di chuyển, Đấu
 // trainer — đứng giữa rừng cũng bấm hồi phục được, mà huấn luyện viên thì chọn
