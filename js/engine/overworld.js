@@ -454,6 +454,15 @@ export function facingThing() {
   const { x, y } = facingTile();
   const npc = (map.npcs || []).find(n => n.x === x && n.y === y);
   if (npc) return { type: 'npc', ...npc };
+  // NÓI VỚI NGƯỜI ĐỨNG SAU QUẦY: ô ngay trước mặt là cái quầy (chặn đường),
+  // người thì đứng bên kia. Y tá trạm hồi sức, chủ tiệm... đều đứng kiểu này —
+  // không nhìn qua một ô thì bấm A chỉ ra cái bảng hiệu dán trên quầy.
+  if (isSolidAt(currentBake(), x, y)) {
+    const dx = x - Math.floor(player.x);
+    const dy = y - Math.floor(player.y);
+    const sau = (map.npcs || []).find(n => n.x === x + dx && n.y === y + dy);
+    if (sau) return { type: 'npc', ...sau };
+  }
   // Máy quay / bàn bài trong Sảnh Bạc
   const cs = vatSanhBac(player.mapId, x, y);
   if (cs) return cs;

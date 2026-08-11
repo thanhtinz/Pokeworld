@@ -800,34 +800,32 @@ export function render(el) {
         show(thing.mo, thing.tab ? { tab: thing.tab, from: 'world' } : { from: 'world' });
         return;
       }
-      switch (thing.kind) {
-        case 'heal':
-          G.p.party.forEach(m => heal(m));
-          // Nghỉ ở đâu thì đó thành chỗ tỉnh dậy khi cả đội gục, và là đích
-          // của Chìa Khoá Thoát Hiểm (bản gốc: teleport_faint)
-          setHealSpot(player.mapId, player.x, player.y);
-          save();
-          toast('Cả đội đã hồi phục hoàn toàn! Đây là chỗ nghỉ của bạn.');
-          break;
-        case 'shop':
-          cleanup(); show('shop'); return;
-        case 'pc':
-        case 'home':
-          cleanup(); show('party'); return;
-        case 'lab':
-          cleanup(); show('dex'); return;
-        case 'trainer':
-        case 'gym': {
-          const won = !!G.p.defeatedTrainers?.[thing.trainerId];
-          const i = await choose(thing.name, [
-            { label: 'Chiến đấu!', sub: won ? 'Đã thắng trước đó' : 'Chưa từng thắng' },
-            { label: 'Thôi để sau' },
-          ]);
-          if (i === 0) { cleanup(); show('battle', { kind: 'trainer', trainerId: thing.trainerId, from: 'world' }); return; }
-          break;
+      // Y tá trạm hồi sức: đứng trước mặt bấm A là cả đội khoẻ lại. Trước
+      // đây hồi phục là một cái nút ở màn chính, đứng giữa rừng cũng bấm được.
+      if (thing.chuaBenh) {
+        G.p.party.forEach(m => heal(m));
+        // Nghỉ ở đâu thì đó thành chỗ tỉnh dậy khi cả đội gục, và là đích của
+        // Chìa Khoá Thoát Hiểm (bản gốc: teleport_faint)
+        setHealSpot(player.mapId, player.x, player.y);
+        save();
+        toast('Cả đội đã hồi phục hoàn toàn! Đây là chỗ nghỉ của bạn.');
+        return;
+      }
+      // Huấn luyện viên đứng ngay trên bản đồ — gặp thì mới đấu được
+      if (thing.trainerId) {
+        const won = !!G.p.defeatedTrainers?.[thing.trainerId];
+        const i = await choose(thing.name, [
+          { label: 'Chiến đấu!', sub: won ? 'Đã thắng trước đó' : 'Chưa từng thắng' },
+          { label: 'Thôi để sau' },
+        ]);
+        if (i !== 0) return;
+        if (G.p.party.every(m => m.hpCur <= 0)) {
+          toast('Cả đội đã gục, tới trạm hồi sức đã!');
+          return;
         }
-        default:
-          break;
+        cleanup();
+        show('battle', { kind: 'trainer', trainerId: thing.trainerId, from: 'world' });
+        return;
       }
     } finally {
       busy = false;

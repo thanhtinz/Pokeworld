@@ -979,6 +979,86 @@ def cho_cong_ria_bac(m):
     return ung[0][2], ung[0][0]
 
 
+def o_trong(m, can, tranh=()):
+    """Tim `can` o dung duoc, roi deu trong vung di lai lon nhat cua ban do.
+
+    Dung de cam NPC vao ban do co san. Ba dieu kien: o do trong, khong dam vao
+    cong / NPC / bang hieu san co, va PHAI nam trong vung di lai chinh — cam vao
+    mot goc bi cay vay kin thi nguoi choi khong bao gio gap.
+    """
+    w, h, solid = m['w'], m['h'], m['solid']
+    da = [False] * (w * h)
+    lon = set()
+    for y0 in range(h):
+        for x0 in range(w):
+            if da[y0 * w + x0] or solid[y0 * w + x0]:
+                continue
+            vung, ngan = set(), [(x0, y0)]
+            da[y0 * w + x0] = True
+            while ngan:
+                x, y = ngan.pop()
+                vung.add((x, y))
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nx, ny = x + dx, y + dy
+                    if not (0 <= nx < w and 0 <= ny < h):
+                        continue
+                    if solid[ny * w + nx] or da[ny * w + nx]:
+                        continue
+                    da[ny * w + nx] = True
+                    ngan.append((nx, ny))
+            if len(vung) > len(lon):
+                lon = vung
+
+    ban = {(n['x'], n['y']) for n in m.get('npcs') or []}
+    ban |= {(t['x'], t['y']) for t in m.get('talks') or []}
+    ban |= set(tranh)
+    for wp in m.get('warps') or []:
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                ban.add((wp['x'] + dx, wp['y'] + dy))
+    sp = m.get('spawn')
+    if sp:
+        ban.add((sp['x'], sp['y']))
+
+    ung = sorted(lon - ban)
+    ra = []
+    for x, y in ung:
+        # Cach nhau it nhat 3 o: dung sat nhau thi bam A trung mot nguoi khac
+        if any(abs(x - ax) + abs(y - ay) < 3 for ax, ay in ra):
+            continue
+        # Chua o trong ngay ben canh de nguoi choi con dung ma bam
+        if not any((x + dx, y + dy) in lon for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0))):
+            continue
+        ra.append((x, y))
+        if len(ra) >= can:
+            break
+    return ra
+
+
+def dat_trainer(out_maps):
+    """Cam moi huan luyen vien thanh mot NPC tren ban do khu vuc cua ho."""
+    import mkworld
+    theo_vung = {}
+    for row in mkworld.TRAINERS_META:
+        tid, sprite, ten, _kind, zone, _n, _tien, intro = row[:8]
+        theo_vung.setdefault(zone, []).append((tid, sprite, ten, intro))
+    n = 0
+    for zone, ds in theo_vung.items():
+        m = out_maps.get(zone)
+        if not m:
+            print('BO QUA huan luyen vien o', zone, '- chua co ban do')
+            continue
+        cho = o_trong(m, len(ds))
+        if len(cho) < len(ds):
+            print('CHI CAM DUOC %d/%d huan luyen vien o %s' % (len(cho), len(ds), zone))
+        for (tid, sprite, ten, intro), (x, y) in zip(ds, cho):
+            m['npcs'].append({'x': x, 'y': y, 'dir': 'down', 'sprite': sprite,
+                              'name': ten, 'ai': 'stand', 'trainerId': tid,
+                              'lines': [intro]})
+            n += 1
+    return n
+
+
 def main():
     # Pack CraftPix giai nen o dau (khong bat buoc — thieu thi bo qua may
     # dia diem do, phan con lai van dung binh thuong).
@@ -1152,6 +1232,25 @@ def main():
                     wo['tx'], wo['ty'] = bx, by
             n_cua += 1
         print('OK: %d địa điểm có nhà riêng trên %s' % (n_cua, khupho.SLUG))
+
+
+    # ==== Y ta trong tram hoi suc chua benh that ====
+    # Truoc day muon hoi phuc thi bam mot cai nut o man chinh, dung o dau cung
+    # bam duoc. Gio phai di den tram: y ta trong tram co co `chuaBenh`, bam A
+    # truoc mat co moi hoi.
+    n_yta = 0
+    for slug, m in out_maps.items():
+        if not (slug == 'healing_center' or slug.endswith('_center')):
+            continue
+        for n in m.get('npcs') or []:
+            if n.get('sprite') == 'nurse':
+                n['chuaBenh'] = True
+                n_yta += 1
+    print('OK: %d y tá chữa bệnh tại chỗ' % n_yta)
+
+    # ==== Huan luyen vien dung ngay tren ban do ====
+    n_hlv = dat_trainer(out_maps)
+    print('OK: %d huấn luyện viên đứng trên bản đồ' % n_hlv)
 
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)

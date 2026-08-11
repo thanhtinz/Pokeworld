@@ -1503,6 +1503,84 @@ ok('catch_rate nằm thang 0-100 và có khoảng kháng bắt',
     muon.every(([, m]) => m.category === 'damage' && m.power > 0));
 }
 
+// ==== Việc gì cũng phải ĐI TỚI CHỖ ĐÓ trên bản đồ ====
+// Trước đây màn chính có bốn cái nút to: Hồi phục, Cửa hàng, Di chuyển, Đấu
+// trainer — đứng giữa rừng cũng bấm hồi phục được, mà huấn luyện viên thì chọn
+// trong một danh sách chứ không phải người đứng đâu đó. Nay bỏ hết: muốn gì
+// thì đi bộ tới đúng chỗ rồi bấm A.
+{
+  const { readFileSync } = await import('node:fs');
+  const nha = readFileSync(new URL('../js/ui/home.js', import.meta.url), 'utf8');
+  ok('màn chính không còn lưới nút hành động',
+    !/act-grid|btn-center|btn-shop|btn-travel|btn-trainers/.test(nha));
+  ok('màn chính chỉ còn nút đi bộ', /btn-world/.test(nha));
+
+  // Y tá trong trạm hồi sức phải chữa được tại chỗ
+  const yTa = Object.entries(MAPS)
+    .flatMap(([id, m]) => (m.npcs || []).map(n => [id, n]))
+    .filter(([, n]) => n.chuaBenh);
+  ok('có y tá chữa bệnh trên bản đồ', yTa.length >= 3, `${yTa.length} người`);
+  ok('y tá nào cũng đứng trong trạm hồi sức',
+    yTa.every(([id]) => id.endsWith('_center')),
+    yTa.filter(([id]) => !id.endsWith('_center')).map(([id]) => id).join(' '));
+
+  // Huấn luyện viên phải là NGƯỜI đứng trên bản đồ
+  const tren = Object.entries(MAPS)
+    .flatMap(([id, m]) => (m.npcs || []).map(n => [id, n]))
+    .filter(([, n]) => n.trainerId);
+  ok('huấn luyện viên nào cũng có mặt trên bản đồ',
+    tren.length === Object.keys(TRAINERS).length,
+    `${tren.length}/${Object.keys(TRAINERS).length}`);
+  ok('mã huấn luyện viên nào cũng có thật',
+    tren.every(([, n]) => !!TRAINERS[n.trainerId]),
+    tren.filter(([, n]) => !TRAINERS[n.trainerId]).map(([, n]) => n.trainerId).join(' '));
+  ok('mỗi người một chỗ, không ai đứng hai nơi',
+    new Set(tren.map(([, n]) => n.trainerId)).size === tren.length);
+  ok('đứng đúng khu vực đã ghi trong bảng',
+    tren.every(([id, n]) => TRAINERS[n.trainerId].zone === id),
+    tren.filter(([id, n]) => TRAINERS[n.trainerId].zone !== id)
+      .map(([id, n]) => `${n.trainerId}@${id}`).join(' '));
+  ok('không ai đứng trong tường',
+    tren.every(([id, n]) => !MAPS[id].solid[n.y * MAPS[id].w + n.x]));
+  ok('ai cũng có ô trống bên cạnh để đứng mà bấm',
+    tren.every(([id, n]) => {
+      const m = MAPS[id];
+      return [[0, 1], [0, -1], [1, 0], [-1, 0]].some(([dx, dy]) => {
+        const x = n.x + dx, y = n.y + dy;
+        return x >= 0 && y >= 0 && x < m.w && y < m.h && !m.solid[y * m.w + x];
+      });
+    }));
+  ok('không ai đứng chồng lên NPC khác', (() => {
+    for (const [id, m] of Object.entries(MAPS)) {
+      const o = new Set();
+      for (const n of m.npcs || []) {
+        const k = `${n.x},${n.y}`;
+        if (o.has(k)) return false;
+        o.add(k);
+      }
+    }
+    return true;
+  })());
+  const w = readFileSync(new URL('../js/ui/world.js', import.meta.url), 'utf8');
+  ok('màn bản đồ xử lý được y tá và huấn luyện viên',
+    /thing\.chuaBenh/.test(w) && /thing\.trainerId/.test(w));
+
+  // Y tá đứng SAU QUẦY: ô trước mặt là cái quầy chắn đường, không nhìn qua
+  // một ô thì bấm A chỉ ra cái bảng hiệu dán trên quầy.
+  {
+    const OW = await import('../js/engine/overworld.js');
+    newGame('QuayHang');
+    const [mapId, yt] = yTa[0];
+    const m = MAPS[mapId];
+    OW.enterMap(mapId, yt.x, yt.y + 2);
+    OW.player.dir = 'up';
+    ok('quầy giữa người chơi và y tá là ô chặn',
+      !!m.solid[(yt.y + 1) * m.w + yt.x]);
+    ok('bấm A qua quầy thì gặp đúng y tá',
+      OW.facingThing()?.name === yt.name, JSON.stringify(OW.facingThing()));
+  }
+}
+
 // Quái hoang CHỈ ở vùng hoang: thị trấn, bến cảng, trong nhà thì không có
 {
   const HOANG = new Set(['route', 'forest', 'cave']);

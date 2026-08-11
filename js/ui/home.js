@@ -3,15 +3,12 @@
 // Trước đây màn này là chế độ IDLE tự đánh quái. Từ khi chuyển sang đi bộ trên
 // bản đồ thì gặp Tuxemon là do người chơi bước vào bụi cỏ, nên phần tự đánh đã
 // bỏ hẳn. Màn này giờ chỉ còn: đang ở đâu, chương truyện nào, và các nút để đi.
-import { G, save, allFainted, emitQuest } from '../state.js';
-import { heal } from '../engine/monster.js';
-import { currentChapter, needIntro, markIntroSeen, emitStory, zoneLockedBy, storyProgress } from '../engine/story.js';
+import { G } from '../state.js';
+import { currentChapter, needIntro, markIntroSeen, emitStory, storyProgress } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { ZONES } from '../data/zones.js';
-import { enterMap } from '../engine/overworld.js';
-import { TRAINERS } from '../data/trainers.js';
-import { esc, boxIcon, upgradeImages, tien, tienChu } from '../util.js';
-import { toast, choose, itemIcon } from './kit.js';
+import { esc, boxIcon, upgradeImages, tien } from '../util.js';
+import { toast, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { veCanh } from './scene.js';
 import { show, refresh } from '../main.js';
@@ -41,17 +38,8 @@ async function chapterDone(ch) {
 
 export function render(el) {
   const zone = ZONES[G.p.zone] || Object.values(ZONES)[0];
-  const isTown = !(zone.encounters?.length);
   const ch = currentChapter();
   const prog = storyProgress();
-
-  // Ô hành động: mỗi cái một icon riêng, xếp lưới cho ra dáng màn chính của game
-  const oHanhDong = (id, icon, ten, phu) => `
-    <button class="act-tile" id="${id}">
-      <span class="act-ico">${uiIcon(icon, 26)}</span>
-      <b>${esc(ten)}</b>
-      ${phu ? `<small>${esc(phu)}</small>` : ''}
-    </button>`;
 
   el.innerHTML = `
     <div class="hero">
@@ -75,13 +63,6 @@ export function render(el) {
       ${needIntro() ? '<span class="story-new" title="Mới"></span>' : ''}
     </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="" onerror="this.style.visibility='hidden'"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Tuxedex!</div>` : '')}
 
-    <div class="act-grid">
-      ${isTown ? oHanhDong('btn-center', 'heal', 'Hồi phục', 'Đội khoẻ lại') : ''}
-      ${isTown ? oHanhDong('btn-shop', 'shop', 'Cửa hàng', 'Mua bán') : ''}
-      ${oHanhDong('btn-travel', 'compass', 'Di chuyển', `${(zone.next || []).length} lối đi`)}
-      ${oHanhDong('btn-trainers', 'battle', 'Đấu trainer',
-        zone.trainers?.length ? `${zone.trainers.length} người` : 'Không có ai')}
-    </div>
   `;
   upgradeImages(el);
 
@@ -116,73 +97,7 @@ export function render(el) {
   clearTimeout(introTimer);
   if (ch && needIntro() && !introBusy) introTimer = setTimeout(playChapterIntro, 350);
 
-  // ==== Thị trấn ====
-  const btnCenter = el.querySelector('#btn-center');
-  if (btnCenter) btnCenter.addEventListener('click', () => {
-    G.p.party.forEach(m => heal(m));
-    save();
-    toast('Cả đội đã hồi phục hoàn toàn!');
-    refresh();
-  });
-  const btnShop = el.querySelector('#btn-shop');
-  if (btnShop) btnShop.addEventListener('click', () => show('shop'));
-
   // ==== Mở bản đồ đi bộ (joystick) ====
   el.querySelector('#btn-world').addEventListener('click', () => show('world'));
 
-  // ==== Di chuyển (kèm khóa cốt truyện) ====
-  el.querySelector('#btn-travel').addEventListener('click', async () => {
-    const opts = (zone.next || []).map(zid => {
-      const z = ZONES[zid];
-      const lock = zoneLockedBy(zid);
-      return {
-        html: `${zoneIcon(z, 24)} ${esc(z.name)}`,
-        label: z.name,
-        sub: lock ? `Cần hoàn thành ${lock.title}` : z.desc,
-        disabled: !!lock,
-        zid,
-      };
-    });
-    if (!opts.length) { toast('Không có đường đi nào!'); return; }
-    const i = await choose('Đi đâu?', opts);
-    if (i === null) return;
-    const zid = opts[i].zid;
-    // Đặt luôn vị trí đi bộ vào bản đồ mới — không thì bấm "Đi bộ" sẽ quay về
-    // đúng chỗ cũ trên bản đồ cũ vì G.p.pos vẫn trỏ tới đó.
-    if (!enterMap(zid)) { G.p.zone = zid; save(); }
-    emitQuest('reach_zone', { zone: zid }).forEach(({ quest }) => toast(`Hoàn thành: ${quest.name}`));
-    refresh();
-  });
-
-  // ==== Trainer trong zone (trận đánh tay) ====
-  el.querySelector('#btn-trainers').addEventListener('click', async () => {
-    const ids = zone.trainers || [];
-    // Trainer cốt truyện xuất hiện khi đúng chương
-    const storyIds = [];
-    if (ch && ch.goal?.t === 'defeat_trainer' && TRAINERS[ch.goal.id] && !needIntro()) {
-      const t = TRAINERS[ch.goal.id];
-      if ((t.zone || G.p.zone) === G.p.zone && !ids.includes(ch.goal.id)) storyIds.push(ch.goal.id);
-    }
-    const all = [...storyIds, ...ids];
-    if (!all.length) { toast('Không có trainer nào ở đây.'); return; }
-    const opts = all.map(tid => {
-      const t = TRAINERS[tid];
-      const won = !!G.p.defeatedTrainers[tid];
-      const face = t.sprite ? `<img class="tr-face" src="assets/trainers/${t.sprite}.png" alt="" onerror="this.remove()"> ` : '';
-      return {
-        html: `${face}${esc(t.name)}${won ? ' <span class="won-pill">ĐÃ THẮNG</span>' : ''}`,
-        label: `${t.name}${won ? ' (đã thắng)' : ''}`,
-        sub: t.kind === 'gym' ? `Võ đường — Huy hiệu ${t.badgeName || ''}` : (t.rewardMoney ? `Thưởng ${tienChu(t.rewardMoney)}` : ''),
-        tid,
-      };
-    });
-    const i = await choose('Thách đấu ai?', opts);
-    if (i === null) return;
-    if (allFainted()) { toast('Cả đội đã gục, hồi phục trước đã!'); return; }
-    const tid = opts[i].tid;
-    const t = TRAINERS[tid];
-    await playDialog([[t.kind === 'gym' ? 'sys' : t.kind === 'xero' ? 'xero' : t.kind === 'rival' ? 'rival' : 'sys',
-      `${t.name}: "${t.intro || 'Đấu nào!'}"`]]);
-    show('battle', { kind: 'trainer', trainerId: tid });
-  });
 }

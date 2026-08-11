@@ -1075,30 +1075,6 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .hero-go:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-dark); }
 .hero-go .ui-ico { flex: none; }
 
-/* Lưới nút hành động: ô vuông có icon, thay cho hai hàng nút chữ xám */
-.act-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
-  margin-bottom: 8px;
-}
-.act-tile {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 12px 8px;
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); text-align: center;
-  box-shadow: 0 3px 0 var(--line-soft);
-}
-.act-tile:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-soft); }
-.act-tile b { font-size: .92rem; }
-.act-tile small { color: var(--muted); font-size: .76rem; }
-.act-ico {
-  display: flex; align-items: center; justify-content: center;
-  width: 42px; height: 42px; margin-bottom: 2px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, rgba(112, 72, 232, .5), rgba(112, 72, 232, .12));
-  border: 1px solid var(--line);
-  color: var(--gold);
-}
-
 /* ==== Cutscene hoi thoai ==== */
 .cutscene-overlay {
   position: fixed; inset: 0; z-index: 85;
