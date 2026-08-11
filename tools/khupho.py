@@ -20,22 +20,8 @@ W, H = 28, 18
 SLUG = 'khu_pho'
 TEN = 'Phố Kim Long'
 
-# ==== O trong tileset core_outdoor (37 cot) ====
-COT = 37
-
-
-def _o(c, r):
-    return r * COT + c
-
-
-CO = [_o(0, 3), _o(1, 3), _o(2, 3)]
-DA = [_o(24, 3), _o(25, 3), _o(26, 3)]           # da xam — mat pho
-DAT = [_o(16, 3), _o(17, 3), _o(18, 3)]
-THONG_NHO = [_o(24, 28), _o(24, 29)]
-BUI = [_o(24, 30), _o(25, 30), _o(26, 30), _o(27, 30)]
-DA_TANG = [_o(30, 30), _o(31, 30)]
-HOA = [_o(28, 25), _o(29, 25), _o(30, 25), _o(28, 26), _o(29, 26)]
-GHE = [[_o(30, 33), _o(31, 33)], [_o(30, 34), _o(31, 34)]]
+# Nen, duong mon, rung: lay dung bang o cua ban do goc (tools/nengoc.py)
+import nengoc
 
 # ==== Nha lay tu tileset core_buildings (47 cot) ====
 # Khoi 5 rong x 4 cao, cua vom nam o cot 3 cua khoi.
@@ -87,8 +73,7 @@ def bac_them(cx, cy):
     return (cx, cy + 1)
 
 
-def _rng(x, y, n):
-    return ((x * 7 + y * 13) ^ (x * y)) % n
+_rng = nengoc.rng
 
 
 def dung(root, tsx_cache, load_tsx):
@@ -109,9 +94,6 @@ def dung(root, tsx_cache, load_tsx):
 
     def idx(x, y):
         return y * W + x
-
-    def dat_nen(x, y, bo):
-        nen[idx(x, y)] = g0 + bo[_rng(x, y, len(bo))]
 
     def dat_tren(x, y, o, chan=True):
         tren[idx(x, y)] = g0 + o
@@ -139,32 +121,43 @@ def dung(root, tsx_cache, load_tsx):
         # ve thi ve nhung van di qua duoc.
         solid[idx(x, y)] = 1 if (chan and phu > 128) else 0
 
-    # --- nen: co khap noi, mat pho lat da ---
-    for y in range(H):
-        for x in range(W):
-            dat_nen(x, y, CO)
+    # --- nen: co khap noi, duong mon lat theo autotile cua ban do goc ---
+    #
+    # Duong gom: con pho chay ngang, ngo doc xuong cong, va san dat truoc tung
+    # cua nha noi THANG xuong pho. Truoc day ba thu do la ba mang roi cat vuong,
+    # nhin nhu ai lay keo cat dan vao — gio gom lam MOT vung roi lat mot lat,
+    # nen cho nao queo cung co vien bo dung nhu ban goc.
+    duong = set()
     for y in (PHO, PHO + 1):
         for x in range(1, W - 1):
-            dat_nen(x, y, DA)
-    # ngo doc tu mat pho xuong cong
-    for y in range(PHO, H):
+            duong.add((x, y))
+    for y in range(PHO, H - 1):
         for x in (CONG[0], CONG[0] + 1):
-            dat_nen(x, y, DA)
-    # san dat truoc tung toa nha
+            duong.add((x, y))
     for _ma, cx, cy, _ten, _k in TOA:
         for y in range(cy + 1, PHO):
-            for x in range(cx - 1, cx + 2):
-                if 0 <= x < W:
-                    dat_nen(x, y, DAT)
+            for x in (cx - 1, cx, cx + 1):
+                if 0 < x < W - 1:
+                    duong.add((x, y))
 
-    # --- vien cay quanh ban do ---
+    la_duong = lambda x, y: (x, y) in duong
+    for y in range(H):
+        for x in range(W):
+            nen[idx(x, y)] = g0 + (nengoc.o_duong(x, y, la_duong) if (x, y) in duong
+                                   else nengoc.o_co(x, y))
+
+    # --- vien rung quanh ban do ---
+    # Ban goc khong bao gio vien bang MOT cai cay lap lai: rung la mot mang tan
+    # cay lien nhau, hang tren cung la ngon cay. Cheo mot o cay thi cham vao la
+    # thay ngay day la mep ban do.
     for x in range(W):
         for y in (0, H - 1):
-            if (x, y) != CONG and (x, y) != (CONG[0] + 1, H - 1):
-                dat_tren(x, y, THONG_NHO[_rng(x, y, 2)])
+            if (x, y) not in duong:
+                dat_tren(x, y, nengoc.o_tan_cay(x, y))
     for y in range(H):
         for x in (0, W - 1):
-            dat_tren(x, y, THONG_NHO[_rng(x, y, 2)])
+            if (x, y) not in duong:
+                dat_tren(x, y, nengoc.o_tan_cay(x, y))
 
     # --- bon toa nha ---
     for _ma, cx, cy, _ten, kieu in TOA:
@@ -184,20 +177,20 @@ def dung(root, tsx_cache, load_tsx):
                 and not any(abs(x - t[1]) <= 1 and t[2] <= y <= PHO for t in TOA))
 
     for gx, gy in ((2, 13), (25, 13)):
-        for dy, hang in enumerate(GHE):
+        for dy, hang in enumerate(nengoc.GHE):
             for dx, o in enumerate(hang):
                 if trong(gx + dx, gy + dy):
                     dat_tren(gx + dx, gy + dy, o)
     for x, y in ((6, 14), (11, 15), (18, 14), (21, 15), (8, 12), (24, 15)):
         if trong(x, y):
-            dat_tren(x, y, BUI[_rng(x, y, len(BUI))], chan=False)
+            dat_tren(x, y, nengoc.BUI[_rng(x, y, len(nengoc.BUI))], chan=False)
     for x, y in ((3, 16), (20, 12), (26, 12)):
         if trong(x, y):
-            dat_tren(x, y, DA_TANG[_rng(x, y, 2)])
+            dat_tren(x, y, nengoc.DA_TANG[_rng(x, y, 2)])
     for _ma, cx, cy, _ten, _k in TOA:
         for dx in (-1, 1):
             if trong(cx + dx, cy + 1):
-                dat_tren(cx + dx, cy + 1, HOA[_rng(cx, cy, len(HOA))], chan=False)
+                dat_tren(cx + dx, cy + 1, nengoc.HOA[_rng(cx, cy, len(nengoc.HOA))], chan=False)
 
     # --- don sach nhung o BAT BUOC phai di duoc ---
     def don(x, y):

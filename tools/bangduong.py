@@ -18,6 +18,9 @@ W, H = 30, 24
 SLUG = 'bang_duong'
 TEN = 'Bang Đường'
 
+# Nen, duong mon, rung: lay dung bang o cua ban do goc (tools/nengoc.py)
+import nengoc
+
 COT = 37
 
 
@@ -25,22 +28,11 @@ def _o(c, r):
     return r * COT + c
 
 
-# Nen
-DA_SAN = [_o(24, 3), _o(25, 3), _o(26, 3)]       # da xam — san lat da
-CO = [_o(0, 3), _o(1, 3), _o(2, 3)]
-DAT = [_o(16, 3), _o(17, 3), _o(18, 3)]
-CAT = [_o(0, 18), _o(1, 18), _o(2, 18)]
-
-# Vat the
-THONG_NHO = [_o(24, 28), _o(24, 29)]
+# Vat the con dung rieng cua ban do nay
 COT_DA = [_o(16, 36), _o(16, 37)]                # cot hang rao da, hai tang
 RAO_DA = _o(17, 36)
-DA_TANG = [_o(30, 30), _o(31, 30)]
-BUI = [_o(24, 30), _o(25, 30), _o(26, 30), _o(27, 30)]
 DUOC = [_o(24, 31), _o(25, 31), _o(26, 31)]      # duoc chay
 TUONG_DA = _o(29, 33)
-GHE = [[_o(30, 33), _o(31, 33)], [_o(30, 34), _o(31, 34)]]
-HOA = [_o(28, 25), _o(29, 25), _o(30, 25)]
 
 # Ba khu: (ten, x0, y0, x1, y1, cap bang can co)
 KHU = [
@@ -50,6 +42,8 @@ KHU = [
 ]
 # O cua noi san chinh voi hai khu tren (x, y) — dung o hang ngan cach y = 11
 CUA = {'san_tap': (7, 11), 'kho_bau': (22, 11)}
+DUONG_NGANG = 16                 # loi mon chay ngang giua san chinh
+DUONG_VAO = 18                   # ngo tu cong len toi loi ngang
 CONG = (14, H - 1)               # cong ve thi tran, o canh duoi
 
 # ==== Ba toa nha cua bang ====
@@ -97,10 +91,7 @@ NPC_TRONG = [
 ]
 
 
-def _rng(x, y, n):
-    h = (x * 73856093) ^ (y * 19349663) ^ 0x85EBCA6B
-    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
-    return (h >> 7) % n
+_rng = nengoc.rng
 
 
 def dung(root, tsx_cache, load_tsx):
@@ -127,19 +118,29 @@ def dung(root, tsx_cache, load_tsx):
         if chan:
             solid[idx(x, y)] = 1
 
-    # Nen co, rieng ba khu thi lat da
+    # --- Nen: co khap noi, duong mon noi cong voi ba khu ---
+    # Truoc day ba cai san lat kin bang o da xam, thanh ba mang chu nhat to
+    # tuong trong tron. Ban goc khong lam vay: nen la co, chi CHO NGUOI DI mới
+    # thanh duong mon, va duong mon nao cung co vien bo.
+    duong = set()
+    for y in range(DUONG_VAO, H - 1):            # ngo tu cong len san chinh
+        for x in (CONG[0], CONG[0] + 1):
+            duong.add((x, y))
+    for x in range(3, W - 3):                    # loi ngang trong san chinh
+        duong.add((x, DUONG_NGANG))
+        duong.add((x, DUONG_NGANG + 1))
+    for ten, cua in CUA.items():                 # nhanh re len hai khu tren
+        for y in range(cua[1] - 1, DUONG_NGANG + 2):
+            duong.add((cua[0], y))
+            duong.add((cua[0] + 1, y))
+    for _bid, _ten, bx, by, _slug in TOA:        # them truoc cua tung toa nha
+        duong.add((bx + TOA_CUA, by + 1))
+
+    la_duong = lambda x, y: (x, y) in duong
     for y in range(H):
         for x in range(W):
-            dat_nen(x, y, CO)
-    for _ten, x0, y0, x1, y1, _cap in KHU:
-        for y in range(y0, y1 + 1):
-            for x in range(x0, x1 + 1):
-                dat_nen(x, y, DA_SAN)
-
-    # Loi vao tu cong len san chinh
-    for y in range(12, H):
-        for x in (CONG[0], CONG[0] + 1):
-            dat_nen(x, y, DAT)
+            nen[idx(x, y)] = g0 + (nengoc.o_duong(x, y, la_duong) if (x, y) in duong
+                                   else nengoc.o_co(x, y))
 
     # Tuong da bao quanh tung khu, chua dung mot o lam cua
     for ten, x0, y0, x1, y1, _cap in KHU:
@@ -162,24 +163,17 @@ def dung(root, tsx_cache, load_tsx):
                 if 0 <= x < W and 0 <= y < H and (x, y) not in CUA.values():
                     dat_tren(x, y, COT_DA[0])
 
-    # Vien cay quanh ban do
-    vien = []
+    # Vien rung quanh ban do — mot mang tan cay lien nhau nhu ban goc, khong
+    # phai mot cai cay thong lap lai
     for x in range(W):
-        vien += [(x, 0), (x, H - 2)]
-    for y in range(2, H - 2, 2):
-        vien += [(0, y), (W - 1, y)]
-    for x, y in vien:
-        if x in (CONG[0], CONG[0] + 1) and y >= H - 2:
-            continue
-        r = _rng(x, y, 10)
-        if r < 6:
-            dat_tren(x, y, THONG_NHO[0])
-            if y + 1 < H:
-                dat_tren(x, y + 1, THONG_NHO[1])
-        else:
-            dat_tren(x, y, DA_TANG[_rng(y, x, len(DA_TANG))])
-            if y + 1 < H:
-                dat_tren(x, y + 1, BUI[_rng(x, y, len(BUI))])
+        for y in (0, H - 1):
+            if (x, y) in duong:
+                continue
+            dat_tren(x, y, nengoc.o_tan_cay(x, y))
+    for y in range(H):
+        for x in (0, W - 1):
+            if (x, y) not in duong:
+                dat_tren(x, y, nengoc.o_tan_cay(x, y))
 
     # Duoc hai bên cửa, ghế đá ở sân chính
     for cx, cy in CUA.values():
@@ -187,11 +181,11 @@ def dung(root, tsx_cache, load_tsx):
             if 0 <= cx + dx < W:
                 dat_tren(cx + dx, cy, DUOC[_rng(cx, cy, len(DUOC))])
     for gx, gy in ((5, 17), (22, 17)):
-        for dy, hang in enumerate(GHE):
+        for dy, hang in enumerate(nengoc.GHE):
             for dx, o in enumerate(hang):
                 dat_tren(gx + dx, gy + dy, o)
     for x, y in ((10, 14), (19, 14), (10, 20), (19, 20)):
-        dat_tren(x, y, HOA[_rng(x, y, len(HOA))], chan=False)
+        dat_tren(x, y, nengoc.HOA[_rng(x, y, len(nengoc.HOA))], chan=False)
 
     # Ba toa nha: chan het phan than nha, chua dung o cua. Anh toa nha do
     # js/ui/world.js ve de len (giong nha cua nguoi choi), o day chi lo va cham.

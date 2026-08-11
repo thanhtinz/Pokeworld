@@ -34,6 +34,7 @@ import bangduong
 import casino
 import craftpix
 import khupho
+import nengoc
 import phongtrong
 import vungdat
 
@@ -964,10 +965,13 @@ def cho_cong_ria_bac(m):
             for dx in (-1, 0, 1):
                 ban.add((wp['x'] + dx, wp['y'] + dy))
     # Cang gan ria bac cang tot, roi mai den cang gan giua cang tot
+    # Phai co cho cho DAI DUONG MON ba o rong dan toi cong (ve_loi_vao): cong
+    # nhet vao khe hep giua hai hang rao thi duong ve ra mot vet mong dinh.
     ung = []
     for y in range(1, h // 2):
         for x in range(3, w - 3):
             o = [(x, y), (x, y + 1), (x - 1, y), (x + 1, y), (x, y - 1)]
+            o += [(x + dx, y + dy) for dy in range(4) for dx in (-1, 1)]
             if any(p in ban for p in o):
                 continue
             if any(p not in lon for p in o):
@@ -1059,6 +1063,40 @@ def dat_trainer(out_maps):
     return n
 
 
+def ve_loi_vao(m, x, y, dai=4):
+    """Ve mot doan duong mon dan tu o cong xuong long ban do.
+
+    Cong sang khu khac cam vao ria bac may ban do goc chi la mot o co giua hang
+    rao — nhin nhu ai thoc thung hang rao. Ban goc loi re nao cung co duong mon
+    dan toi, nen ke them mot doan cho khop.
+
+    Ban do da nuong atlas roi nen phai doi o goc sang chi so trong atlas bang
+    bang `_remap` giu tam luc nuong. O nao ban do do KHONG dung toi thi khong
+    co trong atlas — bo qua chu khong ve o rac.
+    """
+    remap = m.get('_remap')
+    ts = m.get('_ts') or {}
+    if not remap or 'core_outdoor' not in (ts.get('img') or ''):
+        return 0
+    g0 = m.get('_g0') or 1
+    # Duong RONG BA O: bo o autotile chi co vien trai / giua / vien phai, hai o
+    # thi thanh hai cai vien dan vao nhau, ra mot vet mong dinh chu khong ra
+    # duong. Ban goc cung khong co doan duong nao hep hon ba o.
+    trong_bd = lambda px, py: (0 <= px < m['w'] and 0 <= py < m['h']
+                               and not m['solid'][py * m['w'] + px])
+    o = {(x + dx, y + d) for d in range(dai) for dx in (-1, 0, 1)}
+    o = {c for c in o if trong_bd(*c)}
+    trong = lambda px, py: (px, py) in o
+    n = 0
+    for px, py in o:
+        chi = remap.get(g0 + nengoc.o_duong(px, py, trong))
+        if chi is None:
+            continue
+        m['layers'][0][py * m['w'] + px] = chi
+        n += 1
+    return n
+
+
 def main():
     # Pack CraftPix giai nen o dau (khong bat buoc — thieu thi bo qua may
     # dia diem do, phan con lai van dung binh thuong).
@@ -1091,7 +1129,11 @@ def main():
         m = parse_map(p, tsx_cache)
         remap, cols = build_atlas(m, 'assets/maps/%s.png' % slug)
         conv = lambda lay: [remap.get(g, -1) if g > 0 else -1 for g in lay]
+        # Giu tam bang doi o goc -> o trong atlas: ve_loi_vao() con ve them
+        # duong mon vao ban do NAY sau khi da nuong atlas. Xoa truoc khi ghi ra.
+        goc_ts = (m['sets'][0] if m.get('sets') else (0, {}))
         out_maps[slug] = {
+            '_remap': remap, '_g0': goc_ts[0], '_ts': goc_ts[1],
             'name': names[slug], 'w': m['w'], 'h': m['h'], 'cols': cols,
             'layers': [conv(l) for l in m['layers']],
             'above': conv(m['above']) if m['above'] else None,
@@ -1150,6 +1192,8 @@ def main():
     cho_kp = cho_cong_ria_bac(taba) if taba else None
     kp0 = khupho.them_vao(out_maps, root, tsx_cache, load_tsx,
                           'taba_town', cho_kp) if cho_kp else None
+    if cho_kp:
+        ve_loi_vao(taba, cho_kp[0], cho_kp[1])
     if kp0:
         remapP, colsP = build_atlas(kp0, 'assets/maps/%s.png' % khupho.SLUG)
         convP = lambda lay, r=remapP: [r.get(g, -1) if g > 0 else -1 for g in lay]
@@ -1165,6 +1209,8 @@ def main():
         cho_bd = cho_cong_ria_bac(taba)
         bd = bangduong.them_vao(out_maps, root, tsx_cache, load_tsx,
                                 'taba_town', cho_bd) if cho_bd else None
+        if cho_bd:
+            ve_loi_vao(taba, cho_bd[0], cho_bd[1])
         if bd:
             remap2, cols2 = build_atlas(bd, 'assets/maps/%s.png' % bangduong.SLUG)
             conv2 = lambda lay: [remap2.get(g, -1) if g > 0 else -1 for g in lay]
@@ -1251,6 +1297,10 @@ def main():
     # ==== Huan luyen vien dung ngay tren ban do ====
     n_hlv = dat_trainer(out_maps)
     print('OK: %d huấn luyện viên đứng trên bản đồ' % n_hlv)
+
+    for m in out_maps.values():
+        for k in ('_remap', '_g0', '_ts'):
+            m.pop(k, None)
 
     write_js(out_maps, want)
     n = write_encounters(root, out_maps)
