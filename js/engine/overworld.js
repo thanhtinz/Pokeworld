@@ -5,8 +5,6 @@ import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
-import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi } from './inn.js';
-import { dangOChoi } from './diadiem.js';
 import { khoaODay, vatBangDuong } from './bangduong.js';
 import { vatSanhBac } from './casino.js';
 import { isUnlocked, lockNote } from './unlock.js';
@@ -54,44 +52,8 @@ export function enterMap(mapId, tx, ty) {
   return true;
 }
 
-// Mở game lên thì nhân vật đang NGỦ DẬY chứ không đứng nguyên giữa đường như
-// lúc tắt: có nhà thì dậy trong nhà mình, chưa có nhà thì dậy ở nhà trọ chung.
-// Chỉ chạy MỘT LẦN cho mỗi lần mở trang — đi lại trong game không bị kéo về.
-let daNguDay = false;
-// Kết quả của lần ngủ dậy, để màn bản đồ nhặt ra ĐÚNG MỘT LẦN rồi thôi
-let tinNguDay = null;
-export function layTinNguDay() { const t = tinNguDay; tinNguDay = null; return t; }
-
-/**
- * Bỏ qua bước "ngủ dậy" cho lần mở màn bản đồ sắp tới.
- *
- * Ai vừa CỐ Ý đặt chân vào một bản đồ (đi tới từ trang Địa Điểm) thì đừng kéo
- * về giường nữa.
- */
-export function boQuaNguDay() { daNguDay = true; }
-
-export function nguDay() {
-  // Đang ghé một địa điểm thì đừng lôi về
-  // giường — người chơi vừa bấm "vào" xong, kéo về nhà trọ là hỏng cả việc
-  if (dangOChoi(player.mapId)) { daNguDay = true; return null; }
-  if (daNguDay || !G.p) return null;
-  daNguDay = true;
-  camCongNhaTro();
-  const g = giuongCuaToi();
-  if (g && enterMap(MAP_NHA_TRO, g.x, g.y)) {
-    tinNguDay = { giuong: g };
-    return tinNguDay;
-  }
-  return null;
-}
-
 // Khôi phục vị trí đã lưu
 export function restorePosition() {
-  // Cửa quán rượu Taba dẫn thẳng vào phòng trọ — cắm cổng cho cả hai chiều
-  // đều đi được.
-  camCongNhaTro();
-  // Lần đầu vào bản đồ sau khi mở trang: đưa về chỗ ngủ
-  if (!daNguDay && nguDay()) return;
   const pos = G.p?.pos;
   // Bản đồ có thể đã đổi từ bản cũ — vị trí lưu cũ có thể rơi vào tường/nhà
   const stuck = (id, x, y) => {

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Cat SPRITE TOA NHA BANG + GIUONG NHA TRO.
+"""Cat SPRITE BA TOA NHA CUA BANG.
 
 Chay:  python3 tools/mknoithat.py <duong-dan-kho-Tuxemon>
 
 Ghi de:
   assets/noithat/bang_<n>.png  ba toa nha cua bang, dung tren ban do Bang Duong
-  assets/noithat/do_<n>.png    giuong ke trong nha tro chung
   js/data/noithat.js           bang kich thuoc (SINH MAY, dung sua tay)
 
 Nguon: gfx/tilesets cua Tuxemon — anh CC BY-SA 4.0, xem CREDITS.md.
@@ -24,8 +23,6 @@ from PIL import Image
 
 SCALE = 3                      # phong cho net tren man hinh dien thoai
 
-# Tep nguon: (ten tileset, khoang kich thuoc chap nhan)
-NGUON_DO = ('Furniture_and_Fittings_by_George.png', (12, 12), (64, 80))
 # Nha trong sheet dinh sat nhau nen flood fill gop het thanh mot cum — phai
 # cat theo KHUNG CO DINH do tay tren anh goc (MK_buildings.png, 512x448).
 NGUON_NHA = 'MK_buildings.png'
@@ -72,28 +69,6 @@ def cum(im, min_wh, max_wh):
     return ra
 
 
-def cat(root, tep, min_wh, max_wh, thu_muc, tien_to, gioi_han, giu=None):
-    """Cat sheet ra tung cum. `giu` la tap chi so THAT SU ghi ra tep anh.
-
-    Van phai do het cac cum truoc do: thu tu cum quyet dinh mon nao la mon nao,
-    bo qua nua chung thi chi so lech het."""
-    p = os.path.join(root, 'mods/tuxemon/gfx/tilesets', tep)
-    if not os.path.exists(p):
-        raise SystemExit('Khong thay %s' % p)
-    im = Image.open(p).convert('RGBA')
-    ds = cum(im, min_wh, max_wh)[:gioi_han]
-    os.makedirs(thu_muc, exist_ok=True)
-    ra = []
-    for i, (x0, y0, x1, y1, _) in enumerate(ds):
-        con = im.crop((x0, y0, x1, y1))
-        ten = '%s_%02d.png' % (tien_to, i)
-        if giu is None or i in giu:
-            con.resize((con.width * SCALE, con.height * SCALE), Image.NEAREST).save(
-                os.path.join(thu_muc, ten), optimize=True)
-        ra.append({'file': ten, 'w': x1 - x0, 'h': y1 - y0})
-    return ra
-
-
 def catKhung(root, tep, khung, thu_muc, tien_to):
     p = os.path.join(root, 'mods/tuxemon/gfx/tilesets', tep)
     im = Image.open(p).convert('RGBA')
@@ -110,12 +85,6 @@ def catKhung(root, tep, khung, thu_muc, tien_to):
     return ra
 
 
-# Nha tro chung ke bang chinh sprite noi that nay, khong phai cat them anh
-# rieng. Sheet cat ra theo thu tu cum, cai giuong don la cum thu 12.
-TEN_DO = [None] * 11 + [('giuong_don', 'Giường Đơn')]
-CHI_SO_GIUONG = 11
-
-
 def js(v):
     return json.dumps(v, ensure_ascii=False)
 
@@ -125,16 +94,13 @@ def main():
         raise SystemExit(__doc__)
     root = sys.argv[1]
 
-    do = cat(root, NGUON_DO[0], NGUON_DO[1], NGUON_DO[2],
-             'assets/noithat', 'do', len(TEN_DO), {CHI_SO_GIUONG})
     bang = catKhung(root, NGUON_NHA, [k[2] for k in KHUNG_BANG],
                     'assets/noithat', 'bang')
 
     out = ["// TuxeWorld H5 | data/noithat.js | SINH TỰ ĐỘNG bởi tools/mknoithat.py",
            "// KHONG SUA TAY. Ảnh cắt từ gfx/tilesets của Tuxemon (CC BY-SA 4.0).",
            "//",
-           "// Chỉ còn hai thứ dựng sẵn: ba toà nhà của bang trên bản đồ Bang Đường,",
-           "// và cái giường kê trong nhà trọ chung.",
+           "// Chỉ còn ba toà nhà của bang, dựng trên bản đồ Bang Đường.",
            ""]
 
     out.append('// Toà nhà của bang hội, dựng trên bản đồ Bang Đường')
@@ -146,17 +112,9 @@ def main():
     out.append('};')
     out.append('')
 
-    a = do[CHI_SO_GIUONG]
-    slug, ten = TEN_DO[CHI_SO_GIUONG]
-    out.append('// Giường trong nhà trọ chung — w/h là số Ô nó chiếm')
-    out.append('export const GIUONG_TRO = { id: %s, name: %s, img: %s, w: %d, h: %d };'
-               % (js(slug), js(ten), js('assets/noithat/' + a['file']),
-                  max(1, round(a['w'] / 16)), max(1, round(a['h'] / 16))))
-    out.append('')
-
     with open('js/data/noithat.js', 'w', encoding='utf-8') as f:
         f.write('\n'.join(out))
-    print('OK: %d toà nhà bang + giường nhà trọ' % len(bang))
+    print('OK: %d toà nhà bang' % len(bang))
 
 
 if __name__ == '__main__':

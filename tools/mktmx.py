@@ -1106,17 +1106,6 @@ def main():
             out_maps[slug] = gian
             want.append(slug)
 
-    # Phong trong cho nha nguoi choi + nha tro chung
-    for slug in phongtrong.them_vao(out_maps, parse_map, chon_tep, mdir, tsx_cache):
-        pt = out_maps[slug]
-        remap3, cols3 = build_atlas(pt, 'assets/maps/%s.png' % slug)
-        conv3 = lambda lay: [remap3.get(g, -1) if g > 0 else -1 for g in lay]
-        pt['name'] = pt.pop('_ten')
-        pt['cols'] = cols3
-        pt['layers'] = [conv3(l) for l in pt['layers']]
-        pt['above'] = None
-        want.append(slug)
-
     # Dia diem dung tu pack CraftPix (chapel, guild hall, ruined temple, home).
     # Chi nuong ATLAS vao kho, khong chep tep goc cua pack — xem tools/craftpix.py.
     for slug, cp in craftpix.them_vao(out_maps, CRAFTPIX_DIR).items():

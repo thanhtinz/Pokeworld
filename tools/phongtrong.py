@@ -1,24 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Dung PHONG TRONG cho nha tro chung.
+"""Dung PHONG TRONG — ba gian trong ba toa nha cua bang.
 
 Ban do noi that cua Tuxemon (flower_house1, candy_center...) deu VE SAN quay,
-ke, giuong, may moc — ke them day giuong tro vao la de len nhau, nhin nhu loi.
+ke, giuong, may moc — dat NPC lam viec vao la de len do, nhin nhu loi.
 
 Tep nay dung han phong RONG: lay dung mau gach nen va mau tuong CUA CHINH BAN
 DO GOC do (nen nhin van dung tong mau quen thuoc), roi ke lai thanh mot can
 phong chu nhat trong khong.
 
-Goi tu tools/mktmx.py, dung chay truc tiep.
+Goi tu tools/bangduong.py, dung chay truc tiep.
 """
 from collections import Counter
-
-# (slug moi, ten tieng Viet, ban do goc muon mau, rong, cao)
-PHONG = [
-    ('nha_tro', 'Nhà Trọ Chung', 'wayfarer_inn1', 22, 14),
-]
-
-TEN = {p[0]: p[1] for p in PHONG}
-
 
 def _tren_cung(m):
     """Gid nhin thay o tung o (lop tren de len lop duoi)."""
@@ -74,32 +66,3 @@ def dung(m_goc, w, h, npcs=None, talks=None):
                                       # cua ra dua vao co nay
         'npcs': npcs or [],
     }
-
-
-def viet_js():
-    dong = [
-        '// TuxeWorld H5 | data/phongtrong.js | TỰ SINH TỪ tools/phongtrong.py, đừng sửa tay',
-        '// Phòng trọ chung dựng riêng chứ không mượn bản đồ nội thất của bản',
-        '// gốc: mấy bản đồ đó vẽ sẵn đồ đạc, kê thêm giường vào là đè lên nhau.',
-        '',
-        'export const MAP_NHA_TRO = "nha_tro";',
-        '',
-    ]
-    with open('js/data/phongtrong.js', 'w', encoding='utf-8') as f:
-        f.write('\n'.join(dong))
-
-
-def them_vao(out_maps, parse_map, chon_tep, mdir, tsx_cache):
-    """Dung het cac phong va nhet vao bang ban do. Tra danh sach slug moi."""
-    ra = []
-    for slug, ten, goc, w, h in PHONG:
-        p = chon_tep(mdir, goc)
-        if not p:
-            print('BO QUA phong', slug, '- khong co ban do goc', goc)
-            continue
-        m = dung(parse_map(p, tsx_cache), w, h)
-        m['_ten'] = ten
-        out_maps[slug] = m
-        ra.append(slug)
-    viet_js()
-    return ra

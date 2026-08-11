@@ -6,16 +6,14 @@ import { atlasReady } from '../engine/mapbake.js';
 import { TILE_SIZE as TILE } from '../data/maps.js';
 import {
   player, currentMap, currentBake, restorePosition, update, facingThing, updateNpcs,
-  facingWater, facingTile, setHealSpot, repelLeft, pickedUp, layTinNhaTre, layTinNguDay,
+  facingWater, facingTile, setHealSpot, repelLeft, pickedUp, layTinNhaTre,
   isInside, enterMap } from '../engine/overworld.js';
 import { owImage, owFrame, owReady, owSheetOk, OW_W, OW_H } from '../engine/owsprite.js';
 import { MAPS } from '../data/maps.js';
-import { TOA_BANG, GIUONG_TRO } from '../data/noithat.js';
+import { TOA_BANG } from '../data/noithat.js';
 import { lockNote } from '../engine/unlock.js';
-import * as TT from '../engine/furniture.js';
 import * as MT from '../engine/mounts.js';
 import * as BD from '../engine/bangduong.js';
-import * as INN from '../engine/inn.js';
 import * as api from '../net/api.js';
 import { isOnlineMode, getToken } from '../net/config.js';
 
@@ -71,8 +69,6 @@ let raf = null;
 
 export function render(el) {
   restorePosition();
-  // Vừa mở game lên: nằm sẵn trên giường cho tới khi người chơi nhấn hướng
-  moGameNguDay();
   // Con đang cưỡi có thể đã gục hoặc bị bỏ khỏi đội từ màn khác
   MT.kiemTraLai();
   if (isInside()) MT.xuong();
@@ -81,11 +77,6 @@ export function render(el) {
   if (isOnlineMode() && getToken()) {
     api.myGuild().then(r => BD.datCapBang(r.ok ? (r.data?.guild?.level || 0) : 0))
       .catch(() => {});
-    // Ai đang online mà chưa có nhà thì cùng nằm nhà trọ — lấy danh sách để vẽ
-    if (INN.laNhaTro(player.mapId)) {
-      api.fetchInn().then(r => INN.datKhachTro(r.ok ? (r.data?.ds || []) : []))
-        .catch(() => {});
-    }
   }
 
   el.innerHTML = `
@@ -298,18 +289,6 @@ export function render(el) {
         Math.round(cx - w / 2), Math.round(cy - chH + size * 0.34),
         Math.round(w), Math.round(chH));
     };
-    // Nằm trên giường: giường trong game đều DỰNG ĐỨNG (rộng 1-2 ô, cao 2 ô)
-    // nên xoay nhân vật 90° là nằm vắt ngang qua giường, thò cả người ra ngoài.
-    // Nằm dọc theo giường thì cứ vẽ đứng, chỉ hạ xuống giữa giường là đủ.
-    // Chỉ giường NẰM NGANG (rộng hơn cao) mới cần xoay.
-    const nam = (img, cx, cy, ngang) => {
-      if (!ngang) { put(img, 'down', false, cx, cy); return; }
-      ctx.save();
-      ctx.translate(cx, cy - chH / 2 + size * 0.34);
-      ctx.rotate(Math.PI / 2);
-      put(img, 'down', false, 0, chH / 2 - size * 0.34);
-      ctx.restore();
-    };
     // Đồ rơi chưa nhặt: vẽ icon món đó ngay trên ô, nhặt rồi thì thôi
     for (const it of map.items || []) {
       if (pickedUp(player.mapId, it)) continue;
@@ -319,32 +298,6 @@ export function render(el) {
       ctx.drawImage(im, Math.round((it.x + 0.5) * size - camX - s2 / 2),
         Math.round((it.y + 0.55) * size - camY - s2 / 2), s2, s2);
     }
-    // Nhà trọ chung: vẽ dãy giường, mỗi người online chưa có nhà nằm một cái
-    if (INN.laNhaTro(player.mapId)) {
-      const f = GIUONG_TRO;
-      const im = anhTep(f.img);
-      const ds = INN.cacGiuong();
-      const khach = INN.khachTro();
-      ds.forEach((g, i) => {
-        if (im?.complete && im.naturalWidth) {
-          ctx.drawImage(im, Math.round(g.x * size - camX), Math.round(g.y * size - camY),
-            Math.round(size * f.w), Math.round(size * f.h));
-        }
-        // Giường 0 là của mình (vẽ ở phần nhân vật), còn lại cho khách trọ
-        const k = khach[i - 1];
-        if (i === 0 || !k) return;
-        const ava = owImage(k.avatar === 'leaf' ? 'leaf' : 'red');
-        nam(ava, (g.x + f.w / 2) * size - camX,
-          (g.y + f.h / 2) * size - camY + chH / 2 - size * 0.34, f.w > f.h);
-        ctx.save();
-        ctx.fillStyle = 'rgba(255,255,255,.75)';
-        ctx.font = `${Math.round(size * 0.26)}px system-ui, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.fillText(k.username, (g.x + 0.5) * size - camX, (g.y - 0.15) * size - camY);
-        ctx.restore();
-      });
-    }
-
     // Toà nhà của bang hội đứng trên Bang Đường — vẽ đè lên bản đồ y như nhà
     // của người chơi, phần va chạm thì bản đồ đã đánh dấu sẵn.
     for (const t of BD.toaNhaTren(player.mapId)) {
@@ -425,20 +378,8 @@ export function render(el) {
         Math.round(px - w / 2), Math.round(y), Math.round(w), Math.round(chH));
       return true;
     };
-    // Nằm thì vẽ NGAY TRÊN cái giường chứ không phải chỗ đang đứng — đứng cạnh
-    // giường mà nằm thì trông như ngã ra sàn.
-    const giuong = TT.giuongDangNam();
-    const gx = giuong ? (giuong.x + GIUONG_TRO.w / 2) * size - camX : px;
-    const gy = giuong
-      ? (giuong.y + GIUONG_TRO.h / 2) * size - camY + chH / 2 - size * 0.34 : py;
-    // Dáng cầm cần ĐÈ LÊN tư thế nằm: vừa nằm vừa quăng cần thì kỳ.
-    if (dangCau()) {
-      // đã vẽ trong dangCau()
-    } else if (giuong) {
-      nam(avatarImg(), gx, gy, GIUONG_TRO.w > GIUONG_TRO.h);
-    } else {
-      put(avatarImg(), player.dir, player.moving, px, py);
-    }
+    // Dáng cầm cần thì đã vẽ trong dangCau()
+    if (!dangCau()) put(avatarImg(), player.dir, player.moving, px, py);
     drawTitle(px, py - chH + size * 0.34);
   }
 
@@ -511,19 +452,6 @@ export function render(el) {
     // Nút A sáng lên khi đứng trước NPC, trước cửa hoặc trước quầy
     const hint = el.querySelector('#btn-act');
     if (hint) hint.classList.toggle('act-ready', !!facingThing() || !!canCau());
-  }
-
-  // Vừa mở game lên thì nhân vật đang nằm trên giường nhà trọ. Nhấn hướng một
-  // cái là đứng dậy (vòng lặp dưới lo việc đó).
-  //
-  // CHỈ chạy đúng một lần cho mỗi lần mở trang. Trước đây hàm này gọi ở mỗi lần
-  // vẽ lại màn bản đồ, nên cứ từ Menu quay ra là bị đặt nằm xuống giường lại và
-  // hiện thêm một dòng nhắc — vừa sai vừa phiền. Cũng bỏ luôn dòng nhắc: nhìn
-  // là biết mình đang nằm ở đâu, không cần ai nói.
-  function moGameNguDay() {
-    if (!layTinNguDay()) return;
-    const g = INN.giuongCuaToi();
-    if (g) TT.namXuong(g);
   }
 
   // ==== Bang Đường ====
@@ -608,9 +536,6 @@ export function render(el) {
     if (!busy) {
       const k = keyVec();
       updateNpcs(dt);
-      // Nhấn hướng là ngồi dậy khỏi giường. Không cần báo gì — nhìn nhân vật
-      // là thấy.
-      if (vec.x + k.x || vec.y + k.y) TT.dungDay();
       const ev = update(dt, vec.x + k.x, vec.y + k.y);
       // Cổng còn khoá theo cấp: nói rõ cần cấp nào chứ không im lặng chặn
       if (ev?.t === 'khoa') {

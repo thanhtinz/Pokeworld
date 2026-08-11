@@ -1966,34 +1966,12 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ngoaiDi / tongNpc < 0.2, `${ngoaiDi}/${tongNpc}`);
 }
 
-// ==== Giường nhà trọ ====
+// ==== Ảnh ba toà nhà của bang ====
 {
-  const TT = await import('../js/engine/furniture.js');
-  const INN = await import('../js/engine/inn.js');
-  const { GIUONG_TRO, TOA_BANG } = await import('../js/data/noithat.js');
-
-  ok('giường nhà trọ có ảnh riêng', !!GIUONG_TRO.img && GIUONG_TRO.h >= 2);
+  const { TOA_BANG } = await import('../js/data/noithat.js');
   ok('ba toà nhà của bang đều có ảnh',
     Object.keys(TOA_BANG).length === 3
     && Object.values(TOA_BANG).every(t => t.img && t.w > 0 && t.h > 0));
-
-  newGame('NguTro');
-  const g = INN.giuongCuaToi();
-  ok('nhà trọ có giường để nằm', !!g);
-  ok('chưa nằm thì không đứng trên giường', TT.giuongDangNam() === null);
-  const m = newTuxemon(STARTERS[0].sp, 12);
-  G.p.party = [m];
-  m.hpCur = 1;
-  const [loi1, err1] = TT.namXuong(g);
-  ok('nằm xuống được', !!loi1 && !err1, err1 || '');
-  ok('nằm xong thì đội hồi đầy máu', m.hpCur === maxHp(m), `${m.hpCur}/${maxHp(m)}`);
-  ok('đang nằm thì màn bản đồ biết mà vẽ lên giường', TT.giuongDangNam() === g);
-  m.hpCur = 1;
-  TT.namXuong(g);
-  ok('vừa ngủ xong thì phải chờ mới ngủ tiếp', m.hpCur === 1 && !!TT.conNghiChu());
-  ok('nhấn hướng là ngồi dậy', TT.dungDay() && TT.giuongDangNam() === null);
-  ok('đứng rồi thì đứng dậy nữa cũng không sao', TT.dungDay() === false);
-  ok('đếm được số lần ngủ', TT.soLanDung('nam') >= 1);
 }
 
 // ==== Phương tiện ====
@@ -2317,69 +2295,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     !/[<>]/.test(tienChu(4500)) && tienChu(4500).includes('4.500'), tienChu(4500));
 }
 
-// ==== Phòng trọ phải TRỐNG, không đè lên đồ vẽ sẵn ====
-{
-  const { MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
-  const m = MAPS[MAP_NHA_TRO];
-
-  ok('có bản đồ phòng trọ', !!m, MAP_NHA_TRO);
-  // Phòng phải trống: chỉ có hai hàng tường trên cùng là chặn, còn lại đi được
-  const chan = m.solid.reduce((a, v) => a + v, 0);
-  ok('phòng trọ trống, chỉ có tường trên cùng', chan === m.w * 2,
-    `${chan} ô chặn / ${m.w * 2} mong đợi`);
-  ok('phòng trọ không có NPC hay đồ vẽ sẵn',
-    (m.npcs || []).length === 0 && (m.items || []).length === 0);
-  ok('phòng trọ chỉ một lớp nền', m.layers.length === 1 && !m.above);
-
-  // Nhà trọ chung
-  const INN = await import('../js/engine/inn.js');
-  const giuong = INN.cacGiuong();
-  ok('nhà trọ có nhiều giường', giuong.length >= 8, `${giuong.length} giường`);
-  ok('giường nào cũng nằm gọn trong phòng',
-    giuong.every(g => g.x >= 0 && g.y >= 0 && g.x + 1 < m.w && g.y + 2 < m.h));
-  ok('giường không đè lên nhau', (() => {
-    const o = new Set();
-    for (const g of giuong) {
-      for (let dy = 0; dy < 2; dy++) {
-        const k = `${g.x},${g.y + dy}`;
-        if (o.has(k)) return false;
-        o.add(k);
-      }
-    }
-    return true;
-  })());
-  ok('giường không nằm trong tường',
-    giuong.every(g => !m.solid[g.y * m.w + g.x]));
-  ok('nhận ra bản đồ nhà trọ', INN.laNhaTro(MAP_NHA_TRO) && !INN.laNhaTro('taba_town'));
-  INN.datKhachTro(Array.from({ length: 99 }, (_, i) => ({ username: 'x' + i })));
-  ok('số khách trọ không vượt quá số giường còn lại',
-    INN.khachTro().length === giuong.length - 1);
-  INN.datKhachTro([]);
-}
-
-// ==== Mở game lên thì tỉnh dậy ở giường nhà trọ ====
-{
-  const OW = await import('../js/engine/overworld.js');
-  const { MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
-  const INN = await import('../js/engine/inn.js');
-
-  // nguDay() chỉ chạy một lần cho mỗi lần mở trang, nên test theo đúng thứ tự đó
-  newGame('Người Ngủ');
-  const r = OW.nguDay();
-  ok('mở game lên là tỉnh dậy ở nhà trọ',
-    !!r && OW.player.mapId === MAP_NHA_TRO, JSON.stringify(r));
-  ok('dậy đúng trên giường của mình', (() => {
-    const g = INN.giuongCuaToi();
-    return Math.floor(OW.player.x) === g.x && Math.floor(OW.player.y) === g.y;
-  })());
-  ok('nhà trọ có cổng đi ra',
-    (MAPS[MAP_NHA_TRO].warps || []).some(w => w.raTro));
-  ok('cửa quán rượu dẫn thẳng vào nhà trọ',
-    (MAPS[INN.CUA_TRO.map].warps || []).some(
-      w => w.x === INN.CUA_TRO.x && w.y === INN.CUA_TRO.y && w.to === MAP_NHA_TRO));
-  ok('gọi lần hai thì không kéo về nữa', OW.nguDay() === null);
-}
-
 // ==== Mỗi ô trong Menu một icon riêng ====
 // Trước đây Nhiệm vụ và Nhà bếp dùng chung tờ giấy, Nhà trẻ thì mượn dấu cộng
 // hồi máu — nhìn vào không biết ô nào là ô nào. Bài này đọc thẳng mã nguồn nên
@@ -2437,48 +2352,14 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('thư mục vật phẩm không rỗng', readdirSync(new URL(thu)).length > 100);
 }
 
-// ==== Nhà trọ có cửa thật, đi ra rồi vào lại được ====
-// Lỗi cũ: cổng ra của phòng trọ chỉ thả người chơi xuống chỗ xuất phát của thị
-// trấn, không có cửa nào dẫn ngược vào — bấm cửa nào cũng lạc sang nhà người
-// khác. Nay cửa Quán Rượu Hải Âu (taba_house4) là cửa nhà trọ.
-{
-  const INN = await import('../js/engine/inn.js');
-  const cuaO = () => (MAPS[INN.CUA_TRO.map].warps || [])
-    .find(w => w.x === INN.CUA_TRO.x && w.y === INN.CUA_TRO.y);
-  ok('có sẵn một cái cửa ở chỗ định mượn', !!cuaO());
-
-  INN.camCongNhaTro();
-  ok('cửa quán dẫn vào phòng trọ', cuaO().to === INN.MAP_NHA_TRO);
-  ok('vào là đứng ngay chỗ chân giường', (() => {
-    const c = INN.choDay();
-    return cuaO().tx === c.x && cuaO().ty === c.y;
-  })());
-  const ra = (MAPS[INN.MAP_NHA_TRO].warps || []).find(w => w.raTro);
-  ok('phòng trọ có cổng ra về đúng trước cửa quán',
-    !!ra && ra.to === INN.CUA_TRO.map
-    && ra.tx === INN.CUA_TRO.ra.x && ra.ty === INN.CUA_TRO.ra.y);
-  ok('cổng ra nằm trong lòng bản đồ phòng trọ', (() => {
-    const m = MAPS[INN.MAP_NHA_TRO];
-    return ra.x >= 0 && ra.x < m.w && ra.y >= 0 && ra.y < m.h;
-  })());
-  // Gọi hai lần thì vẫn chỉ có một cổng ra, không chồng lên nhau
-  INN.camCongNhaTro();
-  ok('gọi lại không nhân đôi cổng ra',
-    (MAPS[INN.MAP_NHA_TRO].warps || []).filter(w => w.raTro).length === 1);
-}
-
 // ==== Bản đồ trong nhà phải có cờ `trong` để soi cửa ra ====
 {
   const trong = Object.entries(MAPS).filter(([, m]) => m.trong);
   ok('nhận ra được bản đồ trong nhà', trong.length > 40);
   ok('nhà dân trong Taba là trong nhà', !!MAPS.taba_house1?.trong);
-  ok('phòng trọ là trong nhà', !!MAPS.nha_tro?.trong);
   ok('thị trấn KHÔNG phải trong nhà', !MAPS.taba_town?.trong);
-  // Trong nhà mà không có cổng nào thì vào là kẹt luôn — trừ phòng trọ, cổng
-  // của nó do engine/inn.js cắm lúc chạy.
-  const { MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
-  const tuCam = new Set([MAP_NHA_TRO]);
-  const ket = trong.filter(([id, m]) => !tuCam.has(id) && !(m.warps || []).length);
+  // Trong nhà mà không có cổng nào thì vào là kẹt luôn
+  const ket = trong.filter(([, m]) => !(m.warps || []).length);
   ok('trong nhà nào cũng có lối ra', ket.length === 0, ket.map(([id]) => id).join(', '));
 }
 

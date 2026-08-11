@@ -52,10 +52,10 @@ Sinh lại data/asset từ kho gốc:
 git clone https://github.com/Tuxemon/Tuxemon /tmp/Tuxemon
 python3 tools/mktuxemon.py /tmp/Tuxemon    # loài, chiêu, hệ, trạng thái, tiến hoá
 python3 tools/mktmx.py /tmp/Tuxemon        # bản đồ, NPC, cổng, bảng gặp, mặt nước
-                                           # (kéo theo tools/khupho.py,
-                                           #  tools/bangduong.py, tools/phongtrong.py:
+                                           # (kéo theo tools/khupho.py và
+                                           #  tools/bangduong.py + phongtrong.py:
                                            #  dựng Phố Kim Long, Bang Đường và
-                                           #  nhà trọ chung)
+                                           #  ba gian trong nhà bang)
                                            # Truyền thêm đường dẫn thứ hai để
                                            # nạp các pack CraftPix thành địa
                                            # điểm mới (tools/craftpix.py):
@@ -85,7 +85,7 @@ python3 tools/mkfood.py                    # icon 47 món ăn / nguyên liệu (
                                            # một cái hộp gỗ
 python3 tools/mkarena.py /tmp/Tuxemon      # nền trận đấu theo môi trường
 python3 tools/mkworld.py /tmp/Tuxemon      # khu vực, bảng gặp, huấn luyện viên
-python3 tools/mknoithat.py /tmp/Tuxemon    # ba toà nhà bang + giường nhà trọ
+python3 tools/mknoithat.py /tmp/Tuxemon    # sprite ba toà nhà của bang
 python3 tools/mkmounts.py /tmp/Tuxemon     # sprite phương tiện bốn hướng
 python3 tools/mkgifts.py                   # quà tặng (tự vẽ, không cần kho gốc)
 python3 tools/mkboss.py                    # boss thế giới + boss từng khu

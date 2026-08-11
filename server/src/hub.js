@@ -29,13 +29,3 @@ export function emitToUsers(userIds, event, payload) {
   return n;
 }
 
-// Danh sách người đang online (dùng cho nhà trọ chung: ai chưa có nhà thì ngủ
-// chung một phòng, bên khách vẽ mỗi người một cái giường).
-export function onlineList(limit = 40) {
-  const ra = [];
-  for (const [userId, info] of online) {
-    ra.push({ userId, username: info.username, avatar: info.avatar });
-    if (ra.length >= limit) break;
-  }
-  return ra;
-}

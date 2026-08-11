@@ -9,7 +9,6 @@ import {
   proposeMarriage, respondMarriage, divorce, marriageInfo,
 } from './social.js';
 import { guildRouter, guildOf } from './guild.js';
-import { onlineList } from './hub.js';
 import { chatRouter } from './chat.js';
 import { giftRouter } from './gifts.js';
 import { bossRouter, datHookDanhBoss } from './boss.js';
@@ -116,19 +115,6 @@ router.get('/profile/:username', (req, res) => {
     guild: g ? { name: g.name, tag: g.tag } : null,
     lastSeen: u.lastSeen,
   });
-});
-
-// Ai đang online cũng ngủ chung ở nhà trọ. Trả về danh sách để bên khách vẽ
-// mỗi người một cái giường trong phòng trọ.
-router.get('/nhatro', authRequired, (req, res) => {
-  const ds = [];
-  for (const o of onlineList(40)) {
-    if (o.userId === req.user.id) continue;
-    const u = find('users', x => x.id === o.userId);
-    if (!u || u.banned) continue;
-    ds.push({ username: o.username, avatar: o.avatar });
-  }
-  res.json({ ds });
 });
 
 router.get('/leaderboard', (req, res) => {

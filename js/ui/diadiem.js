@@ -29,8 +29,7 @@ export function render(el, { from = 'menu' } = {}) {
   el.querySelectorAll('.dd-di').forEach(b => b.addEventListener('click', async () => {
     const [cho, err] = vaoDiaDiem(b.dataset.id);
     if (err) { toast(err); return; }
-    const { enterMap, boQuaNguDay } = await import('../engine/overworld.js');
-    boQuaNguDay();
+    const { enterMap } = await import('../engine/overworld.js');
     enterMap(cho.map, cho.x, cho.y);
     show('world');
   }));
