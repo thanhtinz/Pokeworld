@@ -1028,52 +1028,144 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .log-line { opacity: .55; }
 .log-line:first-child { opacity: 1; color: var(--text); }
 
-/* ==== Man chinh: khung canh song + doi hinh ==== */
-/* Khung hero vẽ ĐÚNG chỗ nhân vật đang đứng bằng canvas (ui/scene.js), thay
-   cho mấy dòng chữ mô tả khu vực hồi trước — mở game lên là thấy thế giới. */
-.hero {
-  position: relative;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 8px;
-  aspect-ratio: 5 / 4;
-  max-height: 46vh;
-  background: #0b0716;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .04);
-}
-.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-/* Tối dần hai đầu để chữ trắng nằm trên nền cỏ vẫn đọc được */
-.hero-veil {
+/* ==== Man chinh: HUD phu len canh ==== */
+/* Canh chiem HET man hinh, loi di bam quanh mep — kieu man sanh cua game
+   mobile. Nen dung `position: fixed` chu khong `absolute`: #screen co cuon,
+   ma HUD thi phai dinh cung mot cho. */
+.hud { position: fixed; inset: 0; overflow: hidden; }
+.hud-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* Toi dan hai dau de chu trang nam tren nen co van doc duoc */
+.hud-veil {
   position: absolute; inset: 0; pointer-events: none;
   background:
-    linear-gradient(rgba(11, 7, 22, .72) 0, rgba(11, 7, 22, 0) 24%,
-                    rgba(11, 7, 22, 0) 38%, rgba(11, 7, 22, .8) 72%,
-                    rgba(11, 7, 22, .97) 100%);
+    linear-gradient(rgba(11, 7, 22, .8) 0, rgba(11, 7, 22, 0) 16%,
+                    rgba(11, 7, 22, 0) 46%, rgba(11, 7, 22, .72) 72%,
+                    rgba(11, 7, 22, .96) 100%);
 }
-.hero-top {
-  position: absolute; top: 8px; left: 8px; right: 8px;
-  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+
+/* --- hang tren: cap + thanh kinh nghiem + luc chien --- */
+.hud-tren {
+  position: absolute; top: calc(52px + env(safe-area-inset-top)); left: 10px; right: 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
-.hero-top .zone-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(10, 6, 22, .8);
+.hud-cap, .hud-suc {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: 999px;
+  background: rgba(10, 6, 22, .82); border: 1px solid var(--line);
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  font-size: .78rem;
 }
-.hero-foot {
-  position: absolute; left: 10px; right: 10px; bottom: 10px;
+.hud-cap b { color: var(--gold); font-size: .85rem; }
+.hud-cap small { color: var(--muted); font-size: .68rem; font-variant-numeric: tabular-nums; }
+.hud-exp {
+  width: 76px; height: 6px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .14);
+}
+.hud-exp i { display: block; height: 100%; background: linear-gradient(90deg, #58c7f3, #7048e8); }
+.hud-suc b { color: var(--text); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.hud-suc-nhan {
+  font-size: .6rem; letter-spacing: .1em; color: #ffd43b;
+  border: 1px solid rgba(255, 212, 59, .5); border-radius: 4px; padding: 1px 4px;
+}
+
+.hud-vung {
+  position: absolute; top: calc(92px + env(safe-area-inset-top)); left: 0; right: 0;
+  text-align: center; font-size: 1.05rem; font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .95);
+  pointer-events: none;
+}
+
+/* --- hai cot nut hai ben --- */
+.hud-cot {
+  position: absolute; top: calc(126px + env(safe-area-inset-top));
+  display: flex; flex-direction: column; gap: 9px;
+}
+.hud-cot.trai { left: 8px; }
+.hud-cot.phai { right: 8px; }
+.hud-nut, .hud-doc-nut {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: none; border: 0; padding: 0; color: var(--text);
+}
+.hud-nut b, .hud-doc-nut b {
+  font-size: .64rem; line-height: 1.1; white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .95);
+}
+.hud-vien {
+  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, rgba(112, 72, 232, .95), rgba(40, 22, 80, .95));
+  border: 2px solid rgba(255, 255, 255, .22);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .5), 0 0 14px rgba(112, 72, 232, .35);
+  color: var(--gold);
+}
+.hud-nut:active .hud-vien, .hud-doc-nut:active .hud-vien { transform: translateY(2px); }
+.hud-nut.khoa, .hud-doc-nut.khoa { opacity: .45; }
+.hud-khoa { font-size: .58rem; color: var(--muted); }
+.hud-so {
+  position: absolute; top: -3px; right: -2px; min-width: 17px; height: 17px;
+  display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  border-radius: 999px; background: var(--accent); color: #fff;
+  font-size: .6rem; font-weight: 700; font-style: normal;
+  border: 1px solid rgba(0, 0, 0, .45);
+}
+.hud-cham {
+  position: absolute; top: 1px; right: 3px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gold); box-shadow: 0 0 8px var(--gold);
+}
+
+/* --- day man hinh: the cot truyen, bang so, nut di, thanh nut nhanh --- */
+/* Chua cho thanh dieu huong o duoi (#bottom-nav cao ~56px, cach day 10px) */
+.hud-duoi {
+  position: absolute; left: 8px; right: 8px;
+  bottom: calc(78px + env(safe-area-inset-bottom));
   display: flex; flex-direction: column; gap: 8px;
 }
-.hero-desc {
-  font-size: .84rem; line-height: 1.4;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, .9);
+.hud-truyen {
+  display: flex; align-items: center; gap: 9px; text-align: left;
+  padding: 8px 11px; border-radius: 14px;
+  background: rgba(10, 6, 22, .88); border: 1px solid var(--line); color: var(--text);
 }
-.hero-go {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 4px 0 var(--accent-dark), 0 8px 18px rgba(227, 53, 13, .35);
+.hud-truyen.moi { border-color: var(--gold); box-shadow: 0 0 14px rgba(240, 180, 41, .3); }
+.hud-truyen-nhan {
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  font-size: .74rem; color: var(--gold);
 }
-.hero-go:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-dark); }
-.hero-go .ui-ico { flex: none; }
+.hud-truyen-chu { display: flex; flex-direction: column; min-width: 0; }
+.hud-truyen-chu b { font-size: .86rem; }
+.hud-truyen-chu small {
+  color: var(--muted); font-size: .74rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.hud-hang { display: flex; align-items: stretch; gap: 8px; }
+.hud-bang {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  padding: 7px 11px; border-radius: 14px;
+  background: rgba(10, 6, 22, .88); border: 1px solid var(--line);
+}
+.hud-bang span { display: flex; align-items: center; gap: 6px; font-size: .74rem; }
+.hud-bang i { flex: none; width: 52px; color: var(--muted); font-style: normal; }
+.hud-bang b { display: inline-flex; align-items: center; gap: 4px; color: var(--text); }
+.hud-di {
+  flex: none; width: 104px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border-radius: 16px; color: #fff;
+  background: linear-gradient(180deg, #ff6b3d, var(--accent));
+  border: 2px solid rgba(255, 255, 255, .3);
+  box-shadow: 0 4px 0 var(--accent-dark), 0 8px 20px rgba(227, 53, 13, .4);
+}
+.hud-di b { font-size: .9rem; letter-spacing: .06em; }
+.hud-di:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-dark); }
+
+.hud-doc {
+  display: flex; justify-content: space-around; gap: 4px;
+  padding: 8px 8px 10px; border-radius: 16px;
+  background: rgba(10, 6, 22, .88); border: 1px solid var(--line);
+}
+.hud-doc .hud-vien { width: 40px; height: 40px; }
 
 /* ==== Cutscene hoi thoai ==== */
 .cutscene-overlay {
