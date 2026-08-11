@@ -15,7 +15,7 @@ Vai pack ve san mot canh DEMO chu khong phai mot can phong choi duoc: pack
 "Main Character's Home" xep may mau phong canh nhau tren cung mot khung, tuong
 cut ngang, cua mo ra khoang khong. Nhap thang vao game thi nhin nhu chap va
 tung manh, nen bo. Muon dung tileset cua pack do thi phai TU XEP tung o nhu
-tools/khudancu.py dang lam.
+tools/khupho.py dang lam.
 
 GIAY PHEP — DOC KY
 CraftPix cho dung tep mien phi trong game (ke ca game ban tien), khong bat ghi
@@ -56,7 +56,7 @@ NGUOI = re.compile(r'(priest|monk|parishioner|citizen|fighter|mage|reader|'
 #
 # Doi lai la di de len duoc may mon do nho (chum, vun da, ghe dai). May cho
 # nay chi vao ngam nen chap nhan duoc; muon chan tung mon thi phai tu xep o
-# nhu tools/khudancu.py.
+# nhu tools/khupho.py.
 CHAN = re.compile(r'wall', re.I)
 
 
@@ -234,7 +234,7 @@ CAC_MAP = [
 
 
 # Ban do quay ve khi buoc ra cua, neu vao thang chu khong qua man Dia Diem
-VE_MAC_DINH = 'khu_dan_cu'
+VE_MAC_DINH = 'khu_pho'
 
 
 def _vung_di_duoc(m, x0, y0):

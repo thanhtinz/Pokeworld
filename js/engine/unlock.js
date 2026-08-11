@@ -8,9 +8,6 @@ export const FEATURES = {
   shop:     { lv: 3,  name: 'Cửa hàng',    note: 'Mua bóng, thuốc và vật phẩm' },
   chat:     { lv: 4,  name: 'Chat thế giới', note: 'Trò chuyện với người chơi khác' },
   friends:  { lv: 6,  name: 'Bạn bè',      note: 'Kết bạn và nhắn tin riêng' },
-  // Nông trại KHÔNG phải một màn hình trong router: nó là một bản đồ. Cổng vào
-  // (js/engine/overworld.js) với mục Đi Nhanh đều tra vào đây.
-  nongtrai: { lv: 7,  name: 'Nông trại',   note: 'Trồng trọt, nuôi thú, nấu ăn' },
   rank:     { lv: 8,  name: 'Xếp hạng',    note: 'So kè với cả máy chủ' },
   guild:    { lv: 10, name: 'Bang hội',    note: 'Lập bang hoặc xin vào một bang' },
   pvp:      { lv: 12, name: 'Đấu PvP',     note: 'Thách đấu người chơi khác' },

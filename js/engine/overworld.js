@@ -5,12 +5,10 @@ import { ZONES } from '../data/zones.js';
 import { ENCOUNTERS } from '../data/encounters.js';
 import { G, save, markSeen, addItem } from '../state.js';
 import { moiBuoc as daycareBuoc } from './daycare.js';
-import { vatTheODay, nhaXong, mapTrongNha, camCongVeNha, giuongTrongNha } from './estate.js';
-import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi, dongBoCuaTro } from './inn.js';
+import { MAP_NHA_TRO, camCongNhaTro, giuongCuaToi } from './inn.js';
 import { dangOChoi } from './diadiem.js';
-import { dangTham } from './visit.js';
 import { khoaODay, vatBangDuong } from './bangduong.js';
-import { vatNongTrai } from './nongtrai.js';
+import { vatSanhBac } from './casino.js';
 import { isUnlocked, lockNote } from './unlock.js';
 import { newTuxemon, maxHp } from './monster.js';
 import { STATUSES } from '../data/statuses.js';
@@ -67,33 +65,21 @@ export function layTinNguDay() { const t = tinNguDay; tinNguDay = null; return t
 /**
  * Bỏ qua bước "ngủ dậy" cho lần mở màn bản đồ sắp tới.
  *
- * Ai vừa CỐ Ý đặt chân vào một bản đồ (đi nhanh từ trang Địa Điểm) thì đừng
- * kéo về giường nữa. Trước đây chuyện này chỉ đúng với bốn địa điểm CraftPix vì
- * `dangOChoi()` nhận ra chúng; đi nhanh tới nông trại thì mở bản đồ lên là bị
- * quăng thẳng vào nhà trọ.
+ * Ai vừa CỐ Ý đặt chân vào một bản đồ (đi tới từ trang Địa Điểm) thì đừng kéo
+ * về giường nữa.
  */
 export function boQuaNguDay() { daNguDay = true; }
 
 export function nguDay() {
-  // Đang sang thăm nhà người khác, hoặc đang ghé một địa điểm, thì đừng lôi về
+  // Đang ghé một địa điểm thì đừng lôi về
   // giường — người chơi vừa bấm "vào" xong, kéo về nhà trọ là hỏng cả việc
-  if (dangTham() || dangOChoi(player.mapId)) { daNguDay = true; return null; }
+  if (dangOChoi(player.mapId)) { daNguDay = true; return null; }
   if (daNguDay || !G.p) return null;
   daNguDay = true;
-  if (nhaXong()) {
-    const cua = camCongVeNha();
-    // Có giường thì tỉnh dậy NGAY TRÊN GIƯỜNG, không thì đứng ở cửa
-    const g = giuongTrongNha();
-    const cho = g || cua;
-    if (cho && enterMap(mapTrongNha(), cho.x, cho.y)) {
-      tinNguDay = { t: 'nha', giuong: g };
-      return tinNguDay;
-    }
-  }
   camCongNhaTro();
-  const g2 = giuongCuaToi();
-  if (g2 && enterMap(MAP_NHA_TRO, g2.x, g2.y)) {
-    tinNguDay = { t: 'tro', giuong: g2 };
+  const g = giuongCuaToi();
+  if (g && enterMap(MAP_NHA_TRO, g.x, g.y)) {
+    tinNguDay = { giuong: g };
     return tinNguDay;
   }
   return null;
@@ -101,12 +87,9 @@ export function nguDay() {
 
 // Khôi phục vị trí đã lưu
 export function restorePosition() {
-  // Cửa quán rượu Taba dẫn vào phòng trọ khi chưa có nhà, trả lại quán khi đã
-  // dựng nhà xong. Kiểm mỗi lần mở màn bản đồ vì nhà có thể vừa xây xong ở màn
-  // khác — cắm cổng phòng trọ luôn cho cả hai chiều đều đi được.
-  const chuaCoNha = !nhaXong();
-  dongBoCuaTro(chuaCoNha);
-  if (chuaCoNha) camCongNhaTro();
+  // Cửa quán rượu Taba dẫn thẳng vào phòng trọ — cắm cổng cho cả hai chiều
+  // đều đi được.
+  camCongNhaTro();
   // Lần đầu vào bản đồ sau khi mở trang: đưa về chỗ ngủ
   if (!daNguDay && nguDay()) return;
   const pos = G.p?.pos;
@@ -515,15 +498,12 @@ export function facingThing() {
   const { x, y } = facingTile();
   const npc = (map.npcs || []).find(n => n.x === x && n.y === y);
   if (npc) return { type: 'npc', ...npc };
-  // Biển bán đất / nhà của mình / bác thợ mộc — đi chung một đường với NPC
-  const es = vatTheODay(player.mapId, x, y);
-  if (es) return es;
+  // Máy quay / bàn bài trong Sảnh Bạc
+  const cs = vatSanhBac(player.mapId, x, y);
+  if (cs) return cs;
   // Bục gọi boss / rương thưởng / cửa khu trong Bang Đường
   const bd = vatBangDuong(player.mapId, x, y);
   if (bd) return bd;
-  // Ruộng / con vật / công trình trên nông trại
-  const nt = vatNongTrai(player.mapId, x, y);
-  if (nt) return nt;
   // Bảng hiệu / bảng thông báo: bản đồ Tuxemon đánh dấu bằng sự kiện thoại
   const talk = talkAt(currentBake(), x, y);
   if (talk) return { type: 'talk', ...talk };

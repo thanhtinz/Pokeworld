@@ -10,6 +10,19 @@
 //   · luôn chừa lại VON_TOI_THIEU để người chơi không kẹt cứng không mua nổi
 //     thuốc mà đi tiếp
 import { G, save, addMoney } from '../state.js';
+import { SANH, MAY_TAI } from '../data/casino.js';
+
+/**
+ * Máy / bàn trong Sảnh Bạc mà nút hành động bắt được.
+ *
+ * Trả về một "thing" giống NPC để js/engine/overworld.js dùng chung một đường
+ * với mọi thứ khác trên bản đồ.
+ */
+export function vatSanhBac(mapId, x, y) {
+  if (mapId !== SANH) return null;
+  const m = MAY_TAI(x, y);
+  return m ? { type: 'casino', kind: 'may-bac', name: m.ten, tro: m.tro } : null;
+}
 
 export const CUOC_MIN = 100;
 export const CUOC_MAX = 5000;

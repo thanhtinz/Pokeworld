@@ -68,9 +68,7 @@ import { monLevelCap, MAX_TRAINER_LEVEL, trainerExpFor, addTrainerExp,
 import { FEATURES, isUnlocked, unlockedBetween } from '../js/engine/unlock.js';
 import { ACHIEVEMENTS, ACH_BY_ID } from '../js/data/achievements.js';
 import * as DC from '../js/engine/daycare.js';
-import * as ES from '../js/engine/estate.js';
 import * as CR from '../js/engine/craft.js';
-import { FURNITURE, HOUSE_BASES } from '../js/data/estate.js';
 import { bangThanhTuu, nhanThuong, nhanHet, choNhan } from '../js/engine/achievements.js';
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -1968,349 +1966,34 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ngoaiDi / tongNpc < 0.2, `${ngoaiDi}/${tongNpc}`);
 }
 
-// ==== Nhà đất ====
-{
-  newGame('EsTester');
-  ok('có đủ mẫu nhà và đồ trang trí', HOUSE_BASES.length >= 4 && FURNITURE.length >= 10,
-    `${HOUSE_BASES.length} nhà / ${FURNITURE.length} món`);
-  ok('mẫu nhà xếp theo giá tăng dần',
-    HOUSE_BASES.every((b, i) => i === 0 || b.price > HOUSE_BASES[i - 1].price));
-  ok('nhà càng đắt lưới càng rộng',
-    HOUSE_BASES.every((b, i) => i === 0 || b.o >= HOUSE_BASES[i - 1].o));
-  // Lô đất phải rơi vào ô TRỐNG của bản đồ, không đè lên nhà cửa/NPC có sẵn
-  {
-    const m = MAPS[ES.KHU_DAT_MAP];
-    // CHỈ xét vật cản CỐ ĐỊNH. NPC thì đi lang thang khắp ô trống nên toạ độ
-    // của chúng đổi liên tục — kiểm theo đó thì test lúc đỏ lúc xanh, mà cũng
-    // vô nghĩa vì lát sau chúng lại đi chỗ khác. Ô nhà không đặt solid nên NPC
-    // đi ngang qua cũng không kẹt.
-    const ban = new Set();
-    for (const w of m.warps || []) ban.add(`${w.x},${w.y}`);
-    const xau = [];
-    for (const l of ES.LOTS) {
-      for (let dy = 0; dy < 3; dy++) {
-        for (let dx = 0; dx < 3; dx++) {
-          const gx = l.x + dx, gy = l.y + dy;
-          if (m.solid[gy * m.w + gx]) xau.push(`${l.id}: tường ${gx},${gy}`);
-          else if (ban.has(`${gx},${gy}`)) xau.push(`${l.id}: đè cổng ${gx},${gy}`);
-        }
-      }
-    }
-    ok('mọi lô đất nằm trên ô trống, không đè lên gì', xau.length === 0,
-      [...new Set(xau)].join(' | '));
-
-    // Đất ở phải là ĐẤT BẰNG: không dựng nhà giữa hồ hay trên vách núi, và
-    // phải có lối đi tới cửa chứ không xây kín trong bụi.
-    const uot = ES.LOTS.filter(l => {
-      for (let dy = 0; dy < 3; dy++) {
-        for (let dx = 0; dx < 3; dx++) {
-          if (m.water && m.water[(l.y + dy) * m.w + (l.x + dx)]) return true;
-        }
-      }
-      return false;
-    });
-    ok('không lô nào nằm dưới nước', uot.length === 0, uot.map(l => l.id).join(', '));
-
-    const kin = ES.LOTS.filter(l => {
-      const c = { x: l.x + 1, y: l.y + 2 };   // ô cửa
-      if (m.solid[c.y * m.w + c.x]) return true;
-      // phải đứng được ở ô ngay dưới cửa mới bấm vào nhà được
-      const d = (c.y + 1) * m.w + c.x;
-      return c.y + 1 >= m.h || m.solid[d];
-    });
-    ok('lô nào cũng có lối đi tới cửa nhà', kin.length === 0, kin.map(l => l.id).join(', '));
-
-    // Khu dân cư là bản đồ RIÊNG, không mượn góc thị trấn nữa
-    ok('khu đất là bản đồ riêng', ES.KHU_DAT_MAP !== 'taba_town', ES.KHU_DAT_MAP);
-    const cong = (MAPS.taba_town.warps || []).filter(w => w.to === ES.KHU_DAT_MAP);
-    ok('từ thị trấn có cổng vào khu dân cư', cong.length > 0);
-    ok('trong khu dân cư có cổng về thị trấn',
-      (m.warps || []).some(w => w.to === 'taba_town'));
-
-    // Cổng phải nằm trong vùng đi lại chính của thị trấn. Có lần chương trình
-    // sinh tự chọn một góc bị cây và vách đá vây kín — bản đồ vẫn "có cổng"
-    // nhưng người chơi đi cả đời không tới.
-    {
-      const t = MAPS.taba_town;
-      const s = t.spawn;
-      const den = new Set([`${s.x},${s.y}`]);
-      const hang = [[s.x, s.y]];
-      while (hang.length) {
-        const [x, y] = hang.pop();
-        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-          const nx = x + dx, ny = y + dy;
-          if (nx < 0 || ny < 0 || nx >= t.w || ny >= t.h) continue;
-          if (t.solid[ny * t.w + nx]) continue;
-          const k = `${nx},${ny}`;
-          if (den.has(k)) continue;
-          den.add(k); hang.push([nx, ny]);
-        }
-      }
-      ok('đi bộ trong thị trấn tới được cổng khu dân cư',
-        cong.every(w => den.has(`${w.x},${w.y}`)),
-        cong.map(w => `${w.x},${w.y}`).join(' '));
-      // Phố Kim Long treo THẲNG vào thị trấn chứ không nấp sau khu đất ở:
-      // kho công cộng mà phải đi xuyên qua khu nhà dân mới tới thì không ai
-      // tìm ra.
-      const congP = t.warps.filter(w => w.to === 'khu_pho');
-      ok('thị trấn có đúng một cổng sang Phố Kim Long', congP.length === 1,
-        `${congP.length} cổng`);
-      ok('đi bộ trong thị trấn tới được cổng Phố Kim Long',
-        congP.every(w => den.has(`${w.x},${w.y}`)),
-        congP.map(w => `${w.x},${w.y}`).join(' '));
-      ok('hai cổng không đè lên nhau',
-        !congP.some(a => cong.some(b => a.x === b.x && a.y === b.y)));
-      ok('Phố Kim Long có đường về thị trấn',
-        (MAPS.khu_pho.warps || []).some(w => w.to === 'taba_town'));
-      // ---- Hàng quán ngoài phố ----
-      // Quầy KHÔNG được làm thành vật thể riêng: NPC đứng đè lên ô đó thì
-      // facingThing() bắt trúng NPC chứ không trúng quầy, bấm A chỉ ra mỗi câu
-      // thoại. Nên gắn thẳng trường `mo` vào chính NPC — đường này engine đã
-      // có sẵn cho NPC làm việc.
-      const quay = (MAPS.khu_pho.npcs || []).filter(n => n.mo);
-      ok('phố có ít nhất hai hàng quán', quay.length >= 2, `${quay.length} quầy`);
-      ok('quầy nào cũng mở một màn có thật',
-        quay.every(n => ['shop', 'craft', 'daycare', 'gifts', 'wardrobe', 'estate',
-          'nongtrai'].includes(n.mo)),
-        quay.map(n => `${n.name}:${n.mo}`).join(' '));
-      ok('quầy nào cũng đứng trên ô đi được',
-        quay.every(n => !MAPS.khu_pho.solid[n.y * MAPS.khu_pho.w + n.x]));
-      ok('quầy nào cũng có chỗ đứng trước mặt để bấm',
-        quay.every(n => !MAPS.khu_pho.solid[(n.y + 1) * MAPS.khu_pho.w + n.x]),
-        quay.filter(n => MAPS.khu_pho.solid[(n.y + 1) * MAPS.khu_pho.w + n.x])
-          .map(n => n.name).join(' '));
-      ok('quầy nào cũng có lời chào và sprite',
-        quay.every(n => n.name && n.lines?.length && n.sprite));
-      ok('không hai quầy nào đứng chồng ô',
-        new Set(quay.map(n => `${n.x},${n.y}`)).size === quay.length);
-      // Phố phải có người, không thì đi vào thấy trống hoác
-      ok('phố có đủ người qua lại', (MAPS.khu_pho.npcs || []).length >= 5,
-        `${(MAPS.khu_pho.npcs || []).length} người`);
-    }
-
-    // Khu dân cư là ĐẤT Ở THUẦN TUÝ: hàng quán dời hết ra Phố Kim Long, hồ câu
-    // dời lên Nông Trại. Trước gom chung một chỗ nên đi mua đất cứ lẫn vào chợ.
-    ok('khu dân cư không còn mặt nước', !(m.water || []).some(v => v));
-    ok('khu dân cư không còn quầy hàng nào',
-      !(m.npcs || []).some(n => n.mo),
-      (m.npcs || []).filter(n => n.mo).map(n => n.name).join(' '));
-    const chan = m.solid.reduce((a, v) => a + v, 0);
-    ok('khu dân cư có vật cản, không phải bãi trống', chan / (m.w * m.h) > 0.15,
-      `${Math.round(chan * 100 / (m.w * m.h))}%`);
-
-    // Đi bộ từ cổng vào phải tới được MỌI cửa nhà và chỗ bác thợ mộc
-    const vao = cong[0];
-    const den = new Set([`${vao.tx},${vao.ty}`]);
-    const hang = [[vao.tx, vao.ty]];
-    while (hang.length) {
-      const [x, y] = hang.pop();
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const nx = x + dx, ny = y + dy;
-        if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) continue;
-        if (m.solid[ny * m.w + nx]) continue;
-        const k = `${nx},${ny}`;
-        if (den.has(k)) continue;
-        den.add(k); hang.push([nx, ny]);
-      }
-    }
-    const xa = ES.LOTS.filter(l => !den.has(`${l.x + 1},${l.y + 3}`));
-    ok('đi bộ từ cổng tới được mọi lô đất', xa.length === 0, xa.map(l => l.id).join(', '));
-    // Con đường vẫn chạy suốt lên phía bắc (cho khu đỡ cụt), nhưng ĐẦU BẮC
-    // không còn cổng nào — nông trại giờ nằm sau nhà người chơi.
-    ok('đường trong khu chạy được suốt lên phía bắc',
-      den.has(`${ES.CONG_BAC.x},${ES.CONG_BAC.y + 1}`));
-  }
-
-  G.p.money = 1000;
-  ok('không đủ tiền thì không mua được đất', ES.muaDat('a1')[1] !== null);
-  G.p.money = 1000000;
-  ok('mua được đất', ES.muaDat('a1')[0] !== null);
-  ok('mỗi người chỉ một lô', ES.muaDat('a2')[1] !== null);
-  ok('chưa có nhà thì bản đồ không vẽ gì', ES.nhaTrenBanDo(ES.KHU_DAT_MAP) === null);
-
-  const re = HOUSE_BASES[0], dat = HOUSE_BASES[2];
-  ok('dựng được nhà', ES.dungNha(re.id)[0] !== null);
-  ok('nhà hiện lên bản đồ', !!ES.nhaTrenBanDo(ES.KHU_DAT_MAP));
-  ok('nhà chỉ hiện ở đúng bản đồ khu đất', ES.nhaTrenBanDo('route1') === null);
-  const truoc = G.p.money;
-  const [nang] = ES.dungNha(dat.id);
-  ok('nâng cấp chỉ trả phần chênh lệch',
-    nang && G.p.money === truoc - (dat.price - re.price), String(G.p.money));
-  ok('không đổi xuống mẫu nhỏ hơn', ES.dungNha(re.id)[1] !== null);
-
-  // Kê đồ (bộ kê theo bản đồ trong nhà, test kỹ ở phần dưới)
-  const mon = FURNITURE[0];
-  ok('mua đồ vào kho', ES.muaDo(mon.id)[0] !== null && ES.conTrongKho(mon.id) === 1);
-  ok('số món kê được khớp với căn phòng thật', (() => {
-    const m = MAPS[ES.mapTrongNha()];
-    return ES.soMonToiDa() === ES.soMonToiDa(m) && ES.soMonToiDa() >= 6;
-  })(), `${ES.soMonToiDa()}`);
-
-  ok('tổng giá trị cộng cả đất, nhà và đồ',
-    ES.tomTat().giaTri >= ES.LOT_BY_ID.a1.price + dat.price);
-
-  // ==== Đi bộ tới mua: biển bán / công trường / cửa nhà ====
-  {
-    newGame('EsMap');
-    G.p.money = 1000000;
-    const l = ES.LOTS[0];
-    ok('lô chưa mua thì thấy biển BÁN',
-      ES.vatTheODay(ES.KHU_DAT_MAP, l.x + 1, l.y + 1)?.kind === 'lo-ban');
-    ok('bản đồ khác thì không có gì', ES.vatTheODay('route1', l.x + 1, l.y + 1) === null);
-
-    ES.muaDat(l.id);
-    ok('mua rồi thì lô thành của mình',
-      ES.vatTheODay(ES.KHU_DAT_MAP, l.x + 1, l.y + 1)?.kind === 'lo-cua-minh');
-    ok('lô khác báo đã có đất rồi',
-      ES.vatTheODay(ES.KHU_DAT_MAP, ES.LOTS[1].x, ES.LOTS[1].y)?.kind === 'lo-nguoi-khac');
-
-    ES.dungNha('nha_go');
-    ok('dựng xong là vào chế độ đang xây', ES.dangXay() && !ES.nhaXong());
-    ok('đang xây thì tới nơi thấy công trường',
-      ES.vatTheODay(ES.KHU_DAT_MAP, l.x + 1, l.y + 1)?.kind === 'dang-xay');
-    ok('còn lại có chữ mô tả', /phút|giờ/.test(ES.conLaiChu()), ES.conLaiChu());
-
-    const tienTruoc = G.p.money;
-    const [gia] = ES.xayNhanh();
-    ok('giục thợ thì trả thêm tiền và xong ngay',
-      gia > 0 && G.p.money === tienTruoc - gia && ES.nhaXong());
-    const c = ES.oCua();
-    ok('có ô cửa để đi vào', !!c);
-    ok('đứng đúng ô cửa thì mở được nhà',
-      ES.vatTheODay(ES.KHU_DAT_MAP, c.x, c.y)?.kind === 'cua-nha');
-    ok('đứng chỗ khác trong lô thì chỉ là thân nhà',
-      ES.vatTheODay(ES.KHU_DAT_MAP, l.x, l.y)?.kind === 'nha-minh');
-
-    // Kê đồ theo ô bản đồ trong nhà
-    const noi = MAPS[ES.mapTrongNha()];
-    ok('bản đồ trong nhà có thật và trống', !!noi && (noi.npcs || []).length === 0);
-    const mon = FURNITURE[0];
-    ES.muaDo(mon.id);
-    ok('mỗi mẫu nhà có mặt bằng riêng, càng đắt càng rộng', (() => {
-      const co = HOUSE_BASES.map(b => MAPS[ES.MAP_TRONG_NHA[b.id]]);
-      return co.every(Boolean) && co.every((m, i) => i === 0
-        || m.w * m.h >= co[i - 1].w * co[i - 1].h);
-    })(), HOUSE_BASES.map(b => {
-      const m = MAPS[ES.MAP_TRONG_NHA[b.id]];
-      return `${b.id}=${m ? m.w + 'x' + m.h : 'THIẾU'}`;
-    }).join(' '));
-  ok('bản đồ trong nhà nào cũng trống hẳn',
-    Object.values(ES.MAP_TRONG_NHA).every(k => MAPS[k]
-      && (MAPS[k].npcs || []).length === 0));
-  ok('kê được vào ô giữa nhà', ES.keTaiO(mon.id, 2, 2)[0] !== null);
-    ok('tìm lại được món ở ô đó', ES.monTaiO(2, 2)?.id === mon.id);
-    const d = ES.monTaiO(2, 2);
-    ok('kéo sang ô trống thì đi theo', ES.chuyenDo(d, 4, 3, noi)[0] !== null && d.x === 4);
-    ok('kéo ra ngoài tường thì không cho', ES.chuyenDo(d, 0, 0, noi)[1] !== null);
-    ok('kéo ra ngoài mép bản đồ thì không cho',
-      ES.chuyenDo(d, noi.w, 3, noi)[1] !== null);
-    ES.muaDo(mon.id);
-    ok('không kê chồng lên món đang có', !ES.keDuocTrongNha(mon.id, 4, 3, noi));
-    // Tường của phòng dày HAI hàng trên cùng — không được kê vào đó
-    ok('không kê đồ vào tường',
-      !ES.keDuocTrongNha(mon.id, 3, 0, noi) && !ES.keDuocTrongNha(mon.id, 3, 1, noi));
-    ok('kê được ở hàng ngay dưới tường', ES.keDuocTrongNha(mon.id, 8, 2, noi));
-    ok('không kê tràn ra ngoài bản đồ',
-      !ES.keDuocTrongNha(mon.id, noi.w, 3, noi) && !ES.keDuocTrongNha(mon.id, 3, noi.h, noi));
-    ok('cất về kho thì đồ quay lại kho',
-      ES.catVeKho(d) && ES.conTrongKho(mon.id) === 2);
-  }
-}
-
-// ==== Dùng nội thất: nằm, ngồi, ăn, tắm, nấu, bật đèn ====
+// ==== Giường nhà trọ ====
 {
   const TT = await import('../js/engine/furniture.js');
-  const { FURNITURE, NHOM_DO } = await import('../js/data/estate.js');
+  const INN = await import('../js/engine/inn.js');
+  const { GIUONG_TRO, TOA_BANG } = await import('../js/data/noithat.js');
 
-  ok('bộ nội thất đủ nhiều để chọn', FURNITURE.length >= 60, `${FURNITURE.length} món`);
-  ok('món nào cũng có ảnh riêng',
-    new Set(FURNITURE.map(f => f.img)).size === FURNITURE.length);
-  ok('id nội thất không trùng nhau',
-    new Set(FURNITURE.map(f => f.id)).size === FURNITURE.length);
-  ok('giá nội thất trải rộng, không cào bằng',
-    new Set(FURNITURE.map(f => f.price)).size >= 15);
-  const nhomCo = new Set(NHOM_DO.map(n => n.id));
-  ok('món nào cũng thuộc một nhóm có thật',
-    FURNITURE.every(f => nhomCo.has(f.nhom)),
-    FURNITURE.filter(f => !nhomCo.has(f.nhom)).map(f => f.id).join(', '));
-  ok('nhóm nào cũng có hàng',
-    NHOM_DO.every(n => FURNITURE.some(f => f.nhom === n.id)));
-  const kieuCo = new Set(Object.keys(TT.TEN_TUONG_TAC));
-  ok('kiểu tương tác nào cũng có tên tiếng Việt',
-    FURNITURE.every(f => !f.kind || kieuCo.has(f.kind)),
-    FURNITURE.filter(f => f.kind && !kieuCo.has(f.kind)).map(f => f.kind).join(', '));
-  for (const k of ['nam', 'ngoi', 'ban', 'tam', 'nau', 'den']) {
-    ok(`có món để ${TT.TEN_TUONG_TAC[k]}`, FURNITURE.some(f => f.kind === k));
-  }
+  ok('giường nhà trọ có ảnh riêng', !!GIUONG_TRO.img && GIUONG_TRO.h >= 2);
+  ok('ba toà nhà của bang đều có ảnh',
+    Object.keys(TOA_BANG).length === 3
+    && Object.values(TOA_BANG).every(t => t.img && t.w > 0 && t.h > 0));
 
-  // Đặt một bộ đủ kiểu rồi dùng thử
-  newGame('Chủ Nhà');
-  G.p.money = 2000000;
-  G.p.estate = { lot: ES.LOTS[0].id, base: 'nha_da', xongLuc: 1, kho: {}, dat: [] };
-  G.p.party = [newTuxemon(STARTERS[0].sp, 12)];
-  const mon0 = G.p.party[0];
-  const timKieu = (k) => FURNITURE.find(f => f.kind === k);
-
-  {
-    const g = timKieu('nam');
-    const d = { id: g.id, x: 2, y: 2 };
-    mon0.hpCur = 1; mon0.status = 'poison';
-    const [ra, err] = TT.dung(d);
-    ok('nằm ngủ chạy được', !err && !!ra, err || '');
-    ok('ngủ dậy cả đội đầy máu', mon0.hpCur === maxHp(mon0) && !mon0.status);
-    ok('đang nằm thì tư thế là nằm', TT.tuTheHienTai() === 'nam');
-    ok('nằm xong phải chờ mới nằm tiếp', TT.dung(d)[1] !== null);
-    ok('bước một bước là đứng dậy', TT.dungDay() && TT.tuTheHienTai() === '');
-  }
-  {
-    const g = timKieu('ngoi');
-    const d = { id: g.id, x: 4, y: 2 };
-    ok('ngồi xuống được', TT.dung(d)[0] !== null && TT.tuTheHienTai() === 'ngoi');
-    ok('bấm lần nữa thì đứng lên', TT.dung(d)[0] !== null && TT.tuTheHienTai() === '');
-    ok('ghế không có thời gian chờ', TT.dung(d)[0] !== null);
-    TT.dungDay();
-  }
-  {
-    const g = timKieu('ban');
-    const d = { id: g.id, x: 6, y: 2 };
-    mon0.hpCur = 1;
-    const [ra] = TT.dung(d);
-    ok('ăn cơm hồi một phần máu', !!ra && mon0.hpCur > 1 && mon0.hpCur < maxHp(mon0),
-      `${mon0.hpCur}/${maxHp(mon0)}`);
-    ok('ăn xong phải chờ mới ăn tiếp', TT.dung(d)[1] !== null);
-  }
-  {
-    const g = timKieu('tam');
-    const d = { id: g.id, x: 8, y: 2 };
-    mon0.status = 'burn';
-    ok('tắm xong hết trạng thái xấu', TT.dung(d)[0] !== null && !mon0.status);
-  }
-  {
-    const g = timKieu('den');
-    const d = { id: g.id, x: 10, y: 2 };
-    const truoc = TT.denDangBat();
-    TT.dung(d);
-    ok('bật/tắt được đèn', TT.denDangBat() === !truoc);
-    TT.dung(d);
-    ok('bấm lại thì về như cũ', TT.denDangBat() === truoc);
-  }
-  {
-    const g = timKieu('nau');
-    const [ra] = TT.dung({ id: g.id, x: 12, y: 2 });
-    ok('bếp mở thẳng màn Nhà Bếp', ra?.moMan === 'craft');
-  }
-  ok('món chỉ để nhìn thì không dùng được',
-    TT.dung({ id: FURNITURE.find(f => !f.kind).id, x: 1, y: 1 })[1] !== null);
-  ok('món không có thật thì báo lỗi', TT.dung({ id: 'khong_co', x: 1, y: 1 })[1] !== null);
-
-  // Đứng trước đồ trong nhà mình thì nút hành động bắt được
-  {
-    G.p.estate.dat = [{ id: timKieu('nam').id, x: 3, y: 3 }];
-    const noi = ES.mapTrongNha();
-    const t = ES.vatTheODay(noi, 3, 3);
-    ok('trong nhà bấm được vào đồ đã kê', t?.kind === 'do-noi-that', JSON.stringify(t));
-    ok('ô trống trong nhà thì không bắt được gì', ES.vatTheODay(noi, 7, 7) === null);
-  }
+  newGame('NguTro');
+  const g = INN.giuongCuaToi();
+  ok('nhà trọ có giường để nằm', !!g);
+  ok('chưa nằm thì không đứng trên giường', TT.giuongDangNam() === null);
+  const m = newTuxemon(STARTERS[0].sp, 12);
+  G.p.party = [m];
+  m.hpCur = 1;
+  const [loi1, err1] = TT.namXuong(g);
+  ok('nằm xuống được', !!loi1 && !err1, err1 || '');
+  ok('nằm xong thì đội hồi đầy máu', m.hpCur === maxHp(m), `${m.hpCur}/${maxHp(m)}`);
+  ok('đang nằm thì màn bản đồ biết mà vẽ lên giường', TT.giuongDangNam() === g);
+  m.hpCur = 1;
+  TT.namXuong(g);
+  ok('vừa ngủ xong thì phải chờ mới ngủ tiếp', m.hpCur === 1 && !!TT.conNghiChu());
+  ok('nhấn hướng là ngồi dậy', TT.dungDay() && TT.giuongDangNam() === null);
+  ok('đứng rồi thì đứng dậy nữa cũng không sao', TT.dungDay() === false);
+  ok('đếm được số lần ngủ', TT.soLanDung('nam') >= 1);
 }
 
 // ==== Phương tiện ====
@@ -2496,10 +2179,10 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   const BD = await import('../js/engine/bangduong.js');
   const m = MAPS[BD.BANG_MAP];
   ok('có bản đồ Bang Đường', !!m, BD.BANG_MAP);
-  ok('Bang Đường có cổng về khu dân cư',
-    (m.warps || []).some(w => w.to === ES.KHU_DAT_MAP));
-  ok('từ khu dân cư có cổng vào Bang Đường',
-    (MAPS[ES.KHU_DAT_MAP].warps || []).some(w => w.to === BD.BANG_MAP));
+  ok('Bang Đường có cổng về thị trấn',
+    (m.warps || []).some(w => w.to === 'taba_town'));
+  ok('từ thị trấn có cổng vào Bang Đường',
+    (MAPS.taba_town.warps || []).some(w => w.to === BD.BANG_MAP));
   ok('Bang Đường có hai khu khoá theo cấp bang', BD.CUA_KHU.length === 2);
   ok('hai khu mở ở hai mốc cấp khác nhau',
     BD.CUA_KHU[0].cap !== BD.CUA_KHU[1].cap
@@ -2529,7 +2212,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   // ==== Ba toà nhà của bang, ngoài và trong đều có người ====
   {
-    const { TOA_BANG } = await import('../js/data/estate.js');
+    const { TOA_BANG } = await import('../js/data/noithat.js');
     const toa = BD.TOA_NHA;
     ok('bang có nhiều toà nhà', toa.length >= 3, String(toa.length));
     ok('toà nào cũng có ảnh', toa.every(t => !!TOA_BANG[t.id]),
@@ -2634,42 +2317,26 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     !/[<>]/.test(tienChu(4500)) && tienChu(4500).includes('4.500'), tienChu(4500));
 }
 
-// ==== Phòng trong nhà phải TRỐNG, không đè lên đồ vẽ sẵn ====
+// ==== Phòng trọ phải TRỐNG, không đè lên đồ vẽ sẵn ====
 {
-  const { PHONG_NHA, MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
-  const { HOUSE_BASES, FURN_BY_ID } = await import('../js/data/estate.js');
+  const { MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
+  const m = MAPS[MAP_NHA_TRO];
 
-  ok('mẫu nhà nào cũng có phòng riêng',
-    HOUSE_BASES.every(b => !!PHONG_NHA[b.id]),
-    HOUSE_BASES.filter(b => !PHONG_NHA[b.id]).map(b => b.id).join(', '));
-  ok('mỗi mẫu nhà một phòng khác nhau',
-    new Set(Object.values(PHONG_NHA)).size === Object.keys(PHONG_NHA).length);
-  ok('nhà càng đắt phòng càng rộng', (() => {
-    const o = HOUSE_BASES.map(b => MAPS[PHONG_NHA[b.id]]).map(m => m.w * m.h);
-    return o.every((n, i) => i === 0 || n > o[i - 1]);
-  })());
-
-  for (const [base, mid] of Object.entries(PHONG_NHA)) {
-    const m = MAPS[mid];
-    // Phòng phải trống: chỉ có hai hàng tường trên cùng là chặn, còn lại đi
-    // được. Nhà riêng KHÔNG còn cửa sau — nông trại đã tách hẳn khỏi căn nhà.
-    const chan = m.solid.reduce((a, v) => a + v, 0);
-    ok(`phòng ${base} trống, chỉ có tường trên cùng`, chan === m.w * 2,
-      `${chan} ô chặn / ${m.w * 2} mong đợi`);
-    ok(`phòng ${base} không có NPC hay đồ vẽ sẵn`,
-      (m.npcs || []).length === 0 && (m.items || []).length === 0);
-    // Chỉ một lớp ô: không có lớp đồ đạc phủ lên nền
-    ok(`phòng ${base} chỉ một lớp nền`, m.layers.length === 1 && !m.above);
-  }
+  ok('có bản đồ phòng trọ', !!m, MAP_NHA_TRO);
+  // Phòng phải trống: chỉ có hai hàng tường trên cùng là chặn, còn lại đi được
+  const chan = m.solid.reduce((a, v) => a + v, 0);
+  ok('phòng trọ trống, chỉ có tường trên cùng', chan === m.w * 2,
+    `${chan} ô chặn / ${m.w * 2} mong đợi`);
+  ok('phòng trọ không có NPC hay đồ vẽ sẵn',
+    (m.npcs || []).length === 0 && (m.items || []).length === 0);
+  ok('phòng trọ chỉ một lớp nền', m.layers.length === 1 && !m.above);
 
   // Nhà trọ chung
-  const tro = MAPS[MAP_NHA_TRO];
-  ok('có bản đồ nhà trọ chung', !!tro);
   const INN = await import('../js/engine/inn.js');
   const giuong = INN.cacGiuong();
   ok('nhà trọ có nhiều giường', giuong.length >= 8, `${giuong.length} giường`);
   ok('giường nào cũng nằm gọn trong phòng',
-    giuong.every(g => g.x >= 0 && g.y >= 0 && g.x + 1 < tro.w && g.y + 2 < tro.h));
+    giuong.every(g => g.x >= 0 && g.y >= 0 && g.x + 1 < m.w && g.y + 2 < m.h));
   ok('giường không đè lên nhau', (() => {
     const o = new Set();
     for (const g of giuong) {
@@ -2682,8 +2349,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     return true;
   })());
   ok('giường không nằm trong tường',
-    giuong.every(g => !tro.solid[g.y * tro.w + g.x]));
-  ok('món dùng làm giường trọ là món có thật', !!FURN_BY_ID[INN.ID_GIUONG]);
+    giuong.every(g => !m.solid[g.y * m.w + g.x]));
   ok('nhận ra bản đồ nhà trọ', INN.laNhaTro(MAP_NHA_TRO) && !INN.laNhaTro('taba_town'));
   INN.datKhachTro(Array.from({ length: 99 }, (_, i) => ({ username: 'x' + i })));
   ok('số khách trọ không vượt quá số giường còn lại',
@@ -2691,7 +2357,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   INN.datKhachTro([]);
 }
 
-// ==== Mở game lên thì tỉnh dậy ở giường ====
+// ==== Mở game lên thì tỉnh dậy ở giường nhà trọ ====
 {
   const OW = await import('../js/engine/overworld.js');
   const { MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
@@ -2700,63 +2366,18 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   // nguDay() chỉ chạy một lần cho mỗi lần mở trang, nên test theo đúng thứ tự đó
   newGame('Người Ngủ');
   const r = OW.nguDay();
-  ok('chưa có nhà thì tỉnh dậy ở nhà trọ',
-    r?.t === 'tro' && OW.player.mapId === MAP_NHA_TRO, JSON.stringify(r));
+  ok('mở game lên là tỉnh dậy ở nhà trọ',
+    !!r && OW.player.mapId === MAP_NHA_TRO, JSON.stringify(r));
   ok('dậy đúng trên giường của mình', (() => {
     const g = INN.giuongCuaToi();
     return Math.floor(OW.player.x) === g.x && Math.floor(OW.player.y) === g.y;
   })());
   ok('nhà trọ có cổng đi ra',
     (MAPS[MAP_NHA_TRO].warps || []).some(w => w.raTro));
+  ok('cửa quán rượu dẫn thẳng vào nhà trọ',
+    (MAPS[INN.CUA_TRO.map].warps || []).some(
+      w => w.x === INN.CUA_TRO.x && w.y === INN.CUA_TRO.y && w.to === MAP_NHA_TRO));
   ok('gọi lần hai thì không kéo về nữa', OW.nguDay() === null);
-}
-
-// ==== Thăm nhà là VÀO HẲN bản đồ nhà người ta ====
-{
-  const VS = await import('../js/engine/visit.js');
-  const { PHONG_NHA } = await import('../js/data/phongtrong.js');
-
-  ok('chưa thăm ai thì không có gì', !VS.dangTham() && VS.doCuaChu().length === 0);
-  const chu = { username: 'HangXom', base: 'nha_ngoi',
-    dat: [{ id: 'giuong_do_doi', x: 3, y: 4 }, { id: 'ban_tron', x: 7, y: 6 }] };
-  const [cho, err] = VS.vaoNhaNguoiKhac(chu, { map: 'taba_town', x: 10, y: 12 });
-  ok('vào được nhà người khác', !err && cho?.map === PHONG_NHA.nha_ngoi, err || '');
-  ok('đang thăm thì biết chủ nhà là ai',
-    VS.dangTham() && VS.chuNha() === 'HangXom' && VS.doCuaChu().length === 2);
-  ok('nhà đang thăm có cổng đi ra về đúng chỗ cũ', (() => {
-    const w = (MAPS[cho.map].warps || []).find(x => x.raTham);
-    return w && w.to === 'taba_town' && w.tx === 10 && w.ty === 12;
-  })());
-  // Là khách thì không đụng được vào đồ của chủ nhà
-  G.p.estate = { lot: ES.LOTS[0].id, base: 'nha_ngoi', xongLuc: 1, kho: {},
-    dat: [{ id: 'giuong_do_doi', x: 3, y: 4 }] };
-  ok('khách không bấm được vào đồ trong nhà người ta',
-    ES.vatTheODay(PHONG_NHA.nha_ngoi, 3, 4) === null);
-  ok('rời nhà thì gỡ sạch cổng tạm', (() => {
-    const okRoi = VS.roiNhaNguoiKhac();
-    return okRoi && !VS.dangTham()
-      && !(MAPS[cho.map].warps || []).some(x => x.raTham);
-  })());
-  ok('về nhà mình thì lại bấm được đồ',
-    ES.vatTheODay(PHONG_NHA.nha_ngoi, 3, 4)?.kind === 'do-noi-that');
-  ok('nhà chưa dựng thì không thăm được',
-    VS.vaoNhaNguoiKhac({ username: 'A', base: null, dat: [] }, null)[1] !== null);
-}
-
-// ==== Nằm giường thì nằm DỌC theo giường ====
-// Màn bản đồ chỉ xoay ngang nhân vật khi món nằm rộng hơn cao. Mọi giường
-// trong game đều dựng đứng, nên chỉ cần giữ đúng luật đó trong dữ liệu là
-// không bao giờ còn cảnh nằm vắt ngang thò cả người ra ngoài giường.
-{
-  const { FURNITURE } = await import('../js/data/estate.js');
-  const nam = FURNITURE.filter(f => f.kind === 'nam');
-  ok('có món để nằm', nam.length > 0);
-  const ngang = nam.filter(f => f.w > f.h);
-  ok('không giường nào nằm ngang', ngang.length === 0,
-    ngang.map(f => f.id).join(', '));
-  const INN2 = await import('../js/engine/inn.js');
-  const g = FURNITURE.find(f => f.id === INN2.ID_GIUONG);
-  ok('giường nhà trọ cũng dựng đứng', !!g && g.h >= g.w);
 }
 
 // ==== Mỗi ô trong Menu một icon riêng ====
@@ -2819,17 +2440,15 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 // ==== Nhà trọ có cửa thật, đi ra rồi vào lại được ====
 // Lỗi cũ: cổng ra của phòng trọ chỉ thả người chơi xuống chỗ xuất phát của thị
 // trấn, không có cửa nào dẫn ngược vào — bấm cửa nào cũng lạc sang nhà người
-// khác. Nay mượn cửa Quán Rượu Hải Âu (taba_house4) làm cửa nhà trọ.
+// khác. Nay cửa Quán Rượu Hải Âu (taba_house4) là cửa nhà trọ.
 {
   const INN = await import('../js/engine/inn.js');
   const cuaO = () => (MAPS[INN.CUA_TRO.map].warps || [])
     .find(w => w.x === INN.CUA_TRO.x && w.y === INN.CUA_TRO.y);
   ok('có sẵn một cái cửa ở chỗ định mượn', !!cuaO());
-  const dichGoc = cuaO().to;
 
-  INN.dongBoCuaTro(true);
   INN.camCongNhaTro();
-  ok('chưa có nhà thì cửa quán dẫn vào phòng trọ', cuaO().to === INN.MAP_NHA_TRO);
+  ok('cửa quán dẫn vào phòng trọ', cuaO().to === INN.MAP_NHA_TRO);
   ok('vào là đứng ngay chỗ chân giường', (() => {
     const c = INN.choDay();
     return cuaO().tx === c.x && cuaO().ty === c.y;
@@ -2846,9 +2465,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   INN.camCongNhaTro();
   ok('gọi lại không nhân đôi cổng ra',
     (MAPS[INN.MAP_NHA_TRO].warps || []).filter(w => w.raTro).length === 1);
-
-  INN.dongBoCuaTro(false);
-  ok('dựng nhà xong thì cửa trả lại quán rượu', cuaO().to === dichGoc);
 }
 
 // ==== Bản đồ trong nhà phải có cờ `trong` để soi cửa ra ====
@@ -2858,10 +2474,10 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   ok('nhà dân trong Taba là trong nhà', !!MAPS.taba_house1?.trong);
   ok('phòng trọ là trong nhà', !!MAPS.nha_tro?.trong);
   ok('thị trấn KHÔNG phải trong nhà', !MAPS.taba_town?.trong);
-  // Trong nhà mà không có cổng nào thì vào là kẹt luôn — trừ mấy phòng nhà
-  // riêng, cổng của chúng do engine/estate.js cắm lúc chạy.
-  const { PHONG_NHA, MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
-  const tuCam = new Set([...Object.values(PHONG_NHA), MAP_NHA_TRO]);
+  // Trong nhà mà không có cổng nào thì vào là kẹt luôn — trừ phòng trọ, cổng
+  // của nó do engine/inn.js cắm lúc chạy.
+  const { MAP_NHA_TRO } = await import('../js/data/phongtrong.js');
+  const tuCam = new Set([MAP_NHA_TRO]);
   const ket = trong.filter(([id, m]) => !tuCam.has(id) && !(m.warps || []).length);
   ok('trong nhà nào cũng có lối ra', ket.length === 0, ket.map(([id]) => id).join(', '));
 }
@@ -3378,12 +2994,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       const tren = (w.y - 1) * kdc.w + w.x;
       return kdc.solid[tren] && !kdc.solid[w.y * kdc.w + w.x];
     }), cua.filter(w => !kdc.solid[(w.y - 1) * kdc.w + w.x]).map(w => w.to).join(' '));
-    // Khu Dân Cư là ĐẤT Ở của người chơi: nhà công cộng dựng lên đó là chiếm
-    // chỗ mấy lô đất. Phải nằm ở khu phố riêng.
-    ok('không toà công cộng nào chiếm chỗ trong Khu Dân Cư',
-      !(MAPS.khu_dan_cu.warps || []).some(w => co.some(d => d.id === w.to)),
-      (MAPS.khu_dan_cu.warps || []).filter(w => co.some(d => d.id === w.to))
-        .map(w => w.to).join(' '));
     // Đi bộ từ cổng khu phố phải tới được cả bốn cửa
     {
       const seen = new Set();
@@ -3707,13 +3317,13 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     ok('ô máy nào cũng chặn đường', MAY.every(o => m.solid[o.y * m.w + o.x]));
     ok('máy nào cũng có chỗ đứng bên cạnh để bấm', MAY.every(o => ke(o.x, o.y)),
       MAY.filter(o => !ke(o.x, o.y)).map(o => `${o.tro}@${o.x},${o.y}`).join(' '));
-    // engine/estate.js phải nhận ra đúng ô đó
+    // engine/casino.js phải nhận ra đúng ô đó
     ok('đứng trước máy thì bắt được đúng trò', MAY.every(o => {
-      const t = ES.vatTheODay(SANH, o.x, o.y);
+      const t = CS.vatSanhBac(SANH, o.x, o.y);
       return t && t.type === 'casino' && t.tro === o.tro;
     }));
     ok('ô sàn thường thì không bắt nhầm thành máy',
-      ES.vatTheODay(SANH, m.spawn.x, m.spawn.y) === null);
+      CS.vatSanhBac(SANH, m.spawn.x, m.spawn.y) === null);
 
     // ---- Người trong sảnh ----
     const npcs = NPC_GOC[SANH] || [];
@@ -3820,9 +3430,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
   newGame('Cần Thủ');
   // Giật sớm hay muộn quá đều sổng — không thì bấm bừa lúc nào cũng ăn
-  ok('giật sớm thì sổng', F.giatCan(F.caRia('ao_nong_trai'), -1)[1] !== null);
-  ok('giật muộn quá thì sổng', F.giatCan(F.caRia('ao_nong_trai'), 1e9)[1] !== null);
-  const [duoc] = F.giatCan(F.caRia('ao_nong_trai'), 200);
+  ok('giật sớm thì sổng', F.giatCan(F.caRia('ao_lang'), -1)[1] !== null);
+  ok('giật muộn quá thì sổng', F.giatCan(F.caRia('ao_lang'), 1e9)[1] !== null);
+  const [duoc] = F.giatCan(F.caRia('ao_lang'), 200);
   ok('giật đúng lúc thì được cá', !!duoc && F.kho().gio.length === 1);
   ok('bắt lần đầu thì vào dex', F.soLoaiDaBat() === 1 && F.diemCauCa() > 0);
   // Bán: tiền phải TĂNG đúng bằng giá con cá
@@ -3833,11 +3443,11 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     `${truoc}+${gia} vs ${G.p.money}`);
   ok('bán rồi vẫn giữ dex', F.soLoaiDaBat() === 1);
   // Bể nuôi
-  F.giatCan(F.caRia('ao_nong_trai'), 200);
+  F.giatCan(F.caRia('ao_lang'), 200);
   ok('thả được vào bể', F.thaVaoBe(0)[1] === null && F.kho().be.length === 1);
   ok('vớt lại được ra giỏ', F.votKhoiBe(0)[1] === null && F.kho().gio.length === 1);
   ok('giỏ đầy thì không câu thêm được', (() => {
-    for (let i = 0; i < F.GIO_TOI_DA + 3; i++) F.giatCan(F.caRia('ao_nong_trai'), 200);
+    for (let i = 0; i < F.GIO_TOI_DA + 3; i++) F.giatCan(F.caRia('ao_lang'), 200);
     return F.kho().gio.length === F.GIO_TOI_DA;
   })(), `${F.kho().gio.length}/${F.GIO_TOI_DA}`);
   // Cá quý phải hiếm hơn cá thường rõ rệt
@@ -3874,9 +3484,9 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
   })());
   ok('bấm trúng vùng thì được cá, trượt thì sổng', (() => {
     newGame('Vach');
-    const con = F.caRia('ao_nong_trai');
+    const con = F.caRia('ao_lang');
     if (F.keoCa(con, false)[1] === null) return false;
-    return F.keoCa(F.caRia('ao_nong_trai'), true)[0] !== null;
+    return F.keoCa(F.caRia('ao_lang'), true)[0] !== null;
   })());
 
   // Máy chủ chấm điểm xếp hạng bằng bản sao của công thức bên client. Lệch một
@@ -3910,13 +3520,13 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     // Thanh lực phải vẽ NGAY TRÊN BẢN ĐỒ, không mở panel
     ok('trên bản đồ có thanh lực', /function thanhLuc/.test(w2)
       && /vungTrung\(/.test(w2) && /trungVach\(/.test(w2) && /keoCa\(/.test(w2));
-    // Muốn xem giỏ/bể/dex thì phải ra tận chỗ ông lái cá — ông ngồi cạnh ao
-    // NÔNG TRẠI, vì hồ cũ đã dời khỏi khu đất ở.
-    const nt = MAPS.nong_trai;
-    const lai = (nt.npcs || []).filter(n => n.laiCa);
-    ok('có ông lái cá ngồi cạnh hồ nông trại', lai.length === 1, `${lai.length} người`);
+    // Muốn xem giỏ/bể/dex thì phải ra tận chỗ ông lái cá — ông ngồi ngoài
+    // Phố Kim Long.
+    const kp = MAPS.khu_pho;
+    const lai = (kp.npcs || []).filter(n => n.laiCa);
+    ok('có ông lái cá ngoài phố', lai.length === 1, `${lai.length} người`);
     ok('không NPC nào mở panel câu cá nữa',
-      !(nt.npcs || []).some(n => n.mo === 'cauca'));
+      Object.values(MAPS).every(m => !(m.npcs || []).some(n => n.mo === 'cauca')));
     // Mua cần, bán cá đều nói chuyện ngay trên bản đồ
     ok('bản đồ lo luôn việc mua cần và bán cá',
       /thing\.laiCa/.test(w2) && /muaCan\(/.test(w2) && /banHet\(/.test(w2));
@@ -3925,10 +3535,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       !/veCau\b/.test(ck) && !/buongCan\(/.test(ck) && !/giatCan\(/.test(ck));
     ok('panel cá không còn chỗ mua cần', !/muaCan\(|doiCan\(/.test(ck));
     ok('ông lái cá đứng trên ô đi được',
-      lai.every(n => !nt.solid[n.y * nt.w + n.x]));
-    ok('ông lái cá ngồi sát mặt nước',
-      lai.every(n => [[1, 0], [-1, 0], [0, 1], [0, -1]]
-        .some(([dx, dy]) => nt.water[(n.y + dy) * nt.w + (n.x + dx)])));
+      lai.every(n => !kp.solid[n.y * kp.w + n.x]));
     // Icon cá cắt từ pack Cozy Fishing — thiếu một tệp là dex thủng một ô
     {
       const goc3 = new URL('../', import.meta.url).pathname;
@@ -3943,22 +3550,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
       ok('dải bóng cá chia đúng số khung',
         rong === cao * D2.BONG_KHUNG && D2.BONG_NHIP > 0,
         `${rong}x${cao} / ${D2.BONG_KHUNG} khung`);
-      // Nhà kho phải chắn đường, không thì đi xuyên qua cả cái nhà
-      const nt2 = MAPS.nong_trai;
-      const NM2 = await import('../js/data/nongtraimap.js');
-      let dac = 0;
-      for (let y = NM2.NHA_KHO.y; y < NM2.NHA_KHO.y + NM2.NHA_KHO.h; y++) {
-        for (let x = NM2.NHA_KHO.x; x < NM2.NHA_KHO.x + NM2.NHA_KHO.w; x++) {
-          if (nt2.solid[y * nt2.w + x]) dac++;
-        }
-      }
-      ok('nhà kho chắn đường kín cả nền nhà',
-        dac === NM2.NHA_KHO.w * NM2.NHA_KHO.h, `${dac} ô`);
-      ok('trước cửa nhà kho vẫn đứng được',
-        !nt2.solid[(NM2.NHA_KHO.y + NM2.NHA_KHO.h) * nt2.w + NM2.NHA_KHO.x]);
-      ok('nhà kho không đè lên ai',
-        (nt2.npcs || []).every(n => !(n.x >= NM2.NHA_KHO.x && n.x < NM2.NHA_KHO.x + NM2.NHA_KHO.w
-          && n.y >= NM2.NHA_KHO.y && n.y < NM2.NHA_KHO.y + NM2.NHA_KHO.h)));
       const w3 = readFileSync(join(goc3, 'js/ui/world.js'), 'utf8');
       ok('bản đồ có vẽ bóng cá lúc thả câu',
         /veBongCa/.test(w3) && /ANH_BONG/.test(w3));
@@ -3966,7 +3557,7 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
 
     // Mỗi bản đồ có nước phải ra được một bảng cá có thật
     ok('bản đồ nào cũng quy được về một chỗ câu có thật',
-      ['nong_trai', 'taba_town', 'khu_pho', 'linh_tinh']
+      ['taba_town', 'khu_pho', 'linh_tinh']
         .every(m => CHO_CAU.some(c => c.id === F.choTheoMap(m))));
   }
 
@@ -3981,1007 +3572,6 @@ ok('trận trainer chặn ném bóng + bỏ chạy', !okBall && !okRun);
     F.kho().dex[quy.id] = { dai: 100, soLan: 1 };
     ok('cùng chiều dài thì cá quý ăn điểm cao hơn', F.diemCauCa() > dRo,
       `${dRo} vs ${F.diemCauCa()}`);
-  }
-}
-
-// ==== Nông trại: trồng trọt, nuôi thú, đơn hàng dân làng ====
-{
-  const NT = await import('../js/engine/nongtrai.js');
-  const D = await import('../js/data/nongtrai.js');
-  const NM = await import('../js/data/nongtraimap.js');
-  // Một ô trống chắc chắn kê được: quét trong vùng, bỏ ô cấm và ô đã có món.
-  // Ghi cứng toạ độ thì đổi bố cục bản đồ một cái là cả loạt test đứng hình.
-  const oTrongNT = (w = 1, h = 1) => {
-    for (let y = NM.VUNG.y0; y <= NM.VUNG.y1 - h + 1; y++) {
-      for (let x = NM.VUNG.x0; x <= NM.VUNG.x1 - w + 1; x++) {
-        let duoc = true;
-        for (let dy = 0; dy < h && duoc; dy++) {
-          for (let dx = 0; dx < w && duoc; dx++) {
-            if (NM.CAM.has(`${x + dx},${y + dy}`)) duoc = false;
-            if (NT.oTaiO(x + dx, y + dy)) duoc = false;
-          }
-        }
-        if (duoc) return [x, y];
-      }
-    }
-    throw new Error('nông trại không còn ô nào kê được');
-  };
-  // Nông trại mới TRỐNG KHÔNG — đất là phải mua, và mua lần lượt theo lưới ô
-  // có sẵn. Mọi test trồng trọt phải tự sắm lấy một ô, y như người chơi.
-  const keRuong = () => {
-    const [o, loi] = NT.muaORuong();
-    if (loi) throw new Error('không mua được ô ruộng: ' + loi);
-    return NT.oTaiO(o.x, o.y);
-  };
-  const goc = new URL('../', import.meta.url).pathname;
-  const coTep = (p2) => existsSync(join(goc, p2));
-  const coPng2 = (p2) => {
-    const buf = readFileSync(join(goc, p2));
-    return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
-  };
-
-  // ---- Đủ ảnh chưa ----
-  const thieuNT = [];
-  for (const c of D.CAY) {
-    for (let g = 0; g < D.GIAI_DOAN; g++) {
-      for (const uot of [false, true]) {
-        if (!coTep(D.anhCay(c.id, g, uot))) thieuNT.push(D.anhCay(c.id, g, uot));
-      }
-    }
-    if (!coTep(D.anhHat(c.id))) thieuNT.push(D.anhHat(c.id));
-    if (!coTep(D.anhMon(c.id))) thieuNT.push(D.anhMon(c.id));
-  }
-  for (const t of D.THU) {
-    if (!coTep(D.anhThu(t.id))) thieuNT.push(D.anhThu(t.id));
-    if (!coTep(D.anhMon(t.sanPham))) thieuNT.push(D.anhMon(t.sanPham));
-  }
-  for (const n of D.NHA) if (!coTep(D.anhNha(n.id))) thieuNT.push(D.anhNha(n.id));
-  for (const u of [false, true]) if (!coTep(D.anhDat(u))) thieuNT.push(D.anhDat(u));
-  ok('nông trại có đủ mọi ảnh trong danh mục', thieuNT.length === 0,
-    `${thieuNT.length} thiếu: ${thieuNT.slice(0, 4).join(', ')}`);
-
-  ok('ảnh cây đúng một ô 16x16', D.CAY.every(c => {
-    const s2 = coPng2(D.anhCay(c.id, 0, false));
-    return s2.w === D.O && s2.h === D.O;
-  }));
-  // Ô ruộng cắt thẳng từ tileset của pack, bản tưới làm tối theo đúng cách
-  // pack làm tối đất. Hai bản phải KHÁC nhau rõ, không thì tưới xong nhìn y hệt
-  // lúc chưa tưới, chẳng biết ô nào còn khát.
-  {
-    const oDat = [false, true].map(u => coPng2(D.anhDat(u)));
-    ok('ô ruộng đúng một ô 16x16',
-      oDat.every(s2 => s2.w === D.O && s2.h === D.O),
-      JSON.stringify(oDat));
-    const byte = [false, true].map(u => readFileSync(join(goc, D.anhDat(u))));
-    ok('ô đất tưới khác hẳn ô đất khô', !byte[0].equals(byte[1]));
-  }
-  // Sprite con vật phải đúng khuôn 3 cột x 4 hàng như sprite đi bản đồ, không
-  // thì engine cắt khung ra hình vỡ
-  ok('sprite con vật đúng khuôn 3 cột x 4 hàng', D.THU.every(t => {
-    const s2 = coPng2(D.anhThu(t.id));
-    return s2.w === t.o * 3 && s2.h === t.o * 4;
-  }), D.THU.map(t => `${t.id}:${JSON.stringify(coPng2(D.anhThu(t.id)))}`).join(' '));
-  ok('mã món của cây và của thú không đụng nhau',
-    new Set(D.MON.map(m => m.id)).size === D.MON.length);
-  ok('con vật nào cũng cho một món có thật',
-    D.THU.every(t => !!D.MON_BY_ID[t.sanPham]));
-  const anhVatThe = (v) => v.loai === 'ruong' ? D.anhDat(false)
-    : v.loai === 'may' ? D.anhMay(v.id) : D.anhNha(v.id);
-  ok('thứ kê được nào cũng có ảnh và kích thước dương',
-    D.VAT_THE.every(v => v.w >= 1 && v.h >= 1 && coTep(anhVatThe(v))),
-    D.VAT_THE.filter(v => !coTep(anhVatThe(v))).map(v => v.id).join(' '));
-  // Cây lâu ăn phải bán được giá hơn, không thì chẳng ai trồng
-  ok('cây càng lâu chín càng đáng tiền', D.CAY.every((c, i) =>
-    i === 0 || (c.phut >= D.CAY[i - 1].phut && c.giaBan > D.CAY[i - 1].giaBan)),
-    D.CAY.map(c => `${c.id}:${c.phut}p/${c.giaBan}`).join(' '));
-  ok('hạt rẻ hơn tiền bán cả lứa',
-    D.CAY.every(c => c.giaHat < c.giaBan * 2),
-    D.CAY.filter(c => c.giaHat >= c.giaBan * 2).map(c => c.id).join(' '));
-
-  // ---- Bản đồ nông trại ----
-  {
-    const m = MAPS[NM.NONG_TRAI_MAP];
-    ok('có bản đồ nông trại', !!m);
-    ok('nông trại có ao câu', (m.water || []).some(v => v));
-    // Nông trại là một khu RIÊNG, mở theo cấp Trainer. Vào bộ qua ngõ bắc Khu
-    // Dân Cư, hoặc bấm ở trang Địa Điểm. Không còn liên quan gì tới nhà riêng.
-    {
-      const congKdc = (MAPS.khu_dan_cu.warps || [])
-        .filter(w => w.to === NM.NONG_TRAI_MAP);
-      ok('có cổng bộ từ Khu Dân Cư sang nông trại', congKdc.length >= 1,
-        String(congKdc.length));
-      ok('cổng đó khoá theo cấp Trainer',
-        congKdc.every(w => w.moKhoa === 'nongtrai'),
-        congKdc.map(w => String(w.moKhoa)).join(' '));
-      const veKdc = (m.warps || []).filter(w => w.to === 'khu_dan_cu');
-      ok('nông trại có cổng quay lại Khu Dân Cư', veKdc.length >= 1);
-      ok('cổng đi và cổng về đổ vào ô đi được', (() => {
-        const kdc = MAPS.khu_dan_cu;
-        return congKdc.every(w => !m.solid[w.ty * m.w + w.tx])
-          && veKdc.every(w => !kdc.solid[w.ty * kdc.w + w.tx]);
-      })());
-      // Ô đặt chân KHÔNG được là chính ô cổng — vào một cái là bật ra ngay
-      ok('chỗ đặt chân không nằm trên ô cổng',
-        !(m.warps || []).some(w => w.x === NM.CHO_VAO.x && w.y === NM.CHO_VAO.y),
-        `${NM.CHO_VAO.x},${NM.CHO_VAO.y}`);
-      const UL = await import('../js/engine/unlock.js');
-      ok('nông trại có mốc cấp mở khoá', UL.featureLevel('nongtrai') > 0,
-        String(UL.featureLevel('nongtrai')));
-      const gocOw = new URL('../', import.meta.url).pathname;
-      const ow2 = readFileSync(join(gocOw, 'js/engine/overworld.js'), 'utf8');
-      ok('engine chặn cổng còn khoá', /moKhoa/.test(ow2) && /'khoa'/.test(ow2));
-    }
-    {
-      const DD = await import('../js/engine/diadiem.js');
-      const diemNT = DD.DIEM_NHANH.find(d => d.id === NM.NONG_TRAI_MAP);
-      ok('có mục đi nhanh tới nông trại', !!diemNT);
-      // Nông trại mở theo CẤP TRAINER, không dính gì tới nhà riêng
-      const UL2 = await import('../js/engine/unlock.js');
-      const PL = await import('../js/engine/player.js');
-      const canCap = UL2.featureLevel('nongtrai');
-      const expCu = G.p.trainerExp;
-      G.p.trainerExp = 0;
-      ok('chưa đủ cấp thì nông trại không hiện trong Địa Điểm', !diemNT.hien());
-      ok('chưa đủ cấp thì đi nhanh vào nông trại bị chặn',
-        DD.diNhanh(NM.NONG_TRAI_MAP)[1] !== null);
-      // Bơm exp cho tới đúng cấp mở nông trại
-      while (PL.trainerLevel() < canCap) PL.addTrainerExp(200);
-      ok('đủ cấp thì nông trại hiện ra', diemNT.hien(),
-        `Lv.${PL.trainerLevel()} cần ${canCap}`);
-      const [cho, err] = DD.diNhanh(NM.NONG_TRAI_MAP);
-      ok('chỗ đặt chân khi đi nhanh vào nông trại là ô đi được',
-        !err && !m.solid[cho.y * m.w + cho.x], err || `${cho?.x},${cho?.y}`);
-      G.p.trainerExp = expCu;
-      // Phải luôn có đường quay ra
-      ok('đi nhanh ra lại được khu dân cư',
-        DD.DIEM_NHANH.some(d => d.id === 'khu_dan_cu'));
-      const [ra, e2] = DD.diNhanh('khu_dan_cu');
-      ok('chỗ đặt chân khi đi nhanh về khu dân cư là ô đi được',
-        !e2 && !MAPS.khu_dan_cu.solid[ra.y * MAPS.khu_dan_cu.w + ra.x],
-        e2 || `${ra?.x},${ra?.y}`);
-    }
-    // Nông trại chỉ còn MỘT chỗ mua bán: bác Nông trước cửa nhà kho, lo cả chợ
-    // lẫn đơn hàng lẫn kho nông sản. Trước có thêm một bảng đơn riêng đứng
-    // giữa đồng, tức là hai người cho ba việc cùng một loại.
-    const lam = (m.npcs || []).filter(n => n.mo === 'nongtrai');
-    ok('nông trại chỉ có một chỗ mua bán', lam.length === 1,
-      lam.map(n => `${n.name}:${n.tab}`).join(' '));
-    ok('người làm việc đứng trên ô đi được',
-      lam.every(n => !m.solid[n.y * m.w + n.x]));
-    ok('bác Nông đứng ngay trước cửa nhà kho',
-      NM.BAC_NONG.y === NM.NHA_KHO.y + NM.NHA_KHO.h
-      && NM.BAC_NONG.x >= NM.NHA_KHO.x
-      && NM.BAC_NONG.x < NM.NHA_KHO.x + NM.NHA_KHO.w,
-      `${NM.BAC_NONG.x},${NM.BAC_NONG.y}`);
-    // Nông trại là MỘT DẢI NGANG: đúng một lối đi, không nhánh dọc nào
-    {
-      const nen = m.layers[0];
-      const o = (x, y) => nen[y * m.w + x];
-      const duongNgang = new Set();
-      for (let x = 2; x < m.w - 2; x++) for (const y of NM.LOI_NGANG) duongNgang.add(o(x, y));
-      ok('lối đi lát toàn một chất nền', duongNgang.size <= 3,
-        `${duongNgang.size} loại ô`);
-      ok('lối đi đi được suốt từ đầu tây sang đầu đông',
-        Array.from({ length: m.w - 4 }, (_, i) => i + 2)
-          .every(x => NM.LOI_NGANG.some(y => !m.solid[y * m.w + x])));
-      // Không được toè thêm nhánh dọc: cột nào cũng chỉ đúng bấy nhiêu ô nền
-      // lối đi, nhiều hơn nghĩa là có một cái ngã tư mọc ra.
-      // Ô nền của LỐI ĐI chỉ được xuất hiện trên đúng mấy hàng lối đi.
-      //
-      // Trước đây sân trước hai toà nhà cũng lát cùng chất nền, nên lối đi với
-      // sân dính liền thành một mảng nâu — đứng giữa đó thì không biết chỗ nào
-      // là đường đi được. Phép thử này chốt lại: thấy chất nền đó ở đâu ngoài
-      // hàng lối đi là sai.
-      const ngoaiDai = [];
-      for (let x = 1; x < m.w - 1; x++) {
-        for (let y = 0; y < m.h; y++) {
-          if (NM.LOI_NGANG.includes(y)) continue;
-          if (duongNgang.has(o(x, y))) ngoaiDai.push(`${x},${y}`);
-        }
-      }
-      ok('chất nền lối đi chỉ có ở đúng hàng lối đi',
-        ngoaiDai.length === 0, ngoaiDai.slice(0, 6).join(' '));
-    }
-
-    // Ô cấm phải trùm hết lối đi: kê ruộng đè lên đường là đi không lọt
-    ok('lối đi chính nằm trong danh sách ô cấm kê',
-      [3, 10, 20, 27].every(x => NM.CAM.has(`${x},${NM.LOI_NGANG[0]}`)));
-    ok('mặt nước nằm trong danh sách ô cấm kê',
-      NM.CAM.has(`${NM.AO_CA.x0},${NM.AO_CA.y0}`));
-    ok('chỗ người làm việc đứng không kê đè lên được',
-      NM.BAC_NONG.y > NM.VUNG.y1
-      || NM.CAM.has(`${NM.BAC_NONG.x},${NM.BAC_NONG.y}`));
-    ok('nền nhà kho cấm kê', NM.CAM.has(`${NM.NHA_KHO.x},${NM.NHA_KHO.y}`));
-    // Bố cục mặc định phải kê được thật, không thì nông trại mới đã sai sẵn
-    ok('bố cục mặc định không có món nào rơi vào ô cấm',
-      NM.MAC_DINH.every(o => {
-        const v = D.VAT_BY_ID[o.id];
-        for (let dy = 0; dy < v.h; dy++) {
-          for (let dx = 0; dx < v.w; dx++) {
-            if (NM.CAM.has(`${o.x + dx},${o.y + dy}`)) return false;
-          }
-        }
-        return true;
-      }),
-      NM.MAC_DINH.filter(o => NM.CAM.has(`${o.x},${o.y}`)).map(o => o.id).join(' '));
-  }
-
-  // ---- Trồng trọt ----
-  {
-    newGame('NongDan');
-    G.p.money = 500000;
-    ok('nông trại mới chưa có ô ruộng nào — đất là phải mua',
-      NT.oRuong().length === 0, JSON.stringify(NT.tomTat()));
-    ok('chuồng quây rào sẵn nên nuôi được ngay', NT.sucChua() >= 4,
-      String(NT.sucChua()));
-    const o = keRuong();
-    ok('mua rồi kê thì có ô ruộng', NT.oRuong().length === 1);
-    ok('không có hạt thì không gieo được', NT.gieo(o, 'cu_cai')[1] !== null);
-    NT.muaHat('cu_cai', 3);
-    ok('mua hạt thì hạt vào kho', NT.co(NT.maHat('cu_cai')) === 3);
-    ok('gieo được khi có hạt', NT.gieo(o, 'cu_cai')[0] !== null);
-    ok('gieo xong hạt trừ đi một gói', NT.co(NT.maHat('cu_cai')) === 2);
-    ok('ô đang có cây thì không gieo chồng', NT.gieo(o, 'cu_cai')[1] !== null);
-
-    const c = D.CAY_BY_ID.cu_cai;
-    const t0 = Date.now();
-    // ĐẤT KHÔ THÌ CÂY KHÔNG LỚN — đây là cả cái vòng chơi, sai là bỏ bê cũng
-    // vẫn ăn, chẳng còn việc gì để làm trên nông trại
-    ok('đất khô thì cây đứng nguyên',
-      NT.giaiDoan(o, t0 + 10 * 60 * 60000) === 0,
-      String(NT.giaiDoan(o, t0 + 10 * 60 * 60000)));
-    NT.tuoi(o, t0);
-    ok('tưới xong thì đất ướt', NT.dangUot(o, t0));
-    ok('một lần tưới đủ đúng một giai đoạn',
-      NT.giaiDoan(o, t0 + c.phut * 60000 + 1000) === 1
-      && NT.giaiDoan(o, t0 + 10 * 60 * 60000) === 1,
-      `${NT.giaiDoan(o, t0 + c.phut * 60000 + 1000)} / ${NT.giaiDoan(o, t0 + 10 * 60 * 60000)}`);
-    ok('đất còn ướt thì tưới thêm cũng vô ích', NT.tuoi(o, t0)[1] !== null);
-    ok('chưa chín thì không thu được', NT.thu(o, t0 + c.phut * 60000)[1] !== null);
-    // Tưới đủ CHIN lần thì chín
-    let gio = t0;
-    for (let i = 0; i < NT.CHIN; i++) {
-      gio += c.phut * 60000 + 1000;
-      NT.tuoi(o, gio);
-    }
-    gio += c.phut * 60000 + 1000;
-    ok('tưới đủ số lần thì cây chín', NT.daChin(o, gio),
-      String(NT.giaiDoan(o, gio)));
-    const [duoc] = NT.thu(o, gio, () => 0.5);
-    ok('thu hoạch ra nông sản vào kho',
-      duoc?.id === 'cu_cai' && duoc.n >= 1 && NT.co('cu_cai') === duoc.n);
-    ok('thu xong thì ô ruộng trống lại', !o.cay);
-  }
-
-  // ---- Nuôi thú ----
-  {
-    newGame('NuoiThu');
-    G.p.money = 500000;
-    const cho = NT.choTrongCho();
-    ok('chỗ thả thú mới không rơi vào ô cấm', !NM.CAM.has(`${cho.x},${cho.y}`),
-      `${cho.x},${cho.y}`);
-    const [con, err] = NT.muaThu('ga', cho.x, cho.y);
-    ok('mua được con vật', !!con && !err, err || '');
-    const g = NT.danhSachThu()[0];
-    ok('chưa cho ăn thì chưa có gì để thu', NT.thuThu(g)[1] !== null);
-    ok('hết cỏ khô thì không cho ăn được', NT.choAn(g)[1] !== null);
-    NT.muaCoKho(2);
-    const t0 = Date.now();
-    ok('cho ăn được khi có cỏ', NT.choAn(g, t0)[0] !== null);
-    ok('cho ăn thì trừ cỏ khô', NT.co('co_kho') === 1);
-    ok('đang no thì không nhồi thêm', NT.choAn(g, t0)[1] !== null);
-    const tt = D.THU_BY_ID.ga;
-    ok('chưa tới giờ thì chưa thu được', NT.thuThu(g, t0 + 60000)[1] !== null);
-    const [sp] = NT.thuThu(g, t0 + tt.phut * 60000 + 1000);
-    ok('tới giờ thì thu được sản phẩm', sp?.id === tt.sanPham && NT.co(tt.sanPham) === 1);
-    ok('thu xong thì lại phải cho ăn tiếp', NT.thuThu(g, t0 + 99 * 60000)[1] !== null);
-    // Sức chứa: kê thêm chuồng mới nuôi thêm được
-    const chua = NT.sucChua();
-    while (NT.danhSachThu().length < chua) NT.muaThu('ga', cho.x, cho.y);
-    ok('chuồng đầy thì không mua thêm được', NT.muaThu('ga', cho.x, cho.y)[1] !== null,
-      `${NT.danhSachThu().length}/${chua}`);
-  }
-
-  // ---- Kê đồ trên bản đồ ----
-  {
-    newGame('KeDo');
-    G.p.money = 500000;
-    ok('ô ruộng không mua ở danh sách kê được nữa', NT.mua('ruong')[1] !== null);
-    ok('mua xong thì món nằm trên tay chờ kê',
-      NT.mua('may_bo')[0] !== null && NT.choKe() === 'may_bo');
-    ok('đang cầm món thì không mua thêm', NT.mua('may_bo')[1] !== null);
-    ok('không kê được lên lối đi',
-      NT.keTaiDay(NM.CONG_RA.x, NM.LOI_NGANG[0])[1] !== null);
-    ok('không kê được ra ngoài vùng', NT.keTaiDay(0, 0)[1] !== null);
-    const cu = keRuong();
-    ok('không kê chồng lên món đã kê', NT.keTaiDay(cu.x, cu.y)[1] !== null);
-    const truoc = NT.nt().o.length;
-    const [moi, err] = NT.keTaiDay(...oTrongNT());
-    ok('kê được vào ô trống', !!moi && !err, err || '');
-    ok('kê xong thì tay không còn cầm gì', NT.choKe() === null);
-    ok('kê xong thì nông trại có thêm một món', NT.nt().o.length === truoc + 1);
-    ok('nhấc lên được để dời chỗ',
-      NT.nhac(moi)[0] !== null && NT.choKe() === 'may_bo'
-      && NT.nt().o.length === truoc);
-    const tien0 = G.p.money;
-    const giaMay = D.VAT_BY_ID.may_bo.gia;
-    ok('trả lại thì lấy về nửa tiền',
-      NT.boMonDangCam()[0] === Math.floor(giaMay / 2) && G.p.money > tien0);
-    // Ruộng đang có cây thì không nhấc — nhấc là mất trắng cả lứa
-    NT.muaHat('cu_cai', 1);
-    NT.gieo(NT.oRuong()[0], 'cu_cai');
-    ok('ruộng đang có cây thì không nhấc được', NT.nhac(NT.oRuong()[0])[1] !== null);
-  }
-
-  // ---- Con vật đi lại ----
-  {
-    newGame('DanThu');
-    G.p.money = 500000;
-    const cho = NT.choTrongCho();
-    NT.muaThu('ga', cho.x, cho.y);
-    const g = NT.danhSachThu()[0];
-    // Nhích một nhịp dài cho nó nghĩ xong rồi bước
-    let seed = 7;
-    const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
-    const dau = { x: g.x, y: g.y };
-    for (let i = 0; i < 600; i++) NT.diChuyenThu(1 / 30, null, null, rnd);
-    ok('con vật có đi lại chứ không đứng như tượng',
-      g.x !== dau.x || g.y !== dau.y, `${dau.x},${dau.y} -> ${g.x},${g.y}`);
-    ok('con vật không đi ra ngoài vùng nông trại',
-      g.x >= NM.VUNG.x0 && g.x <= NM.VUNG.x1
-      && g.y >= NM.VUNG.y0 && g.y <= NM.VUNG.y1, `${g.x},${g.y}`);
-    // Gà vịt được phép ĐỨNG TRÊN lối đi (QUA_DUOC) — không cho thì lối đi cắt
-    // đôi nông trại, nửa dưới chúng không bao giờ tới được. Mọi ô cấm khác
-    // (mặt nước, nền nhà, máng ăn) thì vẫn cấm.
-    ok('con vật chỉ giẫm lên ô cấm nếu đó là chỗ băng qua lối đi',
-      !NM.CAM.has(`${g.x},${g.y}`) || NM.QUA_DUOC.has(`${g.x},${g.y}`), `${g.x},${g.y}`);
-    ok('con vật không đứng đè lên ruộng', !NT.oTaiO(g.x, g.y));
-    ok('con vật không đi quá xa chỗ được thả',
-      Math.abs(g.x - cho.x) + Math.abs(g.y - cho.y) <= 5,
-      `${g.x},${g.y} so với ${cho.x},${cho.y}`);
-    // Người chơi đứng sát thì nó quay mặt lại rồi đứng im, không thì giơ tay
-    // cho ăn nó đã lững thững đi mất
-    // Đang giữa một bước thì nó bước cho xong đã — đứng khựng giữa hai ô mới
-    // là lỗi. Chờ hết bước rồi mới tính chỗ đứng.
-    for (let i = 0; i < 60 && NT.danhSachThu()[0].di; i++) {
-      NT.diChuyenThu(1 / 30, g.x, g.y + 1, rnd);
-    }
-    const truoc = { x: g.x, y: g.y };
-    for (let i = 0; i < 200; i++) NT.diChuyenThu(1 / 30, g.x, g.y + 1, rnd);
-    ok('người chơi đứng sát thì con vật đứng lại',
-      g.x === truoc.x && g.y === truoc.y, `${truoc.x},${truoc.y} -> ${g.x},${g.y}`);
-    ok('con vật quay mặt về phía người chơi', g.dir === 'down', g.dir);
-
-    // Hai con không được chồng ô
-    for (let i = 0; i < 6; i++) NT.muaThu('ga', NT.choTrongCho().x, NT.choTrongCho().y);
-    for (let i = 0; i < 900; i++) NT.diChuyenThu(1 / 30, null, null, rnd);
-    const oThu = NT.danhSachThu().map(t => `${t.x},${t.y}`);
-    ok('không hai con nào đứng chồng ô',
-      new Set(oThu).size === oThu.length, oThu.join(' '));
-  }
-
-  // ---- Việc đang chờ trên nông trại ----
-  {
-    newGame('ViecCho');
-    G.p.money = 500000;
-    ok('nông trại mới thì chưa có việc gì',
-      Object.values(NT.viecDangCho()).every(v => v === 0),
-      JSON.stringify(NT.viecDangCho()));
-    NT.muaHat('cu_cai', 2);
-    const o = keRuong();
-    NT.gieo(o, 'cu_cai');
-    ok('gieo xong chưa tưới thì đếm là ô khát', NT.viecDangCho().khat === 1);
-    const c = D.CAY_BY_ID.cu_cai;
-    let gio = Date.now();
-    for (let i = 0; i < NT.CHIN; i++) { NT.tuoi(o, gio); gio += c.phut * 60000 + 1000; }
-    ok('cây chín thì đếm là ô chín', NT.viecDangCho(gio).chin === 1,
-      JSON.stringify(NT.viecDangCho(gio)));
-    NT.muaThu('ga', 8, 8);
-    ok('thú chưa cho ăn thì đếm là con đang đói',
-      NT.viecDangCho(gio).thuDoi === 1);
-  }
-
-  // ---- Máy chế biến ----
-  {
-    newGame('CheBien');
-    G.p.money = 500000;
-    ok('máy nào cũng có ít nhất một công thức',
-      D.MAY.every(m => D.congThucCua(m.id).length >= 1),
-      D.MAY.filter(m => !D.congThucCua(m.id).length).map(m => m.id).join(' '));
-    ok('công thức nào cũng dùng món có thật',
-      D.CONG_THUC.every(c => !!D.MON_BY_ID[c.vao] && !!D.MON_BY_ID[c.ra]
-        && !!D.MAY_BY_ID[c.may]));
-    // Chế biến phải LỜI, không thì bỏ nguyên liệu vào máy làm gì cho mất thì giờ
-    ok('món chế biến luôn đắt hơn tổng nguyên liệu',
-      D.CONG_THUC.every(c => D.MON_BY_ID[c.ra].gia > D.MON_BY_ID[c.vao].gia * c.soVao),
-      D.CONG_THUC.filter(c => D.MON_BY_ID[c.ra].gia <= D.MON_BY_ID[c.vao].gia * c.soVao)
-        .map(c => c.ra).join(' '));
-    ok('ảnh máy chia đúng số khung', D.MAY.every(m => {
-      const s2 = coPng2(D.anhMay(m.id));
-      return s2.w === m.ow * m.khung && s2.h === m.oh;
-    }), D.MAY.map(m => `${m.id}:${JSON.stringify(coPng2(D.anhMay(m.id)))}`).join(' '));
-    ok('máy cao hai ô, rộng một ô', D.MAY.every(m => m.oh === m.ow * 2));
-
-    // Mua rồi kê một cái máy đánh bơ
-    NT.mua('may_bo');
-    const [m0, err0] = NT.keTaiDay(...oTrongNT());
-    ok('kê được máy ra nông trại', !!m0 && !err0, err0 || '');
-    const may = NT.cacMay()[0];
-    ok('máy vừa kê thì đang rảnh', NT.mayRanh(may) && !NT.mayXong(may));
-    ok('không có nguyên liệu thì máy không chạy',
-      NT.boVaoMay(may, 'bo_sua')[1] !== null);
-    ok('máy không nhận món nó không làm được',
-      NT.boVaoMay(may, 'pho_mai')[1] !== null);
-
-    const ct = D.CONG_THUC.find(c => c.may === 'may_bo');
-    NT.them(ct.vao, ct.soVao);
-    const t0 = Date.now();
-    ok('bỏ đủ nguyên liệu thì máy chạy', NT.boVaoMay(may, ct.ra)[0] !== null);
-    ok('máy chạy thì trừ hết nguyên liệu', NT.co(ct.vao) === 0);
-    ok('máy đang chạy thì không nhồi thêm', NT.boVaoMay(may, ct.ra)[1] !== null);
-    ok('chưa xong thì không lấy ra được',
-      NT.layKhoiMay(may, t0 + 60000)[1] !== null);
-    ok('máy đang chạy thì không nhấc lên được', NT.nhac(may)[1] !== null);
-    const [sp] = NT.layKhoiMay(may, t0 + ct.phut * 60000 + 1000);
-    ok('tới giờ thì lấy được hàng', sp?.id === ct.ra && NT.co(ct.ra) === 1);
-    ok('lấy hàng xong thì máy rảnh lại', NT.mayRanh(NT.cacMay()[0]));
-    ok('máy rảnh thì nhấc lên được', NT.nhac(NT.cacMay()[0])[0] !== null);
-
-    // Có máy thì dân làng mới đặt món máy đó làm ra
-    ok('chưa có máy thì đơn không đòi món chế biến',
-      !NT.monLamDuoc().includes('bo_sua'), NT.monLamDuoc().join(' '));
-    NT.boMonDangCam();
-    NT.mua('may_bo');
-    NT.keTaiDay(...oTrongNT());
-    ok('có máy rồi thì đơn đòi được món chế biến',
-      NT.monLamDuoc().includes('bo_sua'));
-  }
-
-  // ---- Đơn hàng dân làng ----
-  {
-    newGame('DonHang');
-    G.p.money = 500000;
-    const t0 = Date.now();
-    let seed = 1;
-    const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
-    NT.lamMoiDon(t0, rnd);
-    const n = NT.nt();
-    ok('bảng dán được đơn', n.don.length >= 1, `${n.don.length} đơn`);
-    ok('bảng không dán quá số đơn cho phép', n.don.length <= NT.DON_TOI_DA);
-    const d = n.don[0];
-    ok('đơn nào cũng có khách, món và tiền',
-      !!d.khach && d.mon.length >= 1 && d.tien > 0 && d.diem >= 1);
-    ok('món trong đơn đều là món có thật',
-      n.don.every(x => x.mon.every(m => !!D.MON_BY_ID[m.id])));
-    // Đơn phải trả CAO HƠN bán lẻ, không thì gom hàng làm gì cho mệt
-    ok('đơn trả cao hơn bán lẻ', n.don.every(x =>
-      x.tien > x.mon.reduce((a, m) => a + D.MON_BY_ID[m.id].gia * m.n, 0)));
-    ok('chưa đủ hàng thì không giao được', NT.giaoDon(d.ma)[1] !== null);
-    for (const m of d.mon) NT.them(m.id, m.n);
-    ok('gom đủ thì giao được', NT.duMon(d));
-    const tien0 = G.p.money;
-    const [r] = NT.giaoDon(d.ma);
-    ok('giao xong thì nhận tiền và uy tín',
-      r.tien === d.tien && G.p.money === tien0 + d.tien && NT.nt().diem === d.diem);
-    ok('giao xong thì hàng trừ khỏi kho', d.mon.every(m => NT.co(m.id) === 0));
-    ok('đơn đã giao thì rời khỏi bảng', !NT.nt().don.some(x => x.ma === d.ma));
-    ok('giao lại đơn cũ thì báo lỗi', NT.giaoDon(d.ma)[1] !== null);
-    // Không được đứng bấm liên tục để xin đơn mới cho tới lúc gặp đơn dễ
-    const con = NT.nt().don.length;
-    NT.lamMoiDon(t0, rnd);
-    ok('chưa tới giờ thì không dán thêm đơn', NT.nt().don.length === con,
-      `${con} -> ${NT.nt().don.length}`);
-    NT.lamMoiDon(t0 + NT.PHUT_RA_DON * 60000 * (NT.DON_TOI_DA + 1), rnd);
-    ok('đủ giờ thì bảng dán lại cho đầy', NT.nt().don.length === NT.DON_TOI_DA,
-      `${NT.nt().don.length}`);
-  }
-
-  // ---- Uy tín nông trại lên bảng xếp hạng ----
-  {
-    const goc5 = new URL('../', import.meta.url).pathname;
-    const rk2 = readFileSync(join(goc5, 'js/ui/rank.js'), 'utf8');
-    ok('màn Xếp hạng có mục Nông trại', /'nongtrai'/.test(rk2));
-    const rt2 = readFileSync(join(goc5, 'server/src/routes.js'), 'utf8');
-    ok('máy chủ chấm được uy tín nông trại', /nongtrai:/.test(rt2));
-    // Máy chủ đọc thẳng save.nt.diem nên chỗ cất bên client phải đúng tên đó
-    newGame('UyTin');
-    NT.nt().diem = 7;
-    ok('uy tín cất đúng chỗ máy chủ đọc', G.p.nt.diem === 7
-      && NT.diemNongTrai() === 7);
-  }
-
-  // ---- Nhà riêng KHÔNG còn dính gì tới nông trại ----
-  {
-    const ES2 = await import('../js/engine/estate.js');
-    newGame('NhaRieng');
-    G.p.money = 2000000;
-    ES2.muaDat(ES2.LOTS[0].id);
-    ES2.dungNha(ES2.HOUSE_BASES[0].id);
-    ES2.nha().xongLuc = 0;                       // cho thợ xây xong ngay
-    ok('nhà chỉ hiện ở khu dân cư',
-      !!ES2.nhaTrenBanDo(ES2.KHU_DAT_MAP)
-      && ES2.nhaTrenBanDo(NM.NONG_TRAI_MAP) === null);
-
-    const noi = MAPS[ES2.mapTrongNha()];
-    const truoc = ES2.camCongVeNha();
-    ok('vào cửa trước thì đứng ở nửa dưới phòng', truoc.y > noi.h / 2,
-      JSON.stringify(truoc));
-
-    const veNha = (noi.warps || []).filter(w => w.to === ES2.KHU_DAT_MAP);
-    const raRuong = (noi.warps || []).filter(w => w.to === NM.NONG_TRAI_MAP);
-    ok('trong nhà chỉ còn ĐÚNG một cửa, và nó ra khu dân cư',
-      veNha.length === 1 && raRuong.length === 0 && (noi.warps || []).length === 1,
-      `${veNha.length} trước / ${raRuong.length} ra ruộng`);
-    // Cắm cổng nhiều lần không được đẻ ra cả đống cửa chồng nhau
-    ES2.camCongVeNha(); ES2.camCongVeNha();
-    ok('cắm cổng lại nhiều lần vẫn chỉ một cửa',
-      (noi.warps || []).length === 1, `${(noi.warps || []).length} cổng`);
-
-    // Tường trên phòng phải LIỀN — cái lỗ cửa sau đục giữa tường đã bỏ
-    ok('tường trên phòng không còn lỗ cửa sau',
-      Array.from({ length: noi.w }, (_, x) => x)
-        .every(x => !!noi.solid[0 * noi.w + x] && !!noi.solid[1 * noi.w + x]));
-
-    // Và bản đồ nông trại không còn chỗ nào là "nhà người chơi"
-    const es3 = readFileSync(new URL('../js/engine/estate.js', import.meta.url), 'utf8');
-    ok('engine nhà đất không còn nhắc tới nông trại',
-      !/NONG_TRAI_MAP|NHA_SAU|oCuaNongTrai|camCongTuNongTrai/.test(es3));
-    const w5 = readFileSync(new URL('../js/ui/world.js', import.meta.url), 'utf8');
-    ok('bản đồ không còn nhánh cửa sau', !/'cua-sau'|'nha-sau'/.test(w5));
-  }
-
-  // ---- Khu dân cư: mua đất rồi thì hết biển BÁN ----
-  {
-    const goc4 = new URL('../', import.meta.url).pathname;
-    const w4 = readFileSync(join(goc4, 'js/ui/world.js'), 'utf8');
-    ok('biển BÁN chỉ cắm khi người chơi chưa có đất',
-      /KHU_DAT_MAP && !ES\.coDat\(\)/.test(w4));
-  }
-
-  // ---- Việc đồng áng phải làm trên BẢN ĐỒ, không phải trong panel ----
-  {
-    const goc2 = new URL('../', import.meta.url).pathname;
-    const w2 = readFileSync(join(goc2, 'js/ui/world.js'), 'utf8');
-    ok('bản đồ có nhánh làm ruộng', /function ruongNuong/.test(w2)
-      && /NT\.gieo\(/.test(w2) && /NT\.tuoiHet\(/.test(w2) && /NT\.thu\(/.test(w2));
-    ok('bản đồ có nhánh cho thú ăn và thu sản phẩm',
-      /NT\.choAn\(/.test(w2) && /NT\.thuThu\(/.test(w2));
-    ok('bản đồ có nhánh kê đồ', /NT\.keTaiDay\(/.test(w2) && /NT\.nhac\(/.test(w2));
-    ok('bản đồ có nhánh máy chế biến',
-      /NT\.boVaoMay\(/.test(w2) && /NT\.layKhoiMay\(/.test(w2));
-    ok('bản đồ có cho đàn thú đi lại', /NT\.diChuyenThu\(/.test(w2));
-    const u2 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
-    ok('màn nông trại chỉ lo chợ và đơn hàng, không gieo tưới',
-      !/NT\.gieo\(|NT\.tuoi\(|NT\.thu\(/.test(u2));
-
-    // ---- Sáu khu trên dải ngang ----
-    ok('bản đồ vẽ cả nhà kho lẫn nhà bếp',
-      /NHA_KHO/.test(w2) && /NHA_BEP/.test(w2));
-    ok('bấm vào nhà kho ra chợ, bấm vào nhà bếp ra màn nấu ăn',
-      /'nha-kho'/.test(w2) && /'nha-bep'/.test(w2) && /show\('craft'/.test(w2));
-    ok('bản đồ có đồng hồ đếm ngược và bảng tên kèm mũi tên',
-      /veDongHo\(/.test(w2) && /veBangTen\(/.test(w2));
-    // Chuồng phải quây kín: con vật chỉ đi trong lòng chuồng
-    ok('có vùng lòng chuồng', !!NM.VUNG_THU);
-    // Hàng rào quây quanh CẢ bản đồ, không có cổng nào — đường vào là cửa sau
-    // trong nhà. Rào phải kín: hở một ô là đi lọt ra ngoài mép bản đồ.
-    {
-      const nt6 = MAPS[NM.NONG_TRAI_MAP];
-      const R = NM.RAO_NGOAI;
-      ok('có hàng rào quây quanh bản đồ', !!R);
-      // Vòng rào chỉ hở ĐÚNG mấy ô cổng bộ, không hở chỗ nào khác
-      const laCong = (x, y) => (nt6.warps || []).some(w => w.x === x && w.y === y);
-      const ho = [];
-      for (let x = R.x; x < R.x + R.w; x++) {
-        for (const y of [R.y, R.y + R.h - 1]) {
-          if (!nt6.solid[y * nt6.w + x] && !laCong(x, y)) ho.push(`${x},${y}`);
-        }
-      }
-      for (let y = R.y; y < R.y + R.h; y++) {
-        for (const x of [R.x, R.x + R.w - 1]) {
-          if (!nt6.solid[y * nt6.w + x] && !laCong(x, y)) ho.push(`${x},${y}`);
-        }
-      }
-      ok('vòng rào chỉ hở đúng mấy ô cổng', ho.length === 0, ho.slice(0, 8).join(' '));
-      ok('cổng nằm ngay trên vòng rào',
-        (nt6.warps || []).every(w => w.x === R.x || w.x === R.x + R.w - 1
-          || w.y === R.y || w.y === R.y + R.h - 1),
-        (nt6.warps || []).map(w => `${w.x},${w.y}`).join(' '));
-      // Mọi thứ chơi được phải nằm TRONG rào
-      const trongRao = (x, y) => x > R.x && x < R.x + R.w - 1
-        && y > R.y && y < R.y + R.h - 1;
-      ok('lối đi nằm trong rào',
-        NM.LOI_NGANG.every(y => trongRao(R.x + 1, y)));
-      ok('cả 50 ô ruộng nằm trong rào', NM.O_RUONG.every(o => trongRao(o.x, o.y)));
-      ok('nhà kho, nhà bếp, chuồng, hồ đều trong rào',
-        [NM.NHA_KHO, NM.NHA_BEP, NM.CHUONG].every(n =>
-          trongRao(n.x, n.y) && trongRao(n.x + n.w - 1, n.y + n.h - 1))
-        && trongRao(NM.AO_CA.x0, NM.AO_CA.y0)
-        && trongRao(NM.AO_CA.x1, NM.AO_CA.y1));
-      ok('chỗ đặt chân khi vào nằm trong rào',
-        trongRao(NM.CHO_VAO.x, NM.CHO_VAO.y));
-      // Đi bộ được từ chỗ đặt chân tới mọi khu
-      const laCong2 = (x, y) => (nt6.warps || []).some(w => w.x === x && w.y === y);
-      const den = new Set();
-      const q = [[NM.CHO_VAO.x, NM.CHO_VAO.y]];
-      den.add(q[0].join(','));
-      while (q.length) {
-        const [x, y] = q.pop();
-        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-          const nx = x + dx, ny = y + dy;
-          if (nx < 0 || ny < 0 || nx >= nt6.w || ny >= nt6.h) continue;
-          if (nt6.solid[ny * nt6.w + nx] || den.has(`${nx},${ny}`)) continue;
-          den.add(`${nx},${ny}`);
-          if (!laCong2(nx, ny)) q.push([nx, ny]);   // bước lên cổng là đi mất
-        }
-      }
-      ok('đi bộ tới được mọi ô ruộng',
-        NM.O_RUONG.every(o => den.has(`${o.x},${o.y}`)),
-        NM.O_RUONG.filter(o => !den.has(`${o.x},${o.y}`))
-          .map(o => `${o.x},${o.y}`).join(' '));
-      ok('đi bộ vào được lòng chuồng',
-        den.has(`${NM.VUNG_THU.x0},${NM.VUNG_THU.y1}`));
-      ok('đi bộ tới được cửa nhà kho và nhà bếp',
-        den.has(`${NM.NHA_KHO.x},${NM.NHA_KHO.y + NM.NHA_KHO.h}`)
-        && den.has(`${NM.NHA_BEP.x},${NM.NHA_BEP.y + NM.NHA_BEP.h}`));
-      ok('đi bộ tới được chỗ mấy người bán hàng',
-        NM.NGUOI_BAN.every(b => den.has(`${b.x},${b.y - 1}`)));
-      // Ra khỏi rào thì chỉ ra được bằng ô CỔNG — mà bước lên ô cổng là bật
-      // sang bản đồ khác, nên coi cổng là điểm dừng của phép loang.
-      const lot = [...den].filter(k => {
-        const [x, y] = k.split(',').map(Number);
-        return !trongRao(x, y) && !laCong2(x, y);
-      });
-      ok('không lọt ra ngoài vòng rào ở chỗ nào khác ngoài cổng',
-        lot.length === 0, lot.slice(0, 6).join(' '));
-    }
-    // Khu đất trồng: 50 ô cố định, KHÔNG quây rào
-    ok('khu đất trồng đúng 50 ô', NM.O_TOI_DA === 50
-      && NM.O_RUONG.length === 50, `${NM.O_TOI_DA} / ${NM.O_RUONG.length}`);
-    {
-      const nt5 = MAPS[NM.NONG_TRAI_MAP];
-      ok('ô ruộng nào cũng đi được, không có rào chắn ngang',
-        NM.O_RUONG.every(o => !nt5.solid[o.y * nt5.w + o.x]),
-        NM.O_RUONG.filter(o => nt5.solid[o.y * nt5.w + o.x])
-          .map(o => `${o.x},${o.y}`).join(' '));
-    }
-    ok('không ô ruộng nào trùng nhau',
-      new Set(NM.O_RUONG.map(o => `${o.x},${o.y}`)).size === 50);
-    ok('ô ruộng nào cũng nằm trong khu đất trồng',
-      NM.O_RUONG.every(o => o.x >= NM.KHU_TRONG.x && o.x < NM.KHU_TRONG.x + NM.KHU_TRONG.w
-        && o.y >= NM.KHU_TRONG.y && o.y < NM.KHU_TRONG.y + NM.KHU_TRONG.h));
-    ok('ô ruộng nằm trong danh sách cấm kê máy/chuồng',
-      NM.O_RUONG.every(o => NM.CAM.has(`${o.x},${o.y}`)));
-    // Ô ruộng xếp SÁT nhau — phần cho biết chúng rời nhau là nét vẽ thụt vào,
-    // không phải khoảng cách. Chừa hẳn một ô trống thì ruộng dài gấp đôi mà
-    // chẳng nói thêm được gì.
-    ok('ô ruộng xếp sát nhau', (() => {
-      const co = new Set(NM.O_RUONG.map(o => `${o.x},${o.y}`));
-      return NM.O_RUONG.some(o => co.has(`${o.x + 1},${o.y}`))
-        && NM.O_RUONG.some(o => co.has(`${o.x},${o.y + 1}`));
-    })());
-    ok('bản đồ vẽ ô ruộng thụt vào cho hở mép',
-      /const LE_O = 1 \/ 16;/.test(w2) && /veO\(anhDat\(/.test(w2));
-    // Đất ruộng KHÔNG được chạm vào lối đi: hai thứ đều là mảng nâu, dính vào
-    // nhau thì nhìn không ra đâu là đường. Phải chừa ít nhất một hàng cỏ.
-    ok('không ô ruộng nào chạm vào lối đi',
-      NM.O_RUONG.every(o => NM.LOI_NGANG.every(y => Math.abs(o.y - y) > 1)),
-      NM.O_RUONG.filter(o => NM.LOI_NGANG.some(y => Math.abs(o.y - y) <= 1))
-        .map(o => `${o.x},${o.y}`).join(' '));
-    // Ô đầu tiên phải sát lối đi: khu ruộng lớn dần ra XA đường
-    ok('ô mua đầu tiên nằm ở hàng sát lối đi',
-      NM.O_RUONG[0].y === NM.KHU_TRONG.y + NM.KHU_TRONG.h - 1,
-      `${NM.O_RUONG[0].x},${NM.O_RUONG[0].y}`);
-    {
-      newGame('MuaDat');
-      G.p.money = 99999999;
-      ok('nông trại mới chưa có ô nào', NT.oRuong().length === 0);
-      const b1 = NT.oDangBan();
-      ok('ô đang bán là ô đầu tiên trong danh sách',
-        b1 && b1.x === NM.O_RUONG[0].x && b1.y === NM.O_RUONG[0].y && b1.thu === 1);
-      ok('giá ô đầu là giá gốc', b1.gia === NT.GIA_O_DAU, String(b1.gia));
-      G.p.money = 10;
-      ok('không đủ tiền thì không mua được', NT.muaORuong()[1] !== null);
-      G.p.money = 99999999;
-      const [o1] = NT.muaORuong();
-      ok('mua được ô đang bán', !!o1 && NT.oRuong().length === 1);
-      ok('mua xong thì biển bán nhảy sang ô kế tiếp', (() => {
-        const b2 = NT.oDangBan();
-        return b2 && b2.thu === 2
-          && b2.x === NM.O_RUONG[1].x && b2.y === NM.O_RUONG[1].y;
-      })());
-      ok('ô càng về sau càng đắt', NT.oDangBan().gia > b1.gia);
-      // Mua sạch 50 ô thì hết biển bán, và không mua thêm được nữa
-      while (NT.oDangBan()) NT.muaORuong();
-      ok('mua hết 50 ô thì không còn ô nào bán',
-        NT.oRuong().length === 50 && NT.oDangBan() === null,
-        String(NT.oRuong().length));
-      ok('quá 50 ô thì mua không được nữa', NT.muaORuong()[1] !== null);
-    }
-    const w4 = readFileSync(join(goc2, 'js/ui/world.js'), 'utf8');
-    ok('bản đồ cắm biển bán ở ô đất kế tiếp',
-      /oDangBan\(\)/.test(w4) && /veBienBan\(/.test(w4));
-    ok('bấm vào ô đất đang bán thì mua được',
-      /'o-ban'/.test(w4) && /muaORuong\(/.test(w4));
-    // veChip vẽ bằng fillText nên chỉ nhận chuỗi CHỮ. tien() trả về thẻ <img>
-    // đồng xu — lọt vào đây là in nguyên đoạn HTML lên giữa bản đồ.
-    ok('không vẽ tien() lên canvas',
-      !/veChip\([^)]*\btien\(/.test(w4) && !/veBangTen\([^)]*\btien\(/.test(w4));
-    const u4 = readFileSync(join(goc2, 'js/ui/nongtrai.js'), 'utf8');
-    ok('danh sách kê không còn ô ruộng', /loai !== 'ruong'/.test(u4));
-
-    // ---- Thú canh nông trại ----
-    {
-      newGame('ThuCanh');
-      ok('nông trại mới chưa có thú canh', NT.thuCanh() === null);
-      ok('chưa canh thì tỉ lệ bị cướp là tỉ lệ gốc',
-        NT.tiLeBiCuop(0) === NT.CUOP_GOC);
-      G.p.party = [newTuxemon(STARTERS[0].sp, 12)];
-      ok('còn một con trong đội thì không cắt được', NT.catThuCanh(0)[1] !== null);
-      // Thêm một con nữa vào đội rồi mới cắt được
-      G.p.party.push(newTuxemon(STARTERS[1].sp, 30));
-      G.p.party[1].lv = 30;
-      const spCanh = G.p.party[1].sp;
-      ok('cắt được con ra canh', NT.catThuCanh(1)[0] !== null);
-      ok('thú canh ghi đúng con và cấp',
-        NT.thuCanh()?.sp === spCanh && NT.thuCanh()?.lv === 30);
-      ok('con ra canh thì rời khỏi đội',
-        G.p.party.length === 1 && G.p.party[0].sp !== spCanh,
-        G.p.party.map(m => m.sp).join(' '));
-      ok('có thú canh thì tỉ lệ bị cướp giảm',
-        NT.tiLeBiCuop(30) < NT.CUOP_GOC, String(NT.tiLeBiCuop(30)));
-      ok('con càng cao cấp càng chặn khoẻ',
-        NT.tiLeBiCuop(60) < NT.tiLeBiCuop(30));
-      ok('canh giỏi tới đâu cũng không chặn hết',
-        NT.tiLeBiCuop(9999) === NT.CUOP_SAN, String(NT.tiLeBiCuop(9999)));
-      ok('cấp thú canh đi kèm bản tóm tắt gửi máy chủ',
-        NT.tomTat().capCanh === 30);
-      ok('gọi về được', NT.goiThuCanhVe()[0] !== null && NT.thuCanh() === null);
-      ok('gọi về thì con quay lại đội',
-        G.p.party.length === 2 && G.p.party.some(m => m.sp === spCanh));
-      ok('không có con nào canh thì gọi về báo lỗi', NT.goiThuCanhVe()[1] !== null);
-      ok('không cắt được ô trống', NT.catThuCanh(9)[1] !== null);
-      // Đổi con canh: con cũ phải về đội, không được bốc hơi
-      NT.catThuCanh(0);
-      const cuSp = NT.thuCanh().sp;
-      NT.catThuCanh(0);
-      ok('đổi con canh thì con cũ về đội, không mất',
-        NT.thuCanh().sp !== cuSp && G.p.party.some(m => m.sp === cuSp),
-        `canh ${NT.thuCanh().sp} · đội ${G.p.party.map(m => m.sp).join(' ')}`);
-      // Client và máy chủ phải dùng CÙNG một công thức, lệch là hiện một tỉ lệ
-      // rồi bốc theo một tỉ lệ khác
-      // Nhập farmrule.js chứ KHÔNG nhập farms.js: farms.js kéo theo express, mà
-      // job deploy chỉ cài deps của client nên nhập vào là deploy đỏ.
-      const SF = await import('../server/src/farmrule.js');
-      ok('client và máy chủ tính tỉ lệ bị cướp y hệt',
-        [0, 1, 15, 30, 50, 100, 9999].every(c => SF.tiLeBiCuop(c) === NT.tiLeBiCuop(c)),
-        [0, 15, 50].map(c => `${c}: ${SF.tiLeBiCuop(c)} vs ${NT.tiLeBiCuop(c)}`).join(' | '));
-      ok('hai bên cùng một mốc gốc và mốc sàn',
-        SF.CUOP_GOC === NT.CUOP_GOC && SF.CUOP_SAN === NT.CUOP_SAN);
-      const rt2 = readFileSync(join(goc2, 'server/src/routes.js'), 'utf8');
-      ok('máy chủ có cắm đường nông trại', /\/farm/.test(rt2));
-      const fs2 = readFileSync(join(goc2, 'server/src/farms.js'), 'utf8');
-      ok('công thức tỉ lệ nằm ở module không phụ thuộc gì',
-        !/^import /m.test(readFileSync(join(goc2, 'server/src/farmrule.js'), 'utf8')));
-      ok('máy chủ dùng chung đúng module công thức đó',
-        /from '\.\/farmrule\.js'/.test(fs2));
-      ok('không cướp hạt giống với cỏ khô của người ta',
-        /hat_/.test(fs2) && /co_kho/.test(fs2));
-      ok('chủ nhà luôn được báo khi có người mò vào', /sendMail\(/.test(fs2));
-      ok('cướp có thời gian chờ giữa hai lần', /CHO_CUOP/.test(fs2));
-      const ap = readFileSync(join(goc2, 'js/net/api.js'), 'utf8');
-      ok('client có gọi ba đường nông trại',
-        /fetchFarm/.test(ap) && /raidFarm/.test(ap) && /fetchFarmLog/.test(ap));
-    }
-    // Thú 4 chân KHÔNG ra khỏi chuồng; gia cầm 2 chân thì đi khắp nông trại
-    {
-      const bo = { id: 'bo' };
-      const ga = { id: 'ga' };
-      ok('thú bốn chân không bước ra khỏi lòng chuồng',
-        !NT.thuDiDuoc(NM.VUNG_THU.x0 - 1, NM.VUNG_THU.y0, bo, bo)
-        && !NT.thuDiDuoc(NM.VUNG_THU.x1 + 1, NM.VUNG_THU.y0, bo, bo)
-        && !NT.thuDiDuoc(NM.VUNG_THU.x0, NM.VUNG_THU.y1 + 1, bo, bo));
-      ok('vùng của thú bốn chân đúng là lòng chuồng',
-        NT.vungCuaThu(bo) === NM.VUNG_THU);
-      ok('vùng của gia cầm là cả nông trại', NT.vungCuaThu(ga) === NM.VUNG);
-      // Gia cầm bước ra được một ô ngoài chuồng (chọn ô không cấm)
-      const raNgoai = [];
-      for (let x = NM.VUNG.x0; x <= NM.VUNG.x1; x++) {
-        for (let y = NM.VUNG.y0; y <= NM.VUNG.y1; y++) {
-          const trongChuong = x >= NM.VUNG_THU.x0 && x <= NM.VUNG_THU.x1
-            && y >= NM.VUNG_THU.y0 && y <= NM.VUNG_THU.y1;
-          if (!trongChuong && NT.thuDiDuoc(x, y, ga, ga)) raNgoai.push(`${x},${y}`);
-        }
-      }
-      ok('gia cầm đi được ra ngoài chuồng', raNgoai.length > 20,
-        `${raNgoai.length} ô`);
-      ok('con nào cũng khai đúng số chân',
-        D.THU.every(t => t.chan === 2 || t.chan === 4),
-        D.THU.map(t => `${t.id}:${t.chan}`).join(' '));
-      ok('có cả gia cầm lẫn thú bốn chân',
-        D.THU.some(t => t.chan === 2) && D.THU.some(t => t.chan === 4));
-    }
-    // Chỗ thả phụ thuộc LOÀI: thú bốn chân vào chuồng, gia cầm ra thẳng sân
-    {
-      const trongChuong = (c) => c.x >= NM.VUNG_THU.x0 && c.x <= NM.VUNG_THU.x1
-        && c.y >= NM.VUNG_THU.y0 && c.y <= NM.VUNG_THU.y1;
-      ok('thú bốn chân thả vào lòng chuồng', trongChuong(NT.choTrongCho('bo')),
-        JSON.stringify(NT.choTrongCho('bo')));
-      ok('gia cầm thả thẳng ra sân, không vào chuồng',
-        !trongChuong(NT.choTrongCho('ga')), JSON.stringify(NT.choTrongCho('ga')));
-      // Không truyền toạ độ thì muaThu tự chọn theo loài. Đây là chỗ đã sai
-      // một lần: hai màn gọi choTrongCho() mà quên truyền mã loài, nên gà vịt
-      // bị thả vào giữa chuồng rồi mắc kẹt trong đó.
-      newGame('ThaThu');
-      G.p.money = 900000;
-      NT.muaThu('ga');
-      NT.muaThu('bo');
-      const ga = NT.danhSachThu().find(t => t.id === 'ga');
-      const bo = NT.danhSachThu().find(t => t.id === 'bo');
-      ok('mua gà thì nó đứng ngoài chuồng', !trongChuong(ga), `${ga.x},${ga.y}`);
-      ok('mua bò thì nó đứng trong chuồng', trongChuong(bo), `${bo.x},${bo.y}`);
-      const u5 = readFileSync(new URL('../js/ui/world.js', import.meta.url), 'utf8');
-      const u6 = readFileSync(new URL('../js/ui/nongtrai.js', import.meta.url), 'utf8');
-      ok('không màn nào tự chọn chỗ thả nữa',
-        !/choTrongCho\(\)/.test(u5) && !/choTrongCho\(\)/.test(u6));
-
-      // Bản lưu cũ nhốt gà trong chuồng thì phải được bế ra sân
-      const giua = { x: Math.floor((NM.VUNG_THU.x0 + NM.VUNG_THU.x1) / 2),
-        y: Math.floor((NM.VUNG_THU.y0 + NM.VUNG_THU.y1) / 2) };
-      G.p.nt.thu = [{ id: 'ga', x: giua.x, y: giua.y, sanLuc: 0, dir: 'down' }];
-      delete G.p.nt.vGiaCam;
-      NT.nt();
-      const ga2 = NT.danhSachThu()[0];
-      ok('bản lưu cũ nhốt gà trong chuồng thì thả nó ra',
-        !trongChuong(ga2), `${ga2.x},${ga2.y}`);
-      ok('bò trong bản lưu cũ thì cứ để yên trong chuồng', (() => {
-        G.p.nt.thu = [{ id: 'bo', x: giua.x, y: giua.y, sanLuc: 0, dir: 'down' }];
-        delete G.p.nt.vGiaCam;
-        NT.nt();
-        return trongChuong(NT.danhSachThu()[0]);
-      })());
-
-      // Và gà thật sự đi được ra xa, không quanh quẩn mấy ô quanh chỗ thả
-      G.p.nt.thu = [];
-      NT.muaThu('ga');
-      const g0 = { ...NT.danhSachThu()[0] };
-      let seed = 5;
-      const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648;
-        return seed / 2147483648; };
-      let xaNhat = 0;
-      for (let i = 0; i < 40000; i++) {
-        NT.diChuyenThu(1 / 30, null, null, rnd);
-        const g = NT.danhSachThu()[0];
-        xaNhat = Math.max(xaNhat, Math.abs(g.x - g0.x) + Math.abs(g.y - g0.y));
-      }
-      ok('gà đi lang được ra xa chỗ thả', xaNhat >= 8, `xa nhất ${xaNhat} ô`);
-    }
-
-    // ---- Máng ăn: đổ cỏ một chỗ, cả đàn tự chạy tới ----
-    {
-      newGame('MangAn');
-      G.p.money = 900000;
-      ok('ô máng ăn là ô cấm kê', NM.CAM.has(`${NM.MANG_AN.x},${NM.MANG_AN.y}`));
-      ok('chỗ băng qua lối đi nằm hết trên lối đi',
-        [...NM.QUA_DUOC].every(k => NM.LOI_NGANG.includes(Number(k.split(',')[1]))));
-      ok('chỗ băng qua lối đi tránh xa người bán',
-        [...NM.QUA_DUOC].every(k => {
-          const [x, y] = k.split(',').map(Number);
-          return NM.NGUOI_BAN.every(b => Math.abs(x - b.x) > 1 || Math.abs(y - b.y) > 1);
-        }));
-
-      ok('chưa có cỏ trong kho thì không đổ được', NT.doVaoMang(1)[1] !== null);
-      NT.muaCoKho(30);
-      const [so] = NT.doVaoMang(5);
-      ok('đổ được cỏ vào máng', so === 5 && NT.coTrongMang() === 5);
-      ok('đổ vào máng thì kho bị trừ đúng bấy nhiêu', NT.co('co_kho') === 25);
-      NT.doVaoMang(100);
-      ok('máng không chứa quá sức chứa', NT.coTrongMang() === NT.MANG_TOI_DA);
-      ok('máng đầy thì báo lỗi chứ không nuốt cỏ', NT.doVaoMang(1)[1] !== null);
-
-      // Thả ba con gà rải khắp nông trại rồi để chúng tự đi
-      G.p.nt.thu = [];
-      NT.muaThu('ga'); NT.muaThu('ga_nau'); NT.muaThu('bo');
-      const dan = NT.danhSachThu();
-      const giaCam = dan.filter(t => D.THU_BY_ID[t.id].chan === 2);
-      const bon = dan.find(t => D.THU_BY_ID[t.id].chan === 4);
-      ok('có cả gia cầm lẫn thú bốn chân để so', giaCam.length === 2 && !!bon);
-      ok('gia cầm đang đói thì đi tìm máng', giaCam.every(t => NT.dangTimMang(t)));
-      ok('thú bốn chân không dùng máng', !NT.dangTimMang(bon));
-
-      let seed = 11;
-      const rnd2 = () => { seed = (seed * 1103515245 + 12345) % 2147483648;
-        return seed / 2147483648; };
-      const gio = Date.now();
-      for (let i = 0; i < 20000; i++) NT.diChuyenThu(1 / 30, null, null, rnd2);
-      ok('gia cầm tự chạy tới máng ăn hết',
-        giaCam.every(t => t.sanLuc > gio),
-        giaCam.map(t => `${t.id}@${t.x},${t.y}`).join(' '));
-      ok('thú bốn chân vẫn nằm trong chuồng, không ra máng',
-        bon.x >= NM.VUNG_THU.x0 && bon.x <= NM.VUNG_THU.x1
-        && bon.y >= NM.VUNG_THU.y0 && bon.y <= NM.VUNG_THU.y1, `${bon.x},${bon.y}`);
-      ok('ăn xong thì máng vơi đi', NT.coTrongMang() < NT.MANG_TOI_DA);
-      ok('không con nào đứng đè lên máng',
-        dan.every(t => t.x !== NM.MANG_AN.x || t.y !== NM.MANG_AN.y));
-    }
-    // Chỗ mua hàng phải có NGƯỜI bán, không phải một cái cọc cắm biển
-    ok('có người bán hạt giống và người bán con vật',
-      (NM.NGUOI_BAN || []).length === 2,
-      (NM.NGUOI_BAN || []).map(b => `${b.ma}:${b.ten}`).join(' '));
-    ok('người bán nào cũng đứng ngay dưới lối đi',
-      NM.NGUOI_BAN.every(b => b.y === Math.max(...NM.LOI_NGANG) + 1));
-    ok('người bán là NPC thật trên bản đồ', (() => {
-      const ds = (MAPS[NM.NONG_TRAI_MAP].npcs || []).filter(n => n.banHang);
-      return ds.length === 2 && ds.every(n => NM.NGUOI_BAN
-        .some(b => b.ma === n.banHang && b.x === n.x && b.y === n.y));
-    })(), (MAPS[NM.NONG_TRAI_MAP].npcs || [])
-      .filter(n => n.banHang).map(n => n.name).join(' '));
-    ok('nói chuyện với người bán ra bảng chọn ngay trên bản đồ',
-      /thing\.banHang/.test(w2) && /nguoiBan\(/.test(w2));
-    ok('không còn cọc gỗ cắm biển nào', !/'bien'/.test(w2));
-    // Hồ phải hở mặt phía lối đi, không thì đứng đâu cũng không buông cần được
-    {
-      const nt3 = MAPS[NM.NONG_TRAI_MAP];
-      const hangTren = Math.min(...NM.LOI_NGANG) - 1;
-      ok('đứng trên lối đi quay mặt lên là tới mặt nước',
-        Array.from({ length: NM.AO_CA.x1 - NM.AO_CA.x0 + 1 }, (_, i) => NM.AO_CA.x0 + i)
-          .some(x => !!nt3.water[hangTren * nt3.w + x]),
-        `hàng ${hangTren}`);
-    }
-
-    // ---- Nhà bếp nấu bằng nông sản ----
-    {
-      const CR = await import('../js/engine/craft.js');
-      const laNong = Object.values(CR.THAY_NONG_SAN);
-      ok('món nông sản nào thay nguyên liệu cũng có thật',
-        laNong.every(id => !!D.MON_BY_ID[id]),
-        laNong.filter(id => !D.MON_BY_ID[id]).join(' '));
-      ok('mỗi nguyên liệu thay bằng một món khác nhau',
-        new Set(laNong).size === laNong.length);
-      ok('nguyên liệu nào cũng là nguyên liệu thật của công thức',
-        Object.keys(CR.THAY_NONG_SAN).every(id =>
-          CR.RECIPES.some(r => id in r.ng)),
-        Object.keys(CR.THAY_NONG_SAN).filter(id =>
-          !CR.RECIPES.some(r => id in r.ng)).join(' '));
-
-      newGame('NauAn');
-      // Chọn một công thức rồi gom đủ nguyên liệu TOÀN BỘ từ kho nông trại
-      const r = CR.RECIPES.find(x => Object.keys(x.ng)
-        .every(id => CR.THAY_NONG_SAN[id]));
-      ok('có công thức làm được thuần bằng nông sản', !!r,
-        r ? r.id : CR.RECIPES.map(x => Object.keys(x.ng).join('+')).join(' | '));
-      if (r) {
-        ok('chưa có gì thì công thức đó chưa làm được', !CR.lamDuoc(r));
-        for (const [id, n] of Object.entries(r.ng)) {
-          NT.them(CR.THAY_NONG_SAN[id], n);
-        }
-        ok('kho nông trại tính là nguyên liệu', CR.lamDuoc(r),
-          CR.conThieu(r).map(t => `${t.id} ${t.co}/${t.can}`).join(', '));
-        const [ra, loi] = CR.cheTao(r.id);
-        ok('nấu được bằng nông sản trong kho', !!ra && !loi, loi || '');
-        ok('nấu xong thì kho nông trại bị trừ',
-          Object.entries(r.ng).every(([id]) => NT.co(CR.THAY_NONG_SAN[id]) === 0),
-          Object.entries(r.ng).map(([id]) =>
-            `${CR.THAY_NONG_SAN[id]}:${NT.co(CR.THAY_NONG_SAN[id])}`).join(' '));
-        ok('món nấu ra nằm trong túi', (G.p.bag[ra.id] || 0) >= 1);
-      }
-      // Món trong túi vẫn dùng được, và tiêu túi TRƯỚC kho nông trại
-      const r2 = CR.RECIPES.find(x => Object.keys(x.ng).some(id => CR.THAY_NONG_SAN[id]));
-      if (r2) {
-        const id0 = Object.keys(r2.ng).find(id => CR.THAY_NONG_SAN[id]);
-        const can = r2.ng[id0];
-        for (const [id, n] of Object.entries(r2.ng)) {
-          if (id === id0) addItem(id, n); else NT.them(CR.THAY_NONG_SAN[id], n);
-        }
-        NT.them(CR.THAY_NONG_SAN[id0], 3);
-        ok('có trong túi thì cũng làm được', CR.lamDuoc(r2));
-        CR.cheTao(r2.id);
-        ok('tiêu túi trước, kho nông trại còn nguyên',
-          NT.co(CR.THAY_NONG_SAN[id0]) === 3 && (G.p.bag[id0] || 0) === 0,
-          `kho ${NT.co(CR.THAY_NONG_SAN[id0])} túi ${G.p.bag[id0] || 0}`);
-        void can;
-      }
-    }
   }
 }
 

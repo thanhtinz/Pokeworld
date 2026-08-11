@@ -9,22 +9,10 @@ import { ITEMS } from '../data/items.js';
 import { drawTopBar } from '../main.js';
 import {
   RECIPES, CACH_LAM, theoCach, conThieu, lamDuoc, soLanLamDuoc,
-  cheTao, tiLe, dangCo, trongTui, trongKhoNong, nongSanThay,
+  cheTao, tiLe, dangCo,
 } from '../engine/craft.js';
-import { MON_BY_ID } from '../data/nongtrai.js';
 
 const tenMon = (id) => ITEMS[id]?.name || id;
-
-// Nguyên liệu này gom từ đâu ra: túi, kho nông trại, hay cả hai. Không ghi thì
-// người chơi thấy đủ số mà chẳng biết mình đang tiêu vào cái gì.
-function tuDau(id) {
-  const tui = trongTui(id);
-  const nong = trongKhoNong(id);
-  const ten = MON_BY_ID[nongSanThay(id)]?.name;
-  if (nong && !tui) return ten ? `${ten} trong kho nông trại` : 'kho nông trại';
-  if (nong && tui) return ten ? `túi + ${ten} ở kho` : 'túi + kho nông trại';
-  return null;
-}
 
 export function render(el, { from = 'menu' } = {}) {
   let cach = null;      // đang lọc theo cách làm nào
@@ -67,12 +55,9 @@ export function render(el, { from = 'menu' } = {}) {
               <div class="cf-ng">
                 ${Object.entries(r.ng).map(([id, n]) => {
                   const co = dangCo(id);
-                  const nguon = tuDau(id);
-                  return `<span class="cf-ng-i${co >= n ? ' du' : ''}"
-                    ${nguon ? `title="${esc(nguon)}"` : ''}>
+                  return `<span class="cf-ng-i${co >= n ? ' du' : ''}">
                     ${itemIcon(id, '', 20)}${esc(tenMon(id))}
-                    <b>${co}/${n}</b>
-                    ${nguon ? `<small>${esc(nguon)}</small>` : ''}</span>`;
+                    <b>${co}/${n}</b></span>`;
                 }).join('')}
               </div>
               <b class="cf-sub">Có thể ra</b>

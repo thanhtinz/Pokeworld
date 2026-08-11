@@ -1,7 +1,7 @@
 // TuxeWorld H5 | engine/diadiem.js | Ghé mấy địa điểm dựng từ pack CraftPix
 //
 // Bốn chỗ này (Nhà Nguyện, Sảnh Bang Hội, Đền Đổ Nát, Sảnh Bạc) giờ có CỬA
-// THẬT trên bản đồ Khu Dân Cư — mỗi chỗ một ô cửa riêng, tools/khudancu.py cắm
+// THẬT trên bản đồ Phố Kim Long — mỗi chỗ một ô cửa riêng, tools/khupho.py cắm
 // lúc dựng. Vào bằng cách đi tới đó bấm A, hoặc bấm nhanh từ mục Địa Điểm.
 //
 // Bản trước không có cửa nào: cổng ra của cả bốn chỗ đều trỏ về MỘT ô chung ở
@@ -10,9 +10,6 @@
 // cạnh nhà khác — chẳng bao giờ ra đúng cửa mình vừa bước vào. Giờ cổng để
 // nguyên như dữ liệu, ra chỗ nào là đúng thềm chỗ đó.
 import { MAPS } from '../data/maps.js';
-import { NONG_TRAI_MAP, CHO_VAO as VAO_NONG_TRAI } from '../data/nongtraimap.js';
-import { KHU_DAT_MAP, CONG_RA as CONG_KHU_DAT } from '../data/khudancu.js';
-import { isUnlocked } from './unlock.js';
 
 export const DIA_DIEM = [
   { id: 'nha_nguyen', ten: 'Nhà Nguyện',
@@ -26,38 +23,6 @@ export const DIA_DIEM = [
 ];
 
 export const DIA_DIEM_BY_ID = Object.fromEntries(DIA_DIEM.map(d => [d.id, d]));
-
-// ==== Đi nhanh ====
-// Khác bốn chỗ trên: đây là bản đồ NỐI THẲNG vào lưới đường, đi bộ tới được.
-// Chỉ là đường bộ hơi xa (Khu Dân Cư -> nhà mình -> cửa sau) nên cho một lối
-// tắt. Không gộp chung DIA_DIEM vì `dangOChoi()` dùng bảng đó để biết lúc mở
-// game lên có nên kéo người chơi về giường không — nông trại thì nên kéo.
-export const DIEM_NHANH = [
-  // Nông trại mở theo CẤP TRAINER, không liên quan gì tới nhà riêng nữa. Mở rồi
-  // thì đi bộ vào được qua ngõ bắc Khu Dân Cư, mà bấm ở đây cũng vào luôn.
-  { id: NONG_TRAI_MAP, ten: 'Nông Trại Bờ Suối',
-    mo: 'Khu đất trồng, chuồng thú, hồ cá, nhà kho, nhà bếp.',
-    hien: () => isUnlocked('nongtrai'),
-    cho: { x: VAO_NONG_TRAI.x, y: VAO_NONG_TRAI.y } },
-  { id: KHU_DAT_MAP, ten: 'Khu Dân Cư Taba',
-    mo: 'Khu đất ở đã chia lô. Nhà của bạn dựng ở đây.',
-    cho: { x: CONG_KHU_DAT.x, y: CONG_KHU_DAT.y - 1 } },
-];
-
-/**
- * Đi nhanh tới một bản đồ trong DIEM_NHANH. Trả [{map,x,y}, lỗi].
- *
- * Đặt chân ở ô đã ghi sẵn chứ không dò cổng như `vaoDiaDiem`: nông trại có
- * nhiều cổng (cổng bộ ở cạnh nam, cửa sau nhà người chơi cắm động lúc vào nhà),
- * dò cổng đầu tiên thì đi nhanh xong rơi vào đâu tuỳ lúc.
- */
-export function diNhanh(id) {
-  const d = DIEM_NHANH.find(x => x.id === id);
-  const m = d && MAPS[id];
-  if (!m) return [null, 'Chỗ này chưa dựng xong.'];
-  if (d.hien && !d.hien()) return [null, 'Chỗ này còn khoá.'];
-  return [{ map: id, x: d.cho.x, y: d.cho.y }, null];
-}
 
 /** Có phải đang đứng trong một địa điểm rời không? */
 export const dangOChoi = (mapId) => !!DIA_DIEM_BY_ID[mapId];
@@ -95,7 +60,7 @@ function choDung(m, cua) {
  * Vào một địa điểm. Trả [{map,x,y}, lỗi] để màn bản đồ tự enterMap.
  *
  * KHÔNG đụng gì tới cổng ra nữa: đích của nó đã là đúng thềm cửa của chính
- * chỗ này trên Khu Dân Cư (tools/mktmx.py nối lúc dựng bản đồ).
+ * chỗ này trên Phố Kim Long (tools/mktmx.py nối lúc dựng bản đồ).
  */
 export function vaoDiaDiem(id) {
   const m = MAPS[id];

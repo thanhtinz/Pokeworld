@@ -12,7 +12,7 @@ VI SAO TU XEP TAY CHU KHONG NHAP TMX
 Pack nay khong kem ban do mau. Ma may ban do mau cua pack khac (thu roi) von
 la canh DEMO: tuong cut ngang, cua mo ra khoang khong, nhap thang vao game thi
 nhin nhu chap va. Xep tay tung o thi kiem soat duoc het — giong cach
-tools/khudancu.py dung Khu Dan Cu.
+tools/khupho.py dung Pho Kim Long.
 
 NGUOI TRONG SANH
 Sprite nhan vat lay tu "2D Top Down Pixel Art Characters" — cung tac gia
@@ -247,7 +247,7 @@ def dung(goc):
         nguoi_ra.append(m_npc)
 
     # Cong ra o ngay o cua
-    m['warps'].append({'x': CUA, 'y': H - 1, 'to': 'khu_dan_cu', 'tx': 16, 'ty': 13})
+    m['warps'].append({'x': CUA, 'y': H - 1, 'to': 'khu_pho', 'tx': 13, 'ty': 16})
     m['npcs'] = nguoi_ra
     return m, diem
 

@@ -181,43 +181,6 @@ Sinh lại bằng:
 python3 tools/cozy.py "/duong/dan/Character v.2"
 ```
 
-Pack **Cozy Farm của shubibubi** (itch.io) — cùng tác giả, cùng cỡ ô 16px với
-tileset của Tuxemon: cây trồng 37 loại × 6 giai đoạn (có cả bản đất khô và đất
-đã tưới), gói hạt giống, icon nông sản, con vật (gà, bò, dê, cừu, lợn, thỏ, gà
-tây), máy chế biến (bơ, phô mai, mayo, guồng sợi, máy dệt — nguồn là ảnh GIF
-nên bộ sinh duyệt từng khung rồi xếp lại thành một dải ngang) và nhà cửa nông
-trại.
-
-Giấy phép y hệt pack nhân vật: mua rồi thì dùng thương mại thoải mái, **cấm phát
-tán lại chính cái pack**. Nên ở đây cũng chỉ commit phần đã cắt ra `assets/nt/`
-theo đúng định dạng riêng của game, không chép tệp gốc nào.
-
-**Nền mấy bản đồ TỰ DỰNG cũng của pack này** — hiện là Nông Trại và Khu Dân Cư
-(`tools/cozytile.py` giữ bảng ô dùng chung). Bản đầu tôi cố ý dùng tileset ngoài
-trời của Tuxemon cho nền, sợ trộn hai bộ nền thì lệch phong cách — hoá ra ngược:
-mấy khu đó vốn đã đầy nhân vật, cây trồng, con vật, nhà cửa CỦA PACK, nên cái
-lệch ra lại chính là bãi cỏ Tuxemon. Giờ cả bản đồ một bộ, và dùng đúng bộ
-autotile của họ nên cỏ ↔ đường đất ↔ mặt ao nối vào nhau mượt chứ không còn là
-mấy hình chữ nhật dán cạnh nhau.
-
-**Bốn mươi bản đồ NHẬP TỪ TUXEMON thì giữ nguyên tileset gốc.** Chúng vẽ bằng
-autotile riêng của Tuxemon — vách đá, mái nhà, bờ biển, cỏ cao — mà pack này
-không có ô tương đương; thay bừa là vỡ hết đường viền của cả bốn mươi bản đồ.
-
-Bộ autotile của pack xếp mỗi dải ba hàng: khối 3×3 viền quanh một mảng cỏ, kèm
-2×2 ô góc lõm ở cột 3-4. Bốn ô góc lõm thì **thử từng ô rồi nhìn tận mắt** mới
-chọn được — dựng thử một cái ao, ướm cả bốn ô vào từng hướng, chỉ ô `(3, R+1)`
-là nối liền đường viền, ba ô kia đều gãy ra một cái nêm thừa. Bốn hướng góc lõm
-dùng chung đúng ô đó.
-
-Riêng **ô đất trồng** thì bản "đã tưới" làm tối theo hệ số ĐO TỪ CHÍNH PACK (so
-`crops.png` với `crops_wet.png`, chỉ lấy pixel màu đất), nên ô đất ướt với cây
-ướt cùng một tông.
-
-```bash
-python3 tools/mknongtrai.py "/duong/dan/full version"
-```
-
 Pack **Cozy Fishing của shubibubi** (itch.io) — cũng cùng tác giả. Lấy ba thứ:
 icon 14 loài cá (cắt từ `fish_all.png`, đánh số đúng theo `fish list.txt` của
 pack) và dải bóng cá bơi dưới nước 15 khung.

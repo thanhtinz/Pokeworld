@@ -101,9 +101,9 @@ export function caRia(cho, rnd = Math.random, bac = canDangDung().bac) {
  * Bản đồ nào thì câu ra bảng cá nào. Bản đồ lạ thì cứ tính là hồ — thà ra cá
  * hiền còn hơn không câu được gì.
  */
-const MAP_CHO = { nong_trai: 'ao_nong_trai', taba_town: 'song_taba', khu_pho: 'song_taba' };
+const MAP_CHO = { taba_town: 'song_taba', khu_pho: 'song_taba' };
 export const choTheoMap = (mapId) => MAP_CHO[mapId]
-  || (/bien|beach|ocean|sea/i.test(mapId || '') ? 'bien_pepper' : 'ao_nong_trai');
+  || (/bien|beach|ocean|sea/i.test(mapId || '') ? 'bien_pepper' : 'ao_lang');
 
 export const giaCa = (c) => Math.max(1, Math.round((CA_BY_ID[c.id]?.giaCm || 1) * c.dai));
 

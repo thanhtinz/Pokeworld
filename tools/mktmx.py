@@ -29,16 +29,11 @@ import json
 import xml.etree.ElementTree as ET
 
 CRAFTPIX_DIR = '/tmp/craftpix'
-# Pack "Cozy Farm" — nen ban do nong trai lay tu day. Nguon KHONG commit vao
-# kho, chi atlas da nuong (xem CREDITS.md).
-FARM_DIR = os.environ.get('COZY_FARM_DIR', '/tmp/farmpack/full version')
 
 import bangduong
 import casino
 import craftpix
-import khudancu
 import khupho
-import nongtrai
 import phongtrong
 
 TILE = 16
@@ -924,6 +919,65 @@ def js(v):
     return json.dumps(v, ensure_ascii=False)
 
 
+def cho_cong_ria_bac(m):
+    """Tim mot o trong o ria bac mot ban do de cam them cong sang khu khac.
+
+    Ba dieu kien:
+      - o do va bon o quanh no deu trong (buoc vao roi con di tiep duoc);
+      - khong dam vao cong / NPC / bang hieu san co — ke ca cong vua cam o
+        lan goi truoc, nen goi nhieu lan la duoc nhieu cho khac nhau;
+      - PHAI nam trong vung di lai chinh cua ban do. Thieu cai nay thi cong de
+        roi vao mot goc bi cay va vach da vay kin — nguoi choi khong bao gio di
+        toi duoc, ma test cung khong bat ra vi ban do van "co cong".
+    """
+    w, h = m['w'], m['h']
+    solid = m['solid']
+
+    # Vung di lai lon nhat
+    da = [False] * (w * h)
+    lon = set()
+    for y0 in range(h):
+        for x0 in range(w):
+            if da[y0 * w + x0] or solid[y0 * w + x0]:
+                continue
+            vung, ngan = set(), [(x0, y0)]
+            da[y0 * w + x0] = True
+            while ngan:
+                x, y = ngan.pop()
+                vung.add((x, y))
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nx, ny = x + dx, y + dy
+                    if not (0 <= nx < w and 0 <= ny < h):
+                        continue
+                    if solid[ny * w + nx] or da[ny * w + nx]:
+                        continue
+                    da[ny * w + nx] = True
+                    ngan.append((nx, ny))
+            if len(vung) > len(lon):
+                lon = vung
+
+    ban = {(n['x'], n['y']) for n in m['npcs']}
+    ban |= {(t['x'], t['y']) for t in m['talks']}
+    for wp in m['warps']:
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                ban.add((wp['x'] + dx, wp['y'] + dy))
+    # Cang gan ria bac cang tot, roi mai den cang gan giua cang tot
+    ung = []
+    for y in range(1, h // 2):
+        for x in range(3, w - 3):
+            o = [(x, y), (x, y + 1), (x - 1, y), (x + 1, y), (x, y - 1)]
+            if any(p in ban for p in o):
+                continue
+            if any(p not in lon for p in o):
+                continue
+            ung.append((y, abs(x - w // 2), x))
+    if not ung:
+        return None
+    ung.sort()
+    return ung[0][2], ung[0][0]
+
+
 def main():
     # Pack CraftPix giai nen o dau (khong bat buoc — thieu thi bo qua may
     # dia diem do, phan con lai van dung binh thuong).
@@ -1007,37 +1061,29 @@ def main():
     if lech:
         print('Kéo %d cổng lệch về trong bản đồ: %s' % (len(lech), ', '.join(sorted(set(lech)))))
 
-    # Khu dan cu la ban do RIENG cua ban nay, khong lay tu Tuxemon: tu dat tung
-    # o roi day qua cung mot duong ong. Phai lam sau khi da co taba_town vi no
-    # noi cong hai chieu voi thi tran.
-    kdc = khudancu.them_vao(out_maps, FARM_DIR)
-    if kdc:
-        remap, cols = build_atlas(kdc, 'assets/maps/%s.png' % khudancu.SLUG)
-        conv = lambda lay: [remap.get(g, -1) if g > 0 else -1 for g in lay]
-        kdc['name'] = khudancu.TEN
-        kdc['cols'] = cols
-        kdc['layers'] = [conv(l) for l in kdc['layers']]
-        kdc['above'] = None
-        out_maps[khudancu.SLUG] = kdc
-        want.append(khudancu.SLUG)
+    # Pho Kim Long: bon toa nha cong cong, noi thang ra THI TRAN. Cho dat
+    # cong tim bang cho_cong_ria_bac() chu khong cam cung mot toa do: ban do
+    # goc la cua Tuxemon, cam bua mot o la de roi vao goc bi cay va vach da
+    # vay kin, nguoi choi khong bao gio di toi duoc.
+    taba = out_maps.get('taba_town')
+    cho_kp = cho_cong_ria_bac(taba) if taba else None
+    kp0 = khupho.them_vao(out_maps, root, tsx_cache, load_tsx,
+                          'taba_town', cho_kp) if cho_kp else None
+    if kp0:
+        remapP, colsP = build_atlas(kp0, 'assets/maps/%s.png' % khupho.SLUG)
+        convP = lambda lay, r=remapP: [r.get(g, -1) if g > 0 else -1 for g in lay]
+        kp0['name'] = khupho.TEN
+        kp0['cols'] = colsP
+        kp0['layers'] = [convP(l) for l in kp0['layers']]
+        kp0['above'] = None
+        out_maps[khupho.SLUG] = kp0
+        want.append(khupho.SLUG)
 
-        # Nong Trai: di het ngo phia BAC cua Khu Dan Cu la toi. Tach rieng vi
-        # ruong nuong chiem cho, ma khu dat o thi phai de thuan la dat o.
-        nt = nongtrai.them_vao(out_maps, FARM_DIR, khudancu.SLUG)
-        if nt:
-            remapN, colsN = build_atlas(nt, 'assets/maps/%s.png' % nongtrai.SLUG)
-            convN = lambda lay, r=remapN: [r.get(g, -1) if g > 0 else -1 for g in lay]
-            nt['name'] = nongtrai.TEN
-            nt['cols'] = colsN
-            nt['layers'] = [convN(l) for l in nt['layers']]
-            nt['above'] = None
-            out_maps[nongtrai.SLUG] = nt
-            want.append(nongtrai.SLUG)
-
-        # Bang Duong noi thang vao Khu Dan Cu: di het ngo la mot ben nha dan,
-        # mot ben cong bang hoi.
+        # Bang Duong cung cam cong ra THI TRAN, o mot cho khac. Truoc kia no
+        # nap sau Khu Dan Cu; khu do bo roi nen phai co duong vao rieng.
+        cho_bd = cho_cong_ria_bac(taba)
         bd = bangduong.them_vao(out_maps, root, tsx_cache, load_tsx,
-                                khudancu.SLUG, (26, 22))
+                                'taba_town', cho_bd) if cho_bd else None
         if bd:
             remap2, cols2 = build_atlas(bd, 'assets/maps/%s.png' % bangduong.SLUG)
             conv2 = lambda lay: [remap2.get(g, -1) if g > 0 else -1 for g in lay]
@@ -1048,34 +1094,17 @@ def main():
             out_maps[bangduong.SLUG] = bd
             want.append(bangduong.SLUG)
 
-        # Pho Kim Long: bon toa nha cong cong. TACH RIENG khoi Khu Dan Cu vi
-        # cho do la dat o cua nguoi choi. Va noi thang ra THI TRAN chu khong
-        # phai nap sau khu dat o — kho cong cong ma phai di xuyen qua khu nha
-        # dan moi toi thi khong ai tim ra.
-        cho_kp = khudancu.cho_cong_ve_taba(out_maps.get('taba_town') or {})
-        kp0 = khupho.them_vao(out_maps, root, tsx_cache, load_tsx,
-                              'taba_town', cho_kp) if cho_kp else None
-        if kp0:
-            remapP, colsP = build_atlas(kp0, 'assets/maps/%s.png' % khupho.SLUG)
-            convP = lambda lay, r=remapP: [r.get(g, -1) if g > 0 else -1 for g in lay]
-            kp0['name'] = khupho.TEN
-            kp0['cols'] = colsP
-            kp0['layers'] = [convP(l) for l in kp0['layers']]
-            kp0['above'] = None
-            out_maps[khupho.SLUG] = kp0
-            want.append(khupho.SLUG)
-
-            # Ba gian trong ba toa nha cua bang
-            for slug, gian in bangduong.dung_trong(
-                    phongtrong, parse_map, chon_tep, mdir, tsx_cache).items():
-                remapb, colsb = build_atlas(gian, 'assets/maps/%s.png' % slug)
-                convb = lambda lay, r=remapb: [r.get(g, -1) if g > 0 else -1 for g in lay]
-                gian['name'] = gian.pop('_ten')
-                gian['cols'] = colsb
-                gian['layers'] = [convb(l) for l in gian['layers']]
-                gian['above'] = None
-                out_maps[slug] = gian
-                want.append(slug)
+        # Ba gian trong ba toa nha cua bang
+        for slug, gian in bangduong.dung_trong(
+                phongtrong, parse_map, chon_tep, mdir, tsx_cache).items():
+            remapb, colsb = build_atlas(gian, 'assets/maps/%s.png' % slug)
+            convb = lambda lay, r=remapb: [r.get(g, -1) if g > 0 else -1 for g in lay]
+            gian['name'] = gian.pop('_ten')
+            gian['cols'] = colsb
+            gian['layers'] = [convb(l) for l in gian['layers']]
+            gian['above'] = None
+            out_maps[slug] = gian
+            want.append(slug)
 
     # Phong trong cho nha nguoi choi + nha tro chung
     for slug in phongtrong.them_vao(out_maps, parse_map, chon_tep, mdir, tsx_cache):
@@ -1128,7 +1157,7 @@ def main():
             # Ra: cong trong dia diem tro ve bac them ngay duoi o cua
             bx, by = khupho.bac_them(w['x'], w['y'])
             for wo in dd['warps']:
-                if wo.get('to') in (khupho.SLUG, khudancu.SLUG, 'khu_dan_cu'):
+                if wo.get('to') == khupho.SLUG:
                     wo['to'] = khupho.SLUG
                     wo['tx'], wo['ty'] = bx, by
             n_cua += 1

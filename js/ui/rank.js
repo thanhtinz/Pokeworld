@@ -8,7 +8,7 @@ import { netStatusCard, statusCardHtml, needServerHtml } from './netkit.js';
 import { show } from '../main.js';
 
 const METRICS = [['money', 'Tiền'], ['badges', 'Huy hiệu'], ['dex', 'Tuxedex'],
-  ['cauca', 'Câu cá'], ['nongtrai', 'Nông trại']];
+  ['cauca', 'Câu cá']];
 let metric = 'money';
 
 export function render(el) {

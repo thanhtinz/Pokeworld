@@ -2,7 +2,7 @@
 //
 // Hai chế độ dùng chung một màn:
 //   tab 'tu'   — tủ đồ: mặc / cởi những món đang có
-//   tab 'tiem' — quầy của cô Thắm trong Khu Dân Cư, CHỈ mở được từ NPC đó
+//   tab 'tiem' — quầy của cô Thắm ngoài Phố Kim Long, CHỈ mở được từ NPC đó
 //
 // Bản trước chỉ liệt kê TÊN món với một cái nút giá, mua rồi mới biết nó ra
 // sao. Nay mỗi món hiện luôn ảnh khoác trên ma-nơ-canh, và bấm vào là MẶC THỬ:
@@ -141,7 +141,7 @@ export function render(el, { tab = 'tu', from = 'menu' } = {}) {
           }).join('')}</div>`
         : `<div class="card empty-note">${tiem
             ? 'Hôm nay cô Thắm chưa dọn hàng ra.'
-            : 'Tủ đang trống. Ghé tiệm quần áo trong Khu Dân Cư mà sắm.'}</div>`}
+            : 'Tủ đang trống. Ghé tiệm quần áo ngoài Phố Kim Long mà sắm.'}</div>`}
     `;
 
     el.querySelectorAll('[data-loc]').forEach(b => b.addEventListener('click', () => {

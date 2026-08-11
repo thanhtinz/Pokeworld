@@ -11,8 +11,6 @@ import {
 import { guildRouter, guildOf } from './guild.js';
 import { onlineList } from './hub.js';
 import { chatRouter } from './chat.js';
-import { homeRouter } from './homes.js';
-import { farmRouter } from './farms.js';
 import { giftRouter } from './gifts.js';
 import { bossRouter, datHookDanhBoss } from './boss.js';
 import { ghiCong } from './guildquest.js';
@@ -29,8 +27,6 @@ export const router = express.Router();
 router.use('/guild', guildRouter);
 router.use('/chat', chatRouter);
 // Thăm nhà bạn + tường nhà
-router.use('/home', homeRouter);
-router.use('/farm', farmRouter);
 // Quà tặng + điểm thân mật
 router.use('/gift', giftRouter);
 // Boss thế giới + boss từng khu. Đánh xong thì ghi công vào nhiệm vụ tuần của
@@ -88,9 +84,6 @@ const METRICS = {
   money: u => u.save?.money || 0,
   // Điểm câu cá chấm y hệt công thức bên js/engine/cauca.js (xem ca.data.js)
   cauca: u => diemCauCa(u.save),
-  // Uy tín nông trại = tổng điểm mấy đơn dân làng đã giao. Chấm ngay ở đây
-  // được vì nó chỉ là một con số cất sẵn trong bản lưu, không phải tính lại.
-  nongtrai: u => u.save?.nt?.diem || 0,
   dex: u => Object.keys(u.save?.dex?.caught || {}).length,
   badges: u => (u.save?.badges || []).length,
   level: u => Math.max(0, ...(u.save?.party || []).map(m => m.lv || 0)),
@@ -125,18 +118,14 @@ router.get('/profile/:username', (req, res) => {
   });
 });
 
-// Ai đang online mà CHƯA CÓ NHÀ thì ngủ chung ở nhà trọ. Trả về danh sách để
-// bên khách vẽ mỗi người một cái giường trong phòng trọ.
+// Ai đang online cũng ngủ chung ở nhà trọ. Trả về danh sách để bên khách vẽ
+// mỗi người một cái giường trong phòng trọ.
 router.get('/nhatro', authRequired, (req, res) => {
   const ds = [];
   for (const o of onlineList(40)) {
     if (o.userId === req.user.id) continue;
     const u = find('users', x => x.id === o.userId);
     if (!u || u.banned) continue;
-    // Có nhà rồi thì ngủ ở nhà mình, không nằm nhà trọ nữa
-    if (u.save?.estate?.base && !u.save.estate.xongLuc) continue;
-    if (u.save?.estate?.base && u.save.estate.xongLuc
-        && u.save.estate.xongLuc <= Date.now()) continue;
     ds.push({ username: o.username, avatar: o.avatar });
   }
   res.json({ ds });

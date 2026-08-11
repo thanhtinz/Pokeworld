@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Dung BANG DUONG — ban do rieng cua bang hoi.
 
-Cung cach lam nhu tools/khudancu.py: tu dat tung o roi day qua dung duong ong
+Cung cach lam nhu tools/khupho.py: tu dat tung o roi day qua dung duong ong
 atlas cua tools/mktmx.py, khong doc TMX nao.
 
 Ban do chia ba khu, mo dan theo CAP BANG (khach kiem tra truoc khi cho di qua
@@ -50,7 +50,7 @@ KHU = [
 ]
 # O cua noi san chinh voi hai khu tren (x, y) — dung o hang ngan cach y = 11
 CUA = {'san_tap': (7, 11), 'kho_bau': (22, 11)}
-CONG = (14, H - 1)               # cong ra Khu Dan Cu, o canh duoi
+CONG = (14, H - 1)               # cong ve thi tran, o canh duoi
 
 # ==== Ba toa nha cua bang ====
 # (id, ten, x goc trai, y HANG CHAN cua toa nha, ban do trong nha)

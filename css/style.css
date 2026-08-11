@@ -2522,40 +2522,6 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 
-/* ==== Nhà đất (ui/estate.js) ==== */
-.es-note { margin: 0; font-size: .84rem; line-height: 1.6; color: var(--muted); }
-.es-lot, .es-base { display: flex; align-items: center; gap: 12px; }
-.es-lot-mid, .es-base-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.es-lot-mid b, .es-base-mid b { font-size: .9rem; }
-.es-lot-mid small, .es-base-mid small { color: var(--muted); font-size: 0.85rem; }
-.es-base-mid .es-o { color: var(--gold); }
-.es-lot.mine, .es-base.mine { border-color: rgba(240, 180, 41, .5); }
-.es-base-img { width: 74px; height: 60px; object-fit: contain; image-rendering: pixelated; flex: none; }
-.badge-mine { flex: none; font-size: 0.83rem; color: var(--gold);
-  border: 1px solid rgba(240, 180, 41, .5); border-radius: 999px; padding: 3px 9px; }
-
-/* Lưới kê đồ trong nhà */
-.es-room-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
-.es-room-head b { flex: 1; }
-.es-room-head small { color: var(--muted); font-size: 0.83rem; }
-.es-room {
-  display: grid; aspect-ratio: 1; gap: 2px; margin-bottom: 10px;
-  grid-template-columns: repeat(var(--n), 1fr);
-  grid-template-rows: repeat(var(--n), 1fr);
-  background: #2a2036; border: 2px solid #4a3a2a; border-radius: 8px; padding: 4px;
-  background-image: linear-gradient(45deg, rgba(255,255,255,.03) 25%, transparent 25%,
-    transparent 75%, rgba(255,255,255,.03) 75%);
-  background-size: 16px 16px;
-}
-.es-cell { border: 1px dashed rgba(255, 255, 255, .08); border-radius: 3px;
-  background: none; padding: 0; min-height: 0; }
-.es-cell:active { background: rgba(240, 180, 41, .2); }
-/* Đồ nằm ĐÈ lên lưới, không nhận click — click xuyên xuống ô bên dưới để gỡ */
-.es-item { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;
-  pointer-events: none; align-self: end; }
-.es-shop-img { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
-.es-share { display: flex; align-items: center; gap: 7px; font-size: .82rem; }
-
 /* ==== Chế tạo (ui/craft.js) ==== */
 .cf-row.ok { border-color: rgba(240, 180, 41, .4); }
 .cf-head { display: flex; align-items: center; gap: 11px; }
@@ -2571,22 +2537,6 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
   color: var(--muted); }
 .cf-ng-i.du { color: var(--text); }
 .cf-ng-i b { color: var(--gold); }
-
-/* Nút Trang trí + thanh công cụ khi đang kê đồ trong nhà */
-.deco-btn { position: absolute; right: 14px; bottom: calc(150px + env(safe-area-inset-bottom));
-  z-index: 4; padding: 10px 16px; }
-.deco-bar { position: absolute; left: 10px; right: 10px;
-  bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 5;
-  display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center;
-  padding: 10px 12px; border-radius: 14px;
-  background: rgba(10, 6, 22, .92); border: 1px solid var(--line); }
-/* Dòng nhắc nằm hẳn một hàng riêng, không chen với hai nút */
-.deco-bar #deco-note { grid-column: 1 / -1; font-size: .8rem; color: var(--muted); }
-.deco-bar #deco-add { grid-column: 1 / -1; }
-.deco-zoom { display: flex; align-items: center; gap: 6px; }
-.deco-zoom .btn { min-width: 38px; padding: 6px 0; }
-.deco-zoom b { min-width: 46px; text-align: center; font-size: .82rem;
-  font-variant-numeric: tabular-nums; color: var(--gold); }
 
 /* ==== Nhà Xe ==== */
 .gr-row { display: flex; align-items: center; gap: 10px; }
@@ -3134,67 +3084,3 @@ button.bag-slot:active { transform: scale(.93); border-color: var(--accent); }
 @keyframes cau-hong { 0%, 100% { transform: translateX(-50%); }
   25% { transform: translateX(calc(-50% - 8px)); }
   75% { transform: translateX(calc(-50% + 8px)); } }
-
-/* ==== Nông trại: chợ, đơn hàng dân làng, kho nông sản ==== */
-/* Việc đồng áng làm ngay trên bản đồ; màn này chỉ là chợ với bảng đơn. */
-.nt-tab { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px;
-  scrollbar-width: none; }
-.nt-tab::-webkit-scrollbar { display: none; }
-.nt-h3 { margin: 14px 2px 4px; font-size: .92rem; color: var(--muted); }
-.nt-mo { color: var(--muted); font-size: .8rem; line-height: 1.5; margin: 0 2px 8px; }
-.nt-hang { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
-.nt-hang .btn { width: auto; }
-.nt-luoi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.nt-o { display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 10px 8px; text-align: center; }
-.nt-o b { font-size: .88rem; }
-.nt-o small { font-size: .74rem; color: var(--muted); line-height: 1.35; }
-.nt-o .btn { width: auto; margin-top: 4px; }
-.nt-dang { color: var(--gold); }
-/* Ảnh pack vẽ ở ô 16px, phóng bằng nearest chứ để trình duyệt làm mượt thì nhoè */
-.nt-anh img { width: 44px; height: 44px; image-rendering: pixelated;
-  object-fit: contain; }
-/* Sprite con vật là tấm 3 cột x 4 hàng: chỉ lộ khung đứng nhìn thẳng */
-.nt-thu { width: 44px; height: 44px; overflow: hidden; display: block; }
-.nt-thu img { width: 132px; height: 176px; object-fit: none;
-  object-position: 0 0; transform: scale(.33); transform-origin: 0 0; }
-.nt-vat img { width: 64px; height: 48px; }
-.nt-tong { display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; flex-wrap: wrap; font-size: .86rem; }
-.nt-tong small { color: var(--muted); font-size: .76rem; }
-/* Đang cầm món chờ kê — nhắc rõ vì việc kê xảy ra ở màn khác (bản đồ) */
-.nt-cam { display: flex; flex-direction: column; gap: 5px;
-  border-color: var(--gold); }
-.nt-cam span { display: flex; align-items: center; gap: 8px; }
-.nt-cam img { width: 32px; height: 32px; image-rendering: pixelated;
-  object-fit: contain; }
-.nt-cam .btn { width: auto; align-self: flex-start; }
-.nt-don { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
-/* Thẻ Canh Gác: xếp dọc, không thì tên con với cấp với tỉ lệ dính liền một dòng */
-.nt-canh { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.nt-canh-con { display: flex; align-items: center; gap: 10px; }
-.nt-canh-con img { width: 48px; height: 48px; image-rendering: pixelated; }
-.nt-canh-con > span { display: flex; flex-direction: column; }
-.nt-don.du { border-color: var(--gold); }
-.nt-donmon { display: flex; flex-wrap: wrap; gap: 6px; }
-.nt-monnho { display: flex; align-items: center; gap: 4px; font-size: .78rem;
-  color: var(--muted); background: rgba(255, 255, 255, .05);
-  border-radius: 8px; padding: 3px 7px; }
-.nt-monnho.du { color: var(--text); }
-.nt-monnho img { width: 18px; height: 18px; image-rendering: pixelated; }
-.nt-dongia { color: var(--gold); font-size: .84rem; }
-.nt-donnut { display: flex; gap: 6px; }
-.nt-donnut .btn { width: auto; }
-
-/* Địa Điểm: tách "đi nhanh" (bản đồ nối vào lưới đường) khỏi "ghé thăm" */
-.dd-h3 { margin: 12px 2px 6px; font-size: .92rem; color: var(--muted); }
-/* Ảnh máy chế biến là một DẢI khung ngang — ô chọn chỉ lộ khung đầu.
-   Ép hẳn khung ảnh về đúng một ô 16x32 rồi phóng to, giống cách ô chọn con
-   vật cắt ra khung đứng nhìn thẳng. */
-.nt-vat.nt-may { width: 40px; height: 80px; overflow: hidden; display: block; }
-.nt-vat.nt-may img { width: 16px; height: 32px; object-fit: none;
-  object-position: 0 0; transform: scale(2.5); transform-origin: 0 0;
-  image-rendering: pixelated; }
-/* Dòng "đang có việc" trên màn Nông Trại */
-.nt-viec { font-size: .84rem; color: var(--gold); border-color: var(--gold);
-  padding: 8px 12px; margin-bottom: 8px; }

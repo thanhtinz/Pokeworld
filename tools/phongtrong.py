@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Dung PHONG TRONG cho nha nguoi choi va nha tro chung.
+"""Dung PHONG TRONG cho nha tro chung.
 
-Truoc day nha cua nguoi choi muon thang ban do noi that cua Tuxemon
-(flower_house1, candy_center...). Nhung may ban do do VE SAN quay, ke, giuong,
-may moc — nguoi choi ke them do cua minh vao la de len nhau, nhin nhu loi.
+Ban do noi that cua Tuxemon (flower_house1, candy_center...) deu VE SAN quay,
+ke, giuong, may moc — ke them day giuong tro vao la de len nhau, nhin nhu loi.
 
 Tep nay dung han phong RONG: lay dung mau gach nen va mau tuong CUA CHINH BAN
 DO GOC do (nen nhin van dung tong mau quen thuoc), roi ke lai thanh mot can
-phong chu nhat trong khong — bao nhieu do trong nha la do nguoi choi kê.
+phong chu nhat trong khong.
 
 Goi tu tools/mktmx.py, dung chay truc tiep.
 """
@@ -15,10 +14,6 @@ from collections import Counter
 
 # (slug moi, ten tieng Viet, ban do goc muon mau, rong, cao)
 PHONG = [
-    ('nha_go_trong', 'Nhà Gỗ', 'taba_house1', 11, 9),
-    ('nha_khung_trong', 'Nhà Khung Gỗ', 'cotton_misa_house', 14, 11),
-    ('nha_ngoi_trong', 'Nhà Mái Ngói', 'taba_house2', 17, 13),
-    ('nha_da_trong', 'Nhà Đá Hai Tầng', 'mansion', 21, 15),
     ('nha_tro', 'Nhà Trọ Chung', 'wayfarer_inn1', 22, 14),
 ]
 
@@ -54,13 +49,8 @@ def mau_phong(m):
     return nen, pho_bien(0), pho_bien(1)
 
 
-def dung(m_goc, w, h, npcs=None, talks=None, cua_sau=False):
-    """Tra ve dict giong parse_map(): mot can phong chu nhat trong khong.
-
-    `cua_sau` = duc mot o CUA SAU giua buc tuong tren cung. Nong trai la SAN SAU
-    cua nha nguoi choi: buoc ra cua sau la ra thang ngoai ruong. Nha tro chung
-    thi khong co cua nay (khong ai co nong trai sau nha tro).
-    """
+def dung(m_goc, w, h, npcs=None, talks=None):
+    """Tra ve dict giong parse_map(): mot can phong chu nhat trong khong."""
     nen, t_tren, t_duoi = mau_phong(m_goc)
     lop = [0] * (w * h)
     solid = [0] * (w * h)
@@ -75,14 +65,6 @@ def dung(m_goc, w, h, npcs=None, talks=None, cua_sau=False):
                 solid[i] = 1
             else:
                 lop[i] = nen
-    if cua_sau:
-        # Duc thung ca HAI hang tuong: tuong day hai hang, duc moi hang tren thi
-        # dung truoc cua van bi hang duoi chan, khong buoc ra duoc.
-        cx = w // 2
-        for y in (0, 1):
-            i = y * w + cx
-            lop[i] = nen
-            solid[i] = 0
     return {
         'w': w, 'h': h, 'sets': m_goc['sets'], 'layers': [lop], 'above': None,
         'solid': solid, 'water': [0] * (w * h), 'warps': [], 'talks': talks or [],
@@ -97,27 +79,10 @@ def dung(m_goc, w, h, npcs=None, talks=None, cua_sau=False):
 def viet_js():
     dong = [
         '// TuxeWorld H5 | data/phongtrong.js | TỰ SINH TỪ tools/phongtrong.py, đừng sửa tay',
-        '// Phòng trống dựng riêng cho nhà người chơi và nhà trọ chung — không',
-        '// mượn bản đồ nội thất của bản gốc nữa vì mấy bản đồ đó vẽ sẵn đồ đạc,',
-        '// kê thêm đồ của mình vào là đè lên nhau.',
-        '',
-        'export const PHONG_NHA = {',
-    ]
-    for slug, _ten, _goc, _w, _h in PHONG:
-        if slug == 'nha_tro':
-            continue
-        dong.append('  %s: "%s",' % (slug.replace('_trong', ''), slug))
-    dong += [
-        '};',
+        '// Phòng trọ chung dựng riêng chứ không mượn bản đồ nội thất của bản',
+        '// gốc: mấy bản đồ đó vẽ sẵn đồ đạc, kê thêm giường vào là đè lên nhau.',
         '',
         'export const MAP_NHA_TRO = "nha_tro";',
-        '',
-        '// Ô cửa sau của một căn phòng: đục giữa bức tường trên cùng. Bước ra',
-        '// cửa này là ra sân sau — tức là nông trại. Nhà trọ chung không có.',
-        '// Nha rieng KHONG con cua sau: nong trai da tach han khoi can nha, la',
-        '// mot khu rieng mo theo cap Trainer. Giu ham nay tra ve null cho ban lu',
-        '// cu goi vao khong vo.',
-        'export const oCuaSau = () => null;',
         '',
     ]
     with open('js/data/phongtrong.js', 'w', encoding='utf-8') as f:

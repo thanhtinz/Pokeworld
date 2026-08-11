@@ -50,37 +50,6 @@ ROI = {
 # ma ra lien tuc thi day tui trong nua tieng — mot phan ba la vua.
 TI_LE_ROI = 0.34
 
-# ==== Nong san thay cho nguyen lieu cua Tuxemon ====
-# Ban goc chi co mot duong lay nguyen lieu: danh Tuxemon hoang roi cho no roi do
-# (bang ROI o tren). Gio nong trai da trong duoc, nuoi duoc, che bien duoc — nen
-# moi nguyen lieu nau an duoc GAN voi mot mon nong san tuong duong. Trong lua mi
-# la co bot, nuoi ga la co trung, vat sua bo roi danh bo la co bo.
-#
-# Nho the ca 25 cong thuc cu deu voi toi duoc bang duong lam nong, khong phai
-# viet mot bo cong thuc song song rieng cho nong trai — hai bo cong thuc cho
-# cung mot mon la thu nguoi choi khong bao gio doan duoc cai nao dung.
-#
-# Ma ben phai la ma mon trong js/data/nongtrai.js (tools/mknongtrai.py sinh).
-THAY_NONG_SAN = {
-    'meal_dust':        'lua_mi',           # bot lam banh <- lua mi
-    'mistflour_eggs':   'trung_trang',      # trung <- ga mai
-    'moo_bloom':        'sua_bo',           # kem sua <- bo sua
-    'suncrust_butter':  'bo_sua',           # bo <- may danh bo
-    'glowfat':          'pho_mai',          # chat beo <- pho mai
-    'sweetroot':        'cu_cai',           # cu ngot <- cu cai
-    'field_greens':     'xa_lach',          # rau xanh <- xa lach
-    'stonefruit_bulbs': 'khoai_tay',        # cu bot <- khoai tay
-    'zestsap':          'ca_chua',          # nuoc chua <- ca chua
-    'zestroot_wraps':   'ngo',              # vo cuon <- la ngo
-    'root_beast_bark':  'ca_tim',           # thit dai <- ca tim
-    'beastmoss':        'bi_do',            # thit bi <- bi do
-    'flamehorn_shank':  'thit_xong_khoi',   # thit <- thit xong khoi
-    'spice_dust':       'ca_rot',           # bot gia vi <- ca rot
-    'starpepper':       'dau_tay',          # vi chua ngot <- dau tay
-    'crackle_salt':     'trung_nau',        # <- trung nau
-    'sky_feather':      'long_ga_tay',      # long <- ga tay
-}
-
 # Ten tieng Viet cho cach che tao
 CACH = {
     'cooking': 'Nấu ăn',
@@ -166,10 +135,6 @@ def main():
         f.write('// ng  = nguyên liệu cần (mã món -> số lượng)\n')
         f.write('// out = kết quả có thể ra, w là trọng số (cộng lại chưa chắc bằng 1)\n\n')
         f.write('export const CACH_LAM = %s;\n\n' % js(CACH))
-        f.write('// Nông sản thay được cho nguyên liệu nào: trồng lúa mì là có\n')
-        f.write('// bột, nuôi gà là có trứng. Nhờ thế cả bảng công thức đều với\n')
-        f.write('// tới được bằng đường làm nông chứ không chỉ bằng đánh Tuxemon.\n')
-        f.write('export const THAY_NONG_SAN = %s;\n\n' % js(THAY_NONG_SAN))
         f.write('export const RECIPES = [\n')
         for r in rows:
             f.write('  { id: %s, cach: %s, ng: %s, out: %s },\n'
@@ -186,10 +151,6 @@ def main():
     with open('tools/_lieu.json', 'w', encoding='utf-8') as f:
         json.dump({'lieu': sorted(lieu), 'ketqua': sorted(ketqua)}, f,
                   ensure_ascii=False, indent=1)
-
-    la = sorted(set(THAY_NONG_SAN) - lieu)
-    if la:
-        raise SystemExit('THAY_NONG_SAN co ma khong phai nguyen lieu: %s' % ' '.join(la))
 
     viet_drops(lieu)
 

@@ -1,18 +1,16 @@
-// TuxeWorld H5 | engine/inn.js | Nhà trọ chung: chỗ ngủ khi chưa có nhà riêng
+// TuxeWorld H5 | engine/inn.js | Nhà trọ chung: chỗ ngủ của mọi người chơi
 //
-// Mở game lên là nhân vật đang nằm ngủ chứ không đứng giữa đường:
-//   · chưa có nhà  -> tỉnh dậy ở NHÀ TRỌ CHUNG. Chơi một mình thì cả phòng chỉ
-//     có mình; nối máy chủ thì mỗi người online chưa có nhà nằm một giường.
-//   · đã có nhà    -> tỉnh dậy ngay trong nhà mình.
+// Mở game lên là nhân vật đang nằm ngủ ở nhà trọ chứ không đứng giữa đường.
+// Chơi một mình thì cả phòng chỉ có mình; nối máy chủ thì mỗi người online nằm
+// một giường.
 //
 // Phòng trọ là bản đồ trống do tools/phongtrong.py dựng; giường thì vẽ bằng
-// chính sprite nội thất (FURNITURE) nên không phải cắt thêm ảnh nào.
+// sprite nội thất cắt sẵn (js/data/noithat.js) nên không phải cắt thêm ảnh.
 import { MAP_NHA_TRO } from '../data/phongtrong.js';
 import { MAPS } from '../data/maps.js';
 
 export { MAP_NHA_TRO };
 
-const GIUONG = 'giuong_don';     // món dùng làm giường trọ
 const HANG = [3, 9];             // hai dãy giường, y của đầu giường
 const X_DAU = 2;                 // giường đầu tiên ở cột này
 const CACH = 3;                  // hai giường cách nhau mấy cột
@@ -44,8 +42,6 @@ export function choDay() {
   return { x: g.x, y: Math.min(m.h - 2, g.y + 2) };
 }
 
-export const ID_GIUONG = GIUONG;
-
 // Người khác đang ngủ nhờ ở đây — màn bản đồ lấy về từ máy chủ rồi đặt vào đây
 let khach = [];
 export function datKhachTro(ds) {
@@ -58,39 +54,23 @@ export const khachTro = () => khach;
 // bấm vào cửa nào cũng ra nhà của người khác.
 //
 // Quán Rượu Hải Âu Đáng Kính (taba_house4) trong Thị Trấn Taba đóng luôn vai
-// nhà trọ chung: chưa có nhà thì cửa đó dẫn vào phòng trọ, dựng được nhà rồi
-// thì trả lại đúng quán rượu như cũ.
+// nhà trọ chung: cửa quán dẫn thẳng vào phòng trọ.
 const CUA = { map: 'taba_town', x: 25, y: 3, ra: { x: 25, y: 4 } };
 export const CUA_TRO = CUA;
 
-let cuaGoc = null;      // đích ban đầu của cửa quán rượu, để còn trả lại
-
-function congCuaTro() {
-  const m = MAPS[CUA.map];
-  return (m?.warps || []).find(w => w.x === CUA.x && w.y === CUA.y) || null;
-}
-
-/**
- * Bật/tắt việc mượn cửa quán rượu làm cửa nhà trọ.
- * @param {boolean} lamTro true = chưa có nhà, cửa dẫn vào phòng trọ
- */
-export function dongBoCuaTro(lamTro) {
-  const w = congCuaTro();
-  if (!w) return null;
-  if (!cuaGoc) cuaGoc = { to: w.to, tx: w.tx, ty: w.ty };
-  const cho = choDay();
-  const dich = lamTro ? { to: MAP_NHA_TRO, tx: cho.x, ty: cho.y } : cuaGoc;
-  w.to = dich.to;
-  w.tx = dich.tx;
-  w.ty = dich.ty;
-  return w;
-}
-
-// Cắm cổng đi ra cho phòng trọ: bước xuống mép dưới là ra ngay trước cửa quán,
-// đúng chỗ vừa đi vào — quay đầu là thấy cửa để vào lại.
+// Cắm cổng cho CẢ HAI CHIỀU: cửa quán rượu dẫn vào phòng trọ, và bước xuống
+// mép dưới phòng trọ là ra ngay trước cửa quán, đúng chỗ vừa đi vào — quay đầu
+// là thấy cửa để vào lại.
 export function camCongNhaTro() {
   const m = MAPS[MAP_NHA_TRO];
   if (!m) return null;
+  const cho = choDay();
+  const vao = (MAPS[CUA.map]?.warps || []).find(w => w.x === CUA.x && w.y === CUA.y);
+  if (vao && cho) {
+    vao.to = MAP_NHA_TRO;
+    vao.tx = cho.x;
+    vao.ty = cho.y;
+  }
   m.warps = (m.warps || []).filter(w => !w.raTro);
   m.warps.push({ x: Math.floor(m.w / 2), y: m.h - 1, raTro: true,
     to: CUA.map, tx: CUA.ra.x, ty: CUA.ra.y });

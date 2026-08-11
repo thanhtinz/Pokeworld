@@ -2,14 +2,12 @@
 """Dung KHU PHO — pho co bon toa nha cong cong cua thi tran.
 
 Truoc day bon dia diem (Nha Nguyen, Sanh Bang Hoi, Sanh Bac, Den Do Nat) chi
-vao duoc tu Menu, tren ban do khong co cua nao. Ban va dau tien cam cua thang
-vao KHU DAN CU — nhung cho do la DAT O cua nguoi choi, dung nha cong cong len
-day la chiem cho. Nen tach han ra mot khu rieng.
+vao duoc tu Menu, tren ban do khong co cua nao. Gio moi cho mot cua that.
 
 Bo cuc: mot con pho lat da chay ngang, bon toa nha dung mot ben, cong ra o
-canh duoi noi len Khu Dan Cu.
+canh duoi noi thang ve Thi Tran Taba.
 
-Cung cach lam nhu tools/khudancu.py va tools/bangduong.py: tu dat tung o roi
+Cung cach lam nhu tools/bangduong.py: tu dat tung o roi
 day qua dung duong ong atlas cua tools/mktmx.py, khong doc TMX nao.
 
 Goi tu tools/mktmx.py, dung chay truc tiep.
@@ -65,7 +63,7 @@ TOA = [
     ('den_do_nat', 22, 8, 'Đền Đổ Nát', 'go_sang'),
 ]
 PHO = 10                          # hang mat pho chay ngang
-CONG = (13, H - 1)                # cong ra thi tran, o canh duoi
+CONG = (13, H - 1)                # cong ve thi tran, o canh duoi
 
 # ==== Hang quan doc pho ====
 # Khong dung he thong moi: moi quay la mot NPC dung mot o co dinh, mang san
@@ -74,15 +72,11 @@ CONG = (13, H - 1)                # cong ra thi tran, o canh duoi
 # NPC dung de len o do thi facingThing() bat trung NPC chu khong trung quay,
 # bam A chi ra moi cau thoai — y het loi may cai may trong song bai.
 #   (ma, x, y, ten, sprite, man mo ra, tab, loi chao)
-# Ba quay tho moc / tiem qua / tiem quan ao TRUOC dung o Khu Dan Cu. Khu do la
-# DAT O, nhet hang quan vao thi di mua dat cu lan vao cho bua — don het ra day.
 QUAY = [
     ('tap_hoa', 4, 12, 'Chú Tạp Hoá', 'ceo', 'shop', None,
      'Thuốc men, bóng bắt, đồ lặt vặt — thiếu gì tôi cũng có.'),
-    ('lo_ren', 8, 12, 'Bác Thợ Rèn', 'brute', 'craft', None,
-     'Mang nguyên liệu lại đây, tôi rèn cho.'),
-    ('tho_moc', 12, 12, 'Bác Thợ Mộc', 'nurse', 'estate', 'cho',
-     'Bàn ghế giường tủ, thiếu gì tôi cũng có. Ghé xem đi!'),
+    ('nha_bep', 8, 12, 'Bà Chủ Quán', 'homemaker', 'craft', None,
+     'Mang nguyên liệu lại đây, tôi nấu cho.'),
     ('tiem_qua', 16, 12, 'Cô Hoa', 'florist', 'gifts', None,
      'Hoa tươi, sô-cô-la, nhẫn cưới — tặng ai thì người ta quý mình hơn đấy.'),
     ('tiem_ao', 20, 12, 'Cô Thắm', 'barmaid_red', 'wardrobe', 'tiem',
@@ -260,6 +254,12 @@ def dung(root, tsx_cache, load_tsx):
          'lines': ['Ngồi đây cả ngày, ai qua ai lại bà đều biết.'], 'ai': 'stand'},
         {'x': 25, 'y': PHO + 1, 'dir': 'up', 'sprite': 'childactor', 'name': 'Thằng Cu Tí',
          'lines': ['Cháu đang đợi mẹ ra khỏi nhà nguyện!'], 'ai': 'wander'},
+        # Ong Lai Ca: ban can, thu ca, mo so ca. Truoc dung o ho tren nong
+        # trai; nong trai bo roi ma nghe ca thi van cau duoc khap noi, nen ong
+        # ra day ngoi.
+        {'x': 18, 'y': PHO, 'dir': 'down', 'sprite': 'beachcomber',
+         'name': 'Ông Lái Cá', 'ai': 'stand', 'laiCa': True,
+         'lines': ['Câu được con nào cứ mang ra đây, tôi thu hết.']},
     ] + [
         {'x': qx, 'y': qy, 'dir': 'down', 'sprite': sp, 'name': ten,
          'lines': [loi], 'ai': 'stand', 'mo': man,
