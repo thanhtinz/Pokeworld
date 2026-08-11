@@ -1075,11 +1075,6 @@ img[src*='sprites'] { image-rendering: pixelated; }
 .hero-go:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--accent-dark); }
 .hero-go .ui-ico { flex: none; }
 
-.zone-hint {
-  display: block; color: var(--muted); font-size: 0.83rem; line-height: 1.4;
-  margin: 0 2px 10px;
-}
-
 /* Lưới nút hành động: ô vuông có icon, thay cho hai hàng nút chữ xám */
 .act-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
@@ -1103,33 +1098,6 @@ img[src*='sprites'] { image-rendering: pixelated; }
   border: 1px solid var(--line);
   color: var(--gold);
 }
-
-.team-card { display: flex; flex-direction: column; gap: 8px; }
-.team-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.team-head small { color: var(--muted); font-size: 0.81rem; }
-.team-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.team-mon {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 7px 4px;
-  background: rgba(0, 0, 0, .22);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  min-width: 0;
-}
-.team-mon.ko { opacity: .45; }
-.team-sprite { width: 46px; height: 46px; object-fit: contain; image-rendering: pixelated; }
-.team-name {
-  font-size: 0.83rem; max-width: 100%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.team-lv { font-family: var(--pix, monospace); font-size: 0.65rem; color: var(--gold); }
-.team-mon .hpbar { width: 100%; margin-top: 3px; }
-.team-mon .expbar { width: 100%; margin-top: 3px; }
-
 
 /* ==== Cutscene hoi thoai ==== */
 .cutscene-overlay {

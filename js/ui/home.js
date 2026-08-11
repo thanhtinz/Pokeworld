@@ -4,16 +4,14 @@
 // bản đồ thì gặp Tuxemon là do người chơi bước vào bụi cỏ, nên phần tự đánh đã
 // bỏ hẳn. Màn này giờ chỉ còn: đang ở đâu, chương truyện nào, và các nút để đi.
 import { G, save, allFainted, emitQuest } from '../state.js';
-import { monImg } from '../engine/monskin.js';
-import { heal, displayName, maxHp, isFainted } from '../engine/monster.js';
-import { expProgress } from '../engine/exp.js';
+import { heal } from '../engine/monster.js';
 import { currentChapter, needIntro, markIntroSeen, emitStory, zoneLockedBy, storyProgress } from '../engine/story.js';
 import { playDialog } from './dialog.js';
 import { ZONES } from '../data/zones.js';
 import { enterMap } from '../engine/overworld.js';
 import { TRAINERS } from '../data/trainers.js';
-import { esc, fmt, boxIcon, monLocalSrc, monSpriteClass, monUpgradeChain, monFallbackAttr, upgradeImages, tien, tienChu } from '../util.js';
-import { toast, choose, hpBar, itemIcon } from './kit.js';
+import { esc, boxIcon, upgradeImages, tien, tienChu } from '../util.js';
+import { toast, choose, itemIcon } from './kit.js';
 import { uiIcon } from './icons.js';
 import { veCanh } from './scene.js';
 import { show, refresh } from '../main.js';
@@ -47,37 +45,6 @@ export function render(el) {
   const ch = currentChapter();
   const prog = storyProgress();
 
-  // Thẻ tóm tắt đội hình: thay cho khung tự đánh cũ
-  function partyHtml() {
-    const team = G.p.party || [];
-    if (!team.length) {
-      return '<div class="card empty-note">Chưa có Tuxemon nào trong đội.</div>';
-    }
-    const hurt = team.filter(m => !isFainted(m) && m.hpCur < maxHp(m)).length;
-    const down = team.filter(isFainted).length;
-    return `
-      <div class="card team-card">
-        <div class="team-head">
-          <b>Đội hình (${team.length}/6)</b>
-          <small>${down ? `${down} con đã gục` : hurt ? `${hurt} con đang thương` : 'Cả đội khoẻ mạnh'}</small>
-        </div>
-        <div class="team-row">
-          ${team.map(m => {
-            const mx = maxHp(m);
-            const [cur, need] = expProgress(m);
-            return `<div class="team-mon ${isFainted(m) ? 'ko' : ''}">
-              <img class="team-sprite ${monSpriteClass(m)}" src="${monImg(m)}" alt="" onerror="${monFallbackAttr(m)}"
-                   data-up="${monUpgradeChain(m)}">
-              <small class="team-name">${esc(displayName(m))}</small>
-              <small class="team-lv">Lv.${m.lv}</small>
-              ${hpBar(m.hpCur, mx)}
-              <div class="expbar"><div class="expbar-fill" style="width:${Math.min(100, Math.round(cur / Math.max(1, need) * 100))}%"></div></div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>`;
-  }
-
   // Ô hành động: mỗi cái một icon riêng, xếp lưới cho ra dáng màn chính của game
   const oHanhDong = (id, icon, ten, phu) => `
     <button class="act-tile" id="${id}">
@@ -101,18 +68,12 @@ export function render(el) {
       </div>
     </div>
 
-    <small class="zone-hint">${isTown
-      ? 'Thị trấn không có Tuxemon hoang. Ra tuyến đường rồi đi vào bụi cỏ cao để gặp Tuxemon.'
-      : 'Đi bộ vào bụi cỏ cao trên bản đồ để gặp Tuxemon hoang dã.'}</small>
-
     ${ch ? `
     <button class="card story-card" id="btn-story">
       <span class="story-badge">${itemIcon('shaft_badge', '', 18)} ${prog.done}/${prog.total}</span>
       <span class="story-body"><b>${esc(ch.title)}</b><small>${esc(ch.desc)}</small></span>
       ${needIntro() ? '<span class="story-new" title="Mới"></span>' : ''}
     </button>` : (prog.finished ? `<div class="card story-card done"><img src="assets/img/crown.png" class="crown-ico" alt="" onerror="this.style.visibility='hidden'"> Đã phá đảo cốt truyện — tiếp tục hoàn thành Tuxedex!</div>` : '')}
-
-    ${partyHtml()}
 
     <div class="act-grid">
       ${isTown ? oHanhDong('btn-center', 'heal', 'Hồi phục', 'Đội khoẻ lại') : ''}
