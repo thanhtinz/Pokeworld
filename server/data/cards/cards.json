@@ -1,0 +1,243 @@
+{
+  "cards": [
+    {
+      "id": "fire_dragon",
+      "name": "Flame Dragon",
+      "type": "creature",
+      "rarity": "common",
+      "element": "fire",
+      "archetype": "dragon",
+      "cost": 3,
+      "atk": 1200,
+      "def": 900,
+      "hp": 2000,
+      "effects": []
+    },
+    {
+      "id": "water_guardian",
+      "name": "Aqua Guardian",
+      "type": "creature",
+      "rarity": "rare",
+      "element": "water",
+      "archetype": "knight",
+      "cost": 2,
+      "atk": 900,
+      "def": 1100,
+      "hp": 2100,
+      "effects": []
+    },
+    {
+      "id": "ember_blast",
+      "name": "Ember Blast",
+      "type": "spell",
+      "rarity": "common",
+      "element": "fire",
+      "archetype": "mage",
+      "cost": 1,
+      "effects": [
+        { "effectType": "damage", "target": "enemy_life", "amount": 500 }
+      ]
+    },
+    {
+      "id": "smolder_strike",
+      "name": "Smolder Strike",
+      "type": "spell",
+      "rarity": "rare",
+      "element": "fire",
+      "archetype": "fighter",
+      "cost": 2,
+      "effects": [
+        { "effectType": "damage", "target": "enemy_creature", "amount": 700 }
+      ]
+    },
+    {
+      "id": "healing_spark",
+      "name": "Healing Spark",
+      "type": "spell",
+      "rarity": "common",
+      "element": "light",
+      "archetype": "cleric",
+      "cost": 1,
+      "effects": [
+        { "effectType": "heal", "target": "friendly_life", "amount": 400 }
+      ]
+    },
+    {
+      "id": "ember_messenger",
+      "name": "Ember Messenger",
+      "type": "creature",
+      "rarity": "common",
+      "element": "fire",
+      "archetype": "mage",
+      "cost": 2,
+      "atk": 800,
+      "def": 700,
+      "hp": 1600,
+      "effects": []
+    },
+    {
+      "id": "iron_sentinel",
+      "name": "Iron Sentinel",
+      "type": "creature",
+      "rarity": "rare",
+      "element": "earth",
+      "archetype": "knight",
+      "cost": 3,
+      "atk": 950,
+      "def": 1300,
+      "hp": 2400,
+      "effects": []
+    },
+    {
+      "id": "aqua_guardian",
+      "name": "Aqua Guardian II",
+      "type": "creature",
+      "rarity": "common",
+      "element": "water",
+      "archetype": "knight",
+      "cost": 2,
+      "atk": 850,
+      "def": 1050,
+      "hp": 1900,
+      "effects": []
+    },
+    {
+      "id": "storm_razor",
+      "name": "Storm Razor",
+      "type": "creature",
+      "rarity": "rare",
+      "element": "storm",
+      "archetype": "fighter",
+      "cost": 3,
+      "atk": 1400,
+      "def": 800,
+      "hp": 1700,
+      "effects": []
+    },
+    {
+      "id": "shadow_hound",
+      "name": "Shadow Hound",
+      "type": "creature",
+      "rarity": "common",
+      "element": "shadow",
+      "archetype": "beast",
+      "cost": 2,
+      "atk": 900,
+      "def": 650,
+      "hp": 1400,
+      "effects": []
+    },
+    {
+      "id": "light_squire",
+      "name": "Light Squire",
+      "type": "creature",
+      "rarity": "common",
+      "element": "light",
+      "archetype": "knight",
+      "cost": 2,
+      "atk": 700,
+      "def": 900,
+      "hp": 1600,
+      "effects": []
+    },
+    {
+      "id": "frost_wisp",
+      "name": "Frost Wisp",
+      "type": "creature",
+      "rarity": "common",
+      "element": "ice",
+      "archetype": "spirit",
+      "cost": 1,
+      "atk": 400,
+      "def": 450,
+      "hp": 900,
+      "effects": []
+    },
+    {
+      "id": "earth_golem",
+      "name": "Earth Golem",
+      "type": "creature",
+      "rarity": "rare",
+      "element": "earth",
+      "archetype": "beast",
+      "cost": 4,
+      "atk": 1100,
+      "def": 1500,
+      "hp": 3200,
+      "effects": []
+    },
+    {
+      "id": "ember_blast_plus",
+      "name": "Ember Blast+",
+      "type": "spell",
+      "rarity": "rare",
+      "element": "fire",
+      "archetype": "mage",
+      "cost": 2,
+      "effects": [
+        { "effectType": "damage", "target": "enemy_life", "amount": 650 }
+      ]
+    },
+    {
+      "id": "pyre_bolt",
+      "name": "Pyre Bolt",
+      "type": "spell",
+      "rarity": "common",
+      "element": "fire",
+      "archetype": "fighter",
+      "cost": 1,
+      "effects": [
+        { "effectType": "damage", "target": "enemy_creature", "amount": 500 }
+      ]
+    },
+    {
+      "id": "frost_bite",
+      "name": "Frost Bite",
+      "type": "spell",
+      "rarity": "common",
+      "element": "ice",
+      "archetype": "mage",
+      "cost": 1,
+      "effects": [
+        { "effectType": "damage", "target": "enemy_creature", "amount": 350 }
+      ]
+    },
+    {
+      "id": "nova_burst",
+      "name": "Nova Burst",
+      "type": "spell",
+      "rarity": "rare",
+      "element": "light",
+      "archetype": "cleric",
+      "cost": 3,
+      "effects": [
+        { "effectType": "damage", "target": "enemy_life", "amount": 900 }
+      ]
+    },
+    {
+      "id": "healing_wave",
+      "name": "Healing Wave",
+      "type": "spell",
+      "rarity": "rare",
+      "element": "light",
+      "archetype": "cleric",
+      "cost": 2,
+      "effects": [
+        { "effectType": "heal", "target": "friendly_life", "amount": 650 }
+      ]
+    },
+    {
+      "id": "soul_draw",
+      "name": "Soul Draw",
+      "type": "spell",
+      "rarity": "common",
+      "element": "shadow",
+      "archetype": "mage",
+      "cost": 1,
+      "effects": [
+        { "effectType": "draw", "target": "friendly_life", "amount": 2 }
+      ]
+    }
+  ]
+}
+

@@ -1,115 +1,24 @@
-# TuxeWorld — Game bắt sinh vật Online (H5)
+# Tuxemon Battle Card Game (Unity + Server scaffold)
 
-Game **đi bộ bắt sinh vật + cốt truyện** chạy trên trình duyệt, màn hình dọc cho điện thoại, cài được như app (PWA). Toàn bộ sinh vật, chiêu thức, bản đồ và công thức chiến đấu lấy từ [**Tuxemon**](https://github.com/Tuxemon/Tuxemon) — game mã nguồn mở giấy phép GPL-3.0, đồ hoạ CC BY-SA 4.0. Kiến trúc **client tĩnh + server online**: test miễn phí trên GitHub Pages, đem lên VPS là thành game online nhiều người chơi.
+Repo này được dựng lại theo yêu cầu:
+- **Client (Unity)**: chạy Android/iOS, gửi battle actions tới server.
+- **Server**: Node.js/TypeScript, **authoritative** cho toàn bộ combat (SUMMON / PLAY_SPELL / ATTACK / END_TURN / SURRENDER).
 
-**🎮 Bản test (GitHub Pages):** https://thanhtinz.github.io/Pokeworld/
+Trạng thái trận đấu (`BattleState`) được server trả về cho client để UI render.
 
-## Tính năng
-
-### Client (chơi được ngay, offline)
-- 🔑 Tài khoản trên máy: đăng ký/đăng nhập, chọn nhân vật, nhiều hồ sơ 1 máy
-- 📖 **Cốt truyện nhiều chương** — cutscene chân dung nhân vật, hộp thoại, khoá khu vực theo tiến trình
-- 🗺️ **100 bản đồ** dựng từ tệp `.tmx` gốc của Tuxemon (đi theo đúng chiến dịch Spyder): 369 NPC có AI theo `WanderBehavior` của bản gốc (đứng canh, đi tuần, dạo quanh, bong bóng cảm xúc), 383 cổng dịch chuyển, đồ rơi nhặt được dưới đất, 23 bảng gặp lấy thẳng từ bản gốc + 14 vùng bắt, tổng 137 loài bắt được ngoài thiên nhiên, NPC đổi Tuxemon
-- 🎒 Túi đồ dạng ô với **143 vật phẩm** của bản gốc: 25 loại Tuxeball (theo hệ, giới tính, giờ giấc, đỏ đen...), thuốc, đá tiến hoá, món ăn đổi thân thiết, trà cho EXP, 14 đĩa chiêu + 5 đĩa hệ dạy chiêu mới, 13 quả đổi hệ, 8 bùa hộ mệnh chặn trạng thái, Máy Truyền EXP chia cho cả đội
-- ⚔️ Chiến đấu **đúng công thức bản gốc**: 13 hệ, 6 chỉ số (HP/Giáp/Né/Cận chiến/Tầm xa/Tốc), IV 0–15, TP thay EV, khẩu vị thay tính cách, tầm đánh melee/touch/ranged/reach/reliable, hồi chiêu (recharge) thay PP, tốc độ chiêu quyết định thứ tự ra đòn, 33 trạng thái (có loại nối máu hai bên, có loại bào máu cả lúc đi bộ), bệnh dịch lây qua chiêu, AI chấm điểm chiêu và biết uống thuốc
-- 🎣 **Câu cá**: đứng quay mặt ra mặt nước rồi thả câu — 3 loại cần theo `mods/fishing.yaml`, cần càng xịn thì tỉ lệ cắn càng cao, cá càng to, càng bền, và chỉ cần xịn nhất mới câu được thuỷ quái. Cần mòn dần theo số lần thả, hết là gãy. Kèm bình xịt xua đuổi, chìa khoá thoát hiểm về chỗ nghỉ, lều trại hồi cả đội
-- ⚪ Bắt sinh vật theo công thức rung của bản gốc; **Tuxedex 411 loài** có ghi chép, nơi sống, đặc điểm, tìm và lọc theo hệ; **cửa hàng riêng cho từng thị trấn** (giá + hàng lấy thẳng từ `db/economy`, có món số lượng có hạn), nhiệm vụ, điểm danh chuỗi ngày
-- 🎨 Asset thật của Tuxemon: sprite sinh vật, chân dung NPC, icon giao diện, hiệu ứng chiêu, 40 nền trận đấu (có cảnh đêm), 10 bản nhạc, tiếng động từng chiêu và **tiếng kêu riêng cho từng loài**
-- 🎀 Trang trí: skin nhân vật, danh hiệu, avatar, khung avatar, bong bóng chat, skin sinh vật
-- 🔓 Mở khoá tính năng theo cấp huấn luyện viên
-
-### Server (thư mục `server/` — chạy trên VPS)
-- 🌐 Tài khoản online (bcrypt + JWT), save trên server + validate chống sửa dữ liệu
-- 🏆 Bảng xếp hạng · 👥 Bạn bè · 💍 Kết hôn · 💬 Chat thế giới · ⚔️ **PvP realtime** · 🏰 Bang hội
-- 🛡️ **Admin panel** `/admin`: quản lý người chơi (ban/tặng quà/reset), bật sự kiện x2, audit log
-- 🐳 Docker + docker-compose — deploy VPS 1 lệnh. Chi tiết: [`docs/SERVER.md`](docs/SERVER.md)
-
-## Cấu trúc dự án
-
-```
-index.html, css/, sw.js       # client shell + PWA
-js/data/                      # PURE DATA (tự sinh từ tools/): species, moves, types, maps, encounters...
-js/engine/                    # logic thuần: monster, battle, damage, status, catch, exp, evolution, fishing
-js/ui/                        # màn hình: login, home, world, battle, party, dex, bag, shop, quest, menu
-js/net/                       # lớp kết nối server (REST + socket) — offline nếu chưa cấu hình
-server/                       # backend Node.js: API, socket, PvP, admin panel, Docker
-tools/                        # script Python sinh data + asset TỪ kho Tuxemon (đừng sửa tay tệp sinh ra)
-tests/smoke.mjs               # test data+engine (CI chạy trước deploy)
-```
-
-## Dev
-
+## Run server (MVP)
 ```bash
-python3 -m http.server 8000     # chạy client: http://localhost:8000
-node tests/smoke.mjs            # test client (data + engine)
-cd server && npm i && npm start # chạy server local
-node server/test/smoke.mjs      # test server (API + socket + PvP)
+cd server
+npm i
+npm run dev
 ```
 
-Sinh lại data/asset từ kho gốc:
-
+## Smoke test server logic
 ```bash
-git clone https://github.com/Tuxemon/Tuxemon /tmp/Tuxemon
-python3 tools/mktuxemon.py /tmp/Tuxemon    # loài, chiêu, hệ, trạng thái, tiến hoá
-python3 tools/mktmx.py /tmp/Tuxemon        # bản đồ, NPC, cổng, bảng gặp, mặt nước
-                                           # (kéo theo tools/khupho.py và
-                                           #  tools/bangduong.py + phongtrong.py:
-                                           #  dựng Phố Kim Long, Bang Đường và
-                                           #  ba gian trong nhà bang)
-                                           # Truyền thêm đường dẫn thứ hai để
-                                           # nạp các pack CraftPix thành địa
-                                           # điểm mới (tools/craftpix.py):
-                                           #   python3 tools/mktmx.py /tmp/Tuxemon /tmp/craftpix
-                                           # Giải nén 3 pack miễn phí bên
-                                           # craftpix.net/freebies vào
-                                           #   /tmp/craftpix/{chapel,guild,temple}/
-                                           # Tileset casino của Jephed thì để ở
-                                           #   /tmp/craftpix/casino/
-                                           # Bộ nhân vật của Jephed để ở
-                                           #   /tmp/craftpix/nhanvat/
-                                           # (tools/casino.py xếp tay Sảnh Bạc
-                                           #  và cắt sprite người trong sảnh)
-                                           # Thiếu thư mục đó thì bỏ qua mấy
-                                           # địa điểm này, phần còn lại vẫn dựng
-                                           # bình thường. CHỈ atlas đã nướng
-                                           # vào kho, không chép tệp gốc của
-                                           # pack — xem CREDITS.md.
-python3 tools/mkui.py /tmp/Tuxemon         # icon giao diện
-python3 tools/mksounds.py /tmp/Tuxemon     # nhạc nền + tiếng chiêu
-python3 tools/mkvfx.py /tmp/Tuxemon        # hiệu ứng chiêu
-python3 tools/mkitems.py /tmp/Tuxemon      # vật phẩm + hệ số Tuxeball + cấu hình câu cá
-python3 tools/mkfood.py                    # icon 47 món ăn / nguyên liệu (tự vẽ)
-                                           # PHẢI chạy SAU mkitems.py: mkitems.py
-                                           # xoá sạch assets/items trước khi chép,
-                                           # và bản gốc để cả 47 món dùng chung
-                                           # một cái hộp gỗ
-python3 tools/mkarena.py /tmp/Tuxemon      # nền trận đấu theo môi trường
-python3 tools/mkworld.py /tmp/Tuxemon      # khu vực, bảng gặp, huấn luyện viên
-python3 tools/mknoithat.py /tmp/Tuxemon    # sprite ba toà nhà của bang
-python3 tools/mkmounts.py /tmp/Tuxemon     # sprite phương tiện bốn hướng
-python3 tools/mkgifts.py                   # quà tặng (tự vẽ, không cần kho gốc)
-python3 tools/mkboss.py                    # boss thế giới + boss từng khu
-python3 tools/mkmonan.py /tmp/Tuxemon      # bảng món ăn rơi ra từ Tuxemon hoang
-python3 tools/mkicons.py                   # icon giao diện pixel (tự vẽ)
-python3 tools/cozy.py "/tmp/Character v.2" # 416 lớp nhân vật ghép được: 8 nước da,
-                                           # 14 màu mắt, 13 kiểu tóc x 14 màu,
-                                           # râu, 33 món quần áo và phụ kiện.
-                                           # Ô 32x32, thân 20px — đúng cỡ NPC
-                                           # Tuxemon. Nguồn là pack đã mua, xem
-                                           # CREDITS.md
-                                           #   cd /tmp/LPC && git sparse-checkout set sprite
+cd server
+npm test
 ```
 
-Deploy client: push `main` → CI test + tự đồng bộ nhánh `gh-pages` (GitHub Pages).
-Deploy server: xem [`docs/SERVER.md`](docs/SERVER.md).
+## Unity client
+Xem `client-unity/README.md`.
 
-## Lộ trình
-
-- [x] Engine + data theo Tuxemon (chiến đấu, bắt, trạng thái, vật phẩm, tiến hoá, AI), tài khoản local, PWA
-- [x] Bản đồ đi bộ + NPC có AI dựng từ tệp gốc
-- [ ] Server online: BXH, bạn bè, kết hôn, chat, PvP, admin (đang làm)
-- [ ] Nối client ↔ server, màn Online trong game
-- [ ] Mở rộng cốt truyện, shop nâng cao
-- [ ] Gacha skin bằng tiền tệ KIẾM TRONG GAME (không nạp tiền thật)
-
-> ⚠️ Game phi lợi nhuận, không thu phí dưới mọi hình thức. Nguồn gốc và giấy phép của toàn bộ asset ghi trong [`CREDITS.md`](CREDITS.md).
