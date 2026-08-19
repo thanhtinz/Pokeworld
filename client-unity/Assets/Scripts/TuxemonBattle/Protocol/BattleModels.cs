@@ -149,6 +149,12 @@ public class StartPracticeResponse
 }
 
 [Serializable]
+public class CardsResponse
+{
+    public List<CardDefinition> cards;
+}
+
+[Serializable]
 public class SubmitBattleActionRequest
 {
     public string matchId;

@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -17,6 +18,9 @@ public class ApiClient
     public ApiClient(string baseUrl)
     {
         this.baseUrl = baseUrl.TrimEnd('/');
+
+        // Server gửi enum dạng string (ví dụ "A", "B", "creature"), nên phải bật converter
+        jsonOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
     private async Task<TResponse> PostJsonAsync<TRequest, TResponse>(string path, TRequest body)
@@ -45,9 +49,29 @@ public class ApiClient
         return PostJsonAsync<StartPracticeRequest, StartPracticeResponse>("/api/v1/battle/practice/start", req);
     }
 
+    public Task<CardsResponse> GetCardsAsync()
+    {
+        return GetJsonAsync<CardsResponse>("/api/v1/cards");
+    }
+
     public Task<SubmitBattleActionResponse> SubmitActionAsync(SubmitBattleActionRequest req)
     {
         return PostJsonAsync<SubmitBattleActionRequest, SubmitBattleActionResponse>($"/api/v1/battle/{req.matchId}/action", req);
+    }
+
+    private async Task<TResponse> GetJsonAsync<TResponse>(string path)
+    {
+        var url = $"{baseUrl}{path}";
+
+        using var req = UnityWebRequest.Get(url);
+        var op = req.SendWebRequest();
+        while (!op.isDone)
+            await Task.Yield();
+
+        if (req.result != UnityWebRequest.Result.Success)
+            throw new Exception($"GET {path} failed: {req.responseCode} {req.error} {req.downloadHandler.text}");
+
+        return JsonSerializer.Deserialize<TResponse>(req.downloadHandler.text, jsonOptions);
     }
 
     public Task<BattleState> GetBattleStateAsync(string matchId)
