@@ -1,4 +1,28 @@
-tools/__pycache__/
-__pycache__/
-# Ảnh chụp màn hình lúc kiểm giao diện — chỉ để xem tại chỗ, không phải nguồn
-shots/
+node_modules/
+server/node_modules/
+server/dist/
+server/.env
+server/*.log
+
+# Unity
+client-unity/Library/
+client-unity/Logs/
+client-unity/Temp/
+client-unity/Obj/
+client-unity/Build/
+client-unity/Builds/
+client-unity/ProjectSettings/
+client-unity/Assets/AssetStoreTools*
+client-unity/Assets/Standard Assets/
+client-unity/.vs/
+client-unity/*.sln
+client-unity/*.csproj
+
+# OS
+.DS_Store
+
+# Misc
+coverage/
+.cursor/
+*.iml
+/.idea/
